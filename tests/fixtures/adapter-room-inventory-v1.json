@@ -1,0 +1,40 @@
+{
+  "sourceVersion": "inventory-42",
+  "nextCursor": "page-43",
+  "stableIds": {
+    "vendor-chair-7": "obj-import-chair-001"
+  },
+  "mappings": {
+    "vendor-table-2": "obj-table-existing"
+  },
+  "records": [
+    {
+      "externalId": "vendor-table-2",
+      "sourceVersion": "42",
+      "kind": "table",
+      "label": "Banquet table",
+      "capacity": 8,
+      "footprint": {
+        "type": "rectangle",
+        "center": { "x": 6, "y": 5 },
+        "width": 1.8,
+        "height": 0.75,
+        "rotationDegrees": 0
+      }
+    },
+    {
+      "externalId": "vendor-chair-7",
+      "sourceVersion": "41",
+      "kind": "chair",
+      "label": "Stacking chair",
+      "capacity": 1,
+      "footprint": {
+        "type": "rectangle",
+        "center": { "x": 12, "y": 8 },
+        "width": 0.5,
+        "height": 0.5,
+        "rotationDegrees": 0
+      }
+    }
+  ]
+}
