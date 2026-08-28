@@ -1062,6 +1062,126 @@
       "type": "object",
       "properties": {
         "type": {
+          "const": "record_share_link_created"
+        },
+        "shareLinkId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "enum": [
+            "read-only",
+            "reviewer"
+          ]
+        },
+        "proposalId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor": {
+          "const": "human"
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "shareLinkId",
+        "scope",
+        "expiresAt",
+        "actor",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "record_share_link_revoked"
+        },
+        "shareLinkId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reasonCode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "const": "human"
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "shareLinkId",
+        "actor",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
           "const": "switch_branch"
         },
         "branchId": {
