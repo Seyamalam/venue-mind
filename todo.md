@@ -733,16 +733,16 @@ Completion gate:
 
 ## 6.5 Sharing and notifications
 
-- [ ] Add read-only share links with expiration and revocation.
-- [ ] Add reviewer share links scoped to one Proposal.
-- [ ] Add optional email or in-product notifications for review requested, Adjustment requested, Approval completed, and conflict detected.
-- [ ] Add per-user notification preferences.
-- [ ] Avoid including sensitive geometry or event details in notification bodies.
-- [ ] Record share-link creation and revocation in the ledger.
+- [x] Add read-only share links with expiration and revocation.
+- [x] Add reviewer share links scoped to one Proposal.
+- [x] Add optional email or in-product notifications for review requested, Adjustment requested, Approval completed, and conflict detected.
+- [x] Add per-user notification preferences.
+- [x] Avoid including sensitive geometry or event details in notification bodies.
+- [x] Record share-link creation and revocation in the ledger.
 
 Completion gate:
 
-- [ ] A revoked share link loses access immediately and leaves a complete audit trail.
+- [x] A revoked share link loses access immediately and leaves a complete audit trail.
 
 ---
 
