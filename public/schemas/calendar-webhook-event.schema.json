@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/calendar-webhook-event.schema.json",
+  "title": "VenueMind Calendar Webhook Event",
+  "type": "object",
+  "required": [
+    "sourceSystem",
+    "id",
+    "type",
+    "occurredAt",
+    "event"
+  ],
+  "properties": {
+    "sourceSystem": {
+      "type": "string",
+      "minLength": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "type": {
+      "enum": [
+        "event.created",
+        "event.updated",
+        "event.cancelled",
+        "event.deleted"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+    },
+    "event": {
+      "type": "object",
+      "required": [
+        "externalId",
+        "sourceVersion",
+        "title",
+        "startAt",
+        "endAt",
+        "timezone",
+        "location",
+        "attendanceTarget",
+        "organizer"
+      ],
+      "properties": {
+        "externalId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "startAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?(?:Z|[+-]\\d{2}:\\d{2})$"
+        },
+        "endAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?(?:Z|[+-]\\d{2}:\\d{2})$"
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1
+        },
+        "location": {
+          "type": "object",
+          "required": [
+            "label"
+          ],
+          "properties": {
+            "label": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "attendanceTarget": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "organizer": {
+          "type": "object",
+          "required": [
+            "displayName",
+            "organization",
+            "role"
+          ],
+          "properties": {
+            "displayName": {
+              "type": "string",
+              "minLength": 1
+            },
+            "organization": {
+              "type": "string",
+              "minLength": 1
+            },
+            "role": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1358,6 +1358,7 @@ Every stable VenueMind error code, user-safe message, and actionable remediation
 | PROPOSAL_NOT_REVIEWABLE | Only a Proposal under review can be changed. | Create or activate a Proposal with review status before changing it. |
 | PROPOSAL_MISMATCH | Proposal ID does not match the active Proposal. | Inspect the active Proposal and retry with its stable ID. |
 | PROPOSAL_EMPTY | Proposal contains no executable Changes. | Keep accepted truth unchanged; create a Proposal only after at least one planning Change exists. |
+| PLANNING_EFFECT_INVALID | Persisted Planning Effect is invalid. | Restore a snapshot whose active and historical Proposal Changes conform to the published Planning Effect schema. |
 | BRANCH_NAME_REQUIRED | Proposal Branch name is required. | Provide a non-empty Branch name. |
 | BRANCH_NOT_FOUND | Proposal Branch not found. | List Proposal Branches and retry with an existing stable Branch ID. |
 | REBASE_CONFLICT | Unresolved Proposal conflicts block rebase. | Resolve blocking conflicts, then retry the rebase. |
@@ -7277,6 +7278,8 @@ JSON Schemas are generated from the runtime contract source during every product
 - [Venue Template catalog](/schemas/venue-template-catalog.schema.json)
 - [Template catalog example](/examples/venue-template-catalog.json)
 - [Event Brief](/schemas/event-brief.schema.json)
+- [Planning Effect](/schemas/planning-effect.schema.json)
+- [Calendar webhook event](/schemas/calendar-webhook-event.schema.json)
 - [Comment anchor](/schemas/comment-anchor.schema.json)
 - [Comment](/schemas/comment.schema.json)
 - [Scenario definition](/schemas/scenario-definition.schema.json)

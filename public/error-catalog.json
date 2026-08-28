@@ -44,6 +44,11 @@
     "message": "Proposal contains no executable Changes.",
     "remediation": "Keep accepted truth unchanged; create a Proposal only after at least one planning Change exists."
   },
+  "PLANNING_EFFECT_INVALID": {
+    "code": "PLANNING_EFFECT_INVALID",
+    "message": "Persisted Planning Effect is invalid.",
+    "remediation": "Restore a snapshot whose active and historical Proposal Changes conform to the published Planning Effect schema."
+  },
   "BRANCH_NAME_REQUIRED": {
     "code": "BRANCH_NAME_REQUIRED",
     "message": "Proposal Branch name is required.",

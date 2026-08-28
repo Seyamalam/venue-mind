@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   eventBriefSchema,
+  planningEffectSchema,
+  calendarWebhookEventSchema,
   plannerSnapshotSchema,
   validationResultSchema,
   venueCommandSchema,
@@ -129,6 +131,13 @@ test("published Validation schema exactly covers every runtime top-level field",
   assert.equal(validationResultSchema.additionalProperties, false);
   assert.deepEqual(Object.keys(validation.evidenceFamilyFingerprints).sort(), validationResultSchema.properties.evidenceFamilyFingerprints.required.slice().sort());
   assert.deepEqual(validation.planningEvidenceInvalidations, { affectedConstraintIds: [], evidenceFamilies: [] });
+});
+
+test("published Planning Effect and calendar webhook contracts are closed and exact", () => {
+  assert.deepEqual(planningEffectSchema.oneOf.map((variant) => variant.properties.operation.const), ["set_attendance_target", "set_event_schedule"]);
+  assert.equal(planningEffectSchema.oneOf.every((variant) => variant.additionalProperties === false), true);
+  assert.deepEqual(calendarWebhookEventSchema.properties.type.enum, ["event.created", "event.updated", "event.cancelled", "event.deleted"]);
+  assert.equal(calendarWebhookEventSchema.additionalProperties, false);
 });
 
 test("constraint and version references are bound to runtime constants", () => {

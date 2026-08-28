@@ -83,6 +83,8 @@ test("generated agent contracts include spatial and validation schemas", async (
   const conflicts = JSON.parse(await readFile(publicFile("schemas/proposal-conflicts.schema.json"), "utf8"));
   const comparison = JSON.parse(await readFile(publicFile("schemas/proposal-comparison.schema.json"), "utf8"));
   const brief = JSON.parse(await readFile(publicFile("schemas/event-brief.schema.json"), "utf8"));
+  const planningEffect = JSON.parse(await readFile(publicFile("schemas/planning-effect.schema.json"), "utf8"));
+  const calendarWebhook = JSON.parse(await readFile(publicFile("schemas/calendar-webhook-event.schema.json"), "utf8"));
   const commentAnchor = JSON.parse(await readFile(publicFile("schemas/comment-anchor.schema.json"), "utf8"));
   const comment = JSON.parse(await readFile(publicFile("schemas/comment.schema.json"), "utf8"));
   const scenario = JSON.parse(await readFile(publicFile("schemas/scenario-definition.schema.json"), "utf8"));
@@ -123,6 +125,12 @@ test("generated agent contracts include spatial and validation schemas", async (
   assert.equal(validation.required.includes("unwaivedWarnings"), true);
   assert.equal(validation.required.includes("evidenceFamilyFingerprints"), true);
   assert.equal(validation.required.includes("planningEvidenceInvalidations"), true);
+  assert.deepEqual(planningEffect.oneOf.map((variant) => variant.properties.operation.const), ["set_attendance_target", "set_event_schedule"]);
+  assert.equal(planningEffect.oneOf.every((variant) => variant.additionalProperties === false), true);
+  assert.deepEqual(planningEffect.oneOf[0].properties.evidenceFamilies.prefixItems.map((item) => item.const), ["capacity", "flow"]);
+  assert.deepEqual(calendarWebhook.properties.type.enum, ["event.created", "event.updated", "event.cancelled", "event.deleted"]);
+  assert.equal(calendarWebhook.additionalProperties, false);
+  assert.equal(snapshot.properties.proposal.properties.changes.items.properties.planningEffects.items.$ref, planningEffect.$id);
   assert.equal(brief.required.includes("schedule"), false);
   assert.match(brief.properties.schedule.anyOf[1].properties.startAt.pattern, /T/);
   assert.equal(validation.properties.checks.items.required.includes("waiver"), true);

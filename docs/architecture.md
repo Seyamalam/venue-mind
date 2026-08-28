@@ -98,10 +98,13 @@ sequenceDiagram
 - Adapter import and synchronization translate external records into the canonical Proposal and Change model for exactly one base Plan Version. Every Change carries executable `spatialEffects`, closed-union `planningEffects`, or both; accepted Plan and Event Brief truth still change only through ordinary human Approval.
 - External ID Mappings keep source-system identity distinct from both Inventory Item Template IDs and Project Object Instance IDs, and retain source system, source version, synchronization time, and checksum evidence.
 - Calendar Event Snapshots retain only allowlisted descriptive labels as adapter evidence. Attendance and schedule deltas become typed Requirement Changes; title, location, and organizer labels never enter the Proposal or Activity Ledger.
-- Calendar Planning Changes carry exactly one Project mapping that `loadAdapterProposalForReview` verifies against the planner's server-owned Project binding. Caller-provided Project IDs never select the planner target.
+- Every Project-mapped adapter result, including metadata-only `no-changes` evidence, is verified against an injected server-owned Project context before idempotency persistence. Review loading repeats the check against the planner aggregate.
+- Calendar Planning Effects must match server-owned operation-to-Requirement bindings, Requirement categories, accepted Brief before-values, and Constraint registry IDs. Restore canonicalizes the same closed union across active and retained historical Proposal Branches.
 - An adapter batch with no planning Changes has `no-changes` status and no Proposal; it cannot enter review or advance a Plan Version.
+- Adapter staging checksums cover the executable Proposal, mappings, source records, cursor, and warnings. Batch and Proposal IDs are checksum-derived, and every persisted reload is reverified before use.
 - Event schedule instants use canonical RFC3339 date-times with explicit offsets matching the named IANA timezone, including DST transitions.
 - The processed-batch store is the adapter idempotency boundary. A repeated import returns the original staging result without creating another Proposal; production persistence must implement the same atomic `putIfAbsent` contract.
+- Webhook acceptance requires an injected atomic store keyed by adapter version, source system, and event ID. This survives runtime restarts, closes concurrent delivery races, and keeps equal event IDs from different sources distinct.
 - Adapter capability scopes and scoped secret references are checked independently. Adapter handlers receive secret values only through the secret-store boundary, never through persisted configuration or dead letters.
 
 ## Add a command

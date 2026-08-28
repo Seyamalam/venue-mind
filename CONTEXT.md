@@ -160,6 +160,14 @@ _Avoid_: Shared ID, alias, copied external ID
 A sanitized, checksum-bound external event record retained as adapter evidence; descriptive title, location, and organizer labels are not planning truth.
 _Avoid_: Event Brief, calendar Project, spatial Change
 
+**Planning Effect Binding**:
+The Project-owned allocation that authorizes one adapter planning operation to target one stable Requirement and its exact Constraint set.
+_Avoid_: Caller-provided Requirement ID, adapter hint
+
+**Webhook Delivery Record**:
+The durable checksum-bound receipt for one adapter version, source system, and external event ID; concurrent or restarted delivery resolves against this same identity.
+_Avoid_: Process cache, event-ID-only deduplication
+
 **Event Brief**:
 The structured Project intent and operating requirements that every Proposal must address.
 _Avoid_: Notes, prompt
