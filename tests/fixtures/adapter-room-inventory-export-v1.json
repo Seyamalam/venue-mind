@@ -1,0 +1,9 @@
+{
+  "sourceSystem": "room-inventory-prod",
+  "planId": "plan-main",
+  "planVersion": "3.3",
+  "objects": [
+    { "id": "obj-z", "kind": "chair", "label": "Z" },
+    { "id": "obj-a", "kind": "table", "label": "A" }
+  ]
+}

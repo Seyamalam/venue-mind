@@ -1,6 +1,7 @@
 import {
   AdapterContractError,
   adapterInvocationId,
+  assertIsoTimestamp,
   assertAdapterScope,
   canonicalStringify,
   defineAdapter,
@@ -9,6 +10,7 @@ import {
 } from "./contracts.js";
 import { createScopedSecretReader } from "./secret-store.js";
 import { assertReviewableStagingBatch, createAdapterStagingBatch } from "./staging.js";
+import { createMemoryProcessedBatchStore } from "./processed-batch-store.js";
 
 const clone = (value) => structuredClone(value);
 
@@ -25,14 +27,22 @@ const isPolicyFailure = (error) => error.code.startsWith("ADAPTER_SECRET_")
   || error.code === "ADAPTER_SCOPE_DENIED"
   || error.code === "ADAPTER_ID_BOUNDARY_VIOLATION"
   || error.code === "ADAPTER_REVIEW_BYPASS"
+  || error.code === "ADAPTER_BASE_PLAN_VERSION_REQUIRED"
+  || error.code === "ADAPTER_PROPOSAL_REVISION_REQUIRED"
+  || error.code === "ADAPTER_STAGING_INTEGRITY_FAILED"
+  || error.code === "ADAPTER_ENTITY_TYPE_INVALID"
+  || error.code === "ADAPTER_ENTITY_TYPE_UNSUPPORTED"
+  || error.code === "ADAPTER_PROTECTED_FIELD"
+  || error.code === "ADAPTER_CHECKSUM_INVALID"
   || error.code.startsWith("ADAPTER_CONTRACT_");
 
 const normalizeWebhookEvent = async (definition, value) => {
   if (!value || typeof value !== "object" || Array.isArray(value)) fail("ADAPTER_CONTRACT_INVALID", "Webhook result must be an object");
-  const unknown = Object.keys(value).filter((key) => !["eventId", "eventType", "occurredAt", "sourceVersion", "payload", "checksum"].includes(key));
+  const unknown = Object.keys(value).filter((key) => !["sourceSystem", "eventId", "eventType", "occurredAt", "sourceVersion", "payload", "checksum"].includes(key));
   if (unknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Webhook result contains unknown fields", { fields: unknown.sort() });
-  for (const field of ["eventId", "eventType", "occurredAt", "sourceVersion"]) if (typeof value[field] !== "string" || !value[field]) fail("ADAPTER_CONTRACT_INVALID", `Webhook ${field} is required`);
-  const content = { adapterId: definition.id, adapterVersion: definition.version, eventId: value.eventId, eventType: value.eventType, occurredAt: value.occurredAt, sourceVersion: value.sourceVersion, payload: clone(value.payload) };
+  for (const field of ["sourceSystem", "eventId", "eventType", "occurredAt", "sourceVersion"]) if (typeof value[field] !== "string" || !value[field]) fail("ADAPTER_CONTRACT_INVALID", `Webhook ${field} is required`);
+  assertIsoTimestamp(value.occurredAt, "Webhook occurredAt");
+  const content = { adapterId: definition.id, adapterVersion: definition.version, sourceSystem: value.sourceSystem, eventId: value.eventId, eventType: value.eventType, occurredAt: value.occurredAt, sourceVersion: value.sourceVersion, payload: clone(value.payload) };
   const checksum = await sha256Checksum(content);
   if (value.checksum !== undefined && value.checksum !== checksum) fail("ADAPTER_CHECKSUM_MISMATCH", "Webhook checksum does not match normalized content", { eventId: value.eventId });
   return Object.freeze({ schemaVersion: 1, ...content, checksum });
@@ -40,10 +50,10 @@ const normalizeWebhookEvent = async (definition, value) => {
 
 const normalizeExport = async (definition, value) => {
   if (!value || typeof value !== "object" || Array.isArray(value)) fail("ADAPTER_CONTRACT_INVALID", "Export result must be an object");
-  const unknown = Object.keys(value).filter((key) => !["mediaType", "sourceVersion", "data", "checksum"].includes(key));
+  const unknown = Object.keys(value).filter((key) => !["sourceSystem", "mediaType", "sourceVersion", "data", "checksum"].includes(key));
   if (unknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Export result contains unknown fields", { fields: unknown.sort() });
-  for (const field of ["mediaType", "sourceVersion"]) if (typeof value[field] !== "string" || !value[field]) fail("ADAPTER_CONTRACT_INVALID", `Export ${field} is required`);
-  const content = { adapterId: definition.id, adapterVersion: definition.version, mediaType: value.mediaType, sourceVersion: value.sourceVersion, data: clone(value.data) };
+  for (const field of ["sourceSystem", "mediaType", "sourceVersion"]) if (typeof value[field] !== "string" || !value[field]) fail("ADAPTER_CONTRACT_INVALID", `Export ${field} is required`);
+  const content = { adapterId: definition.id, adapterVersion: definition.version, sourceSystem: value.sourceSystem, mediaType: value.mediaType, sourceVersion: value.sourceVersion, data: clone(value.data) };
   const checksum = await sha256Checksum(content);
   if (value.checksum !== undefined && value.checksum !== checksum) fail("ADAPTER_CHECKSUM_MISMATCH", "Export checksum does not match normalized content");
   return Object.freeze({ schemaVersion: 1, ...content, checksum });
@@ -62,7 +72,7 @@ export function createVenueAdapter(definitionInput, handlers) {
       if (!definition.capabilities.includes(capability)) fail("ADAPTER_CAPABILITY_UNSUPPORTED", `${definition.id} does not support ${capability}`);
       const output = await handlers[capability](clone(input), context);
       if (capability === "import" || capability === "synchronize") {
-        const staging = await createAdapterStagingBatch(definition, output, { clock: context.clock, basePlanVersion: input?.basePlanVersion });
+        const staging = await createAdapterStagingBatch(definition, output, { basePlanVersion: input?.basePlanVersion, proposalRevision: input?.proposalRevision });
         assertReviewableStagingBatch(staging);
         return staging;
       }
@@ -77,6 +87,7 @@ export function createAdapterRuntime(options = {}) {
   const clock = options.clock ?? (() => Date.now());
   const sleep = options.sleep ?? ((milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
   const deadLetterSink = options.deadLetterSink ?? { async add() {} };
+  const processedBatchStore = options.processedBatchStore ?? createMemoryProcessedBatchStore();
   const requestTimes = new Map();
   const processedWebhooks = new Map();
 
@@ -99,6 +110,12 @@ export function createAdapterRuntime(options = {}) {
       assertAdapterScope(definition, capability, authorization.grantedScopes ?? []);
       const invocationId = adapterInvocationId(definition, capability, input);
       const inputChecksum = await sha256Checksum(input);
+      const stagesProposal = capability === "import" || capability === "synchronize";
+      const processedBatchKey = `${definition.id}@${definition.version}:${capability}:${inputChecksum}`;
+      if (stagesProposal) {
+        const completed = await processedBatchStore.get(processedBatchKey);
+        if (completed) return { status: "duplicate", invocationId, attempts: [], duplicateOf: completed.completedAt, output: clone(completed.output) };
+      }
       const attempts = [];
       const secretReader = createScopedSecretReader(authorization.secretStore, authorization.secretReferences ?? []);
       for (let attempt = 1; attempt <= definition.retryPolicy.maxAttempts; attempt += 1) {
@@ -106,6 +123,11 @@ export function createAdapterRuntime(options = {}) {
         try {
           const output = await adapter.invoke(capability, input, { invocationId, attempt, clock: () => new Date(clock()).toISOString(), secrets: secretReader });
           attempts.push({ attempt, status: "succeeded", at: new Date(clock()).toISOString() });
+          if (stagesProposal) {
+            const completedAt = new Date(clock()).toISOString();
+            const stored = await processedBatchStore.putIfAbsent(processedBatchKey, { invocationId, inputChecksum, completedAt, output });
+            if (!stored.inserted) return { status: "duplicate", invocationId, attempts, duplicateOf: stored.value.completedAt, output: clone(stored.value.output) };
+          }
           return { status: "succeeded", invocationId, attempts, output };
         } catch (cause) {
           const error = asAdapterFailure(cause);

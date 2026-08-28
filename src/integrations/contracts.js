@@ -3,9 +3,11 @@ import { stableFingerprint } from "../domain/activity-ledger.js";
 export const ADAPTER_CONTRACT_VERSION = 1;
 export const ADAPTER_CAPABILITIES = Object.freeze(["import", "export", "synchronize", "webhook"]);
 export const ADAPTER_CHANGE_OPERATIONS = Object.freeze(["create", "update", "delete"]);
+export const VENUE_ENTITY_TYPES = Object.freeze(["inventory-item-template", "project-object-instance"]);
 
 const CAPABILITY_SET = new Set(ADAPTER_CAPABILITIES);
 const CHANGE_OPERATION_SET = new Set(ADAPTER_CHANGE_OPERATIONS);
+const VENUE_ENTITY_TYPE_SET = new Set(VENUE_ENTITY_TYPES);
 const IDENTIFIER = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 const VERSION = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 const SHA256 = /^[0-9a-f]{64}$/;
@@ -36,6 +38,12 @@ const assertExactKeys = (value, allowed, label) => {
 
 const assertString = (value, label) => {
   if (typeof value !== "string" || value.length === 0) fail("ADAPTER_CONTRACT_INVALID", `${label} must be a non-empty string`);
+};
+
+export const assertIsoTimestamp = (value, label = "Timestamp") => {
+  assertString(value, label);
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(value) || Number.isNaN(Date.parse(value))) fail("ADAPTER_CONTRACT_INVALID", `${label} must be an ISO-8601 UTC timestamp`);
+  return value;
 };
 
 export const canonicalStringify = (value) => {
@@ -108,19 +116,20 @@ export function assertAdapterScope(definition, capability, grantedScopes = []) {
 
 export function normalizeExternalReference(input, definition) {
   assertPlainObject(input, "External reference");
-  assertExactKeys(input, ["adapterId", "entityType", "externalId", "sourceVersion", "checksum"], "External reference");
+  assertExactKeys(input, ["adapterId", "sourceSystem", "entityType", "externalId", "sourceVersion", "checksum"], "External reference");
   if (input.adapterId !== definition.id) fail("ADAPTER_SOURCE_MISMATCH", "External reference belongs to another adapter", { expected: definition.id, actual: input.adapterId });
-  for (const field of ["entityType", "externalId", "sourceVersion"]) assertString(input[field], `External reference ${field}`);
+  for (const field of ["sourceSystem", "entityType", "externalId", "sourceVersion"]) assertString(input[field], `External reference ${field}`);
   if (!SHA256.test(input.checksum ?? "")) fail("ADAPTER_CHECKSUM_INVALID", "External reference checksum must be a lowercase SHA-256 digest");
   return Object.freeze(clone(input));
 }
 
 export function normalizeAdapterChange(input, definition) {
   assertPlainObject(input, "Adapter change");
-  assertExactKeys(input, ["id", "operation", "entityType", "venueObjectId", "proposedVenueObjectId", "external", "values", "baseChecksum"], "Adapter change");
+  assertExactKeys(input, ["id", "operation", "venueEntityType", "venueObjectId", "proposedVenueObjectId", "external", "values", "baseChecksum"], "Adapter change");
   assertString(input.id, "Adapter change ID");
   if (!CHANGE_OPERATION_SET.has(input.operation)) fail("ADAPTER_CONTRACT_INVALID", "Adapter change operation is invalid", { operation: input.operation });
-  assertString(input.entityType, "Adapter change entityType");
+  if (!VENUE_ENTITY_TYPE_SET.has(input.venueEntityType)) fail("ADAPTER_ENTITY_TYPE_INVALID", "Adapter change must distinguish an Inventory Item Template from a Project Object Instance", { venueEntityType: input.venueEntityType });
+  if (input.venueEntityType !== "project-object-instance") fail("ADAPTER_ENTITY_TYPE_UNSUPPORTED", "Spatial Proposal staging currently accepts Project Object Instances only", { venueEntityType: input.venueEntityType });
   if (input.operation === "create") {
     if (input.venueObjectId !== undefined) fail("ADAPTER_ID_BOUNDARY_VIOLATION", "Create changes cannot claim an existing VenueMind stable ID");
     assertString(input.proposedVenueObjectId, "Proposed VenueMind stable ID");
@@ -129,7 +138,6 @@ export function normalizeAdapterChange(input, definition) {
     if (input.proposedVenueObjectId !== undefined) fail("ADAPTER_ID_BOUNDARY_VIOLATION", "Only create changes may propose a VenueMind stable ID");
   }
   const external = normalizeExternalReference(input.external, definition);
-  if (external.entityType !== input.entityType) fail("ADAPTER_SOURCE_MISMATCH", "Change and external reference entity types differ");
   const venueStableId = input.operation === "create" ? input.proposedVenueObjectId : input.venueObjectId;
   if (venueStableId === external.externalId) fail("ADAPTER_ID_BOUNDARY_VIOLATION", "External IDs and VenueMind stable IDs must not be conflated", { venueObjectId: venueStableId, externalId: external.externalId });
   if (input.baseChecksum !== undefined && !SHA256.test(input.baseChecksum)) fail("ADAPTER_CHECKSUM_INVALID", "baseChecksum must be a lowercase SHA-256 digest");

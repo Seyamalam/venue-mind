@@ -109,16 +109,16 @@ A versioned reusable definition of one room's architectural boundary, fixed infr
 _Avoid_: Floor-plan copy, room Project
 
 **Inventory Item Template**:
-A reusable specification for a placeable operational object, including physical, power, capacity, cost, and availability metadata.
-_Avoid_: Asset instance, furniture preset
+A reusable specification for a class of placeable operational objects, including physical, power, capacity, cost, and availability metadata. An external inventory record is not an Inventory Item Template unless a template-specific import explicitly creates one.
+_Avoid_: Asset instance, external inventory record, furniture preset
 
 **Template Binding**:
 A pinned reference from a Project or Project Object Instance to one exact template ID and version.
 _Avoid_: Live link, copied template ID
 
 **Project Object Instance**:
-A Project-scoped venue object with its own stable ID, optionally derived from a template object through a Template Binding.
-_Avoid_: Template object, clone
+A Project-scoped venue object with its own stable ID, optionally derived from a template object through a Template Binding. A placement imported into one Project becomes a Project Object Instance, never the external record or its ID.
+_Avoid_: Template object, external inventory record, clone
 
 **Project Override**:
 An explicit field-level divergence on a Project Object Instance that a template update must preserve.
@@ -147,6 +147,14 @@ _Avoid_: Imported Project, upload result
 **Import Commit**:
 The explicit human action that creates a missing Project from a passing Import Preview; it never overwrites an existing Project.
 _Avoid_: Restore, replace
+
+**Adapter Staging Batch**:
+A checksum-bound set of externally sourced Changes for exactly one accepted Plan Version, represented as a normal Proposal awaiting human review.
+_Avoid_: Imported Plan, automatic sync, adapter draft
+
+**External ID Mapping**:
+Auditable correspondence between one source-system entity ID and one distinct VenueMind stable ID, with source version and synchronization evidence.
+_Avoid_: Shared ID, alias, copied external ID
 
 **Event Brief**:
 The structured Project intent and operating requirements that every Proposal must address.

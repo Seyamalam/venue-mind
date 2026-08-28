@@ -1,5 +1,8 @@
 {
+  "sourceSystem": "room-inventory-prod",
   "sourceVersion": "inventory-42",
+  "basePlanVersion": "3.3",
+  "proposalRevision": 2,
   "nextCursor": "page-43",
   "stableIds": {
     "vendor-chair-7": "obj-import-chair-001"
@@ -15,10 +18,10 @@
       "label": "Banquet table",
       "capacity": 8,
       "footprint": {
-        "type": "rectangle",
+        "kind": "rectangle",
         "center": { "x": 6, "y": 5 },
         "width": 1.8,
-        "height": 0.75,
+        "depth": 0.75,
         "rotationDegrees": 0
       }
     },
@@ -29,10 +32,10 @@
       "label": "Stacking chair",
       "capacity": 1,
       "footprint": {
-        "type": "rectangle",
+        "kind": "rectangle",
         "center": { "x": 12, "y": 8 },
         "width": 0.5,
-        "height": 0.5,
+        "depth": 0.5,
         "rotationDegrees": 0
       }
     }

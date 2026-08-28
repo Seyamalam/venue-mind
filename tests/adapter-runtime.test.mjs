@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { AdapterContractError, sha256Checksum } from "../src/integrations/contracts.js";
 import { createAdapterRuntime, createMemoryDeadLetterSink, createVenueAdapter, serializeDeadLetter } from "../src/integrations/runtime.js";
@@ -7,6 +8,7 @@ import { roomInventoryAdapter } from "../src/integrations/adapters/room-inventor
 
 const secretStore = createMemorySecretStore({ "test/token": "secret", "room-inventory/api-token": "test-token" });
 const auth = { grantedScopes: ["records:read"], secretStore, secretReferences: ["test/token"] };
+const webhookFixture = JSON.parse(await readFile(new URL("./fixtures/adapter-room-inventory-webhook-v1.json", import.meta.url), "utf8"));
 
 const definition = (overrides = {}) => ({
   contractVersion: 1,
@@ -20,7 +22,8 @@ const definition = (overrides = {}) => ({
   ...overrides,
 });
 
-const emptyImport = { sourceVersion: "1", syncCursor: null, changes: [], warnings: [] };
+const emptyImport = { sourceSystem: "test-source", sourceVersion: "1", synchronizedAt: "2026-08-28T12:00:00.000Z", syncCursor: null, changes: [], warnings: [] };
+const stagingInput = (input = {}) => ({ basePlanVersion: "1.0", proposalRevision: 2, ...input });
 
 test("retry timing is deterministic, honors Retry-After, and succeeds without dead-lettering", async () => {
   let time = Date.parse("2026-08-28T12:00:00.000Z");
@@ -36,7 +39,7 @@ test("retry timing is deterministic, honors Retry-After, and succeeds without de
   });
   const deadLetters = createMemoryDeadLetterSink();
   const runtime = createAdapterRuntime({ clock: () => time, sleep: async (milliseconds) => { delays.push(milliseconds); time += milliseconds; }, deadLetterSink: deadLetters });
-  const result = await runtime.execute(adapter, "import", { query: "chairs" }, auth);
+  const result = await runtime.execute(adapter, "import", stagingInput({ query: "chairs" }), auth);
 
   assert.equal(result.status, "succeeded");
   assert.deepEqual(delays, [150, 200]);
@@ -54,7 +57,7 @@ test("terminal failures create a deterministic, secret-free dead letter", async 
     },
   });
   const runtime = createAdapterRuntime({ clock: () => time, sleep: async () => {}, deadLetterSink: deadLetters });
-  const input = { customer: "private", token: "must-not-be-stored" };
+  const input = stagingInput({ customer: "private", token: "must-not-be-stored" });
   const result = await runtime.execute(adapter, "import", input, auth);
 
   assert.equal(result.status, "dead-lettered");
@@ -70,9 +73,9 @@ test("rate limits use a deterministic rolling window", async () => {
   const waits = [];
   const adapter = createVenueAdapter(definition({ rateLimit: { requests: 2, windowMs: 1_000 } }), { async import() { return emptyImport; } });
   const runtime = createAdapterRuntime({ clock: () => time, sleep: async (milliseconds) => { waits.push(milliseconds); time += milliseconds; } });
-  await runtime.execute(adapter, "import", { page: 1 }, auth);
-  await runtime.execute(adapter, "import", { page: 2 }, auth);
-  await runtime.execute(adapter, "import", { page: 3 }, auth);
+  await runtime.execute(adapter, "import", stagingInput({ page: 1 }), auth);
+  await runtime.execute(adapter, "import", stagingInput({ page: 2 }), auth);
+  await runtime.execute(adapter, "import", stagingInput({ page: 3 }), auth);
   assert.deepEqual(waits, [1_000]);
   assert.deepEqual(runtime.inspectRateLimit(adapter), [1_000]);
 });
@@ -80,10 +83,13 @@ test("rate limits use a deterministic rolling window", async () => {
 test("webhook delivery is idempotent and altered replay is rejected", async () => {
   const runtime = createAdapterRuntime({ clock: () => Date.parse("2026-08-28T12:00:00.000Z") });
   const webhookAuth = { grantedScopes: ["inventory:webhook"], secretStore, secretReferences: [] };
-  const event = { id: "event-42", type: "inventory.updated", occurredAt: "2026-08-28T11:59:00.000Z", sourceVersion: "42", record: { externalId: "chair-7", quantity: 20 } };
+  const event = structuredClone(webhookFixture);
   const first = await runtime.acceptWebhook(roomInventoryAdapter, event, webhookAuth);
   const duplicate = await runtime.acceptWebhook(roomInventoryAdapter, event, webhookAuth);
   assert.equal(first.status, "succeeded");
+  assert.equal(first.output.sourceSystem, webhookFixture.sourceSystem);
+  assert.equal(first.output.sourceVersion, webhookFixture.sourceVersion);
+  assert.match(first.output.checksum, /^[0-9a-f]{64}$/);
   assert.equal(duplicate.status, "duplicate");
   await assert.rejects(() => runtime.acceptWebhook(roomInventoryAdapter, { ...event, record: { ...event.record, quantity: 19 } }, webhookAuth), (error) => error.code === "ADAPTER_WEBHOOK_REPLAY_MISMATCH");
 });
