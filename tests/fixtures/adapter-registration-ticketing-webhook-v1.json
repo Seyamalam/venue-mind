@@ -1,0 +1,81 @@
+{
+  "id": "aggregate-check-in-1200",
+  "type": "aggregate-check-in.updated",
+  "occurredAt": "2026-08-28T12:00:00.000Z",
+  "sourceSystem": "registration-prod",
+  "sourceVersion": "registration-2026-08-28-1200",
+  "projectId": "project-summit-forward",
+  "planVersion": "3.2",
+  "nextCursor": "registration-page-43",
+  "eventDayMode": true,
+  "projectOccupancy": {
+    "attendeeTarget": 400,
+    "zones": [
+      {
+        "zoneId": "zone-keynote-floor",
+        "minimumCapacity": 390,
+        "maximumCapacity": 410
+      }
+    ]
+  },
+  "ticketClasses": [
+    {
+      "externalId": "general-admission",
+      "ticketedCount": 360,
+      "attendanceForecast": 350,
+      "zoneAllocations": [
+        {
+          "zoneId": "zone-keynote-floor",
+          "ticketedCount": 360,
+          "attendanceForecast": 350
+        }
+      ],
+      "accessRequirementCodes": []
+    },
+    {
+      "externalId": "accessible-admission",
+      "ticketedCount": 40,
+      "attendanceForecast": 38,
+      "zoneAllocations": [
+        {
+          "zoneId": "zone-keynote-floor",
+          "ticketedCount": 40,
+          "attendanceForecast": 38
+        }
+      ],
+      "accessRequirementCodes": [
+        "accessible-seating",
+        "step-free-route"
+      ]
+    }
+  ],
+  "accessibilityRequirements": [
+    {
+      "code": "accessible-seating",
+      "count": 8,
+      "zoneIds": [
+        "zone-keynote-floor"
+      ]
+    },
+    {
+      "code": "step-free-route",
+      "count": 40,
+      "zoneIds": [
+        "zone-keynote-floor"
+      ]
+    }
+  ],
+  "checkIn": {
+    "asOf": "2026-08-28T12:00:00.000Z",
+    "counts": [
+      {
+        "ticketClassId": "general-admission",
+        "count": 180
+      },
+      {
+        "ticketClassId": "accessible-admission",
+        "count": 20
+      }
+    ]
+  }
+}

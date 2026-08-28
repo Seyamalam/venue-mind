@@ -108,8 +108,9 @@ export function createAdapterRuntime(options = {}) {
     async execute(adapter, capability, input, authorization = {}) {
       const { definition } = adapter;
       assertAdapterScope(definition, capability, authorization.grantedScopes ?? []);
-      const invocationId = adapterInvocationId(definition, capability, input);
-      const inputChecksum = await sha256Checksum(input);
+      const preparedInput = typeof adapter.prepareInput === "function" ? await adapter.prepareInput(capability, clone(input)) : clone(input);
+      const invocationId = adapterInvocationId(definition, capability, preparedInput);
+      const inputChecksum = await sha256Checksum(preparedInput);
       const stagesProposal = capability === "import" || capability === "synchronize";
       const processedBatchKey = `${definition.id}@${definition.version}:${capability}:${inputChecksum}`;
       if (stagesProposal) {
@@ -121,7 +122,7 @@ export function createAdapterRuntime(options = {}) {
       for (let attempt = 1; attempt <= definition.retryPolicy.maxAttempts; attempt += 1) {
         await acquireRateLimit(definition);
         try {
-          const output = await adapter.invoke(capability, input, { invocationId, attempt, clock: () => new Date(clock()).toISOString(), secrets: secretReader });
+          const output = await adapter.invoke(capability, preparedInput, { invocationId, attempt, clock: () => new Date(clock()).toISOString(), secrets: secretReader });
           attempts.push({ attempt, status: "succeeded", at: new Date(clock()).toISOString() });
           if (stagesProposal) {
             const completedAt = new Date(clock()).toISOString();
