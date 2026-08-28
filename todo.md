@@ -750,18 +750,18 @@ Completion gate:
 
 ## 7.1 Adapter architecture
 
-- [ ] Define a versioned adapter interface for import, export, synchronization, and webhook events.
-- [ ] Separate external IDs from VenueMind stable IDs.
-- [ ] Store source system, source version, sync timestamp, and checksum.
-- [ ] Make imported changes reviewable before they affect an accepted Plan.
-- [ ] Add per-adapter scopes and secret storage.
-- [ ] Add retry, rate-limit, and dead-letter behavior.
-- [ ] Add adapter contract tests and fixtures.
-- [ ] Publish an example adapter after the interface stabilizes.
+- [x] Define a versioned adapter interface for import, export, synchronization, and webhook events.
+- [x] Separate external IDs from VenueMind stable IDs.
+- [x] Store source system, source version, sync timestamp, and checksum.
+- [x] Make imported changes reviewable before they affect an accepted Plan.
+- [x] Add per-adapter scopes and secret storage.
+- [x] Add retry, rate-limit, and dead-letter behavior.
+- [x] Add adapter contract tests and fixtures.
+- [x] Publish an example adapter after the interface stabilizes.
 
 Completion gate:
 
-- [ ] An adapter can import a change twice without duplicating objects or bypassing Proposal review.
+- [x] An adapter can import a change twice without duplicating objects or bypassing Proposal review.
 
 ## 7.2 Calendar and event platforms
 
