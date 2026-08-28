@@ -1,5 +1,5 @@
 import { fingerprintEventBrief, fingerprintPlan } from "../domain/activity-ledger.js";
-import { normalizePlanningEffect } from "../domain/planning-effects.js";
+import { assertPlanningEffectBinding, normalizePlanningEffect } from "../domain/planning-effects.js";
 import { AdapterContractError, assertIsoTimestamp, normalizeAdapterChange, normalizeExternalReference, normalizeSyncCursor, sha256Checksum } from "./contracts.js";
 
 const clone = (value) => structuredClone(value);
@@ -145,8 +145,11 @@ export async function createAdapterStagingBatch(definition, input, options = {})
     const locationUnknown = Object.keys(descriptive.location ?? {}).filter((key) => key !== "label");
     const organizerUnknown = Object.keys(descriptive.organizer ?? {}).filter((key) => !["displayName", "organization", "role"].includes(key));
     if (locationUnknown.length || organizerUnknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Source record descriptive metadata contains unknown fields", { fields: [...locationUnknown, ...organizerUnknown].sort() });
-    if (typeof descriptive.location?.label !== "string" || !descriptive.location.label || typeof descriptive.organizer?.displayName !== "string" || !descriptive.organizer.displayName) fail("ADAPTER_SOURCE_INVALID", "Source record location and organizer labels are required");
-    for (const value of Object.values(descriptive.organizer)) if (typeof value !== "string" || !value || value.includes("@")) fail("ADAPTER_SOURCE_INVALID", "Organizer metadata must contain labels and no contact PII");
+    if (typeof descriptive.location?.label !== "string" || !descriptive.location.label) fail("ADAPTER_SOURCE_INVALID", "Source record location label is required");
+    for (const field of ["displayName", "organization", "role"]) {
+      const value = descriptive.organizer?.[field];
+      if (typeof value !== "string" || !value || value.includes("@")) fail("ADAPTER_SOURCE_INVALID", "Organizer metadata must contain exact labels and no contact PII", { field });
+    }
     return Object.freeze({ external, synchronizedAt: record.synchronizedAt, descriptive: clone(descriptive) });
   });
   const rawMappingDrafts = input.mappings ?? changes.map((change) => ({ venueEntityType: change.venueEntityType, venueObjectId: change.operation === "create" ? change.proposedVenueObjectId : change.venueObjectId, external: change.external }));
@@ -219,23 +222,14 @@ export function assertAdapterProjectContext(batch, context) {
   if (projectMappings[0].venueObjectId !== context.projectId) fail("ADAPTER_PROJECT_BINDING_MISMATCH", "Adapter Project mapping does not match the server-owned Project context", { expectedProjectId: context.projectId, actualProjectId: projectMappings[0].venueObjectId });
   if (!planningEffects.length) return true;
   if (!context.brief || !Array.isArray(context.brief.requirements) || !Array.isArray(context.constraints) || !context.planningEffectBindings || typeof context.planningEffectBindings !== "object") fail("ADAPTER_PROJECT_BINDING_REQUIRED", "Planning Changes require a trusted Brief, Constraint registry, and Planning Effect bindings");
-  const requirements = new Map(context.brief.requirements.map((requirement) => [requirement.id, requirement]));
-  const constraints = new Map(context.constraints.map((constraint) => [constraint.id, constraint]));
-  const allowedConstraintCategories = { set_attendance_target: new Set(["capacity", "circulation"]), set_event_schedule: new Set([]) };
   for (const effect of planningEffects) {
-    const binding = context.planningEffectBindings[effect.operation];
-    const registeredRequirement = requirements.get(effect.targetRequirementId);
-    if (!binding || binding.targetRequirementId !== effect.targetRequirementId || effect.targetBriefId !== context.brief.id || !registeredRequirement) fail("ADAPTER_PLANNING_BINDING_MISMATCH", "Planning Effect target is not allocated by the server-owned Project context", { operation: effect.operation, targetBriefId: effect.targetBriefId, targetRequirementId: effect.targetRequirementId });
-    if (binding.category !== registeredRequirement.category || effect.requirement.category !== registeredRequirement.category) fail("ADAPTER_PLANNING_BINDING_MISMATCH", "Planning Effect Requirement category does not match the server-owned Requirement registry", { targetRequirementId: effect.targetRequirementId });
-    const expectedConstraintIds = [...new Set(binding.affectedConstraintIds ?? [])].sort();
-    if (JSON.stringify(expectedConstraintIds) !== JSON.stringify(effect.affectedConstraintIds)) fail("ADAPTER_PLANNING_BINDING_MISMATCH", "Planning Effect Constraints do not match the server-owned binding", { targetRequirementId: effect.targetRequirementId });
-    if (JSON.stringify(expectedConstraintIds) !== JSON.stringify(effect.requirement.constraintIds)) fail("ADAPTER_PLANNING_BINDING_MISMATCH", "Planning Effect Requirement Constraints do not match the server-owned binding", { targetRequirementId: effect.targetRequirementId });
+    try {
+      assertPlanningEffectBinding(effect, context);
+    } catch (error) {
+      fail("ADAPTER_PLANNING_BINDING_MISMATCH", "Planning Effect does not match the server-owned Brief, Requirement, and Constraint registry", { operation: effect.operation, targetBriefId: effect.targetBriefId, targetRequirementId: effect.targetRequirementId, cause: error.message });
+    }
     const expectedBefore = effect.operation === "set_attendance_target" ? context.brief.attendeeTarget : context.brief.schedule ?? null;
     if (JSON.stringify(expectedBefore) !== JSON.stringify(effect.before)) fail("ADAPTER_PLANNING_BINDING_MISMATCH", "Planning Effect before value does not match server-owned accepted Brief truth", { operation: effect.operation, targetRequirementId: effect.targetRequirementId });
-    for (const constraintId of effect.affectedConstraintIds) {
-      const constraint = constraints.get(constraintId);
-      if (!constraint || !allowedConstraintCategories[effect.operation]?.has(constraint.category)) fail("ADAPTER_PLANNING_BINDING_MISMATCH", "Planning Effect cites an untrusted or incompatible Constraint", { constraintId, operation: effect.operation });
-    }
   }
   return true;
 }

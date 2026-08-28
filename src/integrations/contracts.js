@@ -1,5 +1,6 @@
 import { stableFingerprint } from "../domain/activity-ledger.js";
 import { normalizePlanningEffect } from "../domain/planning-effects.js";
+import { assertCanonicalUtcTimestamp } from "../domain/timestamps.js";
 
 export const ADAPTER_CONTRACT_VERSION = 1;
 export const ADAPTER_CAPABILITIES = Object.freeze(["import", "export", "synchronize", "webhook"]);
@@ -42,9 +43,11 @@ const assertString = (value, label) => {
 };
 
 export const assertIsoTimestamp = (value, label = "Timestamp") => {
-  assertString(value, label);
-  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(value) || Number.isNaN(Date.parse(value))) fail("ADAPTER_CONTRACT_INVALID", `${label} must be an ISO-8601 UTC timestamp`);
-  return value;
+  try {
+    return assertCanonicalUtcTimestamp(value, label);
+  } catch (error) {
+    fail("ADAPTER_CONTRACT_INVALID", error.message);
+  }
 };
 
 export const canonicalStringify = (value) => {

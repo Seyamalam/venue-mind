@@ -34,6 +34,7 @@ const isPolicyFailure = (error) => error.code.startsWith("ADAPTER_SECRET_")
   || error.code === "ADAPTER_PROJECT_BINDING_MISMATCH"
   || error.code === "ADAPTER_PLANNING_BINDING_MISMATCH"
   || error.code === "ADAPTER_WEBHOOK_STORE_REQUIRED"
+  || error.code === "ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED"
   || error.code === "ADAPTER_ENTITY_TYPE_INVALID"
   || error.code === "ADAPTER_ENTITY_TYPE_UNSUPPORTED"
   || error.code === "ADAPTER_PROTECTED_FIELD"
@@ -49,6 +50,28 @@ const normalizeWebhookEvent = async (definition, value) => {
   const content = { adapterId: definition.id, adapterVersion: definition.version, sourceSystem: value.sourceSystem, eventId: value.eventId, eventType: value.eventType, occurredAt: value.occurredAt, sourceVersion: value.sourceVersion, payload: clone(value.payload) };
   const checksum = await sha256Checksum(content);
   if (value.checksum !== undefined && value.checksum !== checksum) fail("ADAPTER_CHECKSUM_MISMATCH", "Webhook checksum does not match normalized content", { eventId: value.eventId });
+  return Object.freeze({ schemaVersion: 1, ...content, checksum });
+};
+
+const validateStoredWebhookEvent = async (definition, value, expected, inserted) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", "Webhook store returned an invalid row");
+  const allowed = ["schemaVersion", "adapterId", "adapterVersion", "sourceSystem", "eventId", "eventType", "occurredAt", "sourceVersion", "payload", "checksum"];
+  const unknown = Object.keys(value).filter((key) => !allowed.includes(key));
+  if (unknown.length) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", "Webhook store row contains unknown fields", { fields: unknown.sort() });
+  if (value.schemaVersion !== 1 || value.adapterId !== definition.id || value.adapterVersion !== definition.version || value.sourceSystem !== expected.sourceSystem || value.eventId !== expected.eventId) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", "Webhook store row identity does not match its durable key", { adapterId: value.adapterId, adapterVersion: value.adapterVersion, sourceSystem: value.sourceSystem, eventId: value.eventId });
+  for (const field of ["eventType", "occurredAt", "sourceVersion"]) if (typeof value[field] !== "string" || !value[field]) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", `Webhook store ${field} is invalid`);
+  try {
+    assertIsoTimestamp(value.occurredAt, "Webhook store occurredAt");
+  } catch (error) {
+    fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", error.message);
+  }
+  const content = { adapterId: value.adapterId, adapterVersion: value.adapterVersion, sourceSystem: value.sourceSystem, eventId: value.eventId, eventType: value.eventType, occurredAt: value.occurredAt, sourceVersion: value.sourceVersion, payload: clone(value.payload) };
+  const checksum = await sha256Checksum(content);
+  if (value.checksum !== checksum) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", "Webhook store row checksum does not match its normalized content", { eventId: value.eventId, expected: value.checksum, actual: checksum });
+  if (checksum !== expected.checksum) {
+    const code = inserted ? "ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED" : "ADAPTER_WEBHOOK_REPLAY_MISMATCH";
+    fail(code, inserted ? "Webhook store did not persist the accepted event exactly" : "Webhook event ID was replayed with different content", { eventId: value.eventId, sourceSystem: value.sourceSystem });
+  }
   return Object.freeze({ schemaVersion: 1, ...content, checksum });
 };
 
@@ -188,11 +211,11 @@ export function createAdapterRuntime(options = {}) {
       if (result.status !== "succeeded") return result;
       const key = `${adapter.definition.id}@${adapter.definition.version}\u0000${result.output.sourceSystem}\u0000${result.output.eventId}`;
       const stored = await webhookEventStore.putIfAbsent(key, result.output);
+      const storedOutput = await validateStoredWebhookEvent(adapter.definition, stored.value, result.output, stored.inserted);
       if (!stored.inserted) {
-        if (stored.value.checksum !== result.output.checksum) fail("ADAPTER_WEBHOOK_REPLAY_MISMATCH", "Webhook event ID was replayed with different content", { eventId: result.output.eventId, sourceSystem: result.output.sourceSystem });
-        return { ...result, status: "duplicate", output: clone(stored.value) };
+        return { ...result, status: "duplicate", output: clone(storedOutput) };
       }
-      return { ...result, output: clone(stored.value) };
+      return { ...result, output: clone(storedOutput) };
     },
 
     inspectRateLimit(adapter) {

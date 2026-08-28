@@ -46,8 +46,11 @@ const normalizeEvent = (event) => {
   if (!Number.isInteger(event.attendanceTarget) || event.attendanceTarget < 0) fail("Calendar event attendanceTarget must be a non-negative integer");
   assertExact(event.location, ["label"], "Calendar event location");
   assertExact(event.organizer, ["displayName", "organization", "role"], "Calendar event organizer");
-  if (typeof event.location.label !== "string" || !event.location.label || typeof event.organizer.displayName !== "string" || !event.organizer.displayName) fail("Calendar event location and organizer labels are required");
-  for (const [field, value] of Object.entries(event.organizer)) if (typeof value !== "string" || !value || value.includes("@")) fail("Calendar organizer metadata must not contain contact PII", { field });
+  if (typeof event.location.label !== "string" || !event.location.label) fail("Calendar event location label is required");
+  for (const field of ["displayName", "organization", "role"]) {
+    const value = event.organizer[field];
+    if (typeof value !== "string" || !value || value.includes("@")) fail("Calendar organizer metadata must contain exact non-contact labels", { field });
+  }
   return Object.freeze({
     externalId: event.externalId,
     sourceVersion: event.sourceVersion,

@@ -19,6 +19,23 @@ export function duplicateProjectRecord(source, {
   const sourceProposal = clone(source.snapshot.proposal);
   const changeIds = new Map(sourceProposal.changes.map((change, index) => [change.id, `chg-${token}-${String(index + 1).padStart(3, "0")}`]));
   const requirementIds = new Map(sourceBrief.requirements.map((requirement, index) => [requirement.id, `req-${token}-${String(index + 1).padStart(3, "0")}`]));
+  const remapRequirementId = (id) => requirementIds.get(id) ?? id;
+  const briefId = `brief-${token}`;
+  const planningEffectBindings = sourceBrief.planningEffectBindings === undefined ? undefined : Object.fromEntries(Object.entries(sourceBrief.planningEffectBindings).map(([operation, binding]) => [operation, { ...binding, targetRequirementId: remapRequirementId(binding.targetRequirementId) }]));
+  const remapChange = (change) => ({
+    ...change,
+    id: changeIds.get(change.id),
+    ...(Array.isArray(change.targetRequirementIds) ? { targetRequirementIds: change.targetRequirementIds.map(remapRequirementId) } : {}),
+    ...(Array.isArray(change.planningEffects) ? {
+      planningEffects: change.planningEffects.map((effect) => ({
+        ...effect,
+        targetBriefId: briefId,
+        targetRequirementId: remapRequirementId(effect.targetRequirementId),
+        requirement: { ...effect.requirement, id: remapRequirementId(effect.requirement.id) },
+      })),
+    } : {}),
+    lineage: { duplicatedFromChangeId: change.id, duplicatedFromProjectId: source.id },
+  });
   const plan = {
     ...sourcePlan,
     id: `plan-${token}`,
@@ -26,16 +43,17 @@ export function duplicateProjectRecord(source, {
     event: { ...sourcePlan.event, id: `event-${token}`, name: normalizedName },
     brief: {
       ...sourceBrief,
-      id: `brief-${token}`,
+      id: briefId,
       eventName: normalizedName,
       requirements: sourceBrief.requirements.map((requirement) => ({ ...requirement, id: requirementIds.get(requirement.id) })),
+      ...(planningEffectBindings !== undefined ? { planningEffectBindings } : {}),
     },
     proposal: {
       ...sourceProposal,
       id: `proposal-${token}-001`,
       revision: 1,
       goal: sourceProposal.goal,
-      changes: sourceProposal.changes.map((change) => ({ ...change, id: changeIds.get(change.id), lineage: { duplicatedFromChangeId: change.id, duplicatedFromProjectId: source.id } })),
+      changes: sourceProposal.changes.map(remapChange),
     },
   };
   const planner = createVenuePlanner(plan);

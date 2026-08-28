@@ -92,6 +92,18 @@ export function normalizeActivityLedger(entries) {
 export function replayActivityLedger(entries, currentPlan, currentBrief = null) {
   const integrity = verifyActivityLedger(entries);
   if (integrity.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { integrity });
+  const truthFingerprintViolations = entries.flatMap((entry) => {
+    const violations = [];
+    if (entry.details?.acceptedPlan) {
+      const actual = fingerprintPlan(entry.details.acceptedPlan);
+      if (entry.details.planFingerprint !== actual) violations.push({ ledgerEntryId: entry.id, truth: "plan", declared: entry.details.planFingerprint ?? null, actual });
+    }
+    if (entry.details?.acceptedBrief) {
+      const actual = fingerprintEventBrief(entry.details.acceptedBrief);
+      if (entry.details.briefFingerprint !== actual) violations.push({ ledgerEntryId: entry.id, truth: "brief", declared: entry.details.briefFingerprint ?? null, actual });
+    }
+    return violations;
+  });
   const transitions = entries
     .filter((entry) => entry.details?.acceptedPlan)
     .map((entry) => ({
@@ -140,7 +152,7 @@ export function replayActivityLedger(entries, currentPlan, currentBrief = null) 
     }
   }
   return {
-    status: replayedFingerprint === currentFingerprint && (!currentBrief || (replayedBrief && replayedBriefFingerprint === currentBriefFingerprint)) && lockedObjectViolations.length === 0 ? "pass" : "fail",
+    status: replayedFingerprint === currentFingerprint && (!currentBrief || (replayedBrief && replayedBriefFingerprint === currentBriefFingerprint)) && lockedObjectViolations.length === 0 && truthFingerprintViolations.length === 0 ? "pass" : "fail",
     transitions: transitions.map(({ plan: _plan, brief: _brief, ...transition }) => transition),
     currentPlanVersion: currentPlan.version,
     replayedFingerprint,
@@ -150,5 +162,6 @@ export function replayActivityLedger(entries, currentPlan, currentBrief = null) 
     briefTransitions: briefTransitions.map(({ brief: _brief, ...transition }) => transition),
     ledgerHeadHash: integrity.headHash,
     lockedObjectViolations,
+    truthFingerprintViolations,
   };
 }

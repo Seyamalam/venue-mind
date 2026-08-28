@@ -1,4 +1,4 @@
-export const RFC3339_INSTANT_PATTERN_SOURCE = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?(?:Z|[+-]\\d{2}:\\d{2})$";
+export const RFC3339_INSTANT_PATTERN_SOURCE = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?(?:Z|(?!-00:00)[+-]\\d{2}:\\d{2})$";
 
 const RFC3339_INSTANT = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{3}))?(Z|([+-])(\d{2}):(\d{2}))$/;
 
@@ -31,6 +31,7 @@ export function assertRfc3339Instant(value, label = "Schedule instant") {
   const match = RFC3339_INSTANT.exec(value);
   if (!match) fail(label, "must be a canonical RFC3339 date-time with an explicit offset");
   const [, year, month, day, hour, minute, second, , offset] = match;
+  if (offset === "-00:00") fail(label, "must use a known RFC3339 offset");
   const maximumDay = new Date(Date.UTC(Number(year), Number(month), 0)).getUTCDate();
   if (Number(month) < 1 || Number(month) > 12 || Number(day) < 1 || Number(day) > maximumDay || Number(hour) > 23 || Number(minute) > 59 || Number(second) > 59 || offsetMinutes(offset) === null || Number.isNaN(Date.parse(value))) fail(label, "is not a valid RFC3339 instant");
   return value;

@@ -1,5 +1,6 @@
 import { errorCatalog } from "../domain/errors.js";
 import { RFC3339_INSTANT_PATTERN_SOURCE } from "../domain/event-schedule.js";
+import { CANONICAL_UTC_TIMESTAMP_PATTERN_SOURCE } from "../domain/timestamps.js";
 import { CALENDAR_WEBHOOK_EVENT_TYPES } from "../integrations/adapters/calendar-event-adapter.js";
 
 const emptyObject = { type: "object", properties: {}, additionalProperties: false };
@@ -806,6 +807,24 @@ export const eventBriefSchema = {
         { type: "object", required: ["startAt", "endAt", "timezone"], properties: { startAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, endAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, timezone: { type: "string", minLength: 1 } }, additionalProperties: false },
       ],
     },
+    planningEffectBindings: {
+      type: "object",
+      properties: {
+        set_attendance_target: {
+          type: "object",
+          required: ["targetRequirementId", "category", "affectedConstraintIds"],
+          properties: { targetRequirementId: { type: "string", minLength: 1 }, category: { const: "seating" }, affectedConstraintIds: { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", minLength: 1 } } },
+          additionalProperties: false,
+        },
+        set_event_schedule: {
+          type: "object",
+          required: ["targetRequirementId", "category", "affectedConstraintIds"],
+          properties: { targetRequirementId: { type: "string", minLength: 1 }, category: { const: "staffing" }, affectedConstraintIds: { type: "array", maxItems: 0 } },
+          additionalProperties: false,
+        },
+      },
+      additionalProperties: false,
+    },
     requirements: {
       type: "array",
       items: {
@@ -835,7 +854,7 @@ const planningEffectSourceSchema = {
   type: "object",
   required: ["adapterId", "sourceSystem", "entityType", "externalId", "sourceVersion", "checksum", "synchronizedAt"],
   properties: {
-    adapterId: { type: "string", minLength: 1 }, sourceSystem: { type: "string", minLength: 1 }, entityType: { type: "string", minLength: 1 }, externalId: { type: "string", minLength: 1 }, sourceVersion: { type: "string", minLength: 1 }, checksum: { type: "string", pattern: "^[0-9a-f]{64}$" }, synchronizedAt: { type: "string", format: "date-time", pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$" },
+    adapterId: { type: "string", minLength: 1 }, sourceSystem: { type: "string", minLength: 1 }, entityType: { type: "string", minLength: 1 }, externalId: { type: "string", minLength: 1 }, sourceVersion: { type: "string", minLength: 1 }, checksum: { type: "string", pattern: "^[0-9a-f]{64}$" }, synchronizedAt: { type: "string", format: "date-time", pattern: CANONICAL_UTC_TIMESTAMP_PATTERN_SOURCE },
   },
   additionalProperties: false,
 };
@@ -884,12 +903,12 @@ export const calendarWebhookEventSchema = {
   type: "object",
   required: ["sourceSystem", "id", "type", "occurredAt", "event"],
   properties: {
-    sourceSystem: { type: "string", minLength: 1 }, id: { type: "string", minLength: 1 }, type: { enum: CALENDAR_WEBHOOK_EVENT_TYPES }, occurredAt: { type: "string", format: "date-time", pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$" },
+    sourceSystem: { type: "string", minLength: 1 }, id: { type: "string", minLength: 1 }, type: { enum: CALENDAR_WEBHOOK_EVENT_TYPES }, occurredAt: { type: "string", format: "date-time", pattern: CANONICAL_UTC_TIMESTAMP_PATTERN_SOURCE },
     event: {
       type: "object",
       required: ["externalId", "sourceVersion", "title", "startAt", "endAt", "timezone", "location", "attendanceTarget", "organizer"],
       properties: {
-        externalId: { type: "string", minLength: 1 }, sourceVersion: { type: "string", minLength: 1 }, title: { type: "string", minLength: 1 }, startAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, endAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, timezone: { type: "string", minLength: 1 }, location: { type: "object", required: ["label"], properties: { label: { type: "string", minLength: 1 } }, additionalProperties: false }, attendanceTarget: { type: "integer", minimum: 0 }, organizer: { type: "object", required: ["displayName", "organization", "role"], properties: { displayName: { type: "string", minLength: 1 }, organization: { type: "string", minLength: 1 }, role: { type: "string", minLength: 1 } }, additionalProperties: false },
+        externalId: { type: "string", minLength: 1 }, sourceVersion: { type: "string", minLength: 1 }, title: { type: "string", minLength: 1 }, startAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, endAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, timezone: { type: "string", minLength: 1 }, location: { type: "object", required: ["label"], properties: { label: { type: "string", minLength: 1 } }, additionalProperties: false }, attendanceTarget: { type: "integer", minimum: 0 }, organizer: { type: "object", required: ["displayName", "organization", "role"], properties: { displayName: { type: "string", minLength: 1, pattern: "^[^@]+$" }, organization: { type: "string", minLength: 1, pattern: "^[^@]+$" }, role: { type: "string", minLength: 1, pattern: "^[^@]+$" } }, additionalProperties: false },
       },
       additionalProperties: false,
     },

@@ -5,14 +5,17 @@ import { fingerprintEventBrief, fingerprintPlan, replayActivityLedger, sealActiv
 import { normalizeEventBrief } from "../src/domain/event-brief.js";
 import { normalizeEventSchedule } from "../src/domain/event-schedule.js";
 import { normalizePlanningEffect } from "../src/domain/planning-effects.js";
+import { duplicateProjectRecord } from "../src/domain/project-lifecycle.js";
 import { summitForwardPlan } from "../src/domain/summit-forward.js";
 import { createVenuePlanner, validateVenueState } from "../src/domain/venue-planner.js";
+import { calendarWebhookEventSchema, eventBriefSchema, planningEffectSchema } from "../src/contracts/venue-contracts.js";
 import { calendarEventAdapter } from "../src/integrations/adapters/calendar-event-adapter.js";
 import { createAdapterRuntime } from "../src/integrations/runtime.js";
 import { createMemoryProcessedBatchStore } from "../src/integrations/processed-batch-store.js";
 import { createMemorySecretStore } from "../src/integrations/secret-store.js";
 import { assertStagingBatchIntegrity, loadAdapterProposalForReview } from "../src/integrations/staging.js";
 import { createMemoryWebhookEventStore } from "../src/integrations/webhook-event-store.js";
+import { exportProjectPackage, previewProjectImport } from "../src/interchange/venue-package.js";
 
 const readFixture = async (name) => JSON.parse(await readFile(new URL(`./fixtures/${name}`, import.meta.url), "utf8"));
 const attendanceFixture = await readFixture("adapter-calendar-event-attendance-v1.json");
@@ -37,6 +40,7 @@ const planFor = (fixture) => {
   ];
   const ids = new Set(canonicalRequirements.map((requirement) => requirement.id));
   plan.brief.requirements = [...plan.brief.requirements.filter((requirement) => !ids.has(requirement.id)), ...canonicalRequirements];
+  plan.brief.planningEffectBindings = planningEffectBindingsFor(fixture);
   return plan;
 };
 
@@ -48,7 +52,7 @@ const projectContextFor = (fixture) => {
 const runtimeFor = (fixture, options = {}) => createAdapterRuntime({ clock, projectContext: projectContextFor(fixture), ...options });
 
 const plannerFor = (fixture) => {
-  const planner = createVenuePlanner(planFor(fixture), { projectId: fixture.projectId, adapterPlanningBindings: planningEffectBindingsFor(fixture) });
+  const planner = createVenuePlanner(planFor(fixture), { projectId: fixture.projectId });
   const proposal = planner.getSnapshot().proposal;
   planner.execute({ type: "approve_proposal", proposalId: proposal.id, baseVersion: proposal.baseVersion, actor: "human", idempotencyKey: "accept-calendar-test-baseline" });
   return planner;
@@ -125,6 +129,32 @@ test("attendance updates become one canonical reviewable Planning Change and inv
   assert.equal(planner.getSnapshot().brief.attendeeTarget, 400);
   planner.execute({ type: "redo", actor: "human", idempotencyKey: "redo-calendar-attendance" });
   assert.equal(planner.getSnapshot().brief.attendeeTarget, 390);
+});
+
+test("approved calendar truth persists, imports, duplicates, and restores without process-local bindings", async () => {
+  const planner = plannerFor(attendanceFixture);
+  const result = await runtimeFor(attendanceFixture).execute(calendarEventAdapter, "import", structuredClone(attendanceFixture), authorization);
+  await loadAdapterProposalForReview(planner, result.output);
+  const proposal = planner.getSnapshot().proposal;
+  planner.execute({ type: "approve_proposal", proposalId: proposal.id, baseVersion: proposal.baseVersion, actor: "human", idempotencyKey: "approve-durable-calendar-binding" });
+  const persistedSnapshot = JSON.parse(JSON.stringify(planner.getSnapshot()));
+  assert.deepEqual(persistedSnapshot.brief.planningEffectBindings, planningEffectBindingsFor(attendanceFixture));
+
+  const fresh = createVenuePlanner({ ...persistedSnapshot.plan, brief: persistedSnapshot.brief, proposal: persistedSnapshot.proposal }, { projectId: attendanceFixture.projectId });
+  fresh.execute({ type: "restore_snapshot", snapshot: persistedSnapshot });
+  assert.equal(fresh.getSnapshot().brief.attendeeTarget, 390);
+
+  const record = { id: attendanceFixture.projectId, name: "Calendar project", activePlanId: persistedSnapshot.plan.id, schemaVersion: 10, snapshot: persistedSnapshot, createdAt: "2026-08-28T12:00:00.000Z", updatedAt: "2026-08-28T12:00:00.000Z" };
+  const exported = await exportProjectPackage(record, { clock: () => "2026-08-28T12:00:00.000Z" });
+  const imported = await previewProjectImport(exported.content, { clock: () => "2026-08-28T12:01:00.000Z" });
+  assert.deepEqual(imported.record.snapshot.brief.planningEffectBindings, planningEffectBindingsFor(attendanceFixture));
+
+  const duplicate = duplicateProjectRecord(imported.record, { projectId: "project-calendar-copy", name: "Calendar project copy", clock: () => "2026-08-28T12:02:00.000Z" });
+  const duplicateBinding = duplicate.snapshot.brief.planningEffectBindings.set_attendance_target;
+  assert.match(duplicateBinding.targetRequirementId, /^req-calendar-copy-/);
+  const duplicateFresh = createVenuePlanner({ ...duplicate.snapshot.plan, brief: duplicate.snapshot.brief, proposal: duplicate.snapshot.proposal }, { projectId: duplicate.id });
+  duplicateFresh.execute({ type: "restore_snapshot", snapshot: JSON.parse(JSON.stringify(duplicate.snapshot)) });
+  assert.equal(duplicateFresh.execute({ type: "replay_history" }).status, "pass");
 });
 
 test("schedule changes use the typed Planning Effect and preserve the stable Requirement ID", async () => {
@@ -267,6 +297,26 @@ test("restore normalizes active and historical Planning Effects with one stable 
   maliciousRevision.changes[0].planningEffects[0].affectedConstraintIds = ["constraint-sightlines"];
   historySnapshot.branches.find((branch) => branch.id === historySnapshot.activeBranchId).revisions.push(maliciousRevision);
   assert.throws(() => plannerFor(attendanceFixture).execute({ type: "restore_snapshot", snapshot: historySnapshot }), (error) => error.code === "PLANNING_EFFECT_INVALID");
+
+  const requirementAttackPlanner = plannerFor(attendanceFixture);
+  await loadAdapterProposalForReview(requirementAttackPlanner, result.output);
+  const requirementAttack = structuredClone(requirementAttackPlanner.getSnapshot());
+  requirementAttack.proposal.changes[0].planningEffects[0].requirement.constraintIds = ["constraint-sightlines"];
+  requirementAttack.branches.find((branch) => branch.id === requirementAttack.activeBranchId).proposal = structuredClone(requirementAttack.proposal);
+  assert.throws(() => plannerFor(attendanceFixture).execute({ type: "restore_snapshot", snapshot: requirementAttack }), (error) => error.code === "PLANNING_EFFECT_INVALID", "Requirement-side Constraint substitution must fail at restore");
+});
+
+test("replay validates declared accepted truth fingerprints after a ledger is resealed", () => {
+  const source = plannerFor(metadataFixture);
+  const snapshot = structuredClone(source.getSnapshot());
+  const index = snapshot.ledger.findLastIndex((entry) => entry.details?.acceptedBrief);
+  snapshot.ledger[index].details.acceptedBrief.attendeeTarget = 399;
+  snapshot.brief.attendeeTarget = 399;
+  snapshot.ledger = sealActivityLedger(snapshot.ledger);
+  const replay = replayActivityLedger(snapshot.ledger, snapshot.plan, snapshot.brief);
+  assert.equal(replay.status, "fail");
+  assert.deepEqual(replay.truthFingerprintViolations.map((violation) => violation.truth), ["brief"]);
+  assert.throws(() => plannerFor(metadataFixture).execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEDGER_INTEGRITY_FAILED" && error.details.replay.truthFingerprintViolations.length === 1);
 });
 
 test("legacy Event Briefs without schedule remain schema-compatible", () => {
@@ -285,7 +335,7 @@ test("every schedule seam requires canonical RFC3339 offsets and honors DST", as
 
   const validResult = await runtimeFor(attendanceFixture).execute(calendarEventAdapter, "import", structuredClone(attendanceFixture), authorization);
   const validEffect = validResult.output.proposal.changes[0].planningEffects[0];
-  for (const invalidStartAt of ["2026-09-18", "09/18/2026 09:00", "2026-09-18T09:00:00", "2026-09-18T09:00:00+05:00", "2026-02-30T09:00:00+06:00"]) {
+  for (const invalidStartAt of ["2026-09-18", "09/18/2026 09:00", "2026-09-18T09:00:00", "2026-09-18T09:00:00+05:00", "2026-02-30T09:00:00+06:00", "2026-09-18T09:00:00-00:00"]) {
     assert.throws(() => normalizeEventSchedule({ ...attendanceFixture.currentPlanningState.schedule, startAt: invalidStartAt }), /RFC3339|offset|valid/i, invalidStartAt);
     assert.throws(() => normalizeEventBrief({ ...summitForwardPlan.brief, schedule: { ...attendanceFixture.currentPlanningState.schedule, startAt: invalidStartAt } }), /RFC3339|offset|valid/i, invalidStartAt);
     assert.throws(() => normalizePlanningEffect({ ...validEffect, operation: "set_event_schedule", targetRequirementId: "req-calendar-schedule", before: null, after: { ...attendanceFixture.currentPlanningState.schedule, startAt: invalidStartAt }, requirement: { ...validEffect.requirement, id: "req-calendar-schedule", category: "staffing", constraintIds: [] }, affectedConstraintIds: [], evidenceFamilies: ["operations"] }), /Planning Effect invalid/i, invalidStartAt);
@@ -295,6 +345,19 @@ test("every schedule seam requires canonical RFC3339 offsets and honors DST", as
     assert.equal(result.status, "dead-lettered", invalidStartAt);
     assert.equal(result.deadLetter.terminalCode, "ADAPTER_SOURCE_INVALID", invalidStartAt);
   }
+  assert.throws(() => normalizeEventSchedule({ startAt: "2026-09-18T09:00:00-00:00", endAt: "2026-09-18T10:00:00Z", timezone: "UTC" }), /known RFC3339 offset/);
+  assert.equal(new RegExp(eventBriefSchema.properties.schedule.anyOf[1].properties.startAt.pattern).test("2026-09-18T09:00:00-00:00"), false);
+});
+
+test("Planning Effect synchronization evidence uses the canonical UTC contract", async () => {
+  const result = await runtimeFor(attendanceFixture).execute(calendarEventAdapter, "import", structuredClone(attendanceFixture), authorization);
+  const effect = result.output.proposal.changes[0].planningEffects[0];
+  for (const synchronizedAt of ["2026-08-28T18:00:00+06:00", "2026-08-28", "2026-02-30T12:00:00.000Z"]) {
+    assert.throws(() => normalizePlanningEffect({ ...effect, source: { ...effect.source, synchronizedAt } }), /ISO-8601 UTC timestamp/);
+  }
+  const publishedPattern = new RegExp(planningEffectSchema.oneOf[0].properties.source.properties.synchronizedAt.pattern);
+  assert.equal(publishedPattern.test("2026-08-28T18:00:00+06:00"), false);
+  assert.equal(publishedPattern.test("2026-08-28"), false);
 });
 
 test("calendar imports are idempotent and deterministic", async () => {
@@ -337,12 +400,50 @@ test("calendar webhook deduplication survives restart, concurrency, and source c
   assert.match(webhookEventStore.list()[0].key, /^calendar-events@1\.0\.0\u0000calendar-production\u0000webhook-calendar-019$/);
 });
 
+test("webhook acceptance revalidates inserted and duplicate durable rows", async () => {
+  const webhookAuthorization = { grantedScopes: ["calendar:event:webhook"], secretStore, secretReferences: [] };
+  const insertedIdentityStore = {
+    async putIfAbsent(_key, value) {
+      return { inserted: true, value: { ...structuredClone(value), adapterVersion: "9.9.9" } };
+    },
+  };
+  await assert.rejects(() => createAdapterRuntime({ clock, webhookEventStore: insertedIdentityStore }).acceptWebhook(calendarEventAdapter, structuredClone(webhookFixture), webhookAuthorization), (error) => error.code === "ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED");
+
+  const duplicateTamperStore = {
+    async putIfAbsent(_key, value) {
+      return { inserted: false, value: { ...structuredClone(value), payload: { ...structuredClone(value.payload), attendanceTarget: value.payload.attendanceTarget + 1 } } };
+    },
+  };
+  await assert.rejects(() => createAdapterRuntime({ clock, webhookEventStore: duplicateTamperStore }).acceptWebhook(calendarEventAdapter, structuredClone(webhookFixture), webhookAuthorization), (error) => error.code === "ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED");
+});
+
 test("calendar webhooks enforce the exact published event-type enum", async () => {
   const webhookEventStore = createMemoryWebhookEventStore();
   const webhookAuthorization = { grantedScopes: ["calendar:event:webhook"], secretStore, secretReferences: [] };
   const result = await createAdapterRuntime({ clock, webhookEventStore }).acceptWebhook(calendarEventAdapter, { ...structuredClone(webhookFixture), type: "event.owner-promoted" }, webhookAuthorization);
   assert.equal(result.status, "dead-lettered");
   assert.equal(result.deadLetter.terminalCode, "ADAPTER_SOURCE_INVALID");
+});
+
+test("calendar organizer runtime and schema require the same exact non-contact fields", async () => {
+  const organizerSchema = calendarWebhookEventSchema.properties.event.properties.organizer;
+  assert.deepEqual(organizerSchema.required, ["displayName", "organization", "role"]);
+  assert.equal(organizerSchema.additionalProperties, false);
+  for (const field of organizerSchema.required) assert.equal(new RegExp(organizerSchema.properties[field].pattern).test("owner@example.com"), false);
+
+  for (const organizer of [
+    { displayName: "Summit Operations", organization: "Forward Events" },
+    { displayName: "owner@example.com", organization: "Forward Events", role: "Event organizer" },
+  ]) {
+    const input = structuredClone(attendanceFixture);
+    input.event.organizer = organizer;
+    const result = await runtimeFor(attendanceFixture).execute(calendarEventAdapter, "import", input, authorization);
+    assert.equal(result.status, "dead-lettered");
+    assert.equal(result.deadLetter.terminalCode, "ADAPTER_SOURCE_INVALID");
+  }
+  const extra = structuredClone(attendanceFixture);
+  extra.event.organizer.email = "owner@example.com";
+  await assert.rejects(() => runtimeFor(attendanceFixture).execute(calendarEventAdapter, "import", extra, authorization), (error) => error.code === "ADAPTER_CONTRACT_UNKNOWN_FIELD");
 });
 
 test("invalid calendar timezones fail closed", async () => {

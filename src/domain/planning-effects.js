@@ -1,5 +1,6 @@
 import { normalizeEventBrief } from "./event-brief.js";
 import { normalizeEventSchedule } from "./event-schedule.js";
+import { assertCanonicalUtcTimestamp } from "./timestamps.js";
 
 const clone = (value) => structuredClone(value);
 const SHA256 = /^[0-9a-f]{64}$/;
@@ -29,7 +30,11 @@ const normalizeSource = (source) => {
   exactKeys(source, ["adapterId", "sourceSystem", "entityType", "externalId", "sourceVersion", "checksum", "synchronizedAt"], "source evidence");
   for (const field of ["adapterId", "sourceSystem", "entityType", "externalId", "sourceVersion", "synchronizedAt"]) nonEmptyString(source[field], `source ${field}`);
   if (!SHA256.test(source.checksum ?? "")) fail("source checksum must be a lowercase SHA-256 digest");
-  if (Number.isNaN(Date.parse(source.synchronizedAt))) fail("source synchronizedAt must be a timestamp");
+  try {
+    assertCanonicalUtcTimestamp(source.synchronizedAt, "source synchronizedAt");
+  } catch (error) {
+    fail(error.message);
+  }
   return clone(source);
 };
 
@@ -77,6 +82,28 @@ export function normalizePlanningEffect(input) {
     evidenceFamilies,
     source: normalizeSource(input.source),
   });
+}
+
+export function assertPlanningEffectBinding(rawEffect, context) {
+  const effect = normalizePlanningEffect(rawEffect);
+  const brief = context?.brief;
+  const constraints = context?.constraints;
+  const planningEffectBindings = context?.planningEffectBindings ?? brief?.planningEffectBindings;
+  if (!brief || !Array.isArray(brief.requirements) || !Array.isArray(constraints) || !planningEffectBindings || typeof planningEffectBindings !== "object") fail("server-owned Brief, Constraint registry, and Planning Effect bindings are required");
+  const binding = planningEffectBindings[effect.operation];
+  const registeredRequirement = brief.requirements.find((requirement) => requirement.id === effect.targetRequirementId);
+  if (!binding || binding.targetRequirementId !== effect.targetRequirementId || effect.targetBriefId !== brief.id || !registeredRequirement) fail("effect target is not allocated by the server-owned Project context");
+  if (binding.category !== registeredRequirement.category || effect.requirement.category !== registeredRequirement.category) fail("effect Requirement category does not match the server-owned Requirement registry");
+  const expectedConstraintIds = [...new Set(binding.affectedConstraintIds ?? [])].sort();
+  if (JSON.stringify(expectedConstraintIds) !== JSON.stringify(effect.affectedConstraintIds)) fail("effect Constraints do not match the server-owned binding");
+  if (JSON.stringify(expectedConstraintIds) !== JSON.stringify(effect.requirement.constraintIds)) fail("effect Requirement Constraints do not match the server-owned binding");
+  const allowedConstraintCategories = { set_attendance_target: new Set(["capacity", "circulation"]), set_event_schedule: new Set([]) };
+  const constraintRegistry = new Map(constraints.map((constraint) => [constraint.id, constraint]));
+  for (const constraintId of expectedConstraintIds) {
+    const constraint = constraintRegistry.get(constraintId);
+    if (!constraint || !allowedConstraintCategories[effect.operation]?.has(constraint.category)) fail("effect cites an untrusted or incompatible Constraint");
+  }
+  return effect;
 }
 
 export function normalizeProposalPlanningEffects(proposal, path = "proposal") {

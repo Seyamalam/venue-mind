@@ -4,6 +4,31 @@ const clone = (value) => JSON.parse(JSON.stringify(value));
 const PRIORITIES = ["critical", "high", "medium", "low"];
 const STATUSES = ["open", "confirmed", "satisfied", "waived"];
 const OCCUPANCY_MODES = ["theater", "classroom", "banquet", "standing", "mixed", "custom"];
+const PLANNING_EFFECT_BINDING_CATEGORIES = Object.freeze({
+  set_attendance_target: "seating",
+  set_event_schedule: "staffing",
+});
+
+export function normalizePlanningEffectBindings(input, requirements = []) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("Event Brief Planning Effect bindings must be an object");
+  const unknownOperations = Object.keys(input).filter((operation) => !Object.hasOwn(PLANNING_EFFECT_BINDING_CATEGORIES, operation));
+  if (unknownOperations.length) throw new Error(`Event Brief Planning Effect bindings contain unknown operations: ${unknownOperations.sort().join(", ")}`);
+  const requirementRegistry = new Map(requirements.map((requirement) => [requirement.id, requirement]));
+  return Object.fromEntries(Object.entries(input).sort(([left], [right]) => left.localeCompare(right)).map(([operation, binding]) => {
+    if (!binding || typeof binding !== "object" || Array.isArray(binding)) throw new Error(`Planning Effect binding ${operation} must be an object`);
+    const unknown = Object.keys(binding).filter((key) => !["targetRequirementId", "category", "affectedConstraintIds"].includes(key));
+    if (unknown.length) throw new Error(`Planning Effect binding ${operation} contains unknown fields: ${unknown.sort().join(", ")}`);
+    if (typeof binding.targetRequirementId !== "string" || !binding.targetRequirementId) throw new Error(`Planning Effect binding ${operation} requires a stable Requirement ID`);
+    if (binding.category !== PLANNING_EFFECT_BINDING_CATEGORIES[operation]) throw new Error(`Planning Effect binding ${operation} has an invalid Requirement category`);
+    if (!Array.isArray(binding.affectedConstraintIds) || binding.affectedConstraintIds.some((id) => typeof id !== "string" || !id)) throw new Error(`Planning Effect binding ${operation} requires stable Constraint IDs`);
+    const affectedConstraintIds = [...new Set(binding.affectedConstraintIds)].sort();
+    if (operation === "set_attendance_target" && affectedConstraintIds.length === 0) throw new Error("Attendance Planning Effect binding requires affected Constraint IDs");
+    if (operation === "set_event_schedule" && affectedConstraintIds.length !== 0) throw new Error("Schedule Planning Effect binding cannot affect spatial Constraints");
+    const requirement = requirementRegistry.get(binding.targetRequirementId);
+    if (!requirement || requirement.category !== binding.category || JSON.stringify(requirement.constraintIds) !== JSON.stringify(affectedConstraintIds)) throw new Error(`Planning Effect binding ${operation} does not match the Event Brief Requirement registry`);
+    return [operation, { targetRequirementId: binding.targetRequirementId, category: binding.category, affectedConstraintIds }];
+  }));
+}
 
 export function normalizeEventBrief(brief, fallback = null) {
   const source = brief ?? fallback;
@@ -40,6 +65,7 @@ export function normalizeEventBrief(brief, fallback = null) {
     occupancyMode: source.occupancyMode ?? "custom",
     schedule,
     requirements,
+    ...(source.planningEffectBindings !== undefined ? { planningEffectBindings: normalizePlanningEffectBindings(source.planningEffectBindings, requirements) } : {}),
   };
 }
 

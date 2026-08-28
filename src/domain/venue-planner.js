@@ -14,7 +14,7 @@ import { createComment, editComment, listComments, normalizeComments, setComment
 import { createPlanExport } from "../interchange/plan-exports.js";
 import { compareSimulationResults, createScenarioRunner, exportSimulationRun, normalizeScenarioDefinition, scenarioDefinitionFingerprint, scenarioInputFingerprint, SIMULATION_ENGINE_VERSION } from "./scenario-engine.js";
 import { assertVenueCommand, TRUSTED_LOCAL_AUTHORIZATION } from "./authorization.js";
-import { materializeEventBrief, normalizeProposalPlanningEffects, planningEvidenceInvalidations } from "./planning-effects.js";
+import { assertPlanningEffectBinding, materializeEventBrief, normalizeProposalPlanningEffects, planningEvidenceInvalidations } from "./planning-effects.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -122,7 +122,7 @@ const enrichProposal = (proposal, fallbackProposal) => {
   };
 };
 
-const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackProposal, adapterPlanningBindings = {}) => {
+const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackProposal) => {
   const normalized = clone(snapshot);
   const originalEmergencyObjectIds = new Set((normalized.plan.objects ?? [])
     .filter((object) => ["fire_exit", "assembly_point", "emergency_access_lane", "fire_equipment", "first_aid", "command_post"].includes(object.kind) || object.emergency)
@@ -227,15 +227,12 @@ const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackPropos
   } catch (error) {
     throw venueError("PLANNING_EFFECT_INVALID", { cause: error.message }, "Persisted Planning Effect failed canonical normalization.");
   }
-  const registeredRequirements = new Map(normalized.brief.requirements.map((requirement) => [requirement.id, requirement]));
-  const registeredConstraintIds = new Set(normalized.plan.constraints.map((constraint) => constraint.id));
   const proposals = [normalized.proposal, ...normalized.branches.flatMap((branch) => [branch.proposal, ...branch.revisions])];
   for (const proposal of proposals) for (const change of proposal.changes) for (const effect of change.planningEffects ?? []) {
     if (!effect.source?.adapterId) continue;
-    const binding = adapterPlanningBindings[effect.operation];
-    const requirement = registeredRequirements.get(effect.targetRequirementId);
-    const expectedConstraintIds = [...new Set(binding?.affectedConstraintIds ?? [])].sort();
-    if (!binding || binding.targetRequirementId !== effect.targetRequirementId || effect.targetBriefId !== normalized.brief.id || !requirement || binding.category !== requirement.category || effect.requirement.category !== requirement.category || JSON.stringify(expectedConstraintIds) !== JSON.stringify(effect.affectedConstraintIds) || effect.affectedConstraintIds.some((id) => !registeredConstraintIds.has(id))) {
+    try {
+      assertPlanningEffectBinding(effect, { brief: normalized.brief, constraints: normalized.plan.constraints });
+    } catch (error) {
       throw venueError("PLANNING_EFFECT_INVALID", { operation: effect.operation, targetBriefId: effect.targetBriefId, targetRequirementId: effect.targetRequirementId }, "Persisted adapter Planning Effect is not bound to the server-owned Brief and Constraint registry.");
     }
   }
@@ -393,7 +390,10 @@ const formatExport = (state) => {
 };
 
 export function createVenuePlanner(initialPlan, { authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, projectId = null, approvalPolicy, adapterPlanningBindings = {} } = {}) {
-  const initialState = createInitialState(initialPlan);
+  const durableInitialPlan = Object.keys(adapterPlanningBindings).length && initialPlan?.brief?.planningEffectBindings === undefined
+    ? { ...clone(initialPlan), brief: { ...clone(initialPlan.brief), planningEffectBindings: clone(adapterPlanningBindings) } }
+    : initialPlan;
+  const initialState = createInitialState(durableInitialPlan);
   const fallbackPlan = clone(initialState.plan);
   const fallbackBrief = clone(initialState.brief);
   const fallbackProposal = clone(initialState.proposal);
@@ -612,7 +612,7 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
     }
 
     if (command.type === "restore_snapshot") {
-      const snapshot = normalizeSnapshot(command.snapshot, fallbackPlan, fallbackBrief, fallbackProposal, adapterPlanningBindings);
+      const snapshot = normalizeSnapshot(command.snapshot, fallbackPlan, fallbackBrief, fallbackProposal);
       if (!snapshot?.plan?.id || !snapshot?.plan?.version || !snapshot?.proposal?.id || !Array.isArray(snapshot?.ledger)) {
         throw venueError("SNAPSHOT_INVALID");
       }
@@ -704,7 +704,7 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
     }
 
     if (command.type === "update_event_brief") {
-      const brief = normalizeEventBrief(command.brief, state.brief);
+      const brief = normalizeEventBrief({ ...command.brief, ...(state.brief.planningEffectBindings !== undefined ? { planningEffectBindings: state.brief.planningEffectBindings } : {}) }, state.brief);
       const proposal = { ...state.proposal, validation: null, waivers: [] };
       publish({
         ...syncActiveBranch(state, proposal),
@@ -1350,6 +1350,6 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
   const cancelActive = (reason = "cancelled") => scenarioRunner.cancelActive(reason);
 
   const getProjectId = () => projectId;
-  const getAdapterProjectContext = () => projectId ? clone({ projectId, brief: state.brief, constraints: state.plan.constraints, planningEffectBindings: adapterPlanningBindings }) : null;
+  const getAdapterProjectContext = () => projectId ? clone({ projectId, brief: state.brief, constraints: state.plan.constraints, planningEffectBindings: state.brief.planningEffectBindings ?? {} }) : null;
   return Object.freeze({ getSnapshot, getProjectId, getAdapterProjectContext, subscribe, execute, cancelActive, recordAuthorizationDenial });
 }
