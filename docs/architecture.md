@@ -49,6 +49,7 @@ flowchart LR
 | Numbered database migrations, integrity, backup, and restore | `db/migrations/`, `worker/database-migrations.ts`, and `scripts/database-maintenance.mjs` |
 | Interchange and operational exports | `src/interchange/` |
 | External adapter contracts, Proposal staging, idempotency, retry, and secret boundaries | `src/integrations/` |
+| Calendar event normalization and Event-to-Project mapping | `src/integrations/adapters/calendar-event-adapter.js` |
 | Canonical docs registry | `src/docs/` |
 | Generated public artifacts | `scripts/generate-*.mjs` and `public/` |
 
@@ -94,8 +95,9 @@ sequenceDiagram
 - Collaboration Events carry durable revision invalidation and Presence Leases carry awareness; neither can mutate accepted Plan truth.
 - SSE reconnect uses a per-Project previous-event chain. A missed link forces an authoritative reload through Project Record Revision checks.
 - Public Share Links are bearer capabilities stored only as SHA-256 hashes. Reviewer access pins one retained Proposal revision; pending operations reconcile idempotently and fail closed. Notification payloads carry fixed body codes plus allowlisted stable references, creation-time preferences determine in-app visibility, and email delivery records success only after the injected provider confirms it.
-- Adapter import and synchronization translate external records into the canonical Proposal and Change model for exactly one base Plan Version. Every Change carries executable `spatialEffects`; accepted Plan truth still changes only through ordinary human Approval.
+- Adapter import and synchronization translate external records into the canonical Proposal and Change model for exactly one base Plan Version. Every Change carries executable `spatialEffects`, closed-union `planningEffects`, or both; accepted Plan and Event Brief truth still change only through ordinary human Approval.
 - External ID Mappings keep source-system identity distinct from both Inventory Item Template IDs and Project Object Instance IDs, and retain source system, source version, synchronization time, and checksum evidence.
+- Calendar Event Snapshots retain only allowlisted descriptive labels as adapter evidence. Attendance and schedule deltas become typed Requirement Changes; title, location, and organizer labels never enter the Proposal or Activity Ledger.
 - The processed-batch store is the adapter idempotency boundary. A repeated import returns the original staging result without creating another Proposal; production persistence must implement the same atomic `putIfAbsent` contract.
 - Adapter capability scopes and scoped secret references are checked independently. Adapter handlers receive secret values only through the secret-store boundary, never through persisted configuration or dead letters.
 

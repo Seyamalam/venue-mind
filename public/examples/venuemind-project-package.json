@@ -2,17 +2,17 @@
   "format": "venuemind-project",
   "formatVersion": 1,
   "manifest": {
-    "packageId": "package-42b515b7ca52107a",
+    "packageId": "package-72b0b0edf61e1ef6",
     "exportedAt": "2026-08-27T00:00:00.000Z",
-    "payloadBytes": 93793,
-    "payloadSha256": "6a27182f351d1a46075f0105dd653298dfab25596f1870a10f77d5fa1be85ec5",
+    "payloadBytes": 95942,
+    "payloadSha256": "af55b04edcf030e9cf9f1399ed16617393cdefc15fb9bff35b80c77f6ff78f2c",
     "source": {
       "application": "VenueMind",
       "applicationVersion": "0.1.0",
       "projectId": "project-summit-forward",
       "projectSchemaVersion": 10
     },
-    "manifestSha256": "42b515b7ca52107a5c25f8e433bc52fb709d380197db64af8d70af597baacf5d"
+    "manifestSha256": "72b0b0edf61e1ef6825bc4c8e7da76f1524a70e67437ef72965c9e758d63c236"
   },
   "project": {
     "id": "project-summit-forward",
@@ -2783,6 +2783,7 @@
         "roomId": "room-harborview-main-hall",
         "attendeeTarget": 400,
         "occupancyMode": "theater",
+        "schedule": null,
         "requirements": [
           {
             "id": "req-theater-seating",
@@ -5978,10 +5979,127 @@
               },
               "emergencyReviews": []
             },
-            "planFingerprint": "plan-428eaa43"
+            "planFingerprint": "plan-428eaa43",
+            "acceptedBrief": {
+              "id": "brief-summit-forward-2026",
+              "eventName": "SummitForward 2026",
+              "date": "2026-09-12",
+              "timezone": "America/New_York",
+              "venueId": "venue-harborview-main-hall",
+              "roomId": "room-harborview-main-hall",
+              "attendeeTarget": 400,
+              "occupancyMode": "theater",
+              "schedule": null,
+              "requirements": [
+                {
+                  "id": "req-theater-seating",
+                  "category": "seating",
+                  "label": "Theater style for keynotes",
+                  "priority": "high",
+                  "owner": "planning",
+                  "status": "confirmed",
+                  "measurable": true,
+                  "constraintIds": [
+                    "constraint-capacity"
+                  ],
+                  "evidenceRefs": []
+                },
+                {
+                  "id": "req-west-stage",
+                  "category": "production",
+                  "label": "Stage on west wall",
+                  "priority": "high",
+                  "owner": "production",
+                  "status": "confirmed",
+                  "measurable": false,
+                  "constraintIds": [],
+                  "evidenceRefs": [
+                    "obj-stage-west"
+                  ]
+                },
+                {
+                  "id": "req-breakout-access",
+                  "category": "circulation",
+                  "label": "Breakout access after keynotes",
+                  "priority": "medium",
+                  "owner": "operations",
+                  "status": "open",
+                  "measurable": false,
+                  "constraintIds": [],
+                  "evidenceRefs": []
+                },
+                {
+                  "id": "req-accessible-route",
+                  "category": "accessibility",
+                  "label": "Keep accessible route clear",
+                  "priority": "critical",
+                  "owner": "access",
+                  "status": "confirmed",
+                  "measurable": true,
+                  "constraintIds": [
+                    "constraint-accessible-route"
+                  ],
+                  "evidenceRefs": []
+                },
+                {
+                  "id": "req-av-control",
+                  "category": "production",
+                  "label": "Maintain AV control position",
+                  "priority": "high",
+                  "owner": "production",
+                  "status": "confirmed",
+                  "measurable": true,
+                  "constraintIds": [
+                    "constraint-production-readiness",
+                    "constraint-sightlines"
+                  ],
+                  "evidenceRefs": [
+                    "obj-av-desk",
+                    "obj-projector-center",
+                    "obj-screen-stage"
+                  ]
+                },
+                {
+                  "id": "req-catering-rear",
+                  "category": "catering",
+                  "label": "Catering at back of room",
+                  "priority": "medium",
+                  "owner": "catering",
+                  "status": "confirmed",
+                  "measurable": true,
+                  "constraintIds": [
+                    "constraint-catering-readiness"
+                  ],
+                  "evidenceRefs": [
+                    "obj-bar-east",
+                    "obj-kitchen-northeast",
+                    "obj-refreshment-east"
+                  ]
+                },
+                {
+                  "id": "req-emergency-readiness",
+                  "category": "emergency",
+                  "label": "Emergency plan readiness",
+                  "priority": "critical",
+                  "owner": "safety",
+                  "status": "confirmed",
+                  "measurable": true,
+                  "constraintIds": [
+                    "constraint-emergency-readiness"
+                  ],
+                  "evidenceRefs": [
+                    "obj-assembly-east",
+                    "obj-command-post-north",
+                    "obj-fire-exit-east",
+                    "obj-fire-exit-north"
+                  ]
+                }
+              ]
+            },
+            "briefFingerprint": "brief-42aeb1ab"
           },
           "previousHash": "genesis",
-          "hash": "ledger-6e70ff1c"
+          "hash": "ledger-71137e62"
         }
       ],
       "receipts": []

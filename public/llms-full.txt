@@ -7039,6 +7039,11 @@ Execute Update Event Brief through the shared VenueMind planner boundary.
     "roomId": "room-example",
     "attendeeTarget": 1,
     "occupancyMode": "theater",
+    "schedule": {
+      "startAt": "2026-08-27T10:00:00.000Z",
+      "endAt": "2026-08-27T10:00:00.000Z",
+      "timezone": "Asia/Dhaka"
+    },
     "requirements": []
   },
   "actor": "human",

@@ -12,6 +12,7 @@
     "roomId",
     "attendeeTarget",
     "occupancyMode",
+    "schedule",
     "requirements"
   ],
   "properties": {
@@ -58,6 +59,36 @@
         "standing",
         "mixed",
         "custom"
+      ]
+    },
+    "schedule": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "startAt",
+            "endAt",
+            "timezone"
+          ],
+          "properties": {
+            "startAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "endAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "timezone": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
       ]
     },
     "requirements": {
