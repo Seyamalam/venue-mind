@@ -124,6 +124,23 @@ test("migration checksum drift and database orphans fail closed", async () => {
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
+test("sharing schema rejects cross-tenant rows, raw tokens, and invalid scope records", async () => {
+  const directory = await mkdtemp(path.join(root, ".venuemind-sharing-schema-"));
+  try {
+    const database = path.join(directory, "sharing.sqlite3");
+    await createFixture(database, 6);
+    await sqlite(database, "INSERT INTO organizations (id,name,slug,created_by,created_at,updated_at) VALUES ('org-other','Other','other','user-fixture','2026-08-28T00:00:00.000Z','2026-08-28T00:00:00.000Z');\n");
+    const base = "'share-invalid','org-fixture','project-fixture',NULL,'read-only'";
+    await assert.rejects(() => sqlite(database, `PRAGMA foreign_keys=ON; INSERT INTO project_share_links (id,organization_id,project_id,proposal_id,scope,token_hash,created_by,created_at,expires_at) VALUES (${base},'raw-token','user-fixture','2026-08-28T00:00:00.000Z','2026-08-29T00:00:00.000Z');\n`), /constraint/i);
+    await assert.rejects(() => sqlite(database, `PRAGMA foreign_keys=ON; INSERT INTO project_share_links (id,organization_id,project_id,proposal_id,scope,token_hash,created_by,created_at,expires_at) VALUES ('share-scope','org-fixture','project-fixture','proposal-1','read-only','${"a".repeat(64)}','user-fixture','2026-08-28T00:00:00.000Z','2026-08-29T00:00:00.000Z');\n`), /constraint/i);
+    await assert.rejects(() => sqlite(database, `PRAGMA foreign_keys=ON; INSERT INTO project_share_links (id,organization_id,project_id,proposal_id,scope,token_hash,created_by,created_at,expires_at) VALUES ('share-tenant','org-other','project-fixture',NULL,'read-only','${"b".repeat(64)}','user-fixture','2026-08-28T00:00:00.000Z','2026-08-29T00:00:00.000Z');\n`), /constraint/i);
+    await sqlite(database, `PRAGMA foreign_keys=OFF; INSERT INTO project_share_links (id,organization_id,project_id,proposal_id,scope,token_hash,created_by,created_at,expires_at) VALUES ('share-corrupt','org-other','project-fixture',NULL,'read-only','${"c".repeat(64)}','user-fixture','2026-08-28T00:00:00.000Z','2026-08-29T00:00:00.000Z');\n`);
+    const verification = await cli("verify", "--database", database);
+    assert.equal(verification.status, "fail");
+    assert.equal(verification.orphanChecks.find((check) => check.id === "share-link-organization-mismatch").count, 1);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
 test("Project safety export is available before a future destructive migration", async () => {
   const directory = await mkdtemp(path.join(root, ".venuemind-project-export-"));
   try {

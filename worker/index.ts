@@ -5,7 +5,7 @@ import { parseProjectEtag, projectEtag } from "../src/domain/project-concurrency
 import { collaborationEventPayload, projectCollaborationEventTypes } from "../src/domain/collaboration-events.js";
 import { createD1CollaborationRepository, createMemoryCollaborationRepository } from "./collaboration-repository.ts";
 import { createD1SharingRepository, createMemorySharingRepository } from "./sharing-repository.ts";
-import { createShareToken, hashShareToken, safeNotification, SHARE_SCOPES } from "../src/domain/sharing.js";
+import { createShareToken, hashShareToken, safeNotification, shareLinkStatus, SHARE_SCOPES } from "../src/domain/sharing.js";
 import { createVenuePlanner } from "../src/domain/venue-planner.js";
 
 export { createD1AccountRepository, createMemoryAccountRepository } from "./account-repository.ts";
@@ -70,14 +70,15 @@ export function createWorker(options: WorkerOptions = {}) {
       if (publicShareMatch && request.method === "GET") {
         const sharing = sharingRepositoryFactory(env.DB);
         const link = await sharing.resolveLink(await hashShareToken(publicShareMatch[1]), clock());
-        if (!link || link.status !== "active") return apiError(404, "SHARE_LINK_UNAVAILABLE", "Share link unavailable");
+        if (!link || link.status !== "active" || !SHARE_SCOPES.includes(link.scope as never)) return apiError(404, "SHARE_LINK_UNAVAILABLE", "Share link unavailable");
+        if ((link.scope === "reviewer") !== Boolean(link.proposalId)) return apiError(404, "SHARE_LINK_UNAVAILABLE", "Share link unavailable");
         const record = await projectRepositoryFactory(env.DB).get(link.organizationId, link.projectId);
         if (!record) return apiError(404, "SHARE_LINK_UNAVAILABLE", "Share link unavailable");
         const snapshot = record.snapshot as { plan?: unknown; proposal?: { id?: string }; branches?: Array<{ proposal?: { id?: string } }> };
         const proposals = [snapshot.proposal, ...(snapshot.branches ?? []).map((branch) => branch.proposal)].filter(Boolean);
         const proposal = link.scope === "reviewer" ? proposals.find((item: { id?: string }) => item.id === link.proposalId) ?? null : null;
         if (link.scope === "reviewer" && !proposal) return apiError(404, "SHARE_LINK_UNAVAILABLE", "Share link unavailable");
-        return json({ shareLinkId: link.id, scope: link.scope, expiresAt: link.expiresAt, project: { id: record.id, name: record.name, revision: record.revision }, plan: snapshot.plan, ...(proposal ? { proposal } : {}) });
+        return json({ shareLinkId: link.id, scope: link.scope, expiresAt: link.expiresAt, project: { id: record.id, name: record.name, revision: record.revision }, plan: snapshot.plan, ...(proposal ? { proposal } : {}) }, { headers: { "referrer-policy": "no-referrer", "x-content-type-options": "nosniff" } });
       }
       if (!url.pathname.startsWith("/api/")) {
         const response = await env.ASSETS.fetch(request);
@@ -195,13 +196,24 @@ export function createWorker(options: WorkerOptions = {}) {
       const projects = projectRepositoryFactory(env.DB);
       const sharing = sharingRepositoryFactory(env.DB);
       const appendShareLedger = async (record: ProjectRecord, command: Record<string, unknown>) => {
-        const snapshot = record.snapshot as { plan: Record<string, unknown>; brief: unknown; proposal: unknown };
-        const planner = createVenuePlanner({ ...snapshot.plan, brief: snapshot.brief, proposal: snapshot.proposal }, { projectId: record.id });
-        planner.execute({ type: "restore_snapshot", snapshot: record.snapshot });
-        planner.execute(command);
-        const saved = await projects.put(organization.id, { ...record, snapshot: planner.getSnapshot(), updatedAt: clock() }, { expectedRevision: record.revision });
-        await collaborationRepositoryFactory(env.DB).append({ organizationId: organization.id, projectId: record.id, type: "ledger.appended", actorUserId: account.user.id, sessionId: account.session.id, projectRevision: saved.revision, payload: collaborationEventPayload("ledger.appended", record, saved), occurredAt: clock() });
-        return saved;
+        let current = record;
+        for (let attempt = 0; attempt < 4; attempt += 1) {
+          const snapshot = current.snapshot as { plan: Record<string, unknown>; brief: unknown; proposal: unknown };
+          const planner = createVenuePlanner({ ...snapshot.plan, brief: snapshot.brief, proposal: snapshot.proposal }, { projectId: current.id });
+          planner.execute({ type: "restore_snapshot", snapshot: current.snapshot });
+          planner.execute(command);
+          try {
+            const saved = await projects.put(organization.id, { ...current, snapshot: planner.getSnapshot(), updatedAt: clock() }, { expectedRevision: current.revision });
+            await collaborationRepositoryFactory(env.DB).append({ organizationId: organization.id, projectId: current.id, type: "ledger.appended", actorUserId: account.user.id, sessionId: account.session.id, projectRevision: saved.revision, payload: collaborationEventPayload("ledger.appended", current, saved), occurredAt: clock() });
+            return saved;
+          } catch (cause) {
+            if (!(cause instanceof ProjectRevisionConflict) && (!(cause instanceof Error) || cause.message !== "PROJECT_REVISION_CONFLICT")) throw cause;
+            const latest = await projects.get(organization.id, current.id);
+            if (!latest) throw cause;
+            current = latest;
+          }
+        }
+        throw new ProjectRevisionConflict(await projects.get(organization.id, record.id));
       };
       const notifyOrganization = async (eventType: string, record: ProjectRecord, refs: Record<string, string | number>, excludeUserId: string | null = account.user.id) => {
         const recipients = await sharing.notificationRecipients(organization.id, eventType, excludeUserId);
@@ -217,14 +229,14 @@ export function createWorker(options: WorkerOptions = {}) {
         try { return respond(await sharing.setPreferences(account.user.id, body, clock())); } catch { return apiError(400, "NOTIFICATION_PREFERENCES_INVALID", "Notification preferences are invalid"); }
       }
       const notificationReadMatch = url.pathname.match(/^\/api\/notifications\/([^/]+)\/read$/);
-      if (notificationReadMatch && request.method === "POST") { await sharing.markRead(account.user.id, decodeURIComponent(notificationReadMatch[1]), clock()); return respond({ status: "read" }); }
+      if (notificationReadMatch && request.method === "POST") { await sharing.markRead(account.user.id, organization.id, decodeURIComponent(notificationReadMatch[1]), clock()); return respond({ status: "read" }); }
 
       const shareCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/share-links$/);
       if (shareCollectionMatch && request.method === "GET") {
         if (!["venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role))) return apiError(403, "SHARE_LINK_DENIED", "Share-link management role required");
         const projectId = decodeURIComponent(shareCollectionMatch[1]);
         if (!await projects.get(organization.id, projectId)) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
-        return respond({ links: (await sharing.listLinks(organization.id, projectId)).map(({ tokenHash: _tokenHash, ...link }) => ({ ...link, status: link.revokedAt ? "revoked" : Date.parse(link.expiresAt) <= Date.parse(clock()) ? "expired" : "active" })) });
+        return respond({ links: (await sharing.listLinks(organization.id, projectId)).map(({ tokenHash: _tokenHash, ...link }) => ({ ...link, status: shareLinkStatus(link, clock()) })) });
       }
       if (shareCollectionMatch && request.method === "POST") {
         if (!["venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role))) return apiError(403, "SHARE_LINK_DENIED", "Share-link management role required");
@@ -232,7 +244,10 @@ export function createWorker(options: WorkerOptions = {}) {
         const current = await projects.get(organization.id, projectId);
         if (!current) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
         const body = await readBody<{ scope?: string; proposalId?: string; expiresAt?: string }>(request);
-        if (!SHARE_SCOPES.includes(body.scope as never) || !body.expiresAt || Date.parse(body.expiresAt) <= Date.parse(clock()) || Date.parse(body.expiresAt) > Date.parse(clock()) + 30 * 24 * 60 * 60 * 1000) return apiError(400, "SHARE_LINK_INVALID", "Share link fields are invalid");
+        const nowMs = Date.parse(clock());
+        const expiresAtMs = Date.parse(body.expiresAt ?? "");
+        const canonicalExpiry = Number.isFinite(expiresAtMs) ? new Date(expiresAtMs).toISOString() : null;
+        if (!SHARE_SCOPES.includes(body.scope as never) || !body.expiresAt || canonicalExpiry !== body.expiresAt || expiresAtMs <= nowMs || expiresAtMs > nowMs + 30 * 24 * 60 * 60 * 1000 || (body.scope === "read-only" && body.proposalId != null)) return apiError(400, "SHARE_LINK_INVALID", "Share link fields are invalid");
         const snapshot = current.snapshot as { proposal?: { id?: string }; branches?: Array<{ proposal?: { id?: string } }> };
         const proposalIds = new Set([snapshot.proposal?.id, ...(snapshot.branches ?? []).map((branch) => branch.proposal?.id)].filter(Boolean));
         if (body.scope === "reviewer" && (!body.proposalId || !proposalIds.has(body.proposalId))) return apiError(400, "SHARE_PROPOSAL_INVALID", "Reviewer link requires one current Proposal");
@@ -253,8 +268,9 @@ export function createWorker(options: WorkerOptions = {}) {
         if (!revoked) return apiError(404, "SHARE_LINK_NOT_FOUND", "Share link not found");
         const current = await projects.get(organization.id, projectId);
         if (!current) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
-        const saved = await appendShareLedger(current, { type: "record_share_link_revoked", shareLinkId: linkId, reasonCode: "operator-revoked", actor: "human", actorId: account.user.id, idempotencyKey: `share-revoke-${linkId}`, source: "studio", sessionId: account.session.id });
-        return respond({ status: "revoked", id: linkId, revokedAt: revoked.revokedAt, projectRevision: saved.revision });
+        const alreadyLedgered = ((current.snapshot as { ledger?: Array<{ type?: string; details?: { shareLinkId?: string } }> }).ledger ?? []).some((entry) => entry.type === "share_link.revoked" && entry.details?.shareLinkId === linkId);
+        const saved = alreadyLedgered ? current : await appendShareLedger(current, { type: "record_share_link_revoked", shareLinkId: linkId, reasonCode: "operator-revoked", actor: "human", actorId: account.user.id, idempotencyKey: `share-revoke-${linkId}`, source: "studio", sessionId: account.session.id });
+        return respond({ status: revoked.changed ? "revoked" : "already-revoked", id: linkId, revokedAt: revoked.link.revokedAt, projectRevision: saved.revision });
       }
       const collaborationMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/collaboration$/);
       const presenceMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/collaboration\/presence$/);

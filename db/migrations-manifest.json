@@ -55,12 +55,12 @@
     {
       "version": 6,
       "name": "sharing_notifications",
-      "checksum": "b7271cddc304567f93e12c4177069a91187a2ab92a6ded865d5e625b8c05034d",
+      "checksum": "1ab7b3cf4cd5eaf27b317eddbda23c079128ff51c355389ee57dc605efcd8847",
       "destructive": false,
       "requiresProjectExport": false,
       "source": "/db/migrations/0006_sharing_notifications.sql",
       "wrangler": "/db/wrangler/0006_sharing_notifications.sql",
-      "statementCount": 6
+      "statementCount": 7
     }
   ]
 }

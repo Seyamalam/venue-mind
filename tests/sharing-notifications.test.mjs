@@ -7,13 +7,14 @@ import { NOTIFICATION_EVENT_TYPES, safeNotification, shareLinkStatus } from "../
 
 const NOW = "2026-08-28T12:00:00.000Z";
 
-function harness() {
+function harness({ rolesBySubject = {} } = {}) {
   const organization = { id: "org-share", name: "SHARE", slug: "share", roles: ["organization-administrator"] };
+  const organizationFor = (subject) => ({ ...organization, roles: rolesBySubject[subject] ?? organization.roles });
   const users = new Map(); const sessions = new Map(); const records = new Map(); let sequence = 0;
   const accounts = {
     async resolveSession(id) { return structuredClone(sessions.get(id) ?? null); },
-    async provision(identity) { const user = users.get(identity.subject) ?? { id: `user-${identity.subject}`, email: `${identity.subject}@example.test`, displayName: identity.subject.toUpperCase(), status: "active" }; users.set(identity.subject, user); return { user, organizations: [organization] }; },
-    async createSession(userId) { const user = [...users.values()].find((item) => item.id === userId); const session = { id: `session-${++sequence}`, userId, createdAt: NOW, expiresAt: "2026-08-29T12:00:00.000Z", lastSeenAt: NOW, revokedAt: null }; sessions.set(session.id, { session, user, organizations: [organization] }); return session; },
+    async provision(identity) { const user = users.get(identity.subject) ?? { id: `user-${identity.subject}`, email: `${identity.subject}@example.test`, displayName: identity.subject.toUpperCase(), status: "active" }; users.set(identity.subject, user); return { user, organizations: [organizationFor(identity.subject)] }; },
+    async createSession(userId) { const [subject, user] = [...users.entries()].find(([, item]) => item.id === userId); const session = { id: `session-${++sequence}`, userId, createdAt: NOW, expiresAt: "2026-08-29T12:00:00.000Z", lastSeenAt: NOW, revokedAt: null }; sessions.set(session.id, { session, user, organizations: [organizationFor(subject)] }); return session; },
   };
   const projects = {
     async list(org) { return [...records.values()].filter((item) => item.organizationId === org).map((item) => structuredClone(item)); },
@@ -51,9 +52,17 @@ test("revoked Proposal-scoped share link loses access immediately and both trans
   assert.deepEqual(authoritative.snapshot.ledger.slice(-2).map((entry) => entry.type), ["share_link.created", "share_link.revoked"]);
   assert.ok(authoritative.snapshot.ledger.slice(-2).every((entry) => entry.details.shareLinkId === link.id));
   assert.ok(authoritative.snapshot.ledger.every((entry) => !JSON.stringify(entry).includes(link.token)));
+  const persistedLink = [...app.sharing._links.values()][0];
+  assert.notEqual(persistedLink.tokenHash, link.token);
+  assert.match(persistedLink.tokenHash, /^[0-9a-f]{64}$/);
+  assert.doesNotMatch(JSON.stringify(persistedLink), new RegExp(link.token));
   const listed = await (await app.request("/api/projects/project-share/share-links", owner)).json();
   assert.equal(listed.links[0].status, "revoked");
   assert.equal(Object.hasOwn(listed.links[0], "tokenHash"), false);
+  const duplicate = await app.request(`/api/projects/project-share/share-links/${encodeURIComponent(link.id)}/revoke`, owner, { method: "POST" });
+  assert.equal((await duplicate.json()).status, "already-revoked");
+  const afterDuplicate = await (await app.request("/api/projects/project-share", owner)).json();
+  assert.equal(afterDuplicate.snapshot.ledger.filter((entry) => entry.type === "share_link.revoked" && entry.details.shareLinkId === link.id).length, 1);
 });
 
 test("in-product notification preferences and safe bodies cover review, Approval, and conflict", async () => {
@@ -96,6 +105,7 @@ test("notification payload rejects narrative, geometry, and unsupported event ty
   assert.deepEqual(new Set(NOTIFICATION_EVENT_TYPES), new Set(["review_requested", "adjustment_requested", "approval_completed", "conflict_detected"]));
   assert.throws(() => safeNotification({ id: "n", organizationId: "o", projectId: "p", userId: "u", eventType: "review_requested", refs: { geometry: "secret" }, createdAt: NOW }), /unsafe/);
   assert.throws(() => safeNotification({ id: "n", organizationId: "o", projectId: "p", userId: "u", eventType: "freeform", refs: {}, createdAt: NOW }), /invalid/);
+  assert.throws(() => safeNotification({ id: "n", organizationId: "o", projectId: "p", userId: "u", eventType: "review_requested", refs: { revision: Number.NaN }, createdAt: NOW }), /unsafe/);
 });
 
 test("share expiration and revocation status fail closed", () => {
@@ -103,6 +113,7 @@ test("share expiration and revocation status fail closed", () => {
   assert.equal(shareLinkStatus(link, "2026-08-28T12:00:00.000Z"), "active");
   assert.equal(shareLinkStatus(link, "2026-08-28T12:00:01.000Z"), "expired");
   assert.equal(shareLinkStatus({ ...link, revokedAt: "2026-08-28T11:59:00.000Z" }, "2026-08-28T12:00:00.000Z"), "revoked");
+  assert.equal(shareLinkStatus({ expiresAt: "not-a-date", revokedAt: null }, "2026-08-28T12:00:00.000Z"), "expired");
 });
 
 test("read-only share exposes accepted Plan without any Proposal", async () => {
@@ -117,4 +128,33 @@ test("read-only share exposes accepted Plan without any Proposal", async () => {
   assert.equal(shared.scope, "read-only");
   assert.equal(shared.plan.version, snapshot.plan.version);
   assert.equal(Object.hasOwn(shared, "proposal"), false);
+});
+
+test("share management is role-isolated and malformed fields fail closed", async () => {
+  const app = harness({ rolesBySubject: { viewer: ["viewer"] } });
+  const owner = await app.login("owner");
+  const viewer = await app.login("viewer");
+  const planner = createVenuePlanner(summitForwardPlan); const snapshot = planner.getSnapshot();
+  const record = { id: "project-role", name: "ROLE", activePlanId: snapshot.plan.id, schemaVersion: 10, snapshot, createdAt: NOW, updatedAt: NOW };
+  assert.equal((await app.request("/api/projects/project-role", owner, { method: "PUT", body: record, headers: { "if-none-match": "*" } })).status, 201);
+  assert.equal((await app.request("/api/projects/project-role/share-links", viewer)).status, 403);
+  assert.equal((await app.request("/api/projects/project-role/share-links", viewer, { method: "POST", body: { scope: "read-only", expiresAt: "2026-08-29T12:00:00.000Z" } })).status, 403);
+  for (const body of [
+    { scope: "read-only", expiresAt: "not-a-date" },
+    { scope: "read-only", proposalId: snapshot.proposal.id, expiresAt: "2026-08-29T12:00:00.000Z" },
+    { scope: "reviewer", proposalId: "proposal-other", expiresAt: "2026-08-29T12:00:00.000Z" },
+  ]) assert.equal((await app.request("/api/projects/project-role/share-links", owner, { method: "POST", body })).status, 400);
+});
+
+test("channel and event preferences suppress delivery and never expose recipient email", async () => {
+  const sharing = createMemorySharingRepository({ recipients: [{ userId: "user-reviewer", email: "private@example.test", inAppEnabled: true, emailEnabled: false }] });
+  await sharing.setPreferences("user-reviewer", { inAppEnabled: false, emailEnabled: true, eventTypes: ["review_requested"] });
+  assert.equal((await sharing.notificationRecipients("org", "approval_completed")).length, 0);
+  const recipients = await sharing.notificationRecipients("org", "review_requested");
+  assert.deepEqual(recipients, [{ userId: "user-reviewer", email: "private@example.test", inAppEnabled: false, emailEnabled: true }]);
+  const notification = safeNotification({ id: "notification-safe", organizationId: "org", projectId: "project", userId: "user-reviewer", eventType: "review_requested", refs: { projectId: "project", revision: 1 }, createdAt: NOW });
+  await sharing.addNotification(notification, recipients[0].email);
+  assert.deepEqual(await sharing.listNotifications("user-reviewer", "org"), []);
+  assert.equal(Object.hasOwn(sharing._notifications[0], "recipientEmail"), false);
+  assert.equal(sharing._emailOutbox[0].recipientEmail, "private@example.test");
 });

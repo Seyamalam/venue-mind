@@ -104,8 +104,11 @@ async function verifyDatabase(databasePath) {
   if (["project_share_links", "notification_preferences", "notifications", "notification_email_outbox"].every((table) => tables.has(table))) {
     for (const [id, sql] of [
       ["share-link-without-project", "SELECT COUNT(*) AS count FROM project_share_links l LEFT JOIN projects p ON p.id=l.project_id WHERE p.id IS NULL"],
+      ["share-link-organization-mismatch", "SELECT COUNT(*) AS count FROM project_share_links l JOIN projects p ON p.id=l.project_id WHERE p.organization_id != l.organization_id"],
       ["share-link-creator-without-user", "SELECT COUNT(*) AS count FROM project_share_links l LEFT JOIN users u ON u.id=l.created_by WHERE u.id IS NULL"],
+      ["share-link-revoker-without-user", "SELECT COUNT(*) AS count FROM project_share_links l LEFT JOIN users u ON u.id=l.revoked_by WHERE l.revoked_by IS NOT NULL AND u.id IS NULL"],
       ["notification-without-project", "SELECT COUNT(*) AS count FROM notifications n LEFT JOIN projects p ON p.id=n.project_id WHERE p.id IS NULL"],
+      ["notification-organization-mismatch", "SELECT COUNT(*) AS count FROM notifications n JOIN projects p ON p.id=n.project_id WHERE p.organization_id != n.organization_id"],
       ["notification-without-user", "SELECT COUNT(*) AS count FROM notifications n LEFT JOIN users u ON u.id=n.user_id WHERE u.id IS NULL"],
       ["notification-preference-without-user", "SELECT COUNT(*) AS count FROM notification_preferences n LEFT JOIN users u ON u.id=n.user_id WHERE u.id IS NULL"],
       ["email-outbox-without-notification", "SELECT COUNT(*) AS count FROM notification_email_outbox e LEFT JOIN notifications n ON n.id=e.notification_id WHERE n.id IS NULL"],
