@@ -1,5 +1,6 @@
 import { AdapterContractError, createSyncCursor, defineAdapter, sha256Checksum } from "../contracts.js";
 import { createVenueAdapter } from "../runtime.js";
+import { normalizeEventSchedule } from "../../domain/event-schedule.js";
 
 const clone = (value) => structuredClone(value);
 
@@ -29,16 +30,12 @@ const assertExact = (value, keys, label) => {
 };
 
 const normalizeSchedule = (event, { nullable = false } = {}) => {
-  if (nullable && event === null) return null;
-  const schedule = { startAt: event.startAt, endAt: event.endAt, timezone: event.timezone };
-  if ([schedule.startAt, schedule.endAt, schedule.timezone].some((value) => typeof value !== "string" || !value)) fail("Calendar event schedule is required");
-  if (Number.isNaN(Date.parse(schedule.startAt)) || Number.isNaN(Date.parse(schedule.endAt)) || Date.parse(schedule.endAt) <= Date.parse(schedule.startAt)) fail("Calendar event must have a valid start before end");
   try {
-    new Intl.DateTimeFormat("en", { timeZone: schedule.timezone }).format();
-  } catch {
-    fail("Calendar event timezone is invalid", { timezone: schedule.timezone });
+    const schedule = nullable && event === null ? null : { startAt: event.startAt, endAt: event.endAt, timezone: event.timezone };
+    return normalizeEventSchedule(schedule, { label: "Calendar event schedule", nullable });
+  } catch (error) {
+    fail(error.message, { timezone: event?.timezone ?? null });
   }
-  return schedule;
 };
 
 const normalizeEvent = (event) => {

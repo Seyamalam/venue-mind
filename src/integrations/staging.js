@@ -1,4 +1,4 @@
-import { fingerprintPlan } from "../domain/activity-ledger.js";
+import { fingerprintEventBrief, fingerprintPlan } from "../domain/activity-ledger.js";
 import { normalizePlanningEffect } from "../domain/planning-effects.js";
 import { AdapterContractError, assertIsoTimestamp, normalizeAdapterChange, normalizeExternalReference, normalizeSyncCursor, sha256Checksum } from "./contracts.js";
 
@@ -118,7 +118,7 @@ export async function createAdapterStagingBatch(definition, input, options = {})
   const content = { adapterId: definition.id, adapterVersion: definition.version, sourceSystem: input.sourceSystem, sourceVersion: input.sourceVersion, synchronizedAt: input.synchronizedAt, basePlanVersion: options.basePlanVersion, proposalRevision: options.proposalRevision, syncCursor, changes, mappings: clone(mappingDrafts), sourceRecords: clone(sourceRecords), warnings: clone(input.warnings ?? []) };
   const checksum = await sha256Checksum(content);
   const batchId = options.batchId ?? `adapter-batch-${checksum.slice(0, 16)}`;
-  const proposal = Object.freeze({
+  const proposal = changes.length === 0 ? null : Object.freeze({
     id: `proposal-adapter-${checksum.slice(0, 16)}`,
     revision: options.proposalRevision,
     baseVersion: options.basePlanVersion,
@@ -138,12 +138,13 @@ export async function createAdapterStagingBatch(definition, input, options = {})
     synchronizedAt: input.synchronizedAt,
     checksum: mapping.external.checksum,
   }));
-  return Object.freeze({ schemaVersion: 1, id: batchId, status: "awaiting-review", adapterId: definition.id, adapterVersion: definition.version, sourceSystem: input.sourceSystem, sourceVersion: input.sourceVersion, synchronizedAt: input.synchronizedAt, basePlanVersion: options.basePlanVersion, checksum, syncCursor, mappings: clone(mappings), sourceRecords: clone(sourceRecords), warnings: clone(input.warnings ?? []), proposal });
+  return Object.freeze({ schemaVersion: 1, id: batchId, status: changes.length === 0 ? "no-changes" : "awaiting-review", adapterId: definition.id, adapterVersion: definition.version, sourceSystem: input.sourceSystem, sourceVersion: input.sourceVersion, synchronizedAt: input.synchronizedAt, basePlanVersion: options.basePlanVersion, checksum, syncCursor, mappings: clone(mappings), sourceRecords: clone(sourceRecords), warnings: clone(input.warnings ?? []), proposal });
 }
 
 export function assertReviewableStagingBatch(batch) {
   if (batch?.status !== "awaiting-review" || batch?.proposal?.status !== "review") fail("ADAPTER_REVIEW_BYPASS", "Imported changes must remain a review Proposal until human Approval");
   if (!batch.proposal.id || !Number.isInteger(batch.proposal.revision) || batch.proposal.baseVersion !== batch.basePlanVersion || !Array.isArray(batch.proposal.changes)) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch does not contain a canonical Proposal");
+  if (batch.proposal.changes.length === 0) fail("ADAPTER_CHANGE_EMPTY", "A no-change adapter batch cannot enter Proposal review");
   if (batch.proposal.changes.some((change) => !change.id || !Number.isInteger(change.number) || !Array.isArray(change.targetObjectIds) || (!change.spatialEffects?.length && !change.planningEffects?.length) || (change.targetObjectIds.length === 0 && !change.planningEffects?.length))) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch contains a non-executable Change");
   try {
     batch.proposal.changes.flatMap((change) => change.planningEffects ?? []).forEach(normalizePlanningEffect);
@@ -152,15 +153,25 @@ export function assertReviewableStagingBatch(batch) {
   }
   if (!batch.sourceSystem || !batch.sourceVersion || !batch.checksum) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch source evidence is incomplete");
   if (!/^[0-9a-f]{64}$/.test(batch.checksum) || !Array.isArray(batch.mappings) || batch.mappings.some((mapping) => mapping.sourceSystem !== batch.sourceSystem || mapping.synchronizedAt !== batch.synchronizedAt || !/^[0-9a-f]{64}$/.test(mapping.checksum ?? ""))) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch mapping evidence is invalid");
+  const planningChanges = batch.proposal.changes.filter((change) => change.planningEffects?.length);
+  const projectMappings = batch.mappings.filter((mapping) => mapping.venueEntityType === "project");
+  if (planningChanges.length && projectMappings.length !== 1) fail("ADAPTER_PROJECT_BINDING_REQUIRED", "Planning Changes require exactly one server-verifiable Project mapping", { projectMappings: projectMappings.length });
   assertIsoTimestamp(batch.synchronizedAt, "Staging batch synchronizedAt");
   return true;
 }
 
 export function loadAdapterProposalForReview(planner, batch) {
-  assertReviewableStagingBatch(batch);
   if (!planner || typeof planner.getSnapshot !== "function" || typeof planner.execute !== "function") fail("ADAPTER_PLANNER_REQUIRED", "A VenuePlanner instance is required");
+  assertReviewableStagingBatch(batch);
   const snapshot = planner.getSnapshot();
   const beforePlanFingerprint = fingerprintPlan(snapshot.plan);
+  const beforeBriefFingerprint = fingerprintEventBrief(snapshot.brief);
+  const projectMapping = batch.mappings.find((mapping) => mapping.venueEntityType === "project") ?? null;
+  if (projectMapping) {
+    const boundProjectId = typeof planner.getProjectId === "function" ? planner.getProjectId() : null;
+    if (!boundProjectId) fail("ADAPTER_PROJECT_BINDING_REQUIRED", "Planner must carry a server-owned Project binding before adapter review");
+    if (projectMapping.venueObjectId !== boundProjectId) fail("ADAPTER_PROJECT_BINDING_MISMATCH", "Adapter Project mapping does not match the server-owned planner Project", { expectedProjectId: boundProjectId, actualProjectId: projectMapping.venueObjectId });
+  }
   if (snapshot.plan.version !== batch.proposal.baseVersion) fail("ADAPTER_BASE_PLAN_VERSION_CONFLICT", "Adapter Proposal base Version is stale", { expected: snapshot.plan.version, actual: batch.proposal.baseVersion });
   if (batch.proposal.revision !== snapshot.proposal.revision + 1) fail("ADAPTER_PROPOSAL_REVISION_CONFLICT", "Adapter Proposal revision must follow the current Proposal revision", { expected: snapshot.proposal.revision + 1, actual: batch.proposal.revision });
   const activeBranch = snapshot.branches.find((branch) => branch.id === snapshot.activeBranchId);
@@ -170,5 +181,6 @@ export function loadAdapterProposalForReview(planner, batch) {
   planner.execute({ type: "restore_snapshot", snapshot: { ...snapshot, proposal: clone(batch.proposal), branches: snapshot.branches.map((branch) => branch.id === snapshot.activeBranchId ? { ...branch, proposal: clone(batch.proposal), revisions } : branch) } });
   const after = planner.getSnapshot();
   if (fingerprintPlan(after.plan) !== beforePlanFingerprint) fail("ADAPTER_ACCEPTED_PLAN_MUTATED", "Adapter staging changed accepted Plan truth");
+  if (fingerprintEventBrief(after.brief) !== beforeBriefFingerprint) fail("ADAPTER_ACCEPTED_BRIEF_MUTATED", "Adapter staging changed accepted Event Brief truth");
   return Object.freeze({ status: "review", proposalId: after.proposal.id, revision: after.proposal.revision, baseVersion: after.proposal.baseVersion, changedItems: after.proposal.changes.length, requiresHumanApproval: true });
 }

@@ -278,6 +278,8 @@ const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackPropos
       planFingerprint: fingerprintPlan(normalized.plan),
     }, { source: "system", sessionId: "schema-migration" })]);
   }
+  const replay = replayActivityLedger(normalized.ledger, normalized.plan, normalized.brief);
+  if (replay.replayedBriefFingerprint && replay.replayedBriefFingerprint !== replay.currentBriefFingerprint) throw venueError("LEDGER_INTEGRITY_FAILED", { replay }, "Activity Ledger does not reproduce accepted Event Brief truth.");
   return normalized;
 };
 
@@ -477,6 +479,8 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
         productionEvidence: clone(validation.productionEvidence),
         cateringEvidence: clone(validation.cateringEvidence),
         emergencyEvidence: clone(validation.emergencyEvidence),
+        evidenceFamilyFingerprints: clone(validation.evidenceFamilyFingerprints),
+        planningEvidenceInvalidations: clone(validation.planningEvidenceInvalidations),
       };
     }
     if (command.type === "get_object" || command.type === "search_objects") {
@@ -536,7 +540,7 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
     if (command.type === "validate_layout") return validateVenueState(state);
     if (command.type === "get_change_log") return clone(state.ledger);
     if (command.type === "get_project_brief") return eventBriefWithCoverage(candidateBriefFor(state), validateVenueState(state), validateVenueState({ ...state, proposal: null }));
-    if (command.type === "replay_history") return replayActivityLedger(state.ledger, state.plan);
+    if (command.type === "replay_history") return replayActivityLedger(state.ledger, state.plan, state.brief);
     if (command.type === "detect_conflicts") return detectProposalConflicts(state, command.branchId);
     if (command.type === "list_branches") {
       return state.branches.map((branch) => {
@@ -1075,6 +1079,7 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
       if (command.actor !== "human") throw venueError("AUTHORIZATION_DENIED", { reason: "approval-human-required", permission: "approval.approve" });
       if (authorizationContext?.principal?.type === "human" && command.actorId !== authorizationContext.principal.id) throw venueError("AUTHORIZATION_DENIED", { reason: "approval-principal-mismatch", permission: "approval.approve" });
       if (command.proposalId !== state.proposal.id) throw venueError("PROPOSAL_MISMATCH", { expectedProposalId: state.proposal.id, receivedProposalId: command.proposalId ?? null });
+      if (!Array.isArray(state.proposal.changes) || state.proposal.changes.length === 0) throw venueError("PROPOSAL_EMPTY", { proposalId: state.proposal.id });
       if (command.baseVersion !== state.plan.version || state.proposal.baseVersion !== state.plan.version) throw venueError("PLAN_VERSION_CONFLICT", { expectedVersion: state.plan.version, receivedVersion: command.baseVersion ?? null, proposalBaseVersion: state.proposal.baseVersion });
       assertNoLockConflicts(state.plan, state.proposal.changes, state.projectLocks);
       const validation = validateVenueState(state);
@@ -1318,5 +1323,6 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
 
   const cancelActive = (reason = "cancelled") => scenarioRunner.cancelActive(reason);
 
-  return Object.freeze({ getSnapshot, subscribe, execute, cancelActive, recordAuthorizationDenial });
+  const getProjectId = () => projectId;
+  return Object.freeze({ getSnapshot, getProjectId, subscribe, execute, cancelActive, recordAuthorizationDenial });
 }

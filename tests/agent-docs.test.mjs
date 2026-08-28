@@ -121,6 +121,10 @@ test("generated agent contracts include spatial and validation schemas", async (
   assert.equal(templates.properties.inventoryTemplates.items.properties.category.enum.includes("queue"), true);
   assert.equal(validation.required.includes("candidateGeometryFingerprint"), true);
   assert.equal(validation.required.includes("unwaivedWarnings"), true);
+  assert.equal(validation.required.includes("evidenceFamilyFingerprints"), true);
+  assert.equal(validation.required.includes("planningEvidenceInvalidations"), true);
+  assert.equal(brief.required.includes("schedule"), false);
+  assert.match(brief.properties.schedule.anyOf[1].properties.startAt.pattern, /T/);
   assert.equal(validation.properties.checks.items.required.includes("waiver"), true);
   assert.match(receipt.properties.inputFingerprint.pattern, /command/);
   assert.equal(ledger.items.properties.schemaVersion.const, 1);

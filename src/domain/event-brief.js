@@ -1,3 +1,5 @@
+import { normalizeEventSchedule } from "./event-schedule.js";
+
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const PRIORITIES = ["critical", "high", "medium", "low"];
 const STATUSES = ["open", "confirmed", "satisfied", "waived"];
@@ -8,17 +10,7 @@ export function normalizeEventBrief(brief, fallback = null) {
   if (!source?.id) throw new Error("Event Brief requires a stable ID");
   if (!Number.isFinite(source.attendeeTarget) || source.attendeeTarget < 0) throw new Error("Event Brief attendee target must be zero or greater");
   if (!OCCUPANCY_MODES.includes(source.occupancyMode ?? "custom")) throw new Error("Event Brief occupancy mode is invalid");
-  let schedule = null;
-  if (source.schedule !== null && source.schedule !== undefined) {
-    const { startAt, endAt, timezone } = source.schedule;
-    if (typeof startAt !== "string" || typeof endAt !== "string" || typeof timezone !== "string" || Number.isNaN(Date.parse(startAt)) || Number.isNaN(Date.parse(endAt)) || Date.parse(endAt) <= Date.parse(startAt)) throw new Error("Event Brief schedule is invalid");
-    try {
-      new Intl.DateTimeFormat("en", { timeZone: timezone }).format();
-    } catch {
-      throw new Error("Event Brief schedule timezone is invalid");
-    }
-    schedule = { startAt, endAt, timezone };
-  }
+  const schedule = normalizeEventSchedule(source.schedule, { label: "Event Brief schedule", nullable: true });
   const ids = new Set();
   const requirements = (source.requirements ?? []).map((requirement) => {
     if (!requirement.id || ids.has(requirement.id)) throw new Error("Event Brief requirements require unique stable IDs");

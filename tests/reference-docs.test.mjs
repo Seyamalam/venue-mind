@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   eventBriefSchema,
   plannerSnapshotSchema,
+  validationResultSchema,
   venueCommandSchema,
   venueConstraintSchema,
   venueToolContracts,
@@ -105,6 +106,29 @@ test("command pages match schemas, permissions, examples, and published errors",
     for (const code of page.reference.errors) assert.ok(errorCatalog[code], `${type} unknown error ${code}`);
     if (type !== "restore_snapshot") validateExample(page.reference.example, schema, type);
   }
+});
+
+test("generated Event Brief schedule example executes through the planner", async () => {
+  const page = commandReferencePages.find((candidate) => candidate.reference.name === "update_event_brief");
+  const schedule = page.reference.example.brief.schedule;
+  assert.deepEqual(schedule, { startAt: "2026-09-18T09:00:00+06:00", endAt: "2026-09-18T17:00:00+06:00", timezone: "Asia/Dhaka" });
+  assert.ok(Date.parse(schedule.endAt) > Date.parse(schedule.startAt));
+  assert.doesNotThrow(() => createVenuePlanner(summitForwardPlan).execute(page.reference.example));
+  const generated = await readFile(new URL("../public/llms-full.txt", import.meta.url), "utf8");
+  const block = /# update_event_brief[\s\S]*?```json\n([\s\S]*?)\n```/.exec(generated)?.[1];
+  assert.ok(block, "generated update_event_brief JSON example");
+  const command = JSON.parse(block);
+  assert.deepEqual(command.brief.schedule, schedule);
+  assert.doesNotThrow(() => createVenuePlanner(summitForwardPlan).execute(command));
+});
+
+test("published Validation schema exactly covers every runtime top-level field", () => {
+  const validation = createVenuePlanner(summitForwardPlan).execute({ type: "validate_layout" });
+  assert.deepEqual(Object.keys(validation).sort(), Object.keys(validationResultSchema.properties).sort());
+  assert.deepEqual(validationResultSchema.required.slice().sort(), Object.keys(validationResultSchema.properties).sort());
+  assert.equal(validationResultSchema.additionalProperties, false);
+  assert.deepEqual(Object.keys(validation.evidenceFamilyFingerprints).sort(), validationResultSchema.properties.evidenceFamilyFingerprints.required.slice().sort());
+  assert.deepEqual(validation.planningEvidenceInvalidations, { affectedConstraintIds: [], evidenceFamilies: [] });
 });
 
 test("constraint and version references are bound to runtime constants", () => {

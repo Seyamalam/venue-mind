@@ -1,4 +1,5 @@
 import { normalizeEventBrief } from "./event-brief.js";
+import { normalizeEventSchedule } from "./event-schedule.js";
 
 const clone = (value) => structuredClone(value);
 const SHA256 = /^[0-9a-f]{64}$/;
@@ -33,16 +34,11 @@ const normalizeSource = (source) => {
 };
 
 const normalizeSchedule = (schedule, label, { nullable = false } = {}) => {
-  if (nullable && schedule === null) return null;
-  exactKeys(schedule, ["startAt", "endAt", "timezone"], label);
-  for (const field of ["startAt", "endAt", "timezone"]) nonEmptyString(schedule[field], `${label} ${field}`);
-  if (Number.isNaN(Date.parse(schedule.startAt)) || Number.isNaN(Date.parse(schedule.endAt)) || Date.parse(schedule.endAt) <= Date.parse(schedule.startAt)) fail(`${label} must have a valid start before end`);
   try {
-    new Intl.DateTimeFormat("en", { timeZone: schedule.timezone }).format();
-  } catch {
-    fail(`${label} timezone is invalid`);
+    return normalizeEventSchedule(schedule, { label, nullable });
+  } catch (error) {
+    fail(error.message);
   }
-  return clone(schedule);
 };
 
 export function normalizePlanningEffect(input) {

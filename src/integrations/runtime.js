@@ -73,7 +73,8 @@ export function createVenueAdapter(definitionInput, handlers) {
       const output = await handlers[capability](clone(input), context);
       if (capability === "import" || capability === "synchronize") {
         const staging = await createAdapterStagingBatch(definition, output, { basePlanVersion: input?.basePlanVersion, proposalRevision: input?.proposalRevision });
-        assertReviewableStagingBatch(staging);
+        if (staging.status === "awaiting-review") assertReviewableStagingBatch(staging);
+        else if (staging.status !== "no-changes" || staging.proposal !== null) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "No-change staging must not contain a Proposal");
         return staging;
       }
       if (capability === "export") return normalizeExport(definition, output);

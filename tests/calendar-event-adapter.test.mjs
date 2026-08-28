@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { fingerprintEventBrief, fingerprintPlan, replayActivityLedger } from "../src/domain/activity-ledger.js";
+import { normalizeEventBrief } from "../src/domain/event-brief.js";
+import { normalizeEventSchedule } from "../src/domain/event-schedule.js";
+import { normalizePlanningEffect } from "../src/domain/planning-effects.js";
 import { summitForwardPlan } from "../src/domain/summit-forward.js";
 import { createVenuePlanner, validateVenueState } from "../src/domain/venue-planner.js";
 import { calendarEventAdapter } from "../src/integrations/adapters/calendar-event-adapter.js";
@@ -115,10 +118,81 @@ test("descriptive-only calendar updates create no planning Change and alter no v
   const result = await createAdapterRuntime({ clock }).execute(calendarEventAdapter, "import", structuredClone(metadataFixture), authorization);
   const after = planner.execute({ type: "validate_layout" });
   assert.equal(result.status, "succeeded");
-  assert.deepEqual(result.output.proposal.changes, []);
+  assert.equal(result.output.status, "no-changes");
+  assert.equal(result.output.proposal, null);
+  assert.throws(() => loadAdapterProposalForReview(planner, result.output), (error) => error.code === "ADAPTER_REVIEW_BYPASS");
   assert.deepEqual(after.evidenceFamilyFingerprints, before.evidenceFamilyFingerprints);
   assert.equal(result.output.sourceRecords[0].descriptive.title, "Summit Forward — doors open");
   assert.equal(planner.getSnapshot().ledger.length, ledgerLength);
+});
+
+test("adapter review rejects caller-controlled cross-Project mappings", async () => {
+  const result = await createAdapterRuntime({ clock }).execute(calendarEventAdapter, "import", structuredClone(attendanceFixture), authorization);
+  const wrongProjectFixture = { ...attendanceFixture, projectId: "project-server-owned-other" };
+  const wrongProjectPlanner = plannerFor(wrongProjectFixture);
+  assert.throws(() => loadAdapterProposalForReview(wrongProjectPlanner, result.output), (error) => error.code === "ADAPTER_PROJECT_BINDING_MISMATCH" && error.details.expectedProjectId === "project-server-owned-other");
+  const unboundPlan = structuredClone(summitForwardPlan);
+  unboundPlan.brief.schedule = structuredClone(attendanceFixture.currentPlanningState.schedule);
+  const unboundPlanner = createVenuePlanner(unboundPlan);
+  const initial = unboundPlanner.getSnapshot().proposal;
+  unboundPlanner.execute({ type: "approve_proposal", proposalId: initial.id, baseVersion: initial.baseVersion, actor: "human", idempotencyKey: "accept-unbound-baseline" });
+  assert.throws(() => loadAdapterProposalForReview(unboundPlanner, result.output), (error) => error.code === "ADAPTER_PROJECT_BINDING_REQUIRED");
+});
+
+test("empty adapter Proposals cannot enter review or advance accepted Plan truth", async () => {
+  const planner = plannerFor(metadataFixture);
+  const planVersion = planner.getSnapshot().plan.version;
+  const result = await createAdapterRuntime({ clock }).execute(calendarEventAdapter, "import", structuredClone(metadataFixture), authorization);
+  assert.equal(result.output.status, "no-changes");
+  assert.throws(() => loadAdapterProposalForReview(planner, result.output), (error) => error.code === "ADAPTER_REVIEW_BYPASS");
+  const snapshot = structuredClone(planner.getSnapshot());
+  const emptyProposal = { id: "proposal-adapter-empty", revision: snapshot.proposal.revision + 1, baseVersion: snapshot.plan.version, status: "review", goal: "No planning delta", changes: [], validation: null, waivers: [] };
+  snapshot.proposal = emptyProposal;
+  snapshot.branches = snapshot.branches.map((branch) => branch.id === snapshot.activeBranchId ? { ...branch, proposal: emptyProposal } : branch);
+  planner.execute({ type: "restore_snapshot", snapshot });
+  assert.throws(() => planner.execute({ type: "approve_proposal", proposalId: emptyProposal.id, baseVersion: emptyProposal.baseVersion, actor: "human", idempotencyKey: "reject-empty-adapter-proposal" }), (error) => error.code === "PROPOSAL_EMPTY");
+  assert.equal(planner.getSnapshot().plan.version, planVersion);
+});
+
+test("Activity Ledger replay rejects accepted Brief tampering at command and restore boundaries", () => {
+  const planner = plannerFor(metadataFixture);
+  planner.getSnapshot().brief.attendeeTarget = 399;
+  const replay = planner.execute({ type: "replay_history" });
+  assert.equal(replay.status, "fail");
+  assert.notEqual(replay.replayedBriefFingerprint, replay.currentBriefFingerprint);
+
+  const source = plannerFor(metadataFixture);
+  const snapshot = structuredClone(source.getSnapshot());
+  snapshot.brief.attendeeTarget = 399;
+  assert.throws(() => plannerFor(metadataFixture).execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEDGER_INTEGRITY_FAILED" && error.details.replay.replayedBriefFingerprint !== error.details.replay.currentBriefFingerprint);
+});
+
+test("legacy Event Briefs without schedule remain schema-compatible", () => {
+  const legacy = structuredClone(summitForwardPlan.brief);
+  delete legacy.schedule;
+  assert.equal(normalizeEventBrief(legacy).schedule, null);
+});
+
+test("every schedule seam requires canonical RFC3339 offsets and honors DST", async () => {
+  const dstSchedule = { startAt: "2026-11-01T01:30:00-04:00", endAt: "2026-11-01T01:30:00-05:00", timezone: "America/New_York" };
+  assert.deepEqual(normalizeEventSchedule(dstSchedule), dstSchedule);
+  const validInput = structuredClone(attendanceFixture);
+  validInput.currentPlanningState.schedule = structuredClone(dstSchedule);
+  Object.assign(validInput.event, dstSchedule);
+  assert.equal((await createAdapterRuntime({ clock }).execute(calendarEventAdapter, "import", validInput, authorization)).status, "succeeded");
+
+  const validResult = await createAdapterRuntime({ clock }).execute(calendarEventAdapter, "import", structuredClone(attendanceFixture), authorization);
+  const validEffect = validResult.output.proposal.changes[0].planningEffects[0];
+  for (const invalidStartAt of ["2026-09-18", "09/18/2026 09:00", "2026-09-18T09:00:00", "2026-09-18T09:00:00+05:00", "2026-02-30T09:00:00+06:00"]) {
+    assert.throws(() => normalizeEventSchedule({ ...attendanceFixture.currentPlanningState.schedule, startAt: invalidStartAt }), /RFC3339|offset|valid/i, invalidStartAt);
+    assert.throws(() => normalizeEventBrief({ ...summitForwardPlan.brief, schedule: { ...attendanceFixture.currentPlanningState.schedule, startAt: invalidStartAt } }), /RFC3339|offset|valid/i, invalidStartAt);
+    assert.throws(() => normalizePlanningEffect({ ...validEffect, operation: "set_event_schedule", targetRequirementId: "req-calendar-schedule", before: null, after: { ...attendanceFixture.currentPlanningState.schedule, startAt: invalidStartAt }, requirement: { ...validEffect.requirement, id: "req-calendar-schedule", category: "staffing", constraintIds: [] }, affectedConstraintIds: [], evidenceFamilies: ["operations"] }), /Planning Effect invalid/i, invalidStartAt);
+    const invalidInput = structuredClone(attendanceFixture);
+    invalidInput.event.startAt = invalidStartAt;
+    const result = await createAdapterRuntime({ clock }).execute(calendarEventAdapter, "import", invalidInput, authorization);
+    assert.equal(result.status, "dead-lettered", invalidStartAt);
+    assert.equal(result.deadLetter.terminalCode, "ADAPTER_SOURCE_INVALID", invalidStartAt);
+  }
 });
 
 test("calendar imports are idempotent and deterministic", async () => {

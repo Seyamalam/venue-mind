@@ -1,4 +1,5 @@
 import { errorCatalog } from "../domain/errors.js";
+import { RFC3339_INSTANT_PATTERN_SOURCE } from "../domain/event-schedule.js";
 
 const emptyObject = { type: "object", properties: {}, additionalProperties: false };
 const mutationMetadataProperties = {
@@ -533,7 +534,7 @@ export const validationResultSchema = {
   $id: "https://venuemind.dev/schemas/validation-result.schema.json",
   title: "VenueMind Validation Result",
   type: "object",
-  required: ["validationId", "inputFingerprint", "engineVersion", "evaluatedPlanVersion", "evaluatedProposalId", "status", "checks", "candidateMetrics", "candidateGeometryFingerprint", "spatialEvidence", "productionEvidence", "cateringEvidence", "emergencyEvidence", "emergencyReviewRequired", "emergencyChangedObjectIds", "authorizedEmergencyReviewerRoles", "blockingIssues", "waivedWarnings", "unwaivedWarnings", "unresolvedIssues", "inventoryAvailability", "inventoryWarnings"],
+  required: ["validationId", "inputFingerprint", "engineVersion", "evaluatedPlanVersion", "evaluatedProposalId", "status", "checks", "candidateMetrics", "candidateGeometryFingerprint", "spatialEvidence", "productionEvidence", "cateringEvidence", "emergencyEvidence", "evidenceFamilyFingerprints", "planningEvidenceInvalidations", "emergencyReviewRequired", "emergencyChangedObjectIds", "authorizedEmergencyReviewerRoles", "blockingIssues", "waivedWarnings", "unwaivedWarnings", "unresolvedIssues", "inventoryAvailability", "inventoryWarnings"],
   properties: {
     validationId: { type: "string", pattern: "^validation-[0-9a-f]{8}$" },
     inputFingerprint: { type: "string", pattern: "^input-[0-9a-f]{8}$" },
@@ -572,6 +573,21 @@ export const validationResultSchema = {
     productionEvidence: { type: "object", required: ["schemaVersion", "kind", "planId", "planVersion", "geometryFingerprint", "summary", "evidenceFingerprint"], properties: { schemaVersion: { const: 1 }, kind: { const: "production-planning-result" }, planId: { type: "string" }, planVersion: { type: "string" }, geometryFingerprint: { type: "string" }, summary: { type: "object" }, evidenceFingerprint: { type: "string", pattern: "^production-planning-" } }, additionalProperties: true },
     cateringEvidence: { type: "object", required: ["schemaVersion", "kind", "planId", "planVersion", "geometryFingerprint", "summary", "evidenceFingerprint"], properties: { schemaVersion: { const: 1 }, kind: { const: "catering-planning-result" }, planId: { type: "string" }, planVersion: { type: "string" }, geometryFingerprint: { type: "string" }, summary: { type: "object" }, evidenceFingerprint: { type: "string", pattern: "^catering-planning-" } }, additionalProperties: true },
     emergencyEvidence: { type: "object", required: ["schemaVersion", "kind", "planId", "planVersion", "geometryFingerprint", "summary", "degradedScenarios", "evidenceFingerprint"], properties: { schemaVersion: { const: 1 }, kind: { const: "emergency-planning-result" }, planId: { type: "string" }, planVersion: { type: "string" }, geometryFingerprint: { type: "string" }, summary: { type: "object" }, degradedScenarios: { type: "array", items: { type: "object" } }, evidenceFingerprint: { type: "string", pattern: "^emergency-planning-" } }, additionalProperties: true },
+    evidenceFamilyFingerprints: {
+      type: "object",
+      required: ["accessibility", "capacity", "catering", "emergency", "flow", "operations", "production", "sightlines"],
+      properties: Object.fromEntries(["accessibility", "capacity", "catering", "emergency", "flow", "operations", "production", "sightlines"].map((family) => [family, { type: "string", pattern: `^evidence-${family}-[0-9a-f]{8}$` }])),
+      additionalProperties: false,
+    },
+    planningEvidenceInvalidations: {
+      type: "object",
+      required: ["affectedConstraintIds", "evidenceFamilies"],
+      properties: {
+        affectedConstraintIds: { type: "array", uniqueItems: true, items: { type: "string", minLength: 1 } },
+        evidenceFamilies: { type: "array", uniqueItems: true, items: { enum: ["capacity", "flow", "operations"] } },
+      },
+      additionalProperties: false,
+    },
     emergencyReviewRequired: { type: "boolean" },
     emergencyChangedObjectIds: { type: "array", uniqueItems: true, items: { type: "string" } },
     authorizedEmergencyReviewerRoles: { type: "array", uniqueItems: true, items: { enum: ["safety-officer", "venue-administrator"] } },
@@ -773,7 +789,7 @@ export const eventBriefSchema = {
   $id: "https://venuemind.dev/schemas/event-brief.schema.json",
   title: "VenueMind Event Brief",
   type: "object",
-  required: ["id", "eventName", "date", "timezone", "venueId", "roomId", "attendeeTarget", "occupancyMode", "schedule", "requirements"],
+  required: ["id", "eventName", "date", "timezone", "venueId", "roomId", "attendeeTarget", "occupancyMode", "requirements"],
   properties: {
     id: { type: "string", minLength: 1 },
     eventName: { type: "string", minLength: 1 },
@@ -786,7 +802,7 @@ export const eventBriefSchema = {
     schedule: {
       anyOf: [
         { type: "null" },
-        { type: "object", required: ["startAt", "endAt", "timezone"], properties: { startAt: { type: "string", format: "date-time" }, endAt: { type: "string", format: "date-time" }, timezone: { type: "string", minLength: 1 } }, additionalProperties: false },
+        { type: "object", required: ["startAt", "endAt", "timezone"], properties: { startAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, endAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, timezone: { type: "string", minLength: 1 } }, additionalProperties: false },
       ],
     },
     requirements: {
