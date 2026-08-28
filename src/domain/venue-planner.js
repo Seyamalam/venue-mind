@@ -1,6 +1,6 @@
 import { normalizePlanGeometry } from "./geometry.js";
 import { normalizeConstraints, validateConstraints } from "./constraint-engine.js";
-import { createActivityEntry, fingerprintPlan, normalizeActivityLedger, replayActivityLedger, sealActivityLedger, stableFingerprint, verifyActivityLedger } from "./activity-ledger.js";
+import { createActivityEntry, fingerprintEventBrief, fingerprintPlan, normalizeActivityLedger, replayActivityLedger, sealActivityLedger, stableFingerprint, verifyActivityLedger } from "./activity-ledger.js";
 import { detectProposalConflicts } from "./proposal-conflicts.js";
 import { eventBriefWithCoverage, normalizeEventBrief } from "./event-brief.js";
 import { materializeSpatialPlan } from "./spatial-analysis.js";
@@ -14,6 +14,7 @@ import { createComment, editComment, listComments, normalizeComments, setComment
 import { createPlanExport } from "../interchange/plan-exports.js";
 import { compareSimulationResults, createScenarioRunner, exportSimulationRun, normalizeScenarioDefinition, scenarioDefinitionFingerprint, scenarioInputFingerprint, SIMULATION_ENGINE_VERSION } from "./scenario-engine.js";
 import { assertVenueCommand, TRUSTED_LOCAL_AUTHORIZATION } from "./authorization.js";
+import { materializeEventBrief, planningEvidenceInvalidations } from "./planning-effects.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -79,10 +80,11 @@ const createInitialState = (initialPlan) => {
     validation: null,
     waivers: [],
   };
+  const brief = normalizeEventBrief(briefTemplate);
   assertNoLockConflicts(plan, proposal.changes);
   return {
     plan,
-    brief: normalizeEventBrief(briefTemplate),
+    brief,
     proposal,
     activeBranchId: "branch-balanced",
     branches: [{ id: "branch-balanced", name: "Balanced", notes: "", strategy: "balanced", proposal: clone(proposal), revisions: [], archived: false, decisionStatus: null, createdAt: now(), createdBy: "agent" }],
@@ -91,7 +93,7 @@ const createInitialState = (initialPlan) => {
     scenarios: [],
     scenarioRuns: [],
     editHistory: { undo: [], redo: [] },
-    ledger: sealActivityLedger([createActivityEntry(1, "plan.opened", "human", { planId: plan.id, version: plan.version, beforePlanVersion: plan.version, afterPlanVersion: plan.version, acceptedPlan: clone(plan), planFingerprint: fingerprintPlan(plan) }, { source: "studio", sessionId: "session-initial" })]),
+    ledger: sealActivityLedger([createActivityEntry(1, "plan.opened", "human", { planId: plan.id, version: plan.version, beforePlanVersion: plan.version, afterPlanVersion: plan.version, acceptedPlan: clone(plan), planFingerprint: fingerprintPlan(plan), acceptedBrief: clone(brief), briefFingerprint: fingerprintEventBrief(brief) }, { source: "studio", sessionId: "session-initial" })]),
     receipts: [],
   };
 };
@@ -291,10 +293,14 @@ const syncActiveBranch = (state, proposal) => ({
 });
 
 export const validateVenueState = (state) => {
-  const validation = validateConstraints(state);
+  const changes = state.proposal?.status === "review" ? state.proposal.changes : [];
+  const candidateBrief = materializeEventBrief(state.brief, changes);
+  const validation = validateConstraints({ ...state, brief: candidateBrief });
   const inventoryAvailability = evaluateInventoryAvailability(materializeSpatialPlan(state.plan, state.proposal?.changes ?? [], { projectLocks: state.projectLocks, allowLockConflicts: true }));
-  return { ...validation, inventoryAvailability, inventoryWarnings: inventoryAvailability.filter((item) => item.status === "warning").length };
+  return { ...validation, planningEvidenceInvalidations: planningEvidenceInvalidations(changes), inventoryAvailability, inventoryWarnings: inventoryAvailability.filter((item) => item.status === "warning").length };
 };
+
+const candidateBriefFor = (state) => materializeEventBrief(state.brief, state.proposal?.status === "review" ? state.proposal.changes : []);
 
 const inspection = (state) => ({
   planId: state.plan.id,
@@ -331,7 +337,7 @@ const inspection = (state) => ({
   proposalBranches: state.branches.map((branch) => ({ id: branch.id, name: branch.name, strategy: branch.strategy, proposalId: branch.proposal.id })),
   commandReceiptCount: state.receipts.length,
   ledgerIntegrity: verifyActivityLedger(state.ledger),
-  brief: eventBriefWithCoverage(state.brief, validateVenueState(state), validateVenueState({ ...state, proposal: null })),
+  brief: eventBriefWithCoverage(candidateBriefFor(state), validateVenueState(state), validateVenueState({ ...state, proposal: null })),
 });
 
 const formatExport = (state) => {
@@ -525,7 +531,7 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
     }
     if (command.type === "validate_layout") return validateVenueState(state);
     if (command.type === "get_change_log") return clone(state.ledger);
-    if (command.type === "get_project_brief") return eventBriefWithCoverage(state.brief, validateVenueState(state), validateVenueState({ ...state, proposal: null }));
+    if (command.type === "get_project_brief") return eventBriefWithCoverage(candidateBriefFor(state), validateVenueState(state), validateVenueState({ ...state, proposal: null }));
     if (command.type === "replay_history") return replayActivityLedger(state.ledger, state.plan);
     if (command.type === "detect_conflicts") return detectProposalConflicts(state, command.branchId);
     if (command.type === "list_branches") {
@@ -560,10 +566,10 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
       const format = command.format ?? "json";
       const validation = validateVenueState(state);
       const acceptedValidation = validateVenueState({ ...state, proposal: null });
-      const replay = replayActivityLedger(state.ledger, state.plan);
+      const replay = replayActivityLedger(state.ledger, state.plan, state.brief);
       const exportState = {
         ...state,
-        brief: eventBriefWithCoverage(state.brief, validation, acceptedValidation),
+        brief: eventBriefWithCoverage(candidateBriefFor(state), validation, acceptedValidation),
         receipts: state.receipts.map(publicReceipt),
       };
       const plan = materializeSpatialPlan(state.plan, state.proposal?.changes ?? [], { projectLocks: state.projectLocks, allowLockConflicts: true });
@@ -1092,7 +1098,7 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
           reviewedAt: now(),
         };
       }
-      undoStack.push(clone(state.plan));
+      undoStack.push({ plan: clone(state.plan), brief: clone(state.brief) });
       redoStack = [];
       const plan = {
         ...applyApprovedTemplateBinding(materializeSpatialPlan(state.plan, state.proposal.changes, { projectLocks: state.projectLocks }), state.proposal),
@@ -1102,11 +1108,13 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
         emergencyReviews: [...(state.plan.emergencyReviews ?? []), ...(emergencyReview ? [{ ...emergencyReview, acceptedPlanVersion: incrementVersion(state.plan.version) }] : [])],
       };
       const approvedProposal = { ...state.proposal, status: "approved", validation };
+      const brief = materializeEventBrief(state.brief, state.proposal.changes);
       publish({
         ...syncActiveBranch(state, approvedProposal),
         plan,
+        brief,
         editHistory: { undo: [], redo: [] },
-        ledger: appendLedger(state, "proposal.approved", command.actor ?? "human", { proposalId: state.proposal.id, branchId: state.activeBranchId, changeIds: state.proposal.changes.map((change) => change.id), validationId: validation.validationId, fromVersion: state.plan.version, toVersion: plan.version, ...(emergencyReview ? { emergencyReview: clone({ ...emergencyReview, acceptedPlanVersion: plan.version }) } : {}), acceptedPlan: clone(plan), planFingerprint: fingerprintPlan(plan) }),
+        ledger: appendLedger(state, "proposal.approved", command.actor ?? "human", { proposalId: state.proposal.id, branchId: state.activeBranchId, changeIds: state.proposal.changes.map((change) => change.id), validationId: validation.validationId, fromVersion: state.plan.version, toVersion: plan.version, ...(emergencyReview ? { emergencyReview: clone({ ...emergencyReview, acceptedPlanVersion: plan.version }) } : {}), acceptedPlan: clone(plan), planFingerprint: fingerprintPlan(plan), acceptedBrief: clone(brief), briefFingerprint: fingerprintEventBrief(brief) }),
       });
       return { planId: plan.id, planVersion: plan.version, proposalId: state.proposal.id, status: "approved", validation };
     }
@@ -1119,17 +1127,18 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
         publish({ ...syncActiveBranch(state, proposal), editHistory: { undo: state.editHistory.undo.slice(0, -1), redo: [...state.editHistory.redo, edit] }, ledger: appendLedger(state, "editor.change_undone", command.actor ?? "human", { proposalId: proposal.id, changeId: edit.change.id, operation: edit.change.editor?.operation ?? null }) });
         return { status: "edit-undone", proposalId: proposal.id, changeId: edit.change.id, changedItems: changes.length };
       }
-      const previousPlan = undoStack.pop();
-      if (!previousPlan) return { status: "noop", planVersion: state.plan.version };
-      redoStack.push(clone(state.plan));
-      const restoredProposal = { ...state.proposal, baseVersion: previousPlan.version, status: "review", validation: null, waivers: [] };
+      const previous = undoStack.pop();
+      if (!previous) return { status: "noop", planVersion: state.plan.version };
+      redoStack.push({ plan: clone(state.plan), brief: clone(state.brief) });
+      const restoredProposal = { ...state.proposal, baseVersion: previous.plan.version, status: "review", validation: null, waivers: [] };
       publish({
         ...syncActiveBranch(state, restoredProposal),
-        plan: previousPlan,
+        plan: previous.plan,
+        brief: previous.brief,
         editHistory: { undo: [], redo: [] },
-        ledger: appendLedger(state, "plan.undone", command.actor ?? "human", { toVersion: previousPlan.version, acceptedPlan: clone(previousPlan), planFingerprint: fingerprintPlan(previousPlan) }),
+        ledger: appendLedger(state, "plan.undone", command.actor ?? "human", { toVersion: previous.plan.version, acceptedPlan: clone(previous.plan), planFingerprint: fingerprintPlan(previous.plan), acceptedBrief: clone(previous.brief), briefFingerprint: fingerprintEventBrief(previous.brief) }),
       });
-      return { status: "undone", planVersion: previousPlan.version };
+      return { status: "undone", planVersion: previous.plan.version };
     }
 
     if (command.type === "redo") {
@@ -1143,17 +1152,18 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
         publish({ ...syncActiveBranch(state, proposal), editHistory: { undo: [...state.editHistory.undo, edit], redo: state.editHistory.redo.slice(0, -1) }, ledger: appendLedger(state, "editor.change_redone", command.actor ?? "human", { proposalId: proposal.id, changeId: edit.change.id, operation: edit.change.editor?.operation ?? null }) });
         return { status: "edit-redone", proposalId: proposal.id, changeId: edit.change.id, changedItems: changes.length };
       }
-      const nextPlan = redoStack.pop();
-      if (!nextPlan) return { status: "noop", planVersion: state.plan.version };
-      undoStack.push(clone(state.plan));
-      const redoneProposal = { ...state.proposal, baseVersion: nextPlan.version, status: "approved", validation: validateVenueState({ ...state, plan: nextPlan }) };
+      const next = redoStack.pop();
+      if (!next) return { status: "noop", planVersion: state.plan.version };
+      undoStack.push({ plan: clone(state.plan), brief: clone(state.brief) });
+      const redoneProposal = { ...state.proposal, baseVersion: next.plan.version, status: "approved", validation: validateVenueState({ ...state, plan: next.plan, brief: next.brief }) };
       publish({
         ...syncActiveBranch(state, redoneProposal),
-        plan: nextPlan,
+        plan: next.plan,
+        brief: next.brief,
         editHistory: { undo: [], redo: [] },
-        ledger: appendLedger(state, "plan.redone", command.actor ?? "human", { toVersion: nextPlan.version, acceptedPlan: clone(nextPlan), planFingerprint: fingerprintPlan(nextPlan) }),
+        ledger: appendLedger(state, "plan.redone", command.actor ?? "human", { toVersion: next.plan.version, acceptedPlan: clone(next.plan), planFingerprint: fingerprintPlan(next.plan), acceptedBrief: clone(next.brief), briefFingerprint: fingerprintEventBrief(next.brief) }),
       });
-      return { status: "redone", planVersion: nextPlan.version };
+      return { status: "redone", planVersion: next.plan.version };
     }
 
     throw venueError("COMMAND_UNSUPPORTED", { commandType: command.type });

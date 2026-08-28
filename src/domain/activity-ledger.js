@@ -20,6 +20,7 @@ export const stableFingerprint = (prefix, value) => {
 };
 
 export const fingerprintPlan = (plan) => stableFingerprint("plan", plan);
+export const fingerprintEventBrief = (brief) => stableFingerprint("brief", brief);
 
 export const createActivityEntry = (sequence, type, actor, details = {}, metadata = {}) => ({
   id: `ledger-${String(sequence).padStart(4, "0")}`,
@@ -88,7 +89,7 @@ export function normalizeActivityLedger(entries) {
   return clone(entries);
 }
 
-export function replayActivityLedger(entries, currentPlan) {
+export function replayActivityLedger(entries, currentPlan, currentBrief = null) {
   const integrity = verifyActivityLedger(entries);
   if (integrity.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { integrity });
   const transitions = entries
@@ -99,10 +100,15 @@ export function replayActivityLedger(entries, currentPlan) {
       planVersion: entry.details.acceptedPlan.version,
       planFingerprint: fingerprintPlan(entry.details.acceptedPlan),
       plan: clone(entry.details.acceptedPlan),
+      briefFingerprint: entry.details.acceptedBrief ? fingerprintEventBrief(entry.details.acceptedBrief) : null,
+      brief: entry.details.acceptedBrief ? clone(entry.details.acceptedBrief) : null,
     }));
   const replayed = transitions.at(-1)?.plan ?? null;
   const replayedFingerprint = replayed ? fingerprintPlan(replayed) : null;
   const currentFingerprint = fingerprintPlan(currentPlan);
+  const replayedBrief = [...transitions].reverse().find((transition) => transition.brief)?.brief ?? null;
+  const replayedBriefFingerprint = replayedBrief ? fingerprintEventBrief(replayedBrief) : null;
+  const currentBriefFingerprint = currentBrief ? fingerprintEventBrief(currentBrief) : null;
   const lockedObjectViolations = [];
   for (let index = 1; index < transitions.length; index += 1) {
     const before = transitions[index - 1];
@@ -133,11 +139,13 @@ export function replayActivityLedger(entries, currentPlan) {
     }
   }
   return {
-    status: replayedFingerprint === currentFingerprint && lockedObjectViolations.length === 0 ? "pass" : "fail",
-    transitions: transitions.map(({ plan: _plan, ...transition }) => transition),
+    status: replayedFingerprint === currentFingerprint && (!currentBrief || replayedBriefFingerprint === currentBriefFingerprint) && lockedObjectViolations.length === 0 ? "pass" : "fail",
+    transitions: transitions.map(({ plan: _plan, brief: _brief, ...transition }) => transition),
     currentPlanVersion: currentPlan.version,
     replayedFingerprint,
     currentFingerprint,
+    replayedBriefFingerprint,
+    currentBriefFingerprint,
     ledgerHeadHash: integrity.headHash,
     lockedObjectViolations,
   };

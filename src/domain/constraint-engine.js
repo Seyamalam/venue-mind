@@ -366,7 +366,7 @@ const validationInputValue = (state) => ({
     id: state.proposal.id,
     revision: state.proposal.revision,
     status: state.proposal.status,
-    changes: state.proposal.changes.map(({ id, targetObjectIds, effects, spatialEffects }) => ({ id, targetObjectIds, effects, spatialEffects })),
+    changes: state.proposal.changes.map(({ id, targetObjectIds, targetRequirementIds, effects, spatialEffects, planningEffects }) => ({ id, targetObjectIds, targetRequirementIds, effects, spatialEffects, planningEffects })),
   } : null,
 });
 
@@ -376,6 +376,16 @@ const computeValidation = (state, analyzeSpatial, inputFingerprint) => {
   const productionEvidence = analyzeProductionPlan(spatial.candidatePlan);
   const cateringEvidence = analyzeCateringPlan(spatial.candidatePlan);
   const emergencyEvidence = analyzeEmergencyPlan(spatial.candidatePlan);
+  const evidenceFamilyFingerprints = {
+    accessibility: hash("evidence-accessibility", spatial.evidence.accessibility),
+    capacity: hash("evidence-capacity", spatial.evidence.capacity),
+    catering: hash("evidence-catering", cateringEvidence),
+    emergency: hash("evidence-emergency", emergencyEvidence),
+    flow: hash("evidence-flow", spatial.evidence.circulation),
+    operations: hash("evidence-operations", { schedule: state.brief?.schedule ?? null }),
+    production: hash("evidence-production", productionEvidence),
+    sightlines: hash("evidence-sightlines", spatial.evidence.sightlines),
+  };
   const candidateMetrics = { ...applyEffects(state.plan.metrics, changes), ...spatial.metrics };
   const checks = state.plan.constraints.map((constraint) => {
     if (constraint.enabled === false) {
@@ -451,6 +461,7 @@ const computeValidation = (state, analyzeSpatial, inputFingerprint) => {
     productionEvidence,
     cateringEvidence,
     emergencyEvidence,
+    evidenceFamilyFingerprints,
     emergencyReviewRequired: emergencyChangeObjectIds(state.plan, changes).length > 0,
     emergencyChangedObjectIds: emergencyChangeObjectIds(state.plan, changes),
     authorizedEmergencyReviewerRoles: emergencyEvidence.emergencyPlan.authorizedReviewerRoles,

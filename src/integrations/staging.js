@@ -1,5 +1,5 @@
 import { fingerprintPlan } from "../domain/activity-ledger.js";
-import { AdapterContractError, assertIsoTimestamp, normalizeAdapterChange, normalizeSyncCursor, sha256Checksum } from "./contracts.js";
+import { AdapterContractError, assertIsoTimestamp, normalizeAdapterChange, normalizeExternalReference, normalizeSyncCursor, sha256Checksum } from "./contracts.js";
 
 const clone = (value) => structuredClone(value);
 
@@ -9,6 +9,22 @@ const fail = (code, message, details) => {
 
 const proposalChange = (change, index) => {
   const venueObjectId = change.operation === "create" ? change.proposedVenueObjectId : change.venueObjectId;
+  if (change.venueEntityType === "event-brief-requirement") {
+    const planningEffects = clone(change.planningEffects);
+    const label = planningEffects[0].requirement.label;
+    return Object.freeze({
+      id: change.id,
+      number: index + 1,
+      title: `Synchronize ${label}`,
+      shortTitle: `update ${label}`,
+      metrics: [],
+      targetObjectIds: [],
+      targetRequirementIds: [venueObjectId],
+      spatialEffects: [],
+      planningEffects,
+      effects: {},
+    });
+  }
   const values = clone(change.values ?? {});
   if (Object.hasOwn(values, "id")) fail("ADAPTER_ID_BOUNDARY_VIOLATION", "Adapter values cannot override a VenueMind stable ID", { changeId: change.id });
   if (change.operation === "update") {
@@ -44,7 +60,7 @@ const proposalChange = (change, index) => {
 };
 
 export function createExternalIdMapping({ venueEntityType, venueObjectId, external, batchId, sourceSystem, sourceVersion, synchronizedAt, checksum }) {
-  if (venueEntityType !== "project-object-instance" && venueEntityType !== "inventory-item-template") fail("ADAPTER_ENTITY_TYPE_INVALID", "Venue entity type is invalid", { venueEntityType });
+  if (!["event-brief-requirement", "inventory-item-template", "project", "project-object-instance"].includes(venueEntityType)) fail("ADAPTER_ENTITY_TYPE_INVALID", "Venue entity type is invalid", { venueEntityType });
   if (typeof venueObjectId !== "string" || !venueObjectId) fail("ADAPTER_CONTRACT_INVALID", "VenueMind stable ID is required");
   if (typeof external?.externalId !== "string" || !external.externalId) fail("ADAPTER_CONTRACT_INVALID", "External reference is required");
   if (typeof batchId !== "string" || !batchId || typeof sourceSystem !== "string" || !sourceSystem || typeof sourceVersion !== "string" || !sourceVersion) fail("ADAPTER_MAPPING_EVIDENCE_INVALID", "Mapping source evidence is required");
@@ -57,7 +73,7 @@ export function createExternalIdMapping({ venueEntityType, venueObjectId, extern
 
 export async function createAdapterStagingBatch(definition, input, options = {}) {
   if (!input || typeof input !== "object" || Array.isArray(input)) fail("ADAPTER_CONTRACT_INVALID", "Adapter import result must be an object");
-  const unknown = Object.keys(input).filter((key) => !["sourceSystem", "sourceVersion", "synchronizedAt", "syncCursor", "changes", "warnings"].includes(key));
+  const unknown = Object.keys(input).filter((key) => !["sourceSystem", "sourceVersion", "synchronizedAt", "syncCursor", "changes", "mappings", "sourceRecords", "warnings"].includes(key));
   if (unknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Adapter import result contains unknown fields", { fields: unknown.sort() });
   for (const field of ["sourceSystem", "sourceVersion"]) if (typeof input[field] !== "string" || !input[field]) fail("ADAPTER_CONTRACT_INVALID", `Import ${field} is required`);
   assertIsoTimestamp(input.synchronizedAt, "Import synchronizedAt");
@@ -67,13 +83,30 @@ export async function createAdapterStagingBatch(definition, input, options = {})
   const changes = input.changes.map((change) => normalizeAdapterChange(change, definition));
   const ids = changes.map((change) => change.id);
   if (new Set(ids).size !== ids.length) fail("ADAPTER_CHANGE_DUPLICATE", "Adapter change IDs must be unique");
-  const externalKeys = changes.map((change) => `${change.external.entityType}\u0000${change.external.externalId}`);
-  if (new Set(externalKeys).size !== externalKeys.length) fail("ADAPTER_EXTERNAL_ID_DUPLICATE", "An external entity may appear only once in a staging batch");
   if (changes.some((change) => change.external.sourceSystem !== input.sourceSystem)) fail("ADAPTER_SOURCE_MISMATCH", "Every imported Change must belong to the batch source system");
   const proposedIds = changes.filter((change) => change.operation === "create").map((change) => change.proposedVenueObjectId);
   if (new Set(proposedIds).size !== proposedIds.length) fail("ADAPTER_STABLE_ID_DUPLICATE", "Proposed VenueMind stable IDs must be unique");
   const syncCursor = normalizeSyncCursor(input.syncCursor, definition);
-  const content = { adapterId: definition.id, adapterVersion: definition.version, sourceSystem: input.sourceSystem, sourceVersion: input.sourceVersion, synchronizedAt: input.synchronizedAt, basePlanVersion: options.basePlanVersion, proposalRevision: options.proposalRevision, syncCursor, changes, warnings: clone(input.warnings ?? []) };
+  const sourceRecords = (input.sourceRecords ?? []).map((record) => {
+    if (!record || typeof record !== "object" || Array.isArray(record)) fail("ADAPTER_CONTRACT_INVALID", "Source record evidence must be an object");
+    const recordUnknown = Object.keys(record).filter((key) => !["external", "synchronizedAt", "descriptive"].includes(key));
+    if (recordUnknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Source record evidence contains unknown fields", { fields: recordUnknown.sort() });
+    const external = normalizeExternalReference(record.external, definition);
+    assertIsoTimestamp(record.synchronizedAt, "Source record synchronizedAt");
+    const descriptive = record.descriptive ?? {};
+    const descriptiveUnknown = Object.keys(descriptive).filter((key) => !["title", "location", "organizer"].includes(key));
+    if (descriptiveUnknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Source record descriptive evidence contains unknown fields", { fields: descriptiveUnknown.sort() });
+    if (typeof descriptive.title !== "string" || !descriptive.title) fail("ADAPTER_SOURCE_INVALID", "Source record title is required");
+    const locationUnknown = Object.keys(descriptive.location ?? {}).filter((key) => key !== "label");
+    const organizerUnknown = Object.keys(descriptive.organizer ?? {}).filter((key) => !["displayName", "organization", "role"].includes(key));
+    if (locationUnknown.length || organizerUnknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Source record descriptive metadata contains unknown fields", { fields: [...locationUnknown, ...organizerUnknown].sort() });
+    if (typeof descriptive.location?.label !== "string" || !descriptive.location.label || typeof descriptive.organizer?.displayName !== "string" || !descriptive.organizer.displayName) fail("ADAPTER_SOURCE_INVALID", "Source record location and organizer labels are required");
+    for (const value of Object.values(descriptive.organizer)) if (typeof value !== "string" || !value || value.includes("@")) fail("ADAPTER_SOURCE_INVALID", "Organizer metadata must contain labels and no contact PII");
+    return Object.freeze({ external, synchronizedAt: record.synchronizedAt, descriptive: clone(descriptive) });
+  });
+  const mappingDrafts = input.mappings ?? changes.map((change) => ({ venueEntityType: change.venueEntityType, venueObjectId: change.operation === "create" ? change.proposedVenueObjectId : change.venueObjectId, external: change.external }));
+  if (!Array.isArray(mappingDrafts)) fail("ADAPTER_CONTRACT_INVALID", "Import mappings must be an array");
+  const content = { adapterId: definition.id, adapterVersion: definition.version, sourceSystem: input.sourceSystem, sourceVersion: input.sourceVersion, synchronizedAt: input.synchronizedAt, basePlanVersion: options.basePlanVersion, proposalRevision: options.proposalRevision, syncCursor, changes, mappings: clone(mappingDrafts), sourceRecords: clone(sourceRecords), warnings: clone(input.warnings ?? []) };
   const checksum = await sha256Checksum(content);
   const batchId = options.batchId ?? `adapter-batch-${checksum.slice(0, 16)}`;
   const proposal = Object.freeze({
@@ -86,23 +119,23 @@ export async function createAdapterStagingBatch(definition, input, options = {})
     validation: null,
     waivers: [],
   });
-  const mappings = changes.map((change) => createExternalIdMapping({
-    venueEntityType: change.venueEntityType,
-    venueObjectId: change.operation === "create" ? change.proposedVenueObjectId : change.venueObjectId,
-    external: change.external,
+  const mappings = mappingDrafts.map((mapping) => createExternalIdMapping({
+    venueEntityType: mapping.venueEntityType,
+    venueObjectId: mapping.venueObjectId,
+    external: mapping.external,
     batchId,
     sourceSystem: input.sourceSystem,
-    sourceVersion: change.external.sourceVersion,
+    sourceVersion: mapping.external.sourceVersion,
     synchronizedAt: input.synchronizedAt,
-    checksum: change.external.checksum,
+    checksum: mapping.external.checksum,
   }));
-  return Object.freeze({ schemaVersion: 1, id: batchId, status: "awaiting-review", adapterId: definition.id, adapterVersion: definition.version, sourceSystem: input.sourceSystem, sourceVersion: input.sourceVersion, synchronizedAt: input.synchronizedAt, basePlanVersion: options.basePlanVersion, checksum, syncCursor, mappings: clone(mappings), warnings: clone(input.warnings ?? []), proposal });
+  return Object.freeze({ schemaVersion: 1, id: batchId, status: "awaiting-review", adapterId: definition.id, adapterVersion: definition.version, sourceSystem: input.sourceSystem, sourceVersion: input.sourceVersion, synchronizedAt: input.synchronizedAt, basePlanVersion: options.basePlanVersion, checksum, syncCursor, mappings: clone(mappings), sourceRecords: clone(sourceRecords), warnings: clone(input.warnings ?? []), proposal });
 }
 
 export function assertReviewableStagingBatch(batch) {
   if (batch?.status !== "awaiting-review" || batch?.proposal?.status !== "review") fail("ADAPTER_REVIEW_BYPASS", "Imported changes must remain a review Proposal until human Approval");
   if (!batch.proposal.id || !Number.isInteger(batch.proposal.revision) || batch.proposal.baseVersion !== batch.basePlanVersion || !Array.isArray(batch.proposal.changes)) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch does not contain a canonical Proposal");
-  if (batch.proposal.changes.some((change) => !change.id || !Number.isInteger(change.number) || !change.targetObjectIds?.length || !change.spatialEffects?.length)) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch contains a non-executable Change");
+  if (batch.proposal.changes.some((change) => !change.id || !Number.isInteger(change.number) || !Array.isArray(change.targetObjectIds) || (!change.spatialEffects?.length && !change.planningEffects?.length) || (change.targetObjectIds.length === 0 && !change.planningEffects?.length))) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch contains a non-executable Change");
   if (!batch.sourceSystem || !batch.sourceVersion || !batch.checksum) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch source evidence is incomplete");
   if (!/^[0-9a-f]{64}$/.test(batch.checksum) || !Array.isArray(batch.mappings) || batch.mappings.some((mapping) => mapping.sourceSystem !== batch.sourceSystem || mapping.synchronizedAt !== batch.synchronizedAt || !/^[0-9a-f]{64}$/.test(mapping.checksum ?? ""))) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch mapping evidence is invalid");
   assertIsoTimestamp(batch.synchronizedAt, "Staging batch synchronizedAt");

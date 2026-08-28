@@ -1,9 +1,10 @@
 import { stableFingerprint } from "../domain/activity-ledger.js";
+import { normalizePlanningEffect } from "../domain/planning-effects.js";
 
 export const ADAPTER_CONTRACT_VERSION = 1;
 export const ADAPTER_CAPABILITIES = Object.freeze(["import", "export", "synchronize", "webhook"]);
 export const ADAPTER_CHANGE_OPERATIONS = Object.freeze(["create", "update", "delete"]);
-export const VENUE_ENTITY_TYPES = Object.freeze(["inventory-item-template", "project-object-instance"]);
+export const VENUE_ENTITY_TYPES = Object.freeze(["event-brief-requirement", "inventory-item-template", "project", "project-object-instance"]);
 
 const CAPABILITY_SET = new Set(ADAPTER_CAPABILITIES);
 const CHANGE_OPERATION_SET = new Set(ADAPTER_CHANGE_OPERATIONS);
@@ -125,11 +126,12 @@ export function normalizeExternalReference(input, definition) {
 
 export function normalizeAdapterChange(input, definition) {
   assertPlainObject(input, "Adapter change");
-  assertExactKeys(input, ["id", "operation", "venueEntityType", "venueObjectId", "proposedVenueObjectId", "external", "values", "baseChecksum"], "Adapter change");
+  assertExactKeys(input, ["id", "operation", "venueEntityType", "venueObjectId", "proposedVenueObjectId", "external", "values", "planningEffects", "baseChecksum"], "Adapter change");
   assertString(input.id, "Adapter change ID");
   if (!CHANGE_OPERATION_SET.has(input.operation)) fail("ADAPTER_CONTRACT_INVALID", "Adapter change operation is invalid", { operation: input.operation });
-  if (!VENUE_ENTITY_TYPE_SET.has(input.venueEntityType)) fail("ADAPTER_ENTITY_TYPE_INVALID", "Adapter change must distinguish an Inventory Item Template from a Project Object Instance", { venueEntityType: input.venueEntityType });
-  if (input.venueEntityType !== "project-object-instance") fail("ADAPTER_ENTITY_TYPE_UNSUPPORTED", "Spatial Proposal staging currently accepts Project Object Instances only", { venueEntityType: input.venueEntityType });
+  if (!VENUE_ENTITY_TYPE_SET.has(input.venueEntityType)) fail("ADAPTER_ENTITY_TYPE_INVALID", "Adapter change must use an explicit VenueMind entity type", { venueEntityType: input.venueEntityType });
+  if (!["project-object-instance", "event-brief-requirement"].includes(input.venueEntityType)) fail("ADAPTER_ENTITY_TYPE_UNSUPPORTED", "Proposal staging accepts Project Object Instances and Event Brief Requirements only", { venueEntityType: input.venueEntityType });
+  if (input.venueEntityType === "event-brief-requirement" && input.operation !== "update") fail("ADAPTER_CONTRACT_INVALID", "Requirement adapter changes must update an allocated stable Requirement ID");
   if (input.operation === "create") {
     if (input.venueObjectId !== undefined) fail("ADAPTER_ID_BOUNDARY_VIOLATION", "Create changes cannot claim an existing VenueMind stable ID");
     assertString(input.proposedVenueObjectId, "Proposed VenueMind stable ID");
@@ -141,8 +143,12 @@ export function normalizeAdapterChange(input, definition) {
   const venueStableId = input.operation === "create" ? input.proposedVenueObjectId : input.venueObjectId;
   if (venueStableId === external.externalId) fail("ADAPTER_ID_BOUNDARY_VIOLATION", "External IDs and VenueMind stable IDs must not be conflated", { venueObjectId: venueStableId, externalId: external.externalId });
   if (input.baseChecksum !== undefined && !SHA256.test(input.baseChecksum)) fail("ADAPTER_CHECKSUM_INVALID", "baseChecksum must be a lowercase SHA-256 digest");
-  if (input.operation !== "delete") assertPlainObject(input.values, "Adapter change values");
-  return Object.freeze(clone(input));
+  if (input.venueEntityType === "project-object-instance" && input.operation !== "delete") assertPlainObject(input.values, "Adapter change values");
+  if (input.venueEntityType === "event-brief-requirement" && input.values !== undefined) fail("ADAPTER_CONTRACT_INVALID", "Requirement changes use typed planningEffects instead of values");
+  const planningEffects = (input.planningEffects ?? []).map(normalizePlanningEffect);
+  if (input.venueEntityType === "event-brief-requirement" && planningEffects.length === 0) fail("ADAPTER_CHANGE_EMPTY", "Requirement change must contain an executable Planning Effect");
+  if (input.venueEntityType === "project-object-instance" && planningEffects.length > 0) fail("ADAPTER_CONTRACT_INVALID", "Project Object changes cannot carry Event Brief Planning Effects");
+  return Object.freeze({ ...clone(input), ...(planningEffects.length ? { planningEffects: clone(planningEffects) } : {}) });
 }
 
 export function normalizeSyncCursor(input, definition) {

@@ -773,7 +773,7 @@ export const eventBriefSchema = {
   $id: "https://venuemind.dev/schemas/event-brief.schema.json",
   title: "VenueMind Event Brief",
   type: "object",
-  required: ["id", "eventName", "date", "timezone", "venueId", "roomId", "attendeeTarget", "occupancyMode", "requirements"],
+  required: ["id", "eventName", "date", "timezone", "venueId", "roomId", "attendeeTarget", "occupancyMode", "schedule", "requirements"],
   properties: {
     id: { type: "string", minLength: 1 },
     eventName: { type: "string", minLength: 1 },
@@ -783,6 +783,12 @@ export const eventBriefSchema = {
     roomId: { type: ["string", "null"] },
     attendeeTarget: { type: "integer", minimum: 0 },
     occupancyMode: { enum: ["theater", "classroom", "banquet", "standing", "mixed", "custom"] },
+    schedule: {
+      anyOf: [
+        { type: "null" },
+        { type: "object", required: ["startAt", "endAt", "timezone"], properties: { startAt: { type: "string", format: "date-time" }, endAt: { type: "string", format: "date-time" }, timezone: { type: "string", minLength: 1 } }, additionalProperties: false },
+      ],
+    },
     requirements: {
       type: "array",
       items: {
