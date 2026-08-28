@@ -25,6 +25,7 @@ const asAdapterFailure = (error) => {
 
 const isPolicyFailure = (error) => error.code.startsWith("ADAPTER_SECRET_")
   || error.code === "ADAPTER_SCOPE_DENIED"
+  || error.code === "ADAPTER_SOURCE_MISMATCH"
   || error.code === "ADAPTER_ID_BOUNDARY_VIOLATION"
   || error.code === "ADAPTER_REVIEW_BYPASS"
   || error.code === "ADAPTER_BASE_PLAN_VERSION_REQUIRED"
@@ -37,11 +38,11 @@ const isPolicyFailure = (error) => error.code.startsWith("ADAPTER_SECRET_")
   || error.code === "ADAPTER_CHECKSUM_MISMATCH"
   || error.code.startsWith("ADAPTER_CONTRACT_");
 
-const assertAdapterImportResult = async (adapter, output) => {
+const assertAdapterImportResult = async (adapter, output, capability, preparedInput) => {
   if (adapter.definition.importResultMode === "reviewable-proposal") return assertReviewableStagingBatch(output);
   if (adapter.definition.importResultMode === "aggregate-snapshot") {
     if (typeof adapter.assertImportResult !== "function") fail("ADAPTER_CONTRACT_INVALID", "Aggregate snapshot adapters require an import-result validator", { adapterId: adapter.definition.id });
-    await adapter.assertImportResult(output);
+    await adapter.assertImportResult(output, { capability, preparedInput: clone(preparedInput) });
     return true;
   }
   fail("ADAPTER_CONTRACT_INVALID", "Adapter importResultMode is unsupported", { adapterId: adapter.definition.id });
@@ -129,7 +130,7 @@ export function createAdapterRuntime(options = {}) {
       if (stagesImport) {
         const completed = await processedBatchStore.get(processedBatchKey);
         if (completed) {
-          await assertAdapterImportResult(adapter, completed.output);
+          await assertAdapterImportResult(adapter, completed.output, capability, preparedInput);
           return { status: "duplicate", invocationId, attempts: [], duplicateOf: completed.completedAt, output: clone(completed.output) };
         }
       }
@@ -139,14 +140,14 @@ export function createAdapterRuntime(options = {}) {
         await acquireRateLimit(definition);
         try {
           const output = await adapter.invoke(capability, preparedInput, { invocationId, attempt, clock: () => new Date(clock()).toISOString(), secrets: secretReader });
-          if (stagesImport) await assertAdapterImportResult(adapter, output);
-          if (capability === "webhook" && typeof adapter.assertWebhookResult === "function") await adapter.assertWebhookResult(output);
+          if (stagesImport) await assertAdapterImportResult(adapter, output, capability, preparedInput);
+          if (capability === "webhook" && typeof adapter.assertWebhookResult === "function") await adapter.assertWebhookResult(output, { capability, preparedInput: clone(preparedInput) });
           attempts.push({ attempt, status: "succeeded", at: new Date(clock()).toISOString() });
           if (stagesImport) {
             const completedAt = new Date(clock()).toISOString();
             const stored = await processedBatchStore.putIfAbsent(processedBatchKey, { invocationId, inputChecksum, completedAt, output });
             if (!stored.inserted) {
-              await assertAdapterImportResult(adapter, stored.value.output);
+              await assertAdapterImportResult(adapter, stored.value.output, capability, preparedInput);
               return { status: "duplicate", invocationId, attempts, duplicateOf: stored.value.completedAt, output: clone(stored.value.output) };
             }
           }

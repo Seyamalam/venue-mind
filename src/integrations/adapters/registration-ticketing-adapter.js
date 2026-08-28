@@ -201,7 +201,9 @@ const normalizePreparedRegistrationInput = (capability, input) => {
     assertExactKeys(input, PREPARED_WEBHOOK_KEYS, "Prepared registration webhook input");
     if (input.type !== "aggregate-check-in.updated") fail("ADAPTER_SOURCE_INVALID", "Registration webhook type must be aggregate-check-in.updated");
     assertIsoTimestamp(input.occurredAt, "Registration webhook occurredAt");
-    return Object.freeze({ id: assertIdentifier(input.id, "Registration webhook id"), type: input.type, occurredAt: input.occurredAt, ...normalizeCoreInput(input) });
+    const normalized = { id: assertIdentifier(input.id, "Registration webhook id"), type: input.type, occurredAt: input.occurredAt, ...normalizeCoreInput(input) };
+    if (!normalized.eventDayMode || !normalized.checkIn) fail("ADAPTER_EVENT_DAY_REQUIRED", "Aggregate check-in webhook requires event-day mode and aggregate check-in counts");
+    return Object.freeze(normalized);
   }
   fail("ADAPTER_CAPABILITY_UNSUPPORTED", `Registration adapter does not support ${capability}`);
 };
@@ -309,7 +311,7 @@ const assertNoPlanningEffects = (value, path = [], state = { nodes: 0 }) => {
   }
 };
 
-export async function assertRegistrationSnapshot(snapshot) {
+export async function assertRegistrationSnapshot(snapshot, context = {}) {
   assertNoPersonalData(snapshot);
   assertNoPlanningEffects(snapshot);
   assertPlainObject(snapshot, "Registration snapshot");
@@ -392,17 +394,25 @@ export async function assertRegistrationSnapshot(snapshot) {
   if (snapshot.privacy.mode !== "aggregate-only" || snapshot.privacy.attendeeIdentityStored !== false || snapshot.privacy.individualCheckInStored !== false || snapshot.privacy.freeFormAccessibilityStored !== false) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Registration snapshot privacy evidence is invalid");
   const expectedStatus = snapshot.reconciliation.status === "pass" ? "reconciled" : "attention-required";
   if (snapshot.status !== expectedStatus) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot status does not match reconciliation");
+  if (context.preparedInput !== undefined) {
+    const capability = context.capability === "synchronize" ? "synchronize" : context.capability === "webhook" ? "webhook" : "import";
+    const preparedInput = normalizePreparedRegistrationInput(capability, context.preparedInput);
+    const expected = await registrationSnapshot(registrationTicketingAdapterDefinition, preparedInput, snapshot.synchronizedAt);
+    if (expected.checksum !== snapshot.checksum) fail("ADAPTER_SOURCE_MISMATCH", "Registration snapshot is not bound to the prepared source and trusted Project context");
+  }
   return true;
 }
 
-export async function assertRegistrationWebhook(event) {
+export async function assertRegistrationWebhook(event, context = {}) {
   assertNoPersonalData(event);
   assertNoPlanningEffects(event);
   assertPlainObject(event, "Registration webhook result");
   assertExactKeys(event, ["schemaVersion", "adapterId", "adapterVersion", "sourceSystem", "eventId", "eventType", "occurredAt", "sourceVersion", "payload", "checksum"], "Registration webhook result");
   if (event.schemaVersion !== 1 || event.adapterId !== registrationTicketingAdapterDefinition.id || event.adapterVersion !== registrationTicketingAdapterDefinition.version || event.eventType !== "aggregate-check-in.updated") fail("ADAPTER_CONTRACT_INVALID", "Registration webhook identity is invalid");
+  assertIdentifier(event.eventId, "Registration webhook eventId");
   assertIsoTimestamp(event.occurredAt, "Registration webhook occurredAt");
-  await assertRegistrationSnapshot(event.payload);
+  await assertRegistrationSnapshot(event.payload, context);
+  if (!event.payload.eventDayMode || !event.payload.checkIn) fail("ADAPTER_EVENT_DAY_REQUIRED", "Aggregate check-in webhook requires event-day aggregate evidence");
   if (event.sourceSystem !== event.payload.sourceSystem || event.sourceVersion !== event.payload.sourceVersion || event.occurredAt !== event.payload.synchronizedAt) fail("ADAPTER_SOURCE_MISMATCH", "Registration webhook envelope does not match its aggregate payload");
   const { checksum, ...content } = event;
   if (!/^[0-9a-f]{64}$/.test(checksum ?? "") || await sha256Checksum(content) !== checksum) fail("ADAPTER_CHECKSUM_MISMATCH", "Registration webhook checksum does not match normalized aggregate content");

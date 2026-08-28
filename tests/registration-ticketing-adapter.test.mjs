@@ -182,6 +182,14 @@ test("aggregate check-in webhook storage is sanitized, deterministic, and replay
   const invalidOutput = structuredClone(first.output);
   invalidOutput.payload.checkIn.total += 1;
   await assert.rejects(() => createAdapterRuntime({ clock }).execute({ ...registrationTicketingAdapter, async invoke() { return invalidOutput; } }, "webhook", structuredClone(webhookFixture), webhookAuthorization), (error) => error.code === "ADAPTER_CHECKSUM_MISMATCH");
+
+  const nonEventDay = { ...structuredClone(webhookFixture), eventDayMode: false, checkIn: null };
+  await assert.rejects(() => createAdapterRuntime({ clock }).acceptWebhook(registrationTicketingAdapter, nonEventDay, webhookAuthorization), (error) => error.code === "ADAPTER_EVENT_DAY_REQUIRED");
+  const invalidEventId = structuredClone(first.output);
+  invalidEventId.eventId = "INVALID / event id";
+  const { checksum: _checksum, ...eventContent } = invalidEventId;
+  invalidEventId.checksum = await sha256Checksum(eventContent);
+  await assert.rejects(() => assertRegistrationWebhook(invalidEventId), (error) => error.code === "ADAPTER_SOURCE_INVALID");
 });
 
 test("webhook replay storage is atomic, restart-safe, and source-namespaced", async () => {
@@ -254,6 +262,20 @@ test("runtime rejects unvalidated, invalid, and tampered aggregate snapshot resu
     async putIfAbsent(_key, value) { const raced = structuredClone(value); raced.output.reconciliation.ticketClassTotal += 1; return { inserted: false, value: raced }; },
   };
   await assert.rejects(() => createAdapterRuntime({ clock, processedBatchStore: racedStore }).execute(registrationTicketingAdapter, "import", structuredClone(fixture), authorization), (error) => error.code === "ADAPTER_CHECKSUM_MISMATCH");
+
+  const projectBAuthorization = { ...authorization, trustedAdapterContexts: { "registration-ticketing": { ...trustedProjectContext, projectId: "project-b", planVersion: "9" } } };
+  const projectB = (await createAdapterRuntime({ clock }).execute(registrationTicketingAdapter, "import", structuredClone(fixture), projectBAuthorization)).output;
+  await assert.rejects(() => createAdapterRuntime({ clock }).execute({ ...registrationTicketingAdapter, async invoke() { return projectB; } }, "import", structuredClone(fixture), authorization), (error) => error.code === "ADAPTER_SOURCE_MISMATCH");
+  const foreignDuplicateStore = {
+    async get() { return { completedAt: "2026-08-28T12:00:00.000Z", output: structuredClone(projectB) }; },
+    async putIfAbsent() { throw new Error("unreachable"); },
+  };
+  await assert.rejects(() => createAdapterRuntime({ clock, processedBatchStore: foreignDuplicateStore }).execute(registrationTicketingAdapter, "import", structuredClone(fixture), authorization), (error) => error.code === "ADAPTER_SOURCE_MISMATCH");
+  const foreignRaceStore = {
+    async get() { return null; },
+    async putIfAbsent(_key, value) { return { inserted: false, value: { ...value, output: structuredClone(projectB) } }; },
+  };
+  await assert.rejects(() => createAdapterRuntime({ clock, processedBatchStore: foreignRaceStore }).execute(registrationTicketingAdapter, "import", structuredClone(fixture), authorization), (error) => error.code === "ADAPTER_SOURCE_MISMATCH");
 });
 
 test("checksum-valid snapshots still reject false aggregate evidence", async () => {
