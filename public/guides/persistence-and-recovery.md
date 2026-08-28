@@ -52,3 +52,5 @@ The browser retains the last synchronized base separately from the local recover
 Numbered database migrations, checksum verification, integrity/orphan inspection, Project safety export, backup, staged restore, and D1 Point-in-Time Recovery are specified in `docs/database-operations.md`.
 
 Real-time clients receive durable revision events rather than raw snapshot patches. Reconnect resumes from the last Collaboration Cursor; a missing chain link forces a full authoritative reload. Presence uses expiring leases and is never part of Project truth. See `docs/realtime-collaboration.md`.
+
+Public Share Links resolve through hashed bearer tokens, expire at a fixed instant, and are denied immediately after revocation. Read-only links expose accepted Plan state; Reviewer Share Links expose exactly one Proposal. Notification records use fixed body codes plus an allowlist of stable references, never event names, narrative instructions, or geometry. See `docs/sharing-and-notifications.md`.

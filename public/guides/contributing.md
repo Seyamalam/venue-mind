@@ -19,6 +19,7 @@ Completion means the build succeeds, every test passes, and `npm run check:gener
 - Project schema change: follow [Schema migrations](docs/schema-migrations.md).
 - Persistence or recovery change: read [Persistence and recovery](docs/persistence-and-recovery.md).
 - Database migration, backup, or restore: follow [Database operations](docs/database-operations.md).
+- Share Link or notification change: follow [Sharing and notifications](docs/sharing-and-notifications.md).
 - Test selection: use [Testing by layer](docs/testing.md).
 - Release preparation: use the [Release checklist](docs/release-checklist.md).
 - Broken local or generated state: use the [Failure recovery runbook](docs/runbooks/failure-recovery.md).

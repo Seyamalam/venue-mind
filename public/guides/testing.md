@@ -7,7 +7,7 @@
 | Planner and domain | `npm run test:domain` | Commands, Validation, Approval, replay, migrations |
 | WebMCP | `node --test tests/webmcp*.test.mjs` | Registration, scopes, limits, cancellation, redaction |
 | MCP server | `npm run test:mcp` | Official client, stdio lifecycle, resources, prompts, progress |
-| Persistence and worker | `node --test tests/project-store.test.mjs tests/sites-worker.test.mjs tests/database-migrations.test.mjs` | remote authority, local recovery, API routing, database upgrade/restore |
+| Persistence and worker | `node --test tests/project-store.test.mjs tests/sites-worker.test.mjs tests/database-migrations.test.mjs tests/sharing-notifications.test.mjs` | remote authority, local recovery, sharing, notifications, API routing, database upgrade/restore |
 | Interchange and exports | `node --test tests/interchange.test.mjs tests/plan-exports.test.mjs` | checksums, round trips, vector/PDF/CSV/audit output |
 | Docs and examples | `node --test tests/docs-architecture.test.mjs tests/reference-docs.test.mjs tests/client-examples.test.mjs` | reachability, contract drift, executable clients |
 | Skills | `npm run test:skills` | package structure, version compatibility, adversarial evals |
