@@ -13,6 +13,8 @@ flowchart LR
   UI[Studio UI] --> BUS[VenuePlanner.execute]
   WEB[Native WebMCP] --> SERVICE[Venue tool service]
   MCP[stdio MCP server] --> SERVICE
+  EXT[External venue systems] --> ADAPTERS[Adapter runtime]
+  ADAPTERS --> BUS
   SERVICE --> BUS
   CONTRACTS[Shared contracts] --> UI
   CONTRACTS --> WEB
@@ -46,6 +48,7 @@ flowchart LR
 | Share Links, pending-operation reconciliation, Notification Preferences, notifications, and leased email outbox | `src/domain/sharing.js` and `worker/sharing-repository.ts` |
 | Numbered database migrations, integrity, backup, and restore | `db/migrations/`, `worker/database-migrations.ts`, and `scripts/database-maintenance.mjs` |
 | Interchange and operational exports | `src/interchange/` |
+| External adapter contracts, Proposal staging, idempotency, retry, and secret boundaries | `src/integrations/` |
 | Canonical docs registry | `src/docs/` |
 | Generated public artifacts | `scripts/generate-*.mjs` and `public/` |
 
@@ -91,6 +94,10 @@ sequenceDiagram
 - Collaboration Events carry durable revision invalidation and Presence Leases carry awareness; neither can mutate accepted Plan truth.
 - SSE reconnect uses a per-Project previous-event chain. A missed link forces an authoritative reload through Project Record Revision checks.
 - Public Share Links are bearer capabilities stored only as SHA-256 hashes. Reviewer access pins one retained Proposal revision; pending operations reconcile idempotently and fail closed. Notification payloads carry fixed body codes plus allowlisted stable references, creation-time preferences determine in-app visibility, and email delivery records success only after the injected provider confirms it.
+- Adapter import and synchronization translate external records into the canonical Proposal and Change model for exactly one base Plan Version. Every Change carries executable `spatialEffects`; accepted Plan truth still changes only through ordinary human Approval.
+- External ID Mappings keep source-system identity distinct from both Inventory Item Template IDs and Project Object Instance IDs, and retain source system, source version, synchronization time, and checksum evidence.
+- The processed-batch store is the adapter idempotency boundary. A repeated import returns the original staging result without creating another Proposal; production persistence must implement the same atomic `putIfAbsent` contract.
+- Adapter capability scopes and scoped secret references are checked independently. Adapter handlers receive secret values only through the secret-store boundary, never through persisted configuration or dead letters.
 
 ## Add a command
 

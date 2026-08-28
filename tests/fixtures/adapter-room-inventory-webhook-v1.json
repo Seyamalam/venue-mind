@@ -1,0 +1,11 @@
+{
+  "sourceSystem": "room-inventory-prod",
+  "id": "event-42",
+  "type": "inventory.updated",
+  "occurredAt": "2026-08-28T11:59:00.000Z",
+  "sourceVersion": "42",
+  "record": {
+    "externalId": "chair-7",
+    "quantity": 20
+  }
+}
