@@ -57,11 +57,11 @@ A short-lived Project session record containing User identity, observed Plan Ver
 _Avoid_: Organization Membership, User Session, permanent activity history
 
 **Share Link**:
-A time-limited, revocable bearer capability that exposes one bounded public view of a Project without Organization membership. Its raw token is returned once and only its hash is stored.
+A time-limited, revocable bearer capability that exposes one bounded public view of a Project without Organization membership. Its raw token is returned once and only its hash is stored. Pending lifecycle states fail closed until their Activity Ledger transition is reconciled.
 _Avoid_: invitation, User Session, public Project
 
 **Reviewer Share Link**:
-A Share Link scoped to exactly one Proposal, allowing an external reviewer to inspect that candidate and its accepted Plan baseline without receiving Project-wide access.
+A Share Link scoped to one retained Proposal revision, allowing an external reviewer to inspect the pinned candidate and its accepted Plan baseline without receiving Project-wide access.
 _Avoid_: reviewer Membership, Approval link, editable Proposal
 
 **Notification**:
@@ -69,7 +69,7 @@ A User- and Organization-scoped signal for one supported review event, represent
 _Avoid_: Collaboration Event, Activity Ledger entry, email body
 
 **Notification Preference**:
-One User's selection of enabled notification channels and supported event types, applied when VenueMind selects recipients.
+One User's selection of enabled notification channels and supported event types, applied when VenueMind creates the delivery records, including in-app visibility.
 _Avoid_: Organization policy, alert rule, marketing consent
 
 **Account Export**:

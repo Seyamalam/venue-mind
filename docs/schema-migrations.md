@@ -2,7 +2,7 @@
 
 Current Project schema: 10. Released migration fixtures cover schemas 5 through 10.
 
-Current database schema: 6. Numbered, checksummed SQL migrations and production-shaped fixtures cover database versions 1 through 6. Project schema migrations change planner snapshots; database schema migrations change durable tables and indexes. Neither substitutes for the other.
+Current database schema: 7. Numbered, checksummed SQL migrations and production-shaped fixtures cover database versions 1 through 7. Project schema migrations change planner snapshots; database schema migrations change durable tables and indexes. Neither substitutes for the other.
 
 ## Rules
 
@@ -39,5 +39,7 @@ Current database schema: 6. Numbered, checksummed SQL migrations and production-
 4. Run `npm run generate:migrations` and inspect `db/migrations-manifest.json` plus `db/wrangler/`.
 5. Add a production-shaped fixture for the prior database version.
 6. Prove dry run, upgrade, idempotent second run, integrity/orphan checks, backup, staged restore, Project fingerprint, ledger head, and replay.
+
+Migration 7 is the reference for recoverable cross-store operations. It preserves pending Share Link lifecycle state until the corresponding Activity Ledger transition is complete, retains the exact reviewer Proposal revision, applies in-app visibility at Notification creation, and leases email-outbox delivery attempts. Future migrations that coordinate Project records with operational tables must retain enough state for idempotent reconciliation after any interrupted write.
 
 See `docs/database-operations.md` for local, D1, backup, restore, and Point-in-Time Recovery procedures.

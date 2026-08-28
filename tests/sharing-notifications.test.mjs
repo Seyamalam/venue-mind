@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createMemoryCollaborationRepository, createMemorySharingRepository, createWorker } from "../dist/server/index.js";
+import { createMemoryCollaborationRepository, createMemorySharingRepository, createWorker, drainNotificationEmail } from "../dist/server/index.js";
 import { createVenuePlanner } from "../src/domain/venue-planner.js";
 import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { NOTIFICATION_EVENT_TYPES, safeNotification, shareLinkStatus } from "../src/domain/sharing.js";
+import { hashShareToken, NOTIFICATION_EVENT_TYPES, safeNotification, shareLinkStatus } from "../src/domain/sharing.js";
 
 const NOW = "2026-08-28T12:00:00.000Z";
 
-function harness({ rolesBySubject = {} } = {}) {
+function harness({ rolesBySubject = {}, emailDelivery = null } = {}) {
   const organization = { id: "org-share", name: "SHARE", slug: "share", roles: ["organization-administrator"] };
   const organizationFor = (subject) => ({ ...organization, roles: rolesBySubject[subject] ?? organization.roles });
-  const users = new Map(); const sessions = new Map(); const records = new Map(); let sequence = 0;
+  const users = new Map(); const sessions = new Map(); const records = new Map(); let sequence = 0; let updateFailures = 0;
   const accounts = {
     async resolveSession(id) { return structuredClone(sessions.get(id) ?? null); },
     async provision(identity) { const user = users.get(identity.subject) ?? { id: `user-${identity.subject}`, email: `${identity.subject}@example.test`, displayName: identity.subject.toUpperCase(), status: "active" }; users.set(identity.subject, user); return { user, organizations: [organizationFor(identity.subject)] }; },
@@ -19,14 +19,14 @@ function harness({ rolesBySubject = {} } = {}) {
   const projects = {
     async list(org) { return [...records.values()].filter((item) => item.organizationId === org).map((item) => structuredClone(item)); },
     async get(org, id) { const item = records.get(id); return item?.organizationId === org ? structuredClone(item) : null; },
-    async put(org, record, { createOnly = false, expectedRevision = null } = {}) { const current = records.get(record.id); if ((createOnly && current) || (!createOnly && (!current || current.revision !== expectedRevision))) throw new Error("PROJECT_REVISION_CONFLICT"); const saved = { ...structuredClone(record), organizationId: org, revision: current ? current.revision + 1 : 1 }; records.set(record.id, saved); return structuredClone(saved); },
+    async put(org, record, { createOnly = false, expectedRevision = null } = {}) { const current = records.get(record.id); if (!createOnly && updateFailures > 0) { updateFailures -= 1; throw new Error("PROJECT_REVISION_CONFLICT"); } if ((createOnly && current) || (!createOnly && (!current || current.revision !== expectedRevision))) throw new Error("PROJECT_REVISION_CONFLICT"); const saved = { ...structuredClone(record), organizationId: org, revision: current ? current.revision + 1 : 1 }; records.set(record.id, saved); return structuredClone(saved); },
   };
   const sharing = createMemorySharingRepository({ recipients: [{ userId: "user-reviewer", email: "reviewer@example.test", inAppEnabled: true, emailEnabled: false }] });
-  const worker = createWorker({ secureCookies: false, clock: () => NOW, identityProvider: { authenticate: (request) => { const subject = request.headers.get("x-test-user"); return subject ? { provider: "test", subject, email: `${subject}@example.test`, displayName: subject.toUpperCase() } : null; } }, createAccountRepository: () => accounts, createProjectRepository: () => projects, createCollaborationRepository: () => createMemoryCollaborationRepository(), createSharingRepository: () => sharing });
+  const worker = createWorker({ secureCookies: false, clock: () => NOW, emailDelivery, identityProvider: { authenticate: (request) => { const subject = request.headers.get("x-test-user"); return subject ? { provider: "test", subject, email: `${subject}@example.test`, displayName: subject.toUpperCase() } : null; } }, createAccountRepository: () => accounts, createProjectRepository: () => projects, createCollaborationRepository: () => createMemoryCollaborationRepository(), createSharingRepository: () => sharing });
   const env = { ASSETS: { fetch: async () => new Response("missing", { status: 404 }) }, DB: {} };
   const login = async (subject) => { const response = await worker.fetch(new Request("https://example.test/api/session", { headers: { "x-test-user": subject } }), env); return { cookie: response.headers.get("set-cookie").split(";", 1)[0], ...(await response.json()) }; };
   const request = (path, session = null, { method = "GET", body, headers = {} } = {}) => worker.fetch(new Request(`https://example.test${path}`, { method, headers: { ...(session ? { cookie: session.cookie, "x-venuemind-organization-id": organization.id } : {}), ...(body ? { "content-type": "application/json" } : {}), ...headers }, ...(body ? { body: JSON.stringify(body) } : {}) }), env);
-  return { login, request, sharing };
+  return { login, request, sharing, worker, env, failProjectUpdates(count) { updateFailures = count; } };
 }
 
 test("revoked Proposal-scoped share link loses access immediately and both transitions are ledgered", async () => {
@@ -153,8 +153,112 @@ test("channel and event preferences suppress delivery and never expose recipient
   const recipients = await sharing.notificationRecipients("org", "review_requested");
   assert.deepEqual(recipients, [{ userId: "user-reviewer", email: "private@example.test", inAppEnabled: false, emailEnabled: true }]);
   const notification = safeNotification({ id: "notification-safe", organizationId: "org", projectId: "project", userId: "user-reviewer", eventType: "review_requested", refs: { projectId: "project", revision: 1 }, createdAt: NOW });
-  await sharing.addNotification(notification, recipients[0].email);
+  await sharing.addNotification(notification, { inAppEnabled: recipients[0].inAppEnabled, recipientEmail: recipients[0].email });
   assert.deepEqual(await sharing.listNotifications("user-reviewer", "org"), []);
+  await sharing.setPreferences("user-reviewer", { inAppEnabled: true, emailEnabled: true, eventTypes: ["review_requested"] });
+  assert.deepEqual(await sharing.listNotifications("user-reviewer", "org"), [], "re-enabling APP must not reveal events created while disabled");
   assert.equal(Object.hasOwn(sharing._notifications[0], "recipientEmail"), false);
   assert.equal(sharing._emailOutbox[0].recipientEmail, "private@example.test");
+});
+
+test("pending create and revoke operations fail closed and reconcile each ledger transition exactly once", async () => {
+  const app = harness(); const owner = await app.login("owner");
+  const planner = createVenuePlanner(summitForwardPlan); const snapshot = planner.getSnapshot();
+  const record = { id: "project-recovery", name: "RECOVERY", activePlanId: snapshot.plan.id, schemaVersion: 10, snapshot, createdAt: NOW, updatedAt: NOW };
+  assert.equal((await app.request("/api/projects/project-recovery", owner, { method: "PUT", body: record, headers: { "if-none-match": "*" } })).status, 201);
+
+  app.failProjectUpdates(8);
+  const creating = await app.request("/api/projects/project-recovery/share-links", owner, { method: "POST", body: { scope: "reviewer", proposalId: snapshot.proposal.id, expiresAt: "2026-08-29T12:00:00.000Z" } });
+  assert.equal(creating.status, 202);
+  const pendingLink = await creating.json();
+  assert.equal((await app.request(`/api/share/${pendingLink.token}`)).status, 404);
+  assert.equal((await app.sharing.resolveLink(await hashShareToken(pendingLink.token), NOW)).status, "pending");
+  assert.equal((await app.request(`/api/share/${pendingLink.token}`)).status, 200);
+  let authoritative = await (await app.request("/api/projects/project-recovery", owner)).json();
+  assert.equal(authoritative.snapshot.ledger.filter((entry) => entry.type === "share_link.created" && entry.details.shareLinkId === pendingLink.id).length, 1);
+
+  app.failProjectUpdates(8);
+  const revoking = await app.request(`/api/projects/project-recovery/share-links/${pendingLink.id}/revoke`, owner, { method: "POST" });
+  assert.equal(revoking.status, 202);
+  assert.equal((await app.request(`/api/share/${pendingLink.token}`)).status, 404);
+  assert.equal((await app.request(`/api/share/${pendingLink.token}`)).status, 404);
+  authoritative = await (await app.request("/api/projects/project-recovery", owner)).json();
+  assert.equal(authoritative.snapshot.ledger.filter((entry) => entry.type === "share_link.revoked" && entry.details.shareLinkId === pendingLink.id).length, 1);
+});
+
+test("ledgered create and revoke operations recover when repository finalization fails", async () => {
+  const app = harness(); const owner = await app.login("owner");
+  const planner = createVenuePlanner(summitForwardPlan); const snapshot = planner.getSnapshot();
+  const record = { id: "project-finalize", name: "FINALIZE", activePlanId: snapshot.plan.id, schemaVersion: 10, snapshot, createdAt: NOW, updatedAt: NOW };
+  await app.request("/api/projects/project-finalize", owner, { method: "PUT", body: record, headers: { "if-none-match": "*" } });
+  app.sharing._failNext("markLinkCreated");
+  const creating = await app.request("/api/projects/project-finalize/share-links", owner, { method: "POST", body: { scope: "read-only", expiresAt: "2026-08-29T12:00:00.000Z" } });
+  assert.equal(creating.status, 202);
+  const link = await creating.json();
+  assert.equal((await app.request(`/api/share/${link.token}`)).status, 200);
+  app.sharing._failNext("markLinkRevoked");
+  assert.equal((await app.request(`/api/projects/project-finalize/share-links/${link.id}/revoke`, owner, { method: "POST" })).status, 202);
+  assert.equal((await app.request(`/api/share/${link.token}`)).status, 404);
+  const authoritative = await (await app.request("/api/projects/project-finalize", owner)).json();
+  assert.equal(authoritative.snapshot.ledger.filter((entry) => entry.type === "share_link.created" && entry.details.shareLinkId === link.id).length, 1);
+  assert.equal(authoritative.snapshot.ledger.filter((entry) => entry.type === "share_link.revoked" && entry.details.shareLinkId === link.id).length, 1);
+});
+
+test("reviewer link retains its exact Proposal after the branch advances", async () => {
+  const app = harness(); const owner = await app.login("owner");
+  const planner = createVenuePlanner(summitForwardPlan); const initial = planner.getSnapshot(); const pinnedId = initial.proposal.id;
+  const record = { id: "project-retained", name: "RETAINED", activePlanId: initial.plan.id, schemaVersion: 10, snapshot: initial, createdAt: NOW, updatedAt: NOW };
+  await app.request("/api/projects/project-retained", owner, { method: "PUT", body: record, headers: { "if-none-match": "*" } });
+  const created = await app.request("/api/projects/project-retained/share-links", owner, { method: "POST", body: { scope: "reviewer", proposalId: pinnedId, expiresAt: "2026-08-29T12:00:00.000Z" } });
+  const link = await created.json();
+  const authoritative = await app.request("/api/projects/project-retained", owner); const etag = authoritative.headers.get("etag"); const current = await authoritative.json();
+  planner.execute({ type: "restore_snapshot", snapshot: current.snapshot });
+  planner.execute({ type: "preview_revision", goal: "Advance branch", actor: "human", idempotencyKey: "advance-retained" });
+  const advanced = planner.getSnapshot();
+  assert.notEqual(advanced.proposal.id, pinnedId);
+  assert.ok(advanced.branches.some((branch) => branch.revisions.some((proposal) => proposal.id === pinnedId)));
+  assert.equal((await app.request("/api/projects/project-retained", owner, { method: "PUT", body: { ...current, snapshot: advanced }, headers: { "if-match": etag } })).status, 200);
+  const shared = await (await app.request(`/api/share/${link.token}`)).json();
+  assert.equal(shared.proposal.id, pinnedId);
+});
+
+test("email dispatcher leases, retries, confirms delivery, and sends only safe references", async () => {
+  const sharing = createMemorySharingRepository();
+  const notification = safeNotification({ id: "notification-email", organizationId: "org", projectId: "project", userId: "user", eventType: "review_requested", refs: { projectId: "project", proposalId: "proposal-1", revision: 2 }, createdAt: NOW });
+  await sharing.addNotification(notification, { inAppEnabled: false, recipientEmail: "reviewer@example.test" });
+  const calls = [];
+  let fail = true;
+  const delivery = { async send(message) { calls.push(message); if (fail) throw new Error("PROVIDER_TEMPORARY"); return { delivered: true, providerMessageId: "provider-1" }; } };
+  assert.deepEqual(await drainNotificationEmail({ repository: sharing, delivery: null, clock: () => NOW }), { status: "provider-unavailable", claimed: 0, delivered: 0, failed: 0 });
+  let result = await drainNotificationEmail({ repository: sharing, delivery, clock: () => NOW });
+  assert.deepEqual(result, { status: "drained", claimed: 1, delivered: 0, failed: 1 });
+  assert.equal(sharing._emailOutbox[0].deliveredAt, null);
+  assert.equal(sharing._emailOutbox[0].failureCode, "PROVIDER_TEMPORARY");
+  fail = false;
+  result = await drainNotificationEmail({ repository: sharing, delivery, clock: () => "2026-08-28T12:01:00.000Z" });
+  assert.deepEqual(result, { status: "drained", claimed: 1, delivered: 1, failed: 0 });
+  assert.equal(sharing._emailOutbox[0].attemptCount, 2);
+  assert.equal(calls[0].idempotencyKey, calls[1].idempotencyKey);
+  assert.deepEqual(Object.keys(calls[1]).sort(), ["bodyCode", "idempotencyKey", "refs", "to"]);
+  assert.doesNotMatch(JSON.stringify(calls[1]), /geometry|PRIVATE/i);
+  assert.equal((await drainNotificationEmail({ repository: sharing, delivery, clock: () => "2026-08-28T12:02:00.000Z" })).claimed, 0);
+});
+
+test("scheduled email drain is wired and manual drain is Organization-admin secured", async () => {
+  const delivered = [];
+  const app = harness({ rolesBySubject: { viewer: ["viewer"] }, emailDelivery: { async send(message) { delivered.push(message); return { delivered: true }; } } });
+  const owner = await app.login("owner"); const reviewer = await app.login("reviewer"); const viewer = await app.login("viewer");
+  await app.request("/api/notification-preferences", reviewer, { method: "PUT", body: { inAppEnabled: false, emailEnabled: true, eventTypes: ["review_requested"] } });
+  const planner = createVenuePlanner(summitForwardPlan); const initial = planner.getSnapshot();
+  const record = { id: "project-scheduled-email", name: "EMAIL", activePlanId: initial.plan.id, schemaVersion: 10, snapshot: initial, createdAt: NOW, updatedAt: NOW };
+  const created = await app.request("/api/projects/project-scheduled-email", owner, { method: "PUT", body: record, headers: { "if-none-match": "*" } });
+  planner.execute({ type: "preview_revision", goal: "Email review", actor: "human", idempotencyKey: "email-review" });
+  assert.equal((await app.request("/api/projects/project-scheduled-email", owner, { method: "PUT", body: { ...record, snapshot: planner.getSnapshot(), revision: 1 }, headers: { "if-match": created.headers.get("etag") } })).status, 200);
+  assert.equal((await app.request("/api/notifications/email/drain", viewer, { method: "POST" })).status, 403);
+  assert.equal(delivered.length, 0);
+  await app.worker.scheduled({}, app.env);
+  assert.equal(delivered.length, 1);
+  assert.equal(app.sharing._emailOutbox[0].deliveredAt, NOW);
+  const drained = await app.request("/api/notifications/email/drain", owner, { method: "POST" });
+  assert.deepEqual(await drained.json(), { status: "drained", claimed: 0, delivered: 0, failed: 0 });
 });

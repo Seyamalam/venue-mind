@@ -54,7 +54,14 @@ async function migrationReport(databasePath) {
       if (!hasCollaboration && collaboration.some((table) => tables.has(table))) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
       const hasSharing = sharing.every((table) => tables.has(table));
       if (!hasSharing && sharing.some((table) => tables.has(table))) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
-      const baseline = hasSharing ? 6 : hasCollaboration ? 5 : hasConcurrency ? 4 : hasTenancy ? 3 : hasLifecycle ? 2 : 1;
+      let hasSharingDelivery = false;
+      if (hasSharing) {
+        const shareColumns = new Set((await query(databasePath, "PRAGMA table_info(project_share_links)")).map((row) => row.name));
+        const required = ["lifecycle_state", "creation_ledgered_at", "revocation_ledgered_at", "operation_attempts", "last_operation_error"];
+        hasSharingDelivery = required.every((column) => shareColumns.has(column));
+        if (!hasSharingDelivery && required.some((column) => shareColumns.has(column))) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+      }
+      const baseline = hasSharingDelivery ? 7 : hasSharing ? 6 : hasCollaboration ? 5 : hasConcurrency ? 4 : hasTenancy ? 3 : hasLifecycle ? 2 : 1;
       applied = DATABASE_MIGRATIONS.slice(0, baseline).map((migration) => ({ version: migration.version, name: migration.name, checksum: migration.checksum, applied_at: null, adopted: 1 }));
       adoptionRequired = true;
   }
@@ -112,6 +119,10 @@ async function verifyDatabase(databasePath) {
       ["notification-without-user", "SELECT COUNT(*) AS count FROM notifications n LEFT JOIN users u ON u.id=n.user_id WHERE u.id IS NULL"],
       ["notification-preference-without-user", "SELECT COUNT(*) AS count FROM notification_preferences n LEFT JOIN users u ON u.id=n.user_id WHERE u.id IS NULL"],
       ["email-outbox-without-notification", "SELECT COUNT(*) AS count FROM notification_email_outbox e LEFT JOIN notifications n ON n.id=e.notification_id WHERE n.id IS NULL"],
+      ["active-share-without-creation-ledger", "SELECT COUNT(*) AS count FROM project_share_links WHERE lifecycle_state='active' AND creation_ledgered_at IS NULL"],
+      ["revoked-share-without-revocation-ledger", "SELECT COUNT(*) AS count FROM project_share_links WHERE lifecycle_state='revoked' AND revocation_ledgered_at IS NULL"],
+      ["pending-revocation-without-actor", "SELECT COUNT(*) AS count FROM project_share_links WHERE lifecycle_state='pending-revoke' AND (revoked_at IS NULL OR revoked_by IS NULL)"],
+      ["email-outbox-inconsistent-delivery", "SELECT COUNT(*) AS count FROM notification_email_outbox WHERE delivered_at IS NOT NULL AND (failure_code IS NOT NULL OR lease_token IS NOT NULL)"],
     ]) {
       const count = Number((await query(databasePath, sql))[0]?.count ?? 0);
       orphanChecks.push({ id, count, status: count === 0 ? "pass" : "fail" });

@@ -127,6 +127,11 @@ export const schemaStatements = [
     expires_at TEXT NOT NULL CHECK (expires_at > created_at),
     revoked_at TEXT,
     revoked_by TEXT REFERENCES users(id),
+    lifecycle_state TEXT NOT NULL DEFAULT 'active' CHECK (lifecycle_state IN ('pending-create', 'active', 'pending-revoke', 'revoked')),
+    creation_ledgered_at TEXT,
+    revocation_ledgered_at TEXT,
+    operation_attempts INTEGER NOT NULL DEFAULT 0,
+    last_operation_error TEXT,
     CHECK ((scope = 'read-only' AND proposal_id IS NULL) OR (scope = 'reviewer' AND proposal_id IS NOT NULL AND length(proposal_id) > 0)),
     CHECK ((revoked_at IS NULL AND revoked_by IS NULL) OR (revoked_at IS NOT NULL AND revoked_by IS NOT NULL)),
     FOREIGN KEY (project_id, organization_id) REFERENCES projects(id, organization_id) ON DELETE CASCADE
@@ -148,6 +153,7 @@ export const schemaStatements = [
     subject_refs_json TEXT NOT NULL CHECK (json_valid(subject_refs_json) AND json_type(subject_refs_json) = 'object'),
     created_at TEXT NOT NULL,
     read_at TEXT,
+    in_app_visible INTEGER NOT NULL DEFAULT 1 CHECK (in_app_visible IN (0, 1)),
     FOREIGN KEY (project_id, organization_id) REFERENCES projects(id, organization_id) ON DELETE CASCADE
   )`,
   `CREATE TABLE IF NOT EXISTS notification_email_outbox (
@@ -158,7 +164,11 @@ export const schemaStatements = [
     subject_refs_json TEXT NOT NULL CHECK (json_valid(subject_refs_json) AND json_type(subject_refs_json) = 'object'),
     created_at TEXT NOT NULL,
     delivered_at TEXT,
-    failure_code TEXT
+    failure_code TEXT,
+    attempt_count INTEGER NOT NULL DEFAULT 0,
+    last_attempt_at TEXT,
+    lease_token TEXT,
+    lease_expires_at TEXT
   )`,
   `CREATE INDEX IF NOT EXISTS idx_projects_updated_at
     ON projects(updated_at DESC)`,
@@ -172,8 +182,12 @@ export const schemaStatements = [
     ON project_presence(organization_id, project_id, expires_at)`,
   `CREATE INDEX IF NOT EXISTS idx_share_links_project
     ON project_share_links(organization_id, project_id, created_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_share_links_pending
+    ON project_share_links(lifecycle_state, created_at)`,
   `CREATE INDEX IF NOT EXISTS idx_notifications_user_unread
     ON notifications(user_id, read_at, created_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_email_outbox_pending
+    ON notification_email_outbox(delivered_at, lease_expires_at, created_at)`,
   `CREATE INDEX IF NOT EXISTS idx_memberships_user
     ON organization_memberships(user_id, status)`,
   `CREATE INDEX IF NOT EXISTS idx_invitations_organization_email

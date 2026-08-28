@@ -1598,9 +1598,9 @@ Remote authority, browser recovery, import safety, soft deletion, normalization,
 
 ## Sharing and notifications
 
-- Read-only Share Links expose accepted Plan state; Reviewer Share Links expose exactly one Proposal.
-- Bearer tokens are returned once, persisted only as hashes, time-limited, and revocable.
-- Notifications use fixed body codes and allowlisted stable references; per-User preferences select channel and event type.
+- Read-only Share Links expose accepted Plan state; Reviewer Share Links expose one retained Proposal revision.
+- Bearer tokens are returned once and persisted only as hashes; durable pending lifecycle states reconcile ledger transitions and fail closed.
+- Creation-time preferences control in-app visibility; leased email outbox rows are delivered only after injected-provider success.
 
 - [Sharing guide](/guides/sharing-and-notifications.md)
 

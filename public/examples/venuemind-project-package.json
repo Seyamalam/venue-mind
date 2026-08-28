@@ -2,17 +2,17 @@
   "format": "venuemind-project",
   "formatVersion": 1,
   "manifest": {
-    "packageId": "package-8f88ec11315f873b",
+    "packageId": "package-507ab035d34c2229",
     "exportedAt": "2026-08-27T00:00:00.000Z",
     "payloadBytes": 93793,
-    "payloadSha256": "cba0c06cc881fff43efe5f91ec936be9b8ff6cbff1cc2a56db82d263e0842921",
+    "payloadSha256": "d7475377e48e3f03974cd4ae5f97f3df673ae780bb7d91a231cb878563b047ba",
     "source": {
       "application": "VenueMind",
       "applicationVersion": "0.1.0",
       "projectId": "project-summit-forward",
       "projectSchemaVersion": 10
     },
-    "manifestSha256": "8f88ec11315f873b95dc5f1f616ced0337972dacc24ab5068d5328eae2de5ddc"
+    "manifestSha256": "507ab035d34c2229150103a66532e7837dc3aa76d229234e1d17d4a012369bc1"
   },
   "project": {
     "id": "project-summit-forward",
@@ -3195,7 +3195,7 @@
           "revisions": [],
           "archived": false,
           "decisionStatus": null,
-          "createdAt": "2026-08-28T10:13:44.996Z",
+          "createdAt": "2026-08-28T10:47:50.586Z",
           "createdBy": "agent"
         }
       ],

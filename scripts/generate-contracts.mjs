@@ -25,7 +25,7 @@ await writeFile("public/error-catalog.json", `${JSON.stringify(errorCatalog, nul
 await writeFile("public/examples/venue-template-catalog.json", `${JSON.stringify(venueTemplateCatalog, null, 2)}\n`);
 await writeFile("public/authorization-policy.json", `${JSON.stringify(venueAuthorizationPolicy, null, 2)}\n`);
 
-const examplePlanner = createVenuePlanner(summitForwardPlan);
+const examplePlanner = createVenuePlanner(summitForwardPlan, { clock: () => "2026-08-27T00:00:00.000Z" });
 const exampleSnapshot = structuredClone(examplePlanner.getSnapshot());
 exampleSnapshot.ledger = sealActivityLedger(exampleSnapshot.ledger.map((entry) => ({ ...entry, occurredAt: "2026-08-27T00:00:00.000Z" })));
 await writeFile("public/examples/planner-snapshot.json", `${JSON.stringify(exampleSnapshot, null, 2)}\n`);
