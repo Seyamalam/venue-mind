@@ -2,7 +2,28 @@ import { calendarEventAdapter } from "../../src/integrations/adapters/calendar-e
 import { createAdapterRuntime } from "../../src/integrations/runtime.js";
 import { createMemorySecretStore } from "../../src/integrations/secret-store.js";
 
-const runtime = createAdapterRuntime();
+const runtime = createAdapterRuntime({
+  projectContext: {
+    projectId: "project-summit-forward-2026",
+    brief: {
+      id: "brief-summit-forward-2026",
+      attendeeTarget: 400,
+      schedule: { startAt: "2026-09-18T09:00:00+06:00", endAt: "2026-09-18T17:00:00+06:00", timezone: "Asia/Dhaka" },
+      requirements: [
+        { id: "req-calendar-attendance", category: "seating" },
+        { id: "req-calendar-schedule", category: "staffing" },
+      ],
+    },
+    constraints: [
+      { id: "constraint-capacity", category: "capacity" },
+      { id: "constraint-peak-congestion", category: "circulation" },
+    ],
+    planningEffectBindings: {
+      set_attendance_target: { targetRequirementId: "req-calendar-attendance", category: "seating", affectedConstraintIds: ["constraint-capacity", "constraint-peak-congestion"] },
+      set_event_schedule: { targetRequirementId: "req-calendar-schedule", category: "staffing", affectedConstraintIds: [] },
+    },
+  },
+});
 const result = await runtime.execute(calendarEventAdapter, "import", {
   basePlanVersion: "3.3",
   proposalRevision: 2,

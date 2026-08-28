@@ -140,7 +140,7 @@ export function replayActivityLedger(entries, currentPlan, currentBrief = null) 
     }
   }
   return {
-    status: replayedFingerprint === currentFingerprint && (!currentBrief || !replayedBrief || replayedBriefFingerprint === currentBriefFingerprint) && lockedObjectViolations.length === 0 ? "pass" : "fail",
+    status: replayedFingerprint === currentFingerprint && (!currentBrief || (replayedBrief && replayedBriefFingerprint === currentBriefFingerprint)) && lockedObjectViolations.length === 0 ? "pass" : "fail",
     transitions: transitions.map(({ plan: _plan, brief: _brief, ...transition }) => transition),
     currentPlanVersion: currentPlan.version,
     replayedFingerprint,

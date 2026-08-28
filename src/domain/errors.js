@@ -10,6 +10,7 @@ export const errorCatalog = Object.freeze({
   PROPOSAL_NOT_REVIEWABLE: define("PROPOSAL_NOT_REVIEWABLE", "Only a Proposal under review can be changed.", "Create or activate a Proposal with review status before changing it."),
   PROPOSAL_MISMATCH: define("PROPOSAL_MISMATCH", "Proposal ID does not match the active Proposal.", "Inspect the active Proposal and retry with its stable ID."),
   PROPOSAL_EMPTY: define("PROPOSAL_EMPTY", "Proposal contains no executable Changes.", "Keep accepted truth unchanged; create a Proposal only after at least one planning Change exists."),
+  PLANNING_EFFECT_INVALID: define("PLANNING_EFFECT_INVALID", "Persisted Planning Effect is invalid.", "Restore a snapshot whose active and historical Proposal Changes conform to the published Planning Effect schema."),
   BRANCH_NAME_REQUIRED: define("BRANCH_NAME_REQUIRED", "Proposal Branch name is required.", "Provide a non-empty Branch name."),
   BRANCH_NOT_FOUND: define("BRANCH_NOT_FOUND", "Proposal Branch not found.", "List Proposal Branches and retry with an existing stable Branch ID."),
   REBASE_CONFLICT: define("REBASE_CONFLICT", "Unresolved Proposal conflicts block rebase.", "Resolve blocking conflicts, then retry the rebase."),

@@ -14,7 +14,7 @@ import { createComment, editComment, listComments, normalizeComments, setComment
 import { createPlanExport } from "../interchange/plan-exports.js";
 import { compareSimulationResults, createScenarioRunner, exportSimulationRun, normalizeScenarioDefinition, scenarioDefinitionFingerprint, scenarioInputFingerprint, SIMULATION_ENGINE_VERSION } from "./scenario-engine.js";
 import { assertVenueCommand, TRUSTED_LOCAL_AUTHORIZATION } from "./authorization.js";
-import { materializeEventBrief, planningEvidenceInvalidations } from "./planning-effects.js";
+import { materializeEventBrief, normalizeProposalPlanningEffects, planningEvidenceInvalidations } from "./planning-effects.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -122,7 +122,7 @@ const enrichProposal = (proposal, fallbackProposal) => {
   };
 };
 
-const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackProposal) => {
+const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackProposal, adapterPlanningBindings = {}) => {
   const normalized = clone(snapshot);
   const originalEmergencyObjectIds = new Set((normalized.plan.objects ?? [])
     .filter((object) => ["fire_exit", "assembly_point", "emergency_access_lane", "fire_equipment", "first_aid", "command_post"].includes(object.kind) || object.emergency)
@@ -217,6 +217,28 @@ const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackPropos
     archived: branch.archived === true,
     decisionStatus: branch.decisionStatus ?? null,
   }));
+  try {
+    normalized.proposal = normalizeProposalPlanningEffects(normalized.proposal, "proposal");
+    normalized.branches = normalized.branches.map((branch, branchIndex) => ({
+      ...branch,
+      proposal: normalizeProposalPlanningEffects(branch.proposal, `branches[${branchIndex}].proposal`),
+      revisions: branch.revisions.map((proposal, revisionIndex) => normalizeProposalPlanningEffects(proposal, `branches[${branchIndex}].revisions[${revisionIndex}]`)),
+    }));
+  } catch (error) {
+    throw venueError("PLANNING_EFFECT_INVALID", { cause: error.message }, "Persisted Planning Effect failed canonical normalization.");
+  }
+  const registeredRequirements = new Map(normalized.brief.requirements.map((requirement) => [requirement.id, requirement]));
+  const registeredConstraintIds = new Set(normalized.plan.constraints.map((constraint) => constraint.id));
+  const proposals = [normalized.proposal, ...normalized.branches.flatMap((branch) => [branch.proposal, ...branch.revisions])];
+  for (const proposal of proposals) for (const change of proposal.changes) for (const effect of change.planningEffects ?? []) {
+    if (!effect.source?.adapterId) continue;
+    const binding = adapterPlanningBindings[effect.operation];
+    const requirement = registeredRequirements.get(effect.targetRequirementId);
+    const expectedConstraintIds = [...new Set(binding?.affectedConstraintIds ?? [])].sort();
+    if (!binding || binding.targetRequirementId !== effect.targetRequirementId || effect.targetBriefId !== normalized.brief.id || !requirement || binding.category !== requirement.category || effect.requirement.category !== requirement.category || JSON.stringify(expectedConstraintIds) !== JSON.stringify(effect.affectedConstraintIds) || effect.affectedConstraintIds.some((id) => !registeredConstraintIds.has(id))) {
+      throw venueError("PLANNING_EFFECT_INVALID", { operation: effect.operation, targetBriefId: effect.targetBriefId, targetRequirementId: effect.targetRequirementId }, "Persisted adapter Planning Effect is not bound to the server-owned Brief and Constraint registry.");
+    }
+  }
   if (!Array.isArray(normalized.receipts)) normalized.receipts = [];
   normalized.comments = normalizeComments(normalized.comments ?? []);
   normalized.scenarios = Array.isArray(normalized.scenarios) ? normalized.scenarios.map(normalizeScenarioDefinition) : [];
@@ -237,11 +259,13 @@ const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackPropos
   normalized.projectLocks = normalizeProjectLocks(normalized.projectLocks ?? [], normalized.plan);
   const legacyLedger = normalized.ledger.every((entry) => !entry.hash && !entry.previousHash && !entry.schemaVersion);
   if (legacyLedger) {
+    const trustedBriefFingerprint = fingerprintEventBrief(fallbackBrief);
+    const snapshotBriefFingerprint = fingerprintEventBrief(normalized.brief);
+    if (trustedBriefFingerprint !== snapshotBriefFingerprint) throw venueError("LEDGER_INTEGRITY_FAILED", { migration: { status: "fail", reason: "legacy-brief-proof-required", trustedBriefFingerprint, snapshotBriefFingerprint } }, "Legacy Activity Ledger cannot establish accepted Event Brief truth.");
     normalized.ledger = normalized.ledger.map((entry) => {
-      if (entry.details?.acceptedPlan) return entry;
-      const version = entry.details?.toVersion ?? entry.details?.version;
-      const acceptedPlan = version === fallbackPlan.version ? fallbackPlan : version === normalized.plan.version ? normalized.plan : null;
-      return acceptedPlan ? { ...entry, details: { ...entry.details, acceptedPlan: clone(acceptedPlan), planFingerprint: fingerprintPlan(acceptedPlan) } } : entry;
+      const version = entry.details?.acceptedPlan?.version ?? entry.details?.toVersion ?? entry.details?.version;
+      const acceptedPlan = entry.details?.acceptedPlan ?? (version === fallbackPlan.version ? fallbackPlan : version === normalized.plan.version ? normalized.plan : null);
+      return acceptedPlan ? { ...entry, details: { ...entry.details, acceptedPlan: clone(acceptedPlan), planFingerprint: fingerprintPlan(acceptedPlan), acceptedBrief: clone(fallbackBrief), briefFingerprint: trustedBriefFingerprint, briefMigrationProof: { source: "trusted-initial-brief", briefFingerprint: trustedBriefFingerprint } } } : entry;
     });
   }
   normalized.ledger = normalizeActivityLedger(normalized.ledger);
@@ -276,10 +300,12 @@ const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackPropos
       version: normalized.plan.version,
       acceptedPlan: clone(normalized.plan),
       planFingerprint: fingerprintPlan(normalized.plan),
+      acceptedBrief: clone(normalized.brief),
+      briefFingerprint: fingerprintEventBrief(normalized.brief),
     }, { source: "system", sessionId: "schema-migration" })]);
   }
   const replay = replayActivityLedger(normalized.ledger, normalized.plan, normalized.brief);
-  if (replay.replayedBriefFingerprint && replay.replayedBriefFingerprint !== replay.currentBriefFingerprint) throw venueError("LEDGER_INTEGRITY_FAILED", { replay }, "Activity Ledger does not reproduce accepted Event Brief truth.");
+  if (replay.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { replay }, "Activity Ledger does not reproduce accepted Plan and Event Brief truth.");
   return normalized;
 };
 
@@ -366,7 +392,7 @@ const formatExport = (state) => {
   ].join("\n");
 };
 
-export function createVenuePlanner(initialPlan, { authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, projectId = null, approvalPolicy } = {}) {
+export function createVenuePlanner(initialPlan, { authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, projectId = null, approvalPolicy, adapterPlanningBindings = {} } = {}) {
   const initialState = createInitialState(initialPlan);
   const fallbackPlan = clone(initialState.plan);
   const fallbackBrief = clone(initialState.brief);
@@ -586,7 +612,7 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
     }
 
     if (command.type === "restore_snapshot") {
-      const snapshot = normalizeSnapshot(command.snapshot, fallbackPlan, fallbackBrief, fallbackProposal);
+      const snapshot = normalizeSnapshot(command.snapshot, fallbackPlan, fallbackBrief, fallbackProposal, adapterPlanningBindings);
       if (!snapshot?.plan?.id || !snapshot?.plan?.version || !snapshot?.proposal?.id || !Array.isArray(snapshot?.ledger)) {
         throw venueError("SNAPSHOT_INVALID");
       }
@@ -1324,5 +1350,6 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
   const cancelActive = (reason = "cancelled") => scenarioRunner.cancelActive(reason);
 
   const getProjectId = () => projectId;
-  return Object.freeze({ getSnapshot, getProjectId, subscribe, execute, cancelActive, recordAuthorizationDenial });
+  const getAdapterProjectContext = () => projectId ? clone({ projectId, brief: state.brief, constraints: state.plan.constraints, planningEffectBindings: adapterPlanningBindings }) : null;
+  return Object.freeze({ getSnapshot, getProjectId, getAdapterProjectContext, subscribe, execute, cancelActive, recordAuthorizationDenial });
 }

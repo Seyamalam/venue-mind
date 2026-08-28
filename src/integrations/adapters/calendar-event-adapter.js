@@ -4,6 +4,8 @@ import { normalizeEventSchedule } from "../../domain/event-schedule.js";
 
 const clone = (value) => structuredClone(value);
 
+export const CALENDAR_WEBHOOK_EVENT_TYPES = Object.freeze(["event.created", "event.updated", "event.cancelled", "event.deleted"]);
+
 export const calendarEventAdapterDefinition = defineAdapter({
   contractVersion: 1,
   id: "calendar-events",
@@ -131,6 +133,8 @@ export const calendarEventAdapter = createVenueAdapter(calendarEventAdapterDefin
     return importEvent(input, calendarEventAdapterDefinition, context.clock());
   },
   async webhook(input) {
+    assertExact(input, ["sourceSystem", "id", "type", "occurredAt", "event"], "Calendar webhook");
+    if (!CALENDAR_WEBHOOK_EVENT_TYPES.includes(input.type)) fail("Calendar webhook type is not supported", { eventType: input.type, supportedEventTypes: CALENDAR_WEBHOOK_EVENT_TYPES });
     const event = normalizeEvent(input.event);
     return { sourceSystem: input.sourceSystem, eventId: input.id, eventType: input.type, occurredAt: input.occurredAt, sourceVersion: event.sourceVersion, payload: event };
   },

@@ -4,6 +4,12 @@ import { AdapterContractError, assertIsoTimestamp, normalizeAdapterChange, norma
 
 const clone = (value) => structuredClone(value);
 
+const deepFreeze = (value) => {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+  for (const child of Object.values(value)) deepFreeze(child);
+  return Object.freeze(value);
+};
+
 const fail = (code, message, details) => {
   throw new AdapterContractError(code, message, details);
 };
@@ -69,8 +75,44 @@ export function createExternalIdMapping({ venueEntityType, venueObjectId, extern
   if (venueObjectId === external.externalId) fail("ADAPTER_ID_BOUNDARY_VIOLATION", "External IDs and VenueMind stable IDs must not be conflated", { venueObjectId, externalId: external.externalId });
   if (sourceSystem !== external.sourceSystem || sourceVersion !== external.sourceVersion || checksum !== external.checksum) fail("ADAPTER_MAPPING_EVIDENCE_MISMATCH", "Mapping evidence must match its external source reference", { venueObjectId });
   assertIsoTimestamp(synchronizedAt, "Mapping synchronizedAt");
-  return Object.freeze({ schemaVersion: 1, venueEntityType, venueObjectId, external: clone(external), batchId, sourceSystem, sourceVersion, synchronizedAt, checksum });
+  return deepFreeze({ schemaVersion: 1, venueEntityType, venueObjectId, external: clone(external), batchId, sourceSystem, sourceVersion, synchronizedAt, checksum });
 }
+
+const mappingIntegrityPayload = (mapping) => ({
+  schemaVersion: mapping.schemaVersion ?? 1,
+  venueEntityType: mapping.venueEntityType,
+  venueObjectId: mapping.venueObjectId,
+  external: clone(mapping.external),
+  sourceSystem: mapping.sourceSystem,
+  sourceVersion: mapping.sourceVersion,
+  synchronizedAt: mapping.synchronizedAt,
+  checksum: mapping.checksum,
+});
+
+export const stagingIntegrityPayload = (batch) => ({
+  schemaVersion: batch.schemaVersion,
+  status: batch.status,
+  adapterId: batch.adapterId,
+  adapterVersion: batch.adapterVersion,
+  sourceSystem: batch.sourceSystem,
+  sourceVersion: batch.sourceVersion,
+  synchronizedAt: batch.synchronizedAt,
+  basePlanVersion: batch.basePlanVersion,
+  proposalRevision: batch.proposalRevision,
+  syncCursor: clone(batch.syncCursor),
+  mappings: (batch.mappings ?? []).map(mappingIntegrityPayload),
+  sourceRecords: clone(batch.sourceRecords ?? []),
+  warnings: clone(batch.warnings ?? []),
+  proposal: batch.proposal ? {
+    revision: batch.proposal.revision,
+    baseVersion: batch.proposal.baseVersion,
+    status: batch.proposal.status,
+    goal: batch.proposal.goal,
+    changes: clone(batch.proposal.changes),
+    validation: clone(batch.proposal.validation),
+    waivers: clone(batch.proposal.waivers),
+  } : null,
+});
 
 export async function createAdapterStagingBatch(definition, input, options = {}) {
   if (!input || typeof input !== "object" || Array.isArray(input)) fail("ADAPTER_CONTRACT_INVALID", "Adapter import result must be an object");
@@ -115,11 +157,8 @@ export async function createAdapterStagingBatch(definition, input, options = {})
     if (mappingUnknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Import mapping contains unknown fields", { fields: mappingUnknown.sort() });
     return { venueEntityType: mapping.venueEntityType, venueObjectId: mapping.venueObjectId, external: normalizeExternalReference(mapping.external, definition) };
   });
-  const content = { adapterId: definition.id, adapterVersion: definition.version, sourceSystem: input.sourceSystem, sourceVersion: input.sourceVersion, synchronizedAt: input.synchronizedAt, basePlanVersion: options.basePlanVersion, proposalRevision: options.proposalRevision, syncCursor, changes, mappings: clone(mappingDrafts), sourceRecords: clone(sourceRecords), warnings: clone(input.warnings ?? []) };
-  const checksum = await sha256Checksum(content);
-  const batchId = options.batchId ?? `adapter-batch-${checksum.slice(0, 16)}`;
-  const proposal = changes.length === 0 ? null : Object.freeze({
-    id: `proposal-adapter-${checksum.slice(0, 16)}`,
+  const status = changes.length === 0 ? "no-changes" : "awaiting-review";
+  const proposalDraft = changes.length === 0 ? null : {
     revision: options.proposalRevision,
     baseVersion: options.basePlanVersion,
     status: "review",
@@ -127,21 +166,82 @@ export async function createAdapterStagingBatch(definition, input, options = {})
     changes: clone(changes.map(proposalChange)),
     validation: null,
     waivers: [],
-  });
-  const mappings = mappingDrafts.map((mapping) => createExternalIdMapping({
+  };
+  const mappingEvidence = mappingDrafts.map((mapping) => ({
+    schemaVersion: 1,
     venueEntityType: mapping.venueEntityType,
     venueObjectId: mapping.venueObjectId,
     external: mapping.external,
-    batchId,
     sourceSystem: input.sourceSystem,
     sourceVersion: mapping.external.sourceVersion,
     synchronizedAt: input.synchronizedAt,
     checksum: mapping.external.checksum,
   }));
-  return Object.freeze({ schemaVersion: 1, id: batchId, status: changes.length === 0 ? "no-changes" : "awaiting-review", adapterId: definition.id, adapterVersion: definition.version, sourceSystem: input.sourceSystem, sourceVersion: input.sourceVersion, synchronizedAt: input.synchronizedAt, basePlanVersion: options.basePlanVersion, checksum, syncCursor, mappings: clone(mappings), sourceRecords: clone(sourceRecords), warnings: clone(input.warnings ?? []), proposal });
+  const draft = { schemaVersion: 1, status, adapterId: definition.id, adapterVersion: definition.version, sourceSystem: input.sourceSystem, sourceVersion: input.sourceVersion, synchronizedAt: input.synchronizedAt, basePlanVersion: options.basePlanVersion, proposalRevision: options.proposalRevision, syncCursor, mappings: mappingEvidence, sourceRecords: clone(sourceRecords), warnings: clone(input.warnings ?? []), proposal: proposalDraft };
+  const checksum = await sha256Checksum(stagingIntegrityPayload(draft));
+  const batchId = `adapter-batch-${checksum.slice(0, 16)}`;
+  if (options.batchId !== undefined && options.batchId !== batchId) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Adapter batch ID must be derived from its checksum", { expected: batchId, actual: options.batchId });
+  const proposal = proposalDraft ? { id: `proposal-adapter-${checksum.slice(0, 16)}`, ...proposalDraft } : null;
+  const mappings = mappingEvidence.map((mapping) => createExternalIdMapping({ ...mapping, batchId }));
+  return deepFreeze({ ...draft, id: batchId, checksum, mappings, proposal });
 }
 
-export function assertReviewableStagingBatch(batch) {
+export async function assertStagingBatchIntegrity(batch) {
+  if (!batch || typeof batch !== "object" || Array.isArray(batch)) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch must be an object");
+  const allowedBatchFields = ["schemaVersion", "id", "status", "adapterId", "adapterVersion", "sourceSystem", "sourceVersion", "synchronizedAt", "basePlanVersion", "proposalRevision", "checksum", "syncCursor", "mappings", "sourceRecords", "warnings", "proposal"];
+  const unknownBatchFields = Object.keys(batch).filter((key) => !allowedBatchFields.includes(key));
+  if (unknownBatchFields.length) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch contains fields outside its canonical integrity payload", { fields: unknownBatchFields.sort() });
+  if (batch.proposal) {
+    const unknownProposalFields = Object.keys(batch.proposal).filter((key) => !["id", "revision", "baseVersion", "status", "goal", "changes", "validation", "waivers"].includes(key));
+    if (unknownProposalFields.length) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging Proposal contains fields outside its canonical integrity payload", { fields: unknownProposalFields.sort() });
+  }
+  if (!Array.isArray(batch.mappings)) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging mappings must be an array");
+  for (const mapping of batch.mappings) {
+    const unknownMappingFields = Object.keys(mapping ?? {}).filter((key) => !["schemaVersion", "venueEntityType", "venueObjectId", "external", "batchId", "sourceSystem", "sourceVersion", "synchronizedAt", "checksum"].includes(key));
+    const unknownExternalFields = Object.keys(mapping?.external ?? {}).filter((key) => !["adapterId", "sourceSystem", "entityType", "externalId", "sourceVersion", "checksum"].includes(key));
+    if (unknownMappingFields.length || unknownExternalFields.length) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging mapping contains fields outside its canonical integrity payload", { fields: [...unknownMappingFields, ...unknownExternalFields].sort() });
+  }
+  const actualChecksum = await sha256Checksum(stagingIntegrityPayload(batch));
+  if (batch.checksum !== actualChecksum) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch checksum does not match its canonical content", { expected: batch.checksum, actual: actualChecksum });
+  const expectedId = `adapter-batch-${actualChecksum.slice(0, 16)}`;
+  if (batch.id !== expectedId) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch ID does not match its checksum", { expected: expectedId, actual: batch.id });
+  if (batch.proposal && batch.proposal.id !== `proposal-adapter-${actualChecksum.slice(0, 16)}`) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Proposal ID does not match the staging checksum", { proposalId: batch.proposal.id });
+  if (!Array.isArray(batch.mappings) || batch.mappings.some((mapping) => mapping.batchId !== batch.id)) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "External ID mappings must reference the checksum-derived batch ID");
+  return true;
+}
+
+export function assertAdapterProjectContext(batch, context) {
+  const projectMappings = batch.mappings.filter((mapping) => mapping.venueEntityType === "project");
+  const planningEffects = batch.proposal?.changes.flatMap((change) => change.planningEffects ?? []) ?? [];
+  if (planningEffects.length && projectMappings.length !== 1) fail("ADAPTER_PROJECT_BINDING_REQUIRED", "Planning Changes require exactly one server-verifiable Project mapping", { projectMappings: projectMappings.length });
+  if (projectMappings.length === 0) return true;
+  if (projectMappings.length !== 1 || !context || typeof context !== "object" || typeof context.projectId !== "string" || !context.projectId) fail("ADAPTER_PROJECT_BINDING_REQUIRED", "Project-mapped adapter results require one trusted server-owned Project context");
+  if (projectMappings[0].venueObjectId !== context.projectId) fail("ADAPTER_PROJECT_BINDING_MISMATCH", "Adapter Project mapping does not match the server-owned Project context", { expectedProjectId: context.projectId, actualProjectId: projectMappings[0].venueObjectId });
+  if (!planningEffects.length) return true;
+  if (!context.brief || !Array.isArray(context.brief.requirements) || !Array.isArray(context.constraints) || !context.planningEffectBindings || typeof context.planningEffectBindings !== "object") fail("ADAPTER_PROJECT_BINDING_REQUIRED", "Planning Changes require a trusted Brief, Constraint registry, and Planning Effect bindings");
+  const requirements = new Map(context.brief.requirements.map((requirement) => [requirement.id, requirement]));
+  const constraints = new Map(context.constraints.map((constraint) => [constraint.id, constraint]));
+  const allowedConstraintCategories = { set_attendance_target: new Set(["capacity", "circulation"]), set_event_schedule: new Set([]) };
+  for (const effect of planningEffects) {
+    const binding = context.planningEffectBindings[effect.operation];
+    const registeredRequirement = requirements.get(effect.targetRequirementId);
+    if (!binding || binding.targetRequirementId !== effect.targetRequirementId || effect.targetBriefId !== context.brief.id || !registeredRequirement) fail("ADAPTER_PLANNING_BINDING_MISMATCH", "Planning Effect target is not allocated by the server-owned Project context", { operation: effect.operation, targetBriefId: effect.targetBriefId, targetRequirementId: effect.targetRequirementId });
+    if (binding.category !== registeredRequirement.category || effect.requirement.category !== registeredRequirement.category) fail("ADAPTER_PLANNING_BINDING_MISMATCH", "Planning Effect Requirement category does not match the server-owned Requirement registry", { targetRequirementId: effect.targetRequirementId });
+    const expectedConstraintIds = [...new Set(binding.affectedConstraintIds ?? [])].sort();
+    if (JSON.stringify(expectedConstraintIds) !== JSON.stringify(effect.affectedConstraintIds)) fail("ADAPTER_PLANNING_BINDING_MISMATCH", "Planning Effect Constraints do not match the server-owned binding", { targetRequirementId: effect.targetRequirementId });
+    if (JSON.stringify(expectedConstraintIds) !== JSON.stringify(effect.requirement.constraintIds)) fail("ADAPTER_PLANNING_BINDING_MISMATCH", "Planning Effect Requirement Constraints do not match the server-owned binding", { targetRequirementId: effect.targetRequirementId });
+    const expectedBefore = effect.operation === "set_attendance_target" ? context.brief.attendeeTarget : context.brief.schedule ?? null;
+    if (JSON.stringify(expectedBefore) !== JSON.stringify(effect.before)) fail("ADAPTER_PLANNING_BINDING_MISMATCH", "Planning Effect before value does not match server-owned accepted Brief truth", { operation: effect.operation, targetRequirementId: effect.targetRequirementId });
+    for (const constraintId of effect.affectedConstraintIds) {
+      const constraint = constraints.get(constraintId);
+      if (!constraint || !allowedConstraintCategories[effect.operation]?.has(constraint.category)) fail("ADAPTER_PLANNING_BINDING_MISMATCH", "Planning Effect cites an untrusted or incompatible Constraint", { constraintId, operation: effect.operation });
+    }
+  }
+  return true;
+}
+
+export async function assertReviewableStagingBatch(batch, projectContext = null, { requireProjectContext = true } = {}) {
+  await assertStagingBatchIntegrity(batch);
   if (batch?.status !== "awaiting-review" || batch?.proposal?.status !== "review") fail("ADAPTER_REVIEW_BYPASS", "Imported changes must remain a review Proposal until human Approval");
   if (!batch.proposal.id || !Number.isInteger(batch.proposal.revision) || batch.proposal.baseVersion !== batch.basePlanVersion || !Array.isArray(batch.proposal.changes)) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch does not contain a canonical Proposal");
   if (batch.proposal.changes.length === 0) fail("ADAPTER_CHANGE_EMPTY", "A no-change adapter batch cannot enter Proposal review");
@@ -153,16 +253,15 @@ export function assertReviewableStagingBatch(batch) {
   }
   if (!batch.sourceSystem || !batch.sourceVersion || !batch.checksum) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch source evidence is incomplete");
   if (!/^[0-9a-f]{64}$/.test(batch.checksum) || !Array.isArray(batch.mappings) || batch.mappings.some((mapping) => mapping.sourceSystem !== batch.sourceSystem || mapping.synchronizedAt !== batch.synchronizedAt || !/^[0-9a-f]{64}$/.test(mapping.checksum ?? ""))) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch mapping evidence is invalid");
-  const planningChanges = batch.proposal.changes.filter((change) => change.planningEffects?.length);
-  const projectMappings = batch.mappings.filter((mapping) => mapping.venueEntityType === "project");
-  if (planningChanges.length && projectMappings.length !== 1) fail("ADAPTER_PROJECT_BINDING_REQUIRED", "Planning Changes require exactly one server-verifiable Project mapping", { projectMappings: projectMappings.length });
+  if (requireProjectContext) assertAdapterProjectContext(batch, projectContext);
   assertIsoTimestamp(batch.synchronizedAt, "Staging batch synchronizedAt");
   return true;
 }
 
-export function loadAdapterProposalForReview(planner, batch) {
+export async function loadAdapterProposalForReview(planner, batch) {
   if (!planner || typeof planner.getSnapshot !== "function" || typeof planner.execute !== "function") fail("ADAPTER_PLANNER_REQUIRED", "A VenuePlanner instance is required");
-  assertReviewableStagingBatch(batch);
+  const projectContext = typeof planner.getAdapterProjectContext === "function" ? planner.getAdapterProjectContext() : null;
+  await assertReviewableStagingBatch(batch, projectContext);
   const snapshot = planner.getSnapshot();
   const beforePlanFingerprint = fingerprintPlan(snapshot.plan);
   const beforeBriefFingerprint = fingerprintEventBrief(snapshot.brief);

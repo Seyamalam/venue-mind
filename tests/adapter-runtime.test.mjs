@@ -5,6 +5,7 @@ import { AdapterContractError, sha256Checksum } from "../src/integrations/contra
 import { createAdapterRuntime, createMemoryDeadLetterSink, createVenueAdapter, serializeDeadLetter } from "../src/integrations/runtime.js";
 import { createMemorySecretStore } from "../src/integrations/secret-store.js";
 import { roomInventoryAdapter } from "../src/integrations/adapters/room-inventory-adapter.js";
+import { createMemoryWebhookEventStore } from "../src/integrations/webhook-event-store.js";
 
 const secretStore = createMemorySecretStore({ "test/token": "secret", "room-inventory/api-token": "test-token" });
 const auth = { grantedScopes: ["records:read"], secretStore, secretReferences: ["test/token"] };
@@ -81,7 +82,7 @@ test("rate limits use a deterministic rolling window", async () => {
 });
 
 test("webhook delivery is idempotent and altered replay is rejected", async () => {
-  const runtime = createAdapterRuntime({ clock: () => Date.parse("2026-08-28T12:00:00.000Z") });
+  const runtime = createAdapterRuntime({ clock: () => Date.parse("2026-08-28T12:00:00.000Z"), webhookEventStore: createMemoryWebhookEventStore() });
   const webhookAuth = { grantedScopes: ["inventory:webhook"], secretStore, secretReferences: [] };
   const event = structuredClone(webhookFixture);
   const first = await runtime.acceptWebhook(roomInventoryAdapter, event, webhookAuth);

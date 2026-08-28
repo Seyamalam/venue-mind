@@ -9,7 +9,7 @@ import {
   sha256Checksum,
 } from "./contracts.js";
 import { createScopedSecretReader } from "./secret-store.js";
-import { assertReviewableStagingBatch, createAdapterStagingBatch } from "./staging.js";
+import { assertAdapterProjectContext, assertReviewableStagingBatch, assertStagingBatchIntegrity, createAdapterStagingBatch } from "./staging.js";
 import { createMemoryProcessedBatchStore } from "./processed-batch-store.js";
 
 const clone = (value) => structuredClone(value);
@@ -30,6 +30,10 @@ const isPolicyFailure = (error) => error.code.startsWith("ADAPTER_SECRET_")
   || error.code === "ADAPTER_BASE_PLAN_VERSION_REQUIRED"
   || error.code === "ADAPTER_PROPOSAL_REVISION_REQUIRED"
   || error.code === "ADAPTER_STAGING_INTEGRITY_FAILED"
+  || error.code === "ADAPTER_PROJECT_BINDING_REQUIRED"
+  || error.code === "ADAPTER_PROJECT_BINDING_MISMATCH"
+  || error.code === "ADAPTER_PLANNING_BINDING_MISMATCH"
+  || error.code === "ADAPTER_WEBHOOK_STORE_REQUIRED"
   || error.code === "ADAPTER_ENTITY_TYPE_INVALID"
   || error.code === "ADAPTER_ENTITY_TYPE_UNSUPPORTED"
   || error.code === "ADAPTER_PROTECTED_FIELD"
@@ -73,7 +77,7 @@ export function createVenueAdapter(definitionInput, handlers) {
       const output = await handlers[capability](clone(input), context);
       if (capability === "import" || capability === "synchronize") {
         const staging = await createAdapterStagingBatch(definition, output, { basePlanVersion: input?.basePlanVersion, proposalRevision: input?.proposalRevision });
-        if (staging.status === "awaiting-review") assertReviewableStagingBatch(staging);
+        if (staging.status === "awaiting-review") await assertReviewableStagingBatch(staging, null, { requireProjectContext: false });
         else if (staging.status !== "no-changes" || staging.proposal !== null) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "No-change staging must not contain a Proposal");
         return staging;
       }
@@ -89,8 +93,19 @@ export function createAdapterRuntime(options = {}) {
   const sleep = options.sleep ?? ((milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
   const deadLetterSink = options.deadLetterSink ?? { async add() {} };
   const processedBatchStore = options.processedBatchStore ?? createMemoryProcessedBatchStore();
+  const webhookEventStore = options.webhookEventStore ?? null;
+  const resolveProjectContext = typeof options.resolveProjectContext === "function" ? options.resolveProjectContext : async () => options.projectContext ?? null;
   const requestTimes = new Map();
-  const processedWebhooks = new Map();
+
+  const validateStagingForPersistence = async (definition, capability, output) => {
+    await assertStagingBatchIntegrity(output);
+    const hasProjectMapping = output.mappings.some((mapping) => mapping.venueEntityType === "project");
+    const projectContext = hasProjectMapping ? await resolveProjectContext({ adapterId: definition.id, adapterVersion: definition.version, capability, sourceSystem: output.sourceSystem }) : null;
+    assertAdapterProjectContext(output, projectContext);
+    if (output.status === "awaiting-review") await assertReviewableStagingBatch(output, projectContext);
+    else if (output.status !== "no-changes" || output.proposal !== null) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "No-change staging must not contain a Proposal");
+    return output;
+  };
 
   const acquireRateLimit = async (definition) => {
     const key = `${definition.id}@${definition.version}`;
@@ -115,7 +130,10 @@ export function createAdapterRuntime(options = {}) {
       const processedBatchKey = `${definition.id}@${definition.version}:${capability}:${inputChecksum}`;
       if (stagesProposal) {
         const completed = await processedBatchStore.get(processedBatchKey);
-        if (completed) return { status: "duplicate", invocationId, attempts: [], duplicateOf: completed.completedAt, output: clone(completed.output) };
+        if (completed) {
+          await validateStagingForPersistence(definition, capability, completed.output);
+          return { status: "duplicate", invocationId, attempts: [], duplicateOf: completed.completedAt, output: clone(completed.output) };
+        }
       }
       const attempts = [];
       const secretReader = createScopedSecretReader(authorization.secretStore, authorization.secretReferences ?? []);
@@ -125,9 +143,12 @@ export function createAdapterRuntime(options = {}) {
           const output = await adapter.invoke(capability, input, { invocationId, attempt, clock: () => new Date(clock()).toISOString(), secrets: secretReader });
           attempts.push({ attempt, status: "succeeded", at: new Date(clock()).toISOString() });
           if (stagesProposal) {
+            await validateStagingForPersistence(definition, capability, output);
             const completedAt = new Date(clock()).toISOString();
             const stored = await processedBatchStore.putIfAbsent(processedBatchKey, { invocationId, inputChecksum, completedAt, output });
+            await validateStagingForPersistence(definition, capability, stored.value.output);
             if (!stored.inserted) return { status: "duplicate", invocationId, attempts, duplicateOf: stored.value.completedAt, output: clone(stored.value.output) };
+            return { status: "succeeded", invocationId, attempts, output: clone(stored.value.output) };
           }
           return { status: "succeeded", invocationId, attempts, output };
         } catch (cause) {
@@ -162,16 +183,16 @@ export function createAdapterRuntime(options = {}) {
     },
 
     async acceptWebhook(adapter, input, authorization = {}) {
+      if (!webhookEventStore || typeof webhookEventStore.putIfAbsent !== "function") fail("ADAPTER_WEBHOOK_STORE_REQUIRED", "Webhook acceptance requires an injected atomic durable event store");
       const result = await this.execute(adapter, "webhook", input, authorization);
       if (result.status !== "succeeded") return result;
-      const key = `${adapter.definition.id}\u0000${result.output.eventId}`;
-      const existing = processedWebhooks.get(key);
-      if (existing) {
-        if (existing.checksum !== result.output.checksum) fail("ADAPTER_WEBHOOK_REPLAY_MISMATCH", "Webhook event ID was replayed with different content", { eventId: result.output.eventId });
-        return { ...result, status: "duplicate", output: clone(existing) };
+      const key = `${adapter.definition.id}@${adapter.definition.version}\u0000${result.output.sourceSystem}\u0000${result.output.eventId}`;
+      const stored = await webhookEventStore.putIfAbsent(key, result.output);
+      if (!stored.inserted) {
+        if (stored.value.checksum !== result.output.checksum) fail("ADAPTER_WEBHOOK_REPLAY_MISMATCH", "Webhook event ID was replayed with different content", { eventId: result.output.eventId, sourceSystem: result.output.sourceSystem });
+        return { ...result, status: "duplicate", output: clone(stored.value) };
       }
-      processedWebhooks.set(key, clone(result.output));
-      return result;
+      return { ...result, output: clone(stored.value) };
     },
 
     inspectRateLimit(adapter) {

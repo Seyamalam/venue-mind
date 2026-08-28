@@ -79,6 +79,22 @@ export function normalizePlanningEffect(input) {
   });
 }
 
+export function normalizeProposalPlanningEffects(proposal, path = "proposal") {
+  if (!proposal || typeof proposal !== "object" || Array.isArray(proposal) || !Array.isArray(proposal.changes)) fail(`${path} must contain Changes`);
+  return {
+    ...clone(proposal),
+    changes: proposal.changes.map((change, changeIndex) => {
+      if (!change || typeof change !== "object" || Array.isArray(change)) fail(`${path}.changes[${changeIndex}] must be an object`);
+      if (change.planningEffects === undefined) return clone(change);
+      if (!Array.isArray(change.planningEffects)) fail(`${path}.changes[${changeIndex}].planningEffects must be an array`);
+      const planningEffects = (change.planningEffects ?? []).map((effect) => normalizePlanningEffect(effect));
+      const spatialEffects = change.spatialEffects ?? [];
+      if (!Array.isArray(spatialEffects)) fail(`${path}.changes[${changeIndex}].spatialEffects must be an array`);
+      return { ...clone(change), planningEffects };
+    }),
+  };
+}
+
 export function materializeEventBrief(brief, changes = []) {
   let candidate = normalizeEventBrief(brief);
   for (const change of changes) {
