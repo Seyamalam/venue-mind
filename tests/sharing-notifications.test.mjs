@@ -21,7 +21,7 @@ function harness({ rolesBySubject = {}, emailDelivery = null } = {}) {
     async get(org, id) { const item = records.get(id); return item?.organizationId === org ? structuredClone(item) : null; },
     async put(org, record, { createOnly = false, expectedRevision = null } = {}) { const current = records.get(record.id); if (!createOnly && updateFailures > 0) { updateFailures -= 1; throw new Error("PROJECT_REVISION_CONFLICT"); } if ((createOnly && current) || (!createOnly && (!current || current.revision !== expectedRevision))) throw new Error("PROJECT_REVISION_CONFLICT"); const saved = { ...structuredClone(record), organizationId: org, revision: current ? current.revision + 1 : 1 }; records.set(record.id, saved); return structuredClone(saved); },
   };
-  const sharing = createMemorySharingRepository({ recipients: [{ userId: "user-reviewer", email: "reviewer@example.test", inAppEnabled: true, emailEnabled: false }] });
+  const sharing = createMemorySharingRepository({ recipients: [{ organizationId: organization.id, userId: "user-reviewer", email: "reviewer@example.test", inAppEnabled: true, emailEnabled: false }] });
   const worker = createWorker({ secureCookies: false, clock: () => NOW, emailDelivery, identityProvider: { authenticate: (request) => { const subject = request.headers.get("x-test-user"); return subject ? { provider: "test", subject, email: `${subject}@example.test`, displayName: subject.toUpperCase() } : null; } }, createAccountRepository: () => accounts, createProjectRepository: () => projects, createCollaborationRepository: () => createMemoryCollaborationRepository(), createSharingRepository: () => sharing });
   const env = { ASSETS: { fetch: async () => new Response("missing", { status: 404 }) }, DB: {} };
   const login = async (subject) => { const response = await worker.fetch(new Request("https://example.test/api/session", { headers: { "x-test-user": subject } }), env); return { cookie: response.headers.get("set-cookie").split(";", 1)[0], ...(await response.json()) }; };
@@ -146,12 +146,16 @@ test("share management is role-isolated and malformed fields fail closed", async
   ]) assert.equal((await app.request("/api/projects/project-role/share-links", owner, { method: "POST", body })).status, 400);
 });
 
-test("channel and event preferences suppress delivery and never expose recipient email", async () => {
-  const sharing = createMemorySharingRepository({ recipients: [{ userId: "user-reviewer", email: "private@example.test", inAppEnabled: true, emailEnabled: false }] });
+test("channel and event preferences suppress delivery, tenants, and recipient email", async () => {
+  const sharing = createMemorySharingRepository({ recipients: [
+    { organizationId: "org", userId: "user-reviewer", email: "private@example.test", inAppEnabled: true, emailEnabled: false },
+    { organizationId: "org-other", userId: "user-other", email: "other@example.test", inAppEnabled: true, emailEnabled: true },
+  ] });
   await sharing.setPreferences("user-reviewer", { inAppEnabled: false, emailEnabled: true, eventTypes: ["review_requested"] });
   assert.equal((await sharing.notificationRecipients("org", "approval_completed")).length, 0);
   const recipients = await sharing.notificationRecipients("org", "review_requested");
   assert.deepEqual(recipients, [{ userId: "user-reviewer", email: "private@example.test", inAppEnabled: false, emailEnabled: true }]);
+  assert.equal(recipients.some((recipient) => recipient.userId === "user-other"), false);
   const notification = safeNotification({ id: "notification-safe", organizationId: "org", projectId: "project", userId: "user-reviewer", eventType: "review_requested", refs: { projectId: "project", revision: 1 }, createdAt: NOW });
   await sharing.addNotification(notification, { inAppEnabled: recipients[0].inAppEnabled, recipientEmail: recipients[0].email });
   assert.deepEqual(await sharing.listNotifications("user-reviewer", "org"), []);
