@@ -295,9 +295,13 @@ const syncActiveBranch = (state, proposal) => ({
 export const validateVenueState = (state) => {
   const changes = state.proposal?.status === "review" ? state.proposal.changes : [];
   const candidateBrief = materializeEventBrief(state.brief, changes);
+  const invalidations = planningEvidenceInvalidations(changes);
+  const knownConstraintIds = new Set(state.plan.constraints.map((constraint) => constraint.id));
+  const unknownConstraintIds = invalidations.affectedConstraintIds.filter((id) => !knownConstraintIds.has(id));
+  if (unknownConstraintIds.length) throw venueError("CONSTRAINT_NOT_FOUND", { constraintIds: unknownConstraintIds });
   const validation = validateConstraints({ ...state, brief: candidateBrief });
   const inventoryAvailability = evaluateInventoryAvailability(materializeSpatialPlan(state.plan, state.proposal?.changes ?? [], { projectLocks: state.projectLocks, allowLockConflicts: true }));
-  return { ...validation, planningEvidenceInvalidations: planningEvidenceInvalidations(changes), inventoryAvailability, inventoryWarnings: inventoryAvailability.filter((item) => item.status === "warning").length };
+  return { ...validation, planningEvidenceInvalidations: invalidations, inventoryAvailability, inventoryWarnings: inventoryAvailability.filter((item) => item.status === "warning").length };
 };
 
 const candidateBriefFor = (state) => materializeEventBrief(state.brief, state.proposal?.status === "review" ? state.proposal.changes : []);
@@ -1155,7 +1159,8 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
       const next = redoStack.pop();
       if (!next) return { status: "noop", planVersion: state.plan.version };
       undoStack.push({ plan: clone(state.plan), brief: clone(state.brief) });
-      const redoneProposal = { ...state.proposal, baseVersion: next.plan.version, status: "approved", validation: validateVenueState({ ...state, plan: next.plan, brief: next.brief }) };
+      const approvedProposalForReplay = { ...state.proposal, baseVersion: next.plan.version, status: "approved" };
+      const redoneProposal = { ...approvedProposalForReplay, validation: validateVenueState({ ...state, plan: next.plan, brief: next.brief, proposal: approvedProposalForReplay }) };
       publish({
         ...syncActiveBranch(state, redoneProposal),
         plan: next.plan,

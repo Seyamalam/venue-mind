@@ -32,7 +32,8 @@ const normalizeSource = (source) => {
   return clone(source);
 };
 
-const normalizeSchedule = (schedule, label) => {
+const normalizeSchedule = (schedule, label, { nullable = false } = {}) => {
+  if (nullable && schedule === null) return null;
   exactKeys(schedule, ["startAt", "endAt", "timezone"], label);
   for (const field of ["startAt", "endAt", "timezone"]) nonEmptyString(schedule[field], `${label} ${field}`);
   if (Number.isNaN(Date.parse(schedule.startAt)) || Number.isNaN(Date.parse(schedule.endAt)) || Date.parse(schedule.endAt) <= Date.parse(schedule.startAt)) fail(`${label} must have a valid start before end`);
@@ -64,7 +65,7 @@ export function normalizePlanningEffect(input) {
     before = input.before;
     after = input.after;
   } else {
-    before = normalizeSchedule(input.before, "before schedule");
+    before = normalizeSchedule(input.before, "before schedule", { nullable: true });
     after = normalizeSchedule(input.after, "after schedule");
     if (JSON.stringify(before) === JSON.stringify(after)) fail("schedule values must differ");
     if (evidenceFamilies.join("\u0000") !== "operations") fail("schedule changes must invalidate exactly operations evidence");
