@@ -106,7 +106,8 @@ export function replayActivityLedger(entries, currentPlan, currentBrief = null) 
   const replayed = transitions.at(-1)?.plan ?? null;
   const replayedFingerprint = replayed ? fingerprintPlan(replayed) : null;
   const currentFingerprint = fingerprintPlan(currentPlan);
-  const replayedBrief = [...transitions].reverse().find((transition) => transition.brief)?.brief ?? null;
+  const briefTransitions = entries.filter((entry) => entry.details?.acceptedBrief).map((entry) => ({ ledgerEntryId: entry.id, brief: clone(entry.details.acceptedBrief) }));
+  const replayedBrief = briefTransitions.at(-1)?.brief ?? null;
   const replayedBriefFingerprint = replayedBrief ? fingerprintEventBrief(replayedBrief) : null;
   const currentBriefFingerprint = currentBrief ? fingerprintEventBrief(currentBrief) : null;
   const lockedObjectViolations = [];
@@ -139,13 +140,14 @@ export function replayActivityLedger(entries, currentPlan, currentBrief = null) 
     }
   }
   return {
-    status: replayedFingerprint === currentFingerprint && (!currentBrief || replayedBriefFingerprint === currentBriefFingerprint) && lockedObjectViolations.length === 0 ? "pass" : "fail",
+    status: replayedFingerprint === currentFingerprint && (!currentBrief || !replayedBrief || replayedBriefFingerprint === currentBriefFingerprint) && lockedObjectViolations.length === 0 ? "pass" : "fail",
     transitions: transitions.map(({ plan: _plan, brief: _brief, ...transition }) => transition),
     currentPlanVersion: currentPlan.version,
     replayedFingerprint,
     currentFingerprint,
     replayedBriefFingerprint,
     currentBriefFingerprint,
+    briefTransitions: briefTransitions.map(({ brief: _brief, ...transition }) => transition),
     ledgerHeadHash: integrity.headHash,
     lockedObjectViolations,
   };

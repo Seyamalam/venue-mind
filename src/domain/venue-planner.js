@@ -679,7 +679,7 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
       publish({
         ...syncActiveBranch(state, proposal),
         brief,
-        ledger: appendLedger(state, "brief.updated", command.actor ?? "human", { briefId: brief.id, attendeeTarget: brief.attendeeTarget, requirementIds: brief.requirements.map((requirement) => requirement.id) }),
+        ledger: appendLedger(state, "brief.updated", command.actor ?? "human", { briefId: brief.id, attendeeTarget: brief.attendeeTarget, requirementIds: brief.requirements.map((requirement) => requirement.id), acceptedBrief: clone(brief), briefFingerprint: fingerprintEventBrief(brief) }),
       });
       return { status: "updated", briefId: brief.id, attendeeTarget: brief.attendeeTarget, requirements: brief.requirements.length };
     }

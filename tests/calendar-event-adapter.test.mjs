@@ -99,6 +99,15 @@ test("schedule changes use the typed Planning Effect and preserve the stable Req
   assert.deepEqual(planner.getSnapshot().brief.schedule, scheduleFixture.currentPlanningState.schedule);
 });
 
+test("ordinary Event Brief edits also round-trip through Activity Ledger replay", () => {
+  const planner = plannerFor(metadataFixture);
+  const brief = planner.getSnapshot().brief;
+  planner.execute({ type: "update_event_brief", brief: { ...brief, attendeeTarget: 395 }, actor: "human", idempotencyKey: "brief-replay-after-calendar-foundation" });
+  const snapshot = planner.getSnapshot();
+  assert.equal(replayActivityLedger(snapshot.ledger, snapshot.plan, snapshot.brief).status, "pass");
+  assert.equal(snapshot.ledger.at(-1).details.briefFingerprint, fingerprintEventBrief(snapshot.brief));
+});
+
 test("descriptive-only calendar updates create no planning Change and alter no validation evidence", async () => {
   const planner = plannerFor(metadataFixture);
   const before = planner.execute({ type: "validate_layout" });
