@@ -17,7 +17,7 @@ for (const [index, filename] of names.entries()) {
   const requiresProjectExport = /^-- migration-requires-project-export: true$/m.test(sql);
   const executableSql = sql.replace(/^-- migration-(?:destructive|requires-project-export): (?:true|false)\n/gm, "").trim();
   const statements = executableSql.split(/^-- statement-breakpoint$/m).map((statement) => statement.trim()).filter(Boolean);
-  if (!statements.length || statements.some((statement) => statement.includes(";"))) throw new Error(`${filename} must contain one semicolon-free SQL statement per block`);
+  if (!statements.length || statements.some((statement) => statement.includes(";") && !/^CREATE TRIGGER[\s\S]+\bBEGIN[\s\S]+\bEND$/i.test(statement))) throw new Error(`${filename} must contain one SQL statement per block`);
   migrations.push({ version, name: filename.slice(5, -4), checksum: createHash("sha256").update(`${sql}\n`).digest("hex"), destructive, requiresProjectExport, statements });
 }
 

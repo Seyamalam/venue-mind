@@ -1,6 +1,6 @@
 # Database operations
 
-VenueMind database schema version 6 is represented by numbered SQL sources in `db/migrations/`. `scripts/generate-db-migrations.mjs` computes SHA-256 checksums, emits the Worker catalog, and creates one Wrangler-ready file per migration. Applied checksums are stored in `schema_migrations`; changed historical SQL fails closed.
+VenueMind database schema version 7 is represented by numbered SQL sources in `db/migrations/`. `scripts/generate-db-migrations.mjs` computes SHA-256 checksums, emits the Worker catalog, and creates one Wrangler-ready file per migration. Applied checksums are stored in `schema_migrations`; changed historical SQL fails closed.
 
 ## Local migration drill
 
@@ -59,9 +59,12 @@ npx wrangler d1 execute <TEST_DATABASE> --remote --file ./db/wrangler/0003_accou
 npx wrangler d1 execute <TEST_DATABASE> --remote --file ./db/wrangler/0004_optimistic_concurrency.sql
 npx wrangler d1 execute <TEST_DATABASE> --remote --file ./db/wrangler/0005_realtime_collaboration.sql
 npx wrangler d1 execute <TEST_DATABASE> --remote --file ./db/wrangler/0006_sharing_notifications.sql
+npx wrangler d1 execute <TEST_DATABASE> --remote --file ./db/wrangler/0007_sharing_delivery_integrity.sql
 ```
 
 Use only the pending file names reported by the dry run or `schema_migrations`; never replay an applied migration. A remote D1 export can block database requests while it runs, so schedule the operation and announce the write window.
+
+After applying migration 7, exercise one Share Link create and revoke cycle, run pending-operation reconciliation, and drain a test email through an injected provider. Verify that only `active` links resolve, pending revocation denies immediately, ledger-completion timestamps are present, and an outbox row receives `delivered_at` only after provider success. The integrity suite must also reject cross-Organization Share Links and email rows whose parent Notification is missing.
 
 Official references: [D1 import and export](https://developers.cloudflare.com/d1/best-practices/import-export-data/) and [D1 Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/).
 

@@ -50,6 +50,7 @@ async function createFixture(database, version, { tracked = true } = {}) {
 test("numbered migration fixtures from every released database version upgrade with stable fingerprints", async () => {
   assert.deepEqual(fixtureManifest.releasedDatabaseVersions, DATABASE_MIGRATIONS.map((migration) => migration.version));
   assert.equal(fixtureManifest.expectedCurrentVersion, DATABASE_SCHEMA_VERSION);
+  assert.equal(DATABASE_MIGRATIONS.find((migration) => migration.version === 6).checksum, "b7271cddc304567f93e12c4177069a91187a2ab92a6ded865d5e625b8c05034d", "released migration 0006 is immutable");
   const directory = await mkdtemp(path.join(root, ".venuemind-migrations-"));
   try {
     for (const version of fixtureManifest.releasedDatabaseVersions) {
@@ -79,11 +80,28 @@ test("dry run adopts no metadata and an untracked legacy database upgrades expli
     assert.equal(dryRun.adoptionRequired, true);
     assert.equal((await sqlite(database, "SELECT COUNT(*) FROM sqlite_schema WHERE type='table' AND name='schema_migrations';\n")).trim(), "0");
     const migrated = await cli("migrate", "--database", database);
-    assert.equal(migrated.currentVersion, 6);
+    assert.equal(migrated.currentVersion, DATABASE_SCHEMA_VERSION);
     assert.equal(migrated.applied.filter((item) => item.adopted).length, 2);
     const verification = await cli("verify", "--database", database);
     assert.equal(verification.status, "pass");
     assert.equal(verification.projects[0].organizationId, "org-legacy-migration");
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test("released v6 sharing rows upgrade to recoverable v7 lifecycle state", async () => {
+  const directory = await mkdtemp(path.join(root, ".venuemind-v6-sharing-upgrade-"));
+  try {
+    const database = path.join(directory, "v6.sqlite3");
+    await createFixture(database, 6);
+    await sqlite(database, `INSERT INTO project_share_links (id,organization_id,project_id,proposal_id,scope,token_hash,created_by,created_at,expires_at) VALUES ('share-active','org-fixture','project-fixture',NULL,'read-only','${"a".repeat(64)}','user-fixture','2026-08-28T00:00:00.000Z','2026-08-29T00:00:00.000Z'); INSERT INTO project_share_links (id,organization_id,project_id,proposal_id,scope,token_hash,created_by,created_at,expires_at,revoked_at,revoked_by) VALUES ('share-revoked','org-fixture','project-fixture',NULL,'read-only','${"b".repeat(64)}','user-fixture','2026-08-28T00:00:00.000Z','2026-08-29T00:00:00.000Z','2026-08-28T01:00:00.000Z','user-fixture');\n`);
+    const report = await cli("migrate", "--database", database);
+    assert.equal(report.currentVersion, 7);
+    const rows = JSON.parse(await sqlite(database, ".mode json\nSELECT id,lifecycle_state,creation_ledgered_at,revocation_ledgered_at FROM project_share_links ORDER BY id;\n"));
+    assert.deepEqual(rows, [
+      { id: "share-active", lifecycle_state: "active", creation_ledgered_at: "2026-08-28T00:00:00.000Z", revocation_ledgered_at: null },
+      { id: "share-revoked", lifecycle_state: "pending-revoke", creation_ledgered_at: "2026-08-28T00:00:00.000Z", revocation_ledgered_at: null },
+    ]);
+    assert.equal((await cli("verify", "--database", database)).status, "pass");
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
@@ -121,6 +139,26 @@ test("migration checksum drift and database orphans fail closed", async () => {
     const verification = await cli("verify", "--database", orphanDatabase);
     assert.equal(verification.status, "fail");
     assert.equal(verification.orphanChecks.find((check) => check.id === "project-without-state").count, 1);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test("sharing schema rejects cross-tenant rows, raw tokens, and invalid scope records", async () => {
+  const directory = await mkdtemp(path.join(root, ".venuemind-sharing-schema-"));
+  try {
+    const database = path.join(directory, "sharing.sqlite3");
+    await createFixture(database, 7);
+    await sqlite(database, "INSERT INTO organizations (id,name,slug,created_by,created_at,updated_at) VALUES ('org-other','Other','other','user-fixture','2026-08-28T00:00:00.000Z','2026-08-28T00:00:00.000Z');\n");
+    const base = "'share-invalid','org-fixture','project-fixture',NULL,'read-only'";
+    await assert.rejects(() => sqlite(database, `PRAGMA foreign_keys=ON; INSERT INTO project_share_links (id,organization_id,project_id,proposal_id,scope,token_hash,created_by,created_at,expires_at) VALUES (${base},'raw-token','user-fixture','2026-08-28T00:00:00.000Z','2026-08-29T00:00:00.000Z');\n`), /constraint|invalid/i);
+    await assert.rejects(() => sqlite(database, `PRAGMA foreign_keys=ON; INSERT INTO project_share_links (id,organization_id,project_id,proposal_id,scope,token_hash,created_by,created_at,expires_at) VALUES ('share-scope','org-fixture','project-fixture','proposal-1','read-only','${"a".repeat(64)}','user-fixture','2026-08-28T00:00:00.000Z','2026-08-29T00:00:00.000Z');\n`), /constraint|invalid/i);
+    await assert.rejects(() => sqlite(database, `PRAGMA foreign_keys=ON; INSERT INTO project_share_links (id,organization_id,project_id,proposal_id,scope,token_hash,created_by,created_at,expires_at) VALUES ('share-tenant','org-other','project-fixture',NULL,'read-only','${"b".repeat(64)}','user-fixture','2026-08-28T00:00:00.000Z','2026-08-29T00:00:00.000Z');\n`), /constraint|invalid/i);
+    await sqlite(database, `PRAGMA foreign_keys=ON; INSERT INTO notifications (id,organization_id,project_id,user_id,event_type,body_code,subject_refs_json,created_at) VALUES ('notification-valid','org-fixture','project-fixture','user-fixture','review_requested','notification.review_requested','{"projectId":"project-fixture","proposalId":"proposal-1"}','2026-08-28T00:00:00.000Z'); INSERT INTO notification_email_outbox (id,notification_id,recipient_email,body_code,subject_refs_json,created_at) VALUES ('email-valid','notification-valid','fixture@example.test','notification.review_requested','{"projectId":"project-fixture","proposalId":"proposal-1"}','2026-08-28T00:00:00.000Z');\n`);
+    await assert.rejects(() => sqlite(database, "UPDATE notifications SET organization_id='org-other' WHERE id='notification-valid';\n"), /organization|invalid/i);
+    await assert.rejects(() => sqlite(database, "UPDATE notification_email_outbox SET body_code='unsafe-freeform' WHERE id='email-valid';\n"), /notification|invalid/i);
+    await sqlite(database, `PRAGMA foreign_keys=OFF; DROP TRIGGER validate_share_link_insert; INSERT INTO project_share_links (id,organization_id,project_id,proposal_id,scope,token_hash,created_by,created_at,expires_at) VALUES ('share-corrupt','org-other','project-fixture',NULL,'read-only','${"c".repeat(64)}','user-fixture','2026-08-28T00:00:00.000Z','2026-08-29T00:00:00.000Z');\n`);
+    const verification = await cli("verify", "--database", database);
+    assert.equal(verification.status, "fail");
+    assert.equal(verification.orphanChecks.find((check) => check.id === "share-link-organization-mismatch").count, 1);
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 

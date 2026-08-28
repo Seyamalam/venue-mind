@@ -8,8 +8,8 @@ VenueMind is one domain runtime with three callers: Studio UI, native WebMCP, an
 flowchart LR
   IDP[Sites identity Adapter] --> ACCOUNTS[Users / Organizations / Sessions]
   ACCOUNTS --> API[Organization-scoped Project API]
-  SHARE[Hashed Share Links] --> API
-  API --> NOTIFY[Notification store / email outbox]
+  SHARE[Hashed Share Links / pending operations] --> API
+  API --> NOTIFY[Notification store / leased email outbox]
   UI[Studio UI] --> BUS[VenuePlanner.execute]
   WEB[Native WebMCP] --> SERVICE[Venue tool service]
   MCP[stdio MCP server] --> SERVICE
@@ -43,7 +43,7 @@ flowchart LR
 | Standalone MCP resources, prompts, progress, and stdio | `packages/mcp-server/src/` |
 | Browser Project persistence and recovery | `src/persistence/project-store.js` |
 | Organization-scoped Worker API and Project repository | `worker/index.ts` and `worker/project-repository.ts` |
-| Share Links, Notification Preferences, notifications, and email outbox | `src/domain/sharing.js` and `worker/sharing-repository.ts` |
+| Share Links, pending-operation reconciliation, Notification Preferences, notifications, and leased email outbox | `src/domain/sharing.js` and `worker/sharing-repository.ts` |
 | Numbered database migrations, integrity, backup, and restore | `db/migrations/`, `worker/database-migrations.ts`, and `scripts/database-maintenance.mjs` |
 | Interchange and operational exports | `src/interchange/` |
 | Canonical docs registry | `src/docs/` |
@@ -90,7 +90,7 @@ sequenceDiagram
 - Project persistence stores complete normalized snapshots; UI component state is never authoritative Plan truth.
 - Collaboration Events carry durable revision invalidation and Presence Leases carry awareness; neither can mutate accepted Plan truth.
 - SSE reconnect uses a per-Project previous-event chain. A missed link forces an authoritative reload through Project Record Revision checks.
-- Public Share Links are bearer capabilities stored only as SHA-256 hashes. Reviewer access is Proposal-scoped, expiry and revocation fail closed, and notification payloads carry fixed body codes plus allowlisted stable references.
+- Public Share Links are bearer capabilities stored only as SHA-256 hashes. Reviewer access pins one retained Proposal revision; pending operations reconcile idempotently and fail closed. Notification payloads carry fixed body codes plus allowlisted stable references, creation-time preferences determine in-app visibility, and email delivery records success only after the injected provider confirms it.
 
 ## Add a command
 

@@ -10,6 +10,11 @@ import { venueTemplateCatalog } from "../src/domain/venue-templates.js";
 import { agentGrantSchema, authorizationPolicySchema, venueAuthorizationPolicy } from "../src/domain/authorization.js";
 
 const schemas = [venueCommandSchema, venueToolManifestSchema, venueTemplateCatalogSchema, spatialGeometrySchema, spatialEvidenceSchema, venueConstraintSchema, warningWaiverSchema, objectLockSchema, venueErrorSchema, validationResultSchema, commandReceiptSchema, activityLedgerSchema, proposalConflictResultSchema, proposalComparisonSchema, eventBriefSchema, commentAnchorSchema, commentSchema, scenarioDefinitionSchema, simulationResultSchema, plannerSnapshotSchema, projectRecordSchema, venueProjectPackageSchema, agentGrantSchema, authorizationPolicySchema];
+const canonicalizeTimes = (value) => {
+  if (Array.isArray(value)) return value.map(canonicalizeTimes);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, /At$/.test(key) && typeof item === "string" ? "2026-08-27T00:00:00.000Z" : canonicalizeTimes(item)]));
+};
 await mkdir("public/schemas", { recursive: true });
 await mkdir("public/examples", { recursive: true });
 await mkdir("docs/reference", { recursive: true });
@@ -26,7 +31,7 @@ await writeFile("public/examples/venue-template-catalog.json", `${JSON.stringify
 await writeFile("public/authorization-policy.json", `${JSON.stringify(venueAuthorizationPolicy, null, 2)}\n`);
 
 const examplePlanner = createVenuePlanner(summitForwardPlan);
-const exampleSnapshot = structuredClone(examplePlanner.getSnapshot());
+const exampleSnapshot = canonicalizeTimes(structuredClone(examplePlanner.getSnapshot()));
 exampleSnapshot.ledger = sealActivityLedger(exampleSnapshot.ledger.map((entry) => ({ ...entry, occurredAt: "2026-08-27T00:00:00.000Z" })));
 await writeFile("public/examples/planner-snapshot.json", `${JSON.stringify(exampleSnapshot, null, 2)}\n`);
 const examplePackage = await exportProjectPackage({ id: "project-summit-forward", name: "SummitForward 2026", activePlanId: exampleSnapshot.plan.id, schemaVersion: 10, snapshot: exampleSnapshot, createdAt: "2026-08-27T00:00:00.000Z", updatedAt: "2026-08-27T00:00:00.000Z" }, { clock: () => "2026-08-27T00:00:00.000Z" });

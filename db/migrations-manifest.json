@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "databaseSchemaVersion": 6,
+  "databaseSchemaVersion": 7,
   "migrations": [
     {
       "version": 1,
@@ -61,6 +61,16 @@
       "source": "/db/migrations/0006_sharing_notifications.sql",
       "wrangler": "/db/wrangler/0006_sharing_notifications.sql",
       "statementCount": 6
+    },
+    {
+      "version": 7,
+      "name": "sharing_delivery_integrity",
+      "checksum": "acab21ce5eb3565a9f9b322371a7bbd1d9efc09acac124f91a8c0cac0d438d1e",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0007_sharing_delivery_integrity.sql",
+      "wrangler": "/db/wrangler/0007_sharing_delivery_integrity.sql",
+      "statementCount": 23
     }
   ]
 }
