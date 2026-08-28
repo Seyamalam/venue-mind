@@ -11,6 +11,7 @@ const requiredGuides = [
   "docs/architecture.md",
   "docs/persistence-and-recovery.md",
   "docs/database-operations.md",
+  "docs/registration-and-ticketing.md",
   "docs/schema-migrations.md",
   "docs/development.md",
   "docs/testing.md",
@@ -79,6 +80,11 @@ test("published contributor guide manifest matches every source and public artif
     const published = await read(`public${item.publicPath}`);
     assert.equal(published, source, item.sourcePath);
   }
+});
+
+test("registration guide preserves the aggregate-only privacy and reconciliation boundary", async () => {
+  const guide = await read("docs/registration-and-ticketing.md");
+  for (const evidence of ["before adapter invocation IDs", "Aggregate Accessibility Requirements", "Check-in Aggregates", "Ticket Occupancy Reconciliation", "cannot mutate the Event Brief", "400-ticket class total"]) assert.match(guide, new RegExp(evidence, "i"));
 });
 
 test("security reporting policy defines a private, bounded disclosure path", async () => {

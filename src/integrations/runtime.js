@@ -36,6 +36,16 @@ const isPolicyFailure = (error) => error.code.startsWith("ADAPTER_SECRET_")
   || error.code === "ADAPTER_CHECKSUM_INVALID"
   || error.code.startsWith("ADAPTER_CONTRACT_");
 
+const assertAdapterImportResult = async (adapter, output) => {
+  if (adapter.definition.importResultMode === "reviewable-proposal") return assertReviewableStagingBatch(output);
+  if (adapter.definition.importResultMode === "aggregate-snapshot") {
+    if (typeof adapter.assertImportResult !== "function") fail("ADAPTER_CONTRACT_INVALID", "Aggregate snapshot adapters require an import-result validator", { adapterId: adapter.definition.id });
+    await adapter.assertImportResult(output);
+    return true;
+  }
+  fail("ADAPTER_CONTRACT_INVALID", "Adapter importResultMode is unsupported", { adapterId: adapter.definition.id });
+};
+
 const normalizeWebhookEvent = async (definition, value) => {
   if (!value || typeof value !== "object" || Array.isArray(value)) fail("ADAPTER_CONTRACT_INVALID", "Webhook result must be an object");
   const unknown = Object.keys(value).filter((key) => !["sourceSystem", "eventId", "eventType", "occurredAt", "sourceVersion", "payload", "checksum"].includes(key));
@@ -61,6 +71,7 @@ const normalizeExport = async (definition, value) => {
 
 export function createVenueAdapter(definitionInput, handlers) {
   const definition = defineAdapter(definitionInput);
+  if (definition.importResultMode !== "reviewable-proposal") fail("ADAPTER_CONTRACT_INVALID", "createVenueAdapter supports reviewable Proposal imports only", { adapterId: definition.id, importResultMode: definition.importResultMode });
   if (!handlers || typeof handlers !== "object" || Array.isArray(handlers)) fail("ADAPTER_CONTRACT_INVALID", "Adapter handlers must be an object");
   const unknown = Object.keys(handlers).filter((key) => !definition.capabilities.includes(key));
   if (unknown.length) fail("ADAPTER_CAPABILITY_UNDECLARED", "Adapter implements undeclared capabilities", { capabilities: unknown.sort() });
@@ -111,11 +122,14 @@ export function createAdapterRuntime(options = {}) {
       const preparedInput = typeof adapter.prepareInput === "function" ? await adapter.prepareInput(capability, clone(input)) : clone(input);
       const invocationId = adapterInvocationId(definition, capability, preparedInput);
       const inputChecksum = await sha256Checksum(preparedInput);
-      const stagesProposal = capability === "import" || capability === "synchronize";
+      const stagesImport = capability === "import" || capability === "synchronize";
       const processedBatchKey = `${definition.id}@${definition.version}:${capability}:${inputChecksum}`;
-      if (stagesProposal) {
+      if (stagesImport) {
         const completed = await processedBatchStore.get(processedBatchKey);
-        if (completed) return { status: "duplicate", invocationId, attempts: [], duplicateOf: completed.completedAt, output: clone(completed.output) };
+        if (completed) {
+          await assertAdapterImportResult(adapter, completed.output);
+          return { status: "duplicate", invocationId, attempts: [], duplicateOf: completed.completedAt, output: clone(completed.output) };
+        }
       }
       const attempts = [];
       const secretReader = createScopedSecretReader(authorization.secretStore, authorization.secretReferences ?? []);
@@ -123,8 +137,9 @@ export function createAdapterRuntime(options = {}) {
         await acquireRateLimit(definition);
         try {
           const output = await adapter.invoke(capability, preparedInput, { invocationId, attempt, clock: () => new Date(clock()).toISOString(), secrets: secretReader });
+          if (stagesImport) await assertAdapterImportResult(adapter, output);
           attempts.push({ attempt, status: "succeeded", at: new Date(clock()).toISOString() });
-          if (stagesProposal) {
+          if (stagesImport) {
             const completedAt = new Date(clock()).toISOString();
             const stored = await processedBatchStore.putIfAbsent(processedBatchKey, { invocationId, inputChecksum, completedAt, output });
             if (!stored.inserted) return { status: "duplicate", invocationId, attempts, duplicateOf: stored.value.completedAt, output: clone(stored.value.output) };

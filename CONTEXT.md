@@ -156,6 +156,26 @@ _Avoid_: Imported Plan, automatic sync, adapter draft
 Auditable correspondence between one source-system entity ID and one distinct VenueMind stable ID, with source version and synchronization evidence.
 _Avoid_: Shared ID, alias, copied external ID
 
+**Registration Snapshot**:
+A checksum-bound aggregate view of Ticket Classes, forecasts, zone allocations, accessibility requirements, and optional event-day Check-in Aggregates for one exact Project and Plan Version. It contains no person-level registration record.
+_Avoid_: Attendee list, registration database, ticket export
+
+**Ticket Class Forecast**:
+The aggregate ticketed count and expected attendance for one source-namespaced Ticket Class, allocated exactly across Project Occupancy Zones.
+_Avoid_: Attendee forecast, ticket holder cohort, guest list
+
+**Aggregate Accessibility Requirement**:
+A broad access requirement code, count, and set of Occupancy Zone IDs with no identity, diagnosis, free-form note, or person-level health data.
+_Avoid_: Attendee accommodation, disability record, accessibility note
+
+**Check-in Aggregate**:
+An event-day count by source-namespaced Ticket Class at one timestamp. It contains no scan, barcode, order, payment, device, or attendee identity record.
+_Avoid_: Check-in event, attendee timeline, scan log
+
+**Ticket Occupancy Reconciliation**:
+Deterministic evidence comparing Ticket Class totals and zone allocations with the Project attendee target and Occupancy Zone limits.
+_Avoid_: Capacity Validation, attendee manifest, admission approval
+
 **Event Brief**:
 The structured Project intent and operating requirements that every Proposal must address.
 _Avoid_: Notes, prompt

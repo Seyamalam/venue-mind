@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { AdapterContractError, sha256Checksum } from "../src/integrations/contracts.js";
-import { registrationTicketingAdapter } from "../src/integrations/adapters/registration-ticketing-adapter.js";
+import { AdapterContractError, defineAdapter, sha256Checksum } from "../src/integrations/contracts.js";
+import { assertRegistrationSnapshot, registrationTicketingAdapter } from "../src/integrations/adapters/registration-ticketing-adapter.js";
 import { createMemoryProcessedBatchStore } from "../src/integrations/processed-batch-store.js";
 import { createAdapterRuntime, createMemoryDeadLetterSink, serializeDeadLetter } from "../src/integrations/runtime.js";
 import { createMemorySecretStore } from "../src/integrations/secret-store.js";
@@ -31,6 +31,7 @@ const reverseEveryCollection = (input) => {
 test("ticket-class totals reconcile with Project occupancy using aggregate-only evidence", async () => {
   const result = await createAdapterRuntime({ clock }).execute(registrationTicketingAdapter, "import", structuredClone(fixture), authorization);
   assert.equal(result.status, "succeeded");
+  assert.equal(registrationTicketingAdapter.definition.importResultMode, "aggregate-snapshot");
   assert.equal(result.output.status, "reconciled");
   assert.equal(result.output.reconciliation.status, "pass");
   assert.equal(result.output.reconciliation.ticketClassTotal, 400);
@@ -157,4 +158,30 @@ test("dead letters retain only normalized aggregate checksums and never source c
   const serialized = serializeDeadLetter(result.deadLetter);
   assert.doesNotMatch(serialized, /registration-prod|general-admission|accessible-admission|project-summit-forward|api-token/);
   assert.match(result.deadLetter.inputChecksum, /^[0-9a-f]{64}$/);
+});
+
+test("runtime rejects unvalidated, invalid, and tampered aggregate snapshot results", async () => {
+  const aggregateDefinition = defineAdapter({
+    contractVersion: 1,
+    id: "aggregate-contract-test",
+    displayName: "Aggregate Contract Test",
+    version: "1.0.0",
+    capabilities: ["import"],
+    importResultMode: "aggregate-snapshot",
+    scopes: { import: ["registration:aggregate:read"] },
+    retryPolicy: { maxAttempts: 1, initialDelayMs: 0, maximumDelayMs: 0, multiplier: 1, retryableCodes: [] },
+    rateLimit: { requests: 10, windowMs: 1_000 },
+  });
+  await assert.rejects(() => createAdapterRuntime({ clock }).execute({ definition: aggregateDefinition, async invoke() { return {}; } }, "import", {}, authorization), (error) => error.code === "ADAPTER_CONTRACT_INVALID");
+  await assert.rejects(() => createAdapterRuntime({ clock }).execute({ definition: aggregateDefinition, assertImportResult: assertRegistrationSnapshot, async invoke() { return {}; } }, "import", {}, authorization), (error) => error.code === "ADAPTER_CONTRACT_INVALID");
+
+  let stored = null;
+  const tamperableStore = {
+    async get() { return stored ? structuredClone(stored) : null; },
+    async putIfAbsent(_key, value) { if (stored) return { inserted: false, value: structuredClone(stored) }; stored = structuredClone(value); return { inserted: true, value: structuredClone(value) }; },
+  };
+  const runtime = createAdapterRuntime({ clock, processedBatchStore: tamperableStore });
+  assert.equal((await runtime.execute(registrationTicketingAdapter, "import", structuredClone(fixture), authorization)).status, "succeeded");
+  stored.output.reconciliation.ticketClassTotal += 1;
+  await assert.rejects(() => runtime.execute(registrationTicketingAdapter, "import", structuredClone(fixture), authorization), (error) => error.code === "ADAPTER_CHECKSUM_MISMATCH");
 });

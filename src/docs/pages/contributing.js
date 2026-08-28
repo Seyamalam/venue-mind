@@ -38,7 +38,7 @@ export const contributingPage = {
       id: "operations",
       title: "Migrations, release, and recovery",
       blocks: [
-        links({ label: "Schema migration guide", href: "/guides/schema-migrations.md" }, { label: "Database operations", href: "/guides/database-operations.md" }, { label: "Real-time collaboration", href: "/guides/realtime-collaboration.md" }, { label: "Sharing and notifications", href: "/guides/sharing-and-notifications.md" }, { label: "Release checklist", href: "/guides/release-checklist.md" }, { label: "Failure recovery runbook", href: "/guides/runbooks/failure-recovery.md" }, { label: "Security reporting policy", href: "/guides/security.md" }, { label: "Published guide manifest", href: "/guides/manifest.json" }),
+        links({ label: "Schema migration guide", href: "/guides/schema-migrations.md" }, { label: "Database operations", href: "/guides/database-operations.md" }, { label: "Real-time collaboration", href: "/guides/realtime-collaboration.md" }, { label: "Sharing and notifications", href: "/guides/sharing-and-notifications.md" }, { label: "Registration and ticketing", href: "/guides/registration-and-ticketing.md" }, { label: "Release checklist", href: "/guides/release-checklist.md" }, { label: "Failure recovery runbook", href: "/guides/runbooks/failure-recovery.md" }, { label: "Security reporting policy", href: "/guides/security.md" }, { label: "Published guide manifest", href: "/guides/manifest.json" }),
       ],
     },
     {

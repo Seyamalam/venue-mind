@@ -272,12 +272,41 @@ const registrationSnapshot = async (definition, input, synchronizedAt) => {
   return Object.freeze({ id: `registration-snapshot-${checksum.slice(0, 16)}`, status: reconciliation.status === "pass" ? "reconciled" : "attention-required", ...content, checksum });
 };
 
+const assertNoPlanningEffects = (value, path = []) => {
+  if (Array.isArray(value)) return value.forEach((item, index) => assertNoPlanningEffects(item, [...path, String(index)]));
+  if (!value || typeof value !== "object") return;
+  for (const [key, item] of Object.entries(value)) {
+    if (["acceptedPlan", "changes", "planningEffects", "proposal", "spatialEffects"].includes(key)) fail("ADAPTER_REVIEW_BYPASS", "Aggregate registration evidence cannot contain executable or accepted-state effects", { field: key, path: [...path, key].join(".") });
+    assertNoPlanningEffects(item, [...path, key]);
+  }
+};
+
+export async function assertRegistrationSnapshot(snapshot) {
+  assertNoPersonalData(snapshot);
+  assertNoPlanningEffects(snapshot);
+  assertPlainObject(snapshot, "Registration snapshot");
+  assertExactKeys(snapshot, ["id", "status", "schemaVersion", "adapterId", "adapterVersion", "sourceSystem", "sourceVersion", "synchronizedAt", "projectId", "planVersion", "eventDayMode", "syncCursor", "ticketClasses", "accessibilityRequirements", "checkIn", "reconciliation", "privacy", "checksum"], "Registration snapshot");
+  if (snapshot.schemaVersion !== 1 || snapshot.adapterId !== registrationTicketingAdapterDefinition.id || snapshot.adapterVersion !== registrationTicketingAdapterDefinition.version) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot adapter identity is invalid");
+  assertIsoTimestamp(snapshot.synchronizedAt, "Registration snapshot synchronizedAt");
+  if (!snapshot.reconciliation || !["pass", "attention-required"].includes(snapshot.reconciliation.status)) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot reconciliation is invalid");
+  const expectedStatus = snapshot.reconciliation.status === "pass" ? "reconciled" : "attention-required";
+  if (snapshot.status !== expectedStatus) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot status does not match reconciliation");
+  if (!snapshot.privacy || snapshot.privacy.mode !== "aggregate-only" || snapshot.privacy.attendeeIdentityStored !== false || snapshot.privacy.individualCheckInStored !== false || snapshot.privacy.freeFormAccessibilityStored !== false) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Registration snapshot privacy evidence is invalid");
+  if (!Array.isArray(snapshot.ticketClasses) || snapshot.ticketClasses.some((ticketClass) => typeof ticketClass.ticketClassId !== "string" || !ticketClass.ticketClassId.startsWith(`${snapshot.sourceSystem}:`) || Object.hasOwn(ticketClass, "externalId"))) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot Ticket Class identity is invalid");
+  if (!/^[0-9a-f]{64}$/.test(snapshot.checksum ?? "")) fail("ADAPTER_CHECKSUM_INVALID", "Registration snapshot checksum is invalid");
+  const { id, status: _status, checksum, ...content } = snapshot;
+  const actual = await sha256Checksum(content);
+  if (actual !== checksum || id !== `registration-snapshot-${checksum.slice(0, 16)}`) fail("ADAPTER_CHECKSUM_MISMATCH", "Registration snapshot checksum does not match normalized aggregate content");
+  return true;
+}
+
 export const registrationTicketingAdapterDefinition = defineAdapter({
   contractVersion: 1,
   id: "registration-ticketing",
   displayName: "Registration Ticketing",
   version: "1.0.0",
   capabilities: ["import", "synchronize", "webhook"],
+  importResultMode: "aggregate-snapshot",
   scopes: {
     import: ["registration:aggregate:read"],
     synchronize: ["registration:aggregate:read"],
@@ -289,6 +318,7 @@ export const registrationTicketingAdapterDefinition = defineAdapter({
 
 export const registrationTicketingAdapter = Object.freeze({
   definition: registrationTicketingAdapterDefinition,
+  assertImportResult: assertRegistrationSnapshot,
   async prepareInput(capability, input) {
     return normalizeRegistrationAdapterInput(capability, input);
   },

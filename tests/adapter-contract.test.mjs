@@ -21,10 +21,12 @@ test("adapter definitions are versioned, capability-scoped, exact contracts", ()
   const definition = roomInventoryAdapter.definition;
   assert.equal(definition.contractVersion, 1);
   assert.equal(definition.version, "1.0.0");
+  assert.equal(definition.importResultMode, "reviewable-proposal");
   assert.deepEqual(definition.scopes.import, ["inventory:read"]);
   assert.equal(Object.isFrozen(definition), true);
   assert.throws(() => defineAdapter({ ...definition, typo: true }), (error) => error instanceof AdapterContractError && error.code === "ADAPTER_CONTRACT_UNKNOWN_FIELD");
   assert.throws(() => defineAdapter({ ...definition, contractVersion: 2 }), (error) => error.code === "ADAPTER_CONTRACT_VERSION_UNSUPPORTED");
+  assert.throws(() => defineAdapter({ ...definition, importResultMode: "unchecked" }), (error) => error.code === "ADAPTER_CONTRACT_INVALID");
 });
 
 test("Room Inventory import creates one canonical checksum-bound Proposal for an exact Plan Version", async () => {
