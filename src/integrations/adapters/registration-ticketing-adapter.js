@@ -414,6 +414,10 @@ export async function assertRegistrationWebhook(event, context = {}) {
   await assertRegistrationSnapshot(event.payload, context);
   if (!event.payload.eventDayMode || !event.payload.checkIn) fail("ADAPTER_EVENT_DAY_REQUIRED", "Aggregate check-in webhook requires event-day aggregate evidence");
   if (event.sourceSystem !== event.payload.sourceSystem || event.sourceVersion !== event.payload.sourceVersion || event.occurredAt !== event.payload.synchronizedAt) fail("ADAPTER_SOURCE_MISMATCH", "Registration webhook envelope does not match its aggregate payload");
+  if (context.preparedInput !== undefined) {
+    const preparedInput = normalizePreparedRegistrationInput("webhook", context.preparedInput);
+    if (event.eventId !== preparedInput.id || event.eventType !== preparedInput.type || event.occurredAt !== preparedInput.occurredAt || event.sourceSystem !== preparedInput.sourceSystem || event.sourceVersion !== preparedInput.sourceVersion) fail("ADAPTER_SOURCE_MISMATCH", "Registration webhook envelope is not bound to its prepared source event");
+  }
   const { checksum, ...content } = event;
   if (!/^[0-9a-f]{64}$/.test(checksum ?? "") || await sha256Checksum(content) !== checksum) fail("ADAPTER_CHECKSUM_MISMATCH", "Registration webhook checksum does not match normalized aggregate content");
   return true;

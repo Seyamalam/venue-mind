@@ -190,6 +190,22 @@ test("aggregate check-in webhook storage is sanitized, deterministic, and replay
   const { checksum: _checksum, ...eventContent } = invalidEventId;
   invalidEventId.checksum = await sha256Checksum(eventContent);
   await assert.rejects(() => assertRegistrationWebhook(invalidEventId), (error) => error.code === "ADAPTER_SOURCE_INVALID");
+
+  const redirectedEvent = structuredClone(first.output);
+  redirectedEvent.eventId = "different-valid-id";
+  const { checksum: _redirectChecksum, ...redirectContent } = redirectedEvent;
+  redirectedEvent.checksum = await sha256Checksum(redirectContent);
+  await assert.rejects(() => createAdapterRuntime({ clock }).execute({ ...registrationTicketingAdapter, async invoke() { return redirectedEvent; } }, "webhook", structuredClone(webhookFixture), webhookAuthorization), (error) => error.code === "ADAPTER_SOURCE_MISMATCH");
+
+  const shiftedEvent = structuredClone(first.output);
+  shiftedEvent.occurredAt = "2026-08-28T12:05:00.000Z";
+  shiftedEvent.payload.synchronizedAt = shiftedEvent.occurredAt;
+  const { id: _payloadId, status: _payloadStatus, checksum: _payloadChecksum, ...payloadContent } = shiftedEvent.payload;
+  shiftedEvent.payload.checksum = await sha256Checksum(payloadContent);
+  shiftedEvent.payload.id = `registration-snapshot-${shiftedEvent.payload.checksum.slice(0, 16)}`;
+  const { checksum: _shiftedChecksum, ...shiftedContent } = shiftedEvent;
+  shiftedEvent.checksum = await sha256Checksum(shiftedContent);
+  await assert.rejects(() => createAdapterRuntime({ clock }).execute({ ...registrationTicketingAdapter, async invoke() { return shiftedEvent; } }, "webhook", structuredClone(webhookFixture), webhookAuthorization), (error) => error.code === "ADAPTER_SOURCE_MISMATCH");
 });
 
 test("webhook replay storage is atomic, restart-safe, and source-namespaced", async () => {
