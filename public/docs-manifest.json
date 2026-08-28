@@ -575,6 +575,7 @@
         "semantics",
         "concurrency",
         "collaboration",
+        "sharing",
         "recovery"
       ]
     },

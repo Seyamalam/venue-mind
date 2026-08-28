@@ -1596,6 +1596,14 @@ Remote authority, browser recovery, import safety, soft deletion, normalization,
 
 - [Collaboration guide](/guides/realtime-collaboration.md)
 
+## Sharing and notifications
+
+- Read-only Share Links expose accepted Plan state; Reviewer Share Links expose exactly one Proposal.
+- Bearer tokens are returned once, persisted only as hashes, time-limited, and revocable.
+- Notifications use fixed body codes and allowlisted stable references; per-User preferences select channel and event type.
+
+- [Sharing guide](/guides/sharing-and-notifications.md)
+
 ## Recovery workflow
 
 - [Offline recovery tutorial](/docs/tutorial-offline-recovery)
@@ -7214,6 +7222,7 @@ npm run check:generated
 - [Schema migration guide](/guides/schema-migrations.md)
 - [Database operations](/guides/database-operations.md)
 - [Real-time collaboration](/guides/realtime-collaboration.md)
+- [Sharing and notifications](/guides/sharing-and-notifications.md)
 - [Release checklist](/guides/release-checklist.md)
 - [Failure recovery runbook](/guides/runbooks/failure-recovery.md)
 - [Security reporting policy](/guides/security.md)
@@ -7227,6 +7236,7 @@ npm run check:generated
 - [Constraint registry](/guides/adr/0019-versioned-constraint-registry.md)
 - [Ledger integrity and replay](/guides/adr/0020-hash-chained-ledger-and-replay.md)
 - [Sites identity and tenancy](/guides/adr/0021-sites-identity-and-server-owned-tenancy.md)
+- [Hashed bearer sharing](/guides/adr/0024-hashed-bearer-sharing.md)
 
 ---
 

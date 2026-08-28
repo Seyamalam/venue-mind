@@ -1,6 +1,6 @@
 # Database operations
 
-VenueMind database schema version 5 is represented by numbered SQL sources in `db/migrations/`. `scripts/generate-db-migrations.mjs` computes SHA-256 checksums, emits the Worker catalog, and creates one Wrangler-ready file per migration. Applied checksums are stored in `schema_migrations`; changed historical SQL fails closed.
+VenueMind database schema version 6 is represented by numbered SQL sources in `db/migrations/`. `scripts/generate-db-migrations.mjs` computes SHA-256 checksums, emits the Worker catalog, and creates one Wrangler-ready file per migration. Applied checksums are stored in `schema_migrations`; changed historical SQL fails closed.
 
 ## Local migration drill
 
@@ -58,6 +58,7 @@ npx wrangler d1 execute <TEST_DATABASE> --remote --file ./var/backups/venuemind-
 npx wrangler d1 execute <TEST_DATABASE> --remote --file ./db/wrangler/0003_accounts_and_tenancy.sql
 npx wrangler d1 execute <TEST_DATABASE> --remote --file ./db/wrangler/0004_optimistic_concurrency.sql
 npx wrangler d1 execute <TEST_DATABASE> --remote --file ./db/wrangler/0005_realtime_collaboration.sql
+npx wrangler d1 execute <TEST_DATABASE> --remote --file ./db/wrangler/0006_sharing_notifications.sql
 ```
 
 Use only the pending file names reported by the dry run or `schema_migrations`; never replay an applied migration. A remote D1 export can block database requests while it runs, so schedule the operation and announce the write window.

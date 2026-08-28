@@ -56,6 +56,22 @@ _Avoid_: Project Record Revision, ledger sequence, page offset
 A short-lived Project session record containing User identity, observed Plan Version, focused object, and an optional useful viewport. It expires unless renewed.
 _Avoid_: Organization Membership, User Session, permanent activity history
 
+**Share Link**:
+A time-limited, revocable bearer capability that exposes one bounded public view of a Project without Organization membership. Its raw token is returned once and only its hash is stored.
+_Avoid_: invitation, User Session, public Project
+
+**Reviewer Share Link**:
+A Share Link scoped to exactly one Proposal, allowing an external reviewer to inspect that candidate and its accepted Plan baseline without receiving Project-wide access.
+_Avoid_: reviewer Membership, Approval link, editable Proposal
+
+**Notification**:
+A User- and Organization-scoped signal for one supported review event, represented by a fixed body code and allowlisted stable references rather than event narrative or geometry.
+_Avoid_: Collaboration Event, Activity Ledger entry, email body
+
+**Notification Preference**:
+One User's selection of enabled notification channels and supported event types, applied when VenueMind selects recipients.
+_Avoid_: Organization policy, alert rule, marketing consent
+
 **Account Export**:
 A portable record of one User's profile, Memberships, authored audit events, and owned personal settings; Organization-owned Project data is included only when separately authorized.
 _Avoid_: Project export, database backup

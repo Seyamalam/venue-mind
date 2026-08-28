@@ -2,7 +2,7 @@
 
 Current Project schema: 10. Released migration fixtures cover schemas 5 through 10.
 
-Current database schema: 5. Numbered, checksummed SQL migrations and production-shaped fixtures cover database versions 1 through 5. Project schema migrations change planner snapshots; database schema migrations change durable tables and indexes. Neither substitutes for the other.
+Current database schema: 6. Numbered, checksummed SQL migrations and production-shaped fixtures cover database versions 1 through 6. Project schema migrations change planner snapshots; database schema migrations change durable tables and indexes. Neither substitutes for the other.
 
 ## Rules
 
