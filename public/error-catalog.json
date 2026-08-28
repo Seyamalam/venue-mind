@@ -39,6 +39,11 @@
     "message": "Proposal ID does not match the active Proposal.",
     "remediation": "Inspect the active Proposal and retry with its stable ID."
   },
+  "PROPOSAL_EMPTY": {
+    "code": "PROPOSAL_EMPTY",
+    "message": "Proposal contains no executable Changes.",
+    "remediation": "Keep accepted truth unchanged; create a Proposal only after at least one planning Change exists."
+  },
   "BRANCH_NAME_REQUIRED": {
     "code": "BRANCH_NAME_REQUIRED",
     "message": "Proposal Branch name is required.",

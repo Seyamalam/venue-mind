@@ -98,6 +98,9 @@ sequenceDiagram
 - Adapter import and synchronization translate external records into the canonical Proposal and Change model for exactly one base Plan Version. Every Change carries executable `spatialEffects`, closed-union `planningEffects`, or both; accepted Plan and Event Brief truth still change only through ordinary human Approval.
 - External ID Mappings keep source-system identity distinct from both Inventory Item Template IDs and Project Object Instance IDs, and retain source system, source version, synchronization time, and checksum evidence.
 - Calendar Event Snapshots retain only allowlisted descriptive labels as adapter evidence. Attendance and schedule deltas become typed Requirement Changes; title, location, and organizer labels never enter the Proposal or Activity Ledger.
+- Calendar Planning Changes carry exactly one Project mapping that `loadAdapterProposalForReview` verifies against the planner's server-owned Project binding. Caller-provided Project IDs never select the planner target.
+- An adapter batch with no planning Changes has `no-changes` status and no Proposal; it cannot enter review or advance a Plan Version.
+- Event schedule instants use canonical RFC3339 date-times with explicit offsets matching the named IANA timezone, including DST transitions.
 - The processed-batch store is the adapter idempotency boundary. A repeated import returns the original staging result without creating another Proposal; production persistence must implement the same atomic `putIfAbsent` contract.
 - Adapter capability scopes and scoped secret references are checked independently. Adapter handlers receive secret values only through the secret-store boundary, never through persisted configuration or dead letters.
 

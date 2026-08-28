@@ -17,6 +17,8 @@
     "productionEvidence",
     "cateringEvidence",
     "emergencyEvidence",
+    "evidenceFamilyFingerprints",
+    "planningEvidenceInvalidations",
     "emergencyReviewRequired",
     "emergencyChangedObjectIds",
     "authorizedEmergencyReviewerRoles",
@@ -283,6 +285,83 @@
         }
       },
       "additionalProperties": true
+    },
+    "evidenceFamilyFingerprints": {
+      "type": "object",
+      "required": [
+        "accessibility",
+        "capacity",
+        "catering",
+        "emergency",
+        "flow",
+        "operations",
+        "production",
+        "sightlines"
+      ],
+      "properties": {
+        "accessibility": {
+          "type": "string",
+          "pattern": "^evidence-accessibility-[0-9a-f]{8}$"
+        },
+        "capacity": {
+          "type": "string",
+          "pattern": "^evidence-capacity-[0-9a-f]{8}$"
+        },
+        "catering": {
+          "type": "string",
+          "pattern": "^evidence-catering-[0-9a-f]{8}$"
+        },
+        "emergency": {
+          "type": "string",
+          "pattern": "^evidence-emergency-[0-9a-f]{8}$"
+        },
+        "flow": {
+          "type": "string",
+          "pattern": "^evidence-flow-[0-9a-f]{8}$"
+        },
+        "operations": {
+          "type": "string",
+          "pattern": "^evidence-operations-[0-9a-f]{8}$"
+        },
+        "production": {
+          "type": "string",
+          "pattern": "^evidence-production-[0-9a-f]{8}$"
+        },
+        "sightlines": {
+          "type": "string",
+          "pattern": "^evidence-sightlines-[0-9a-f]{8}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "planningEvidenceInvalidations": {
+      "type": "object",
+      "required": [
+        "affectedConstraintIds",
+        "evidenceFamilies"
+      ],
+      "properties": {
+        "affectedConstraintIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "evidenceFamilies": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "capacity",
+              "flow",
+              "operations"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
     },
     "emergencyReviewRequired": {
       "type": "boolean"
