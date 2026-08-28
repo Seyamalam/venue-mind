@@ -1,0 +1,2806 @@
+{
+  "schemaVersion": 1,
+  "canonicalOrigin": "http://localhost:4173",
+  "generatedFrom": "src/docs/content.js",
+  "pages": [
+    {
+      "slug": "overview",
+      "title": "Venue planning, built for agents and humans",
+      "description": "A versioned spatial-planning system where agents inspect, propose, validate, and compare—while humans retain the commit decision.",
+      "canonicalPath": "/docs",
+      "audience": [
+        "operators",
+        "developers",
+        "agents"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Tool contract 1.2.0"
+      ],
+      "anchors": [
+        "model",
+        "surfaces",
+        "next"
+      ]
+    },
+    {
+      "slug": "quickstart",
+      "title": "Quickstart",
+      "description": "Open the Studio, inspect the seeded SummitForward Plan, and run the complete supervised Proposal loop.",
+      "canonicalPath": "/docs/quickstart",
+      "audience": [
+        "operators",
+        "developers"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "MCP 0.4.0",
+        "Tool contract 1.2.0"
+      ],
+      "anchors": [
+        "studio",
+        "mcp",
+        "loop"
+      ]
+    },
+    {
+      "slug": "concepts",
+      "title": "Core concepts",
+      "description": "VenueMind separates accepted spatial truth from agent-authored possibilities.",
+      "canonicalPath": "/docs/concepts",
+      "audience": [
+        "operators",
+        "developers",
+        "agents"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Validation 2.7.0"
+      ],
+      "anchors": [
+        "project-lifecycle",
+        "templates",
+        "template-updates",
+        "plan",
+        "brief",
+        "geometry",
+        "operations",
+        "access-infrastructure",
+        "occupancy-zones",
+        "circulation-evidence",
+        "proposal",
+        "editing",
+        "proposal-conflicts",
+        "proposal-comparison",
+        "comments",
+        "exports",
+        "constraints",
+        "simulation",
+        "flow-simulation",
+        "queue-simulation",
+        "staffing-operations",
+        "production-planning",
+        "catering-planning",
+        "emergency-planning",
+        "waivers",
+        "locks",
+        "evidence",
+        "ledger"
+      ]
+    },
+    {
+      "slug": "tutorial-first-project",
+      "title": "Create your first Project",
+      "description": "Create a durable empty Project, open its canonical Plan, and confirm its first Validation result.",
+      "canonicalPath": "/docs/tutorial-first-project",
+      "audience": [
+        "operators",
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Tool contract 1.2.0"
+      ],
+      "anchors": [
+        "prerequisites",
+        "create",
+        "completion",
+        "next",
+        "verify"
+      ]
+    },
+    {
+      "slug": "tutorial-supervised-loop",
+      "title": "Run the supervised planning loop",
+      "description": "Inspect, preview, validate, review, approve, and export one versioned venue revision.",
+      "canonicalPath": "/docs/tutorial-supervised-loop",
+      "audience": [
+        "operators",
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Tool contract 1.2.0"
+      ],
+      "anchors": [
+        "prepare",
+        "inspect",
+        "preview",
+        "validate",
+        "review-approve-export",
+        "completion",
+        "verify"
+      ]
+    },
+    {
+      "slug": "tutorial-compare-branches",
+      "title": "Compare access-first and capacity-first branches",
+      "description": "Create two competing Proposal Branches, validate both, and record a human decision from measurable evidence.",
+      "canonicalPath": "/docs/tutorial-compare-branches",
+      "audience": [
+        "operators",
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Tool contract 1.2.0"
+      ],
+      "anchors": [
+        "create-branches",
+        "develop",
+        "compare",
+        "completion",
+        "verify"
+      ]
+    },
+    {
+      "slug": "tutorial-stale-proposal",
+      "title": "Resolve a stale Proposal",
+      "description": "Rebase a Proposal onto newer accepted truth without losing stable Change lineage or bypassing conflicts.",
+      "canonicalPath": "/docs/tutorial-stale-proposal",
+      "audience": [
+        "operators",
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Tool contract 1.2.0"
+      ],
+      "anchors": [
+        "create-stale-state",
+        "detect",
+        "rebase",
+        "completion",
+        "verify"
+      ]
+    },
+    {
+      "slug": "tutorial-audit-plan",
+      "title": "Audit an approved Plan Version",
+      "description": "Verify approval authority, deterministic evidence, ledger integrity, and replay for one immutable Plan Version.",
+      "canonicalPath": "/docs/tutorial-audit-plan",
+      "audience": [
+        "operators",
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Tool contract 1.2.0"
+      ],
+      "anchors": [
+        "collect",
+        "replay",
+        "export",
+        "completion",
+        "verify"
+      ]
+    },
+    {
+      "slug": "tutorial-mcp-install",
+      "title": "Install the VenueMind MCP server",
+      "description": "Build the standalone stdio server, connect one host, and open a durable Project-scoped session.",
+      "canonicalPath": "/docs/tutorial-mcp-install",
+      "audience": [
+        "operators",
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "MCP 0.4.0",
+        "Protocol 2026-07-28"
+      ],
+      "anchors": [
+        "build",
+        "configure",
+        "open",
+        "completion",
+        "clients",
+        "verify"
+      ]
+    },
+    {
+      "slug": "tutorial-webmcp",
+      "title": "Use VenueMind through native WebMCP",
+      "description": "Expose the active Studio as a scoped browser tool surface and complete a safe read-to-Proposal workflow.",
+      "canonicalPath": "/docs/tutorial-webmcp",
+      "audience": [
+        "operators",
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "WebMCP 1.2.0",
+        "39 tools"
+      ],
+      "anchors": [
+        "open",
+        "invoke",
+        "observe",
+        "completion",
+        "verify"
+      ]
+    },
+    {
+      "slug": "tutorial-skills",
+      "title": "Install and invoke VenueMind agent skills",
+      "description": "Build six versioned skill packages and invoke the smallest workflow-specific skill for the task.",
+      "canonicalPath": "/docs/tutorial-skills",
+      "audience": [
+        "operators",
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Skills 1.1.0",
+        "Tool contract 1.2.0"
+      ],
+      "anchors": [
+        "build",
+        "choose",
+        "invoke",
+        "completion",
+        "verify"
+      ]
+    },
+    {
+      "slug": "tutorial-import-export",
+      "title": "Import, validate, and export a venue plan",
+      "description": "Preview an Interchange Package, commit it as a new Project, validate exact geometry, and produce portable exports.",
+      "canonicalPath": "/docs/tutorial-import-export",
+      "audience": [
+        "operators",
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Tool contract 1.2.0"
+      ],
+      "anchors": [
+        "preview",
+        "commit",
+        "export",
+        "completion",
+        "verify"
+      ]
+    },
+    {
+      "slug": "tutorial-offline-recovery",
+      "title": "Recover from offline local state",
+      "description": "Preserve Project work when the remote Project endpoint is unavailable and reconcile it without silent data loss.",
+      "canonicalPath": "/docs/tutorial-offline-recovery",
+      "audience": [
+        "operators",
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Tool contract 1.2.0"
+      ],
+      "anchors": [
+        "seed",
+        "work-offline",
+        "recover",
+        "completion",
+        "verify"
+      ]
+    },
+    {
+      "slug": "webmcp",
+      "title": "WebMCP tools",
+      "description": "The active VenueMind page exposes compact tools backed by the same command interface as the visible Studio.",
+      "canonicalPath": "/docs/webmcp",
+      "audience": [
+        "agent integrators",
+        "developers"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "WebMCP 1.2.0",
+        "39 tools"
+      ],
+      "anchors": [
+        "runtime",
+        "catalog"
+      ]
+    },
+    {
+      "slug": "mcp",
+      "title": "MCP server",
+      "description": "A durable, session-scoped stdio server built on the official Model Context Protocol TypeScript SDK v2.",
+      "canonicalPath": "/docs/mcp",
+      "audience": [
+        "agent integrators",
+        "developers"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "MCP 0.4.0",
+        "Protocol 2026-07-28"
+      ],
+      "anchors": [
+        "build",
+        "projects",
+        "surfaces",
+        "codex",
+        "desktop-hosts",
+        "inspector",
+        "chatgpt",
+        "compatibility",
+        "supervision"
+      ]
+    },
+    {
+      "slug": "skills",
+      "title": "Agent skills",
+      "description": "Six versioned skill packages teach supervised VenueMind workflows against tool contract 1.2.0.",
+      "canonicalPath": "/docs/skills",
+      "audience": [
+        "agents",
+        "developers"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Skills 1.1.0",
+        "Tool contract 1.2.0"
+      ],
+      "anchors": [
+        "plan-skill",
+        "audit-skill",
+        "access-skill",
+        "crowd-skill",
+        "production-skill",
+        "event-day-skill",
+        "authority",
+        "install",
+        "evaluation"
+      ]
+    },
+    {
+      "slug": "client-examples",
+      "title": "Client examples",
+      "description": "Validated WebMCP, MCP, Codex, Claude Desktop, Cursor, JSON-RPC, retry, failure, and export examples.",
+      "canonicalPath": "/docs/client-examples",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Tool contract 1.2.0",
+        "MCP server 0.4.0"
+      ],
+      "anchors": [
+        "webmcp",
+        "generic",
+        "codex",
+        "claude-desktop",
+        "cursor",
+        "failure-workflows",
+        "raw-fixtures"
+      ]
+    },
+    {
+      "slug": "reference-tools",
+      "title": "Tool reference",
+      "description": "One generated page per WebMCP and standalone MCP tool, sourced from the runtime contract registry.",
+      "canonicalPath": "/docs/reference-tools",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Tool contract 1.2.0",
+        "WebMCP + MCP"
+      ],
+      "anchors": [
+        "venue:read",
+        "venue:propose",
+        "venue:comment",
+        "venue:simulate",
+        "venue:export"
+      ]
+    },
+    {
+      "slug": "reference-commands",
+      "title": "Command reference",
+      "description": "One generated page per shared planner command, including internal human and persistence commands that are intentionally absent from agent tools.",
+      "canonicalPath": "/docs/reference-commands",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Shared planner boundary"
+      ],
+      "anchors": [
+        "plan-read",
+        "proposal-read",
+        "audit-read",
+        "simulation-read",
+        "simulation-run",
+        "export-plan",
+        "proposal-create",
+        "proposal-manage",
+        "project-manage",
+        "proposal-review",
+        "comment-read",
+        "comment-write",
+        "approval-waive",
+        "lock-manage",
+        "approval-approve",
+        "plan-update"
+      ]
+    },
+    {
+      "slug": "reference-errors",
+      "title": "Error catalog",
+      "description": "Every stable VenueMind error code, user-safe message, and actionable remediation path.",
+      "canonicalPath": "/docs/reference-errors",
+      "audience": [
+        "developers",
+        "operators",
+        "agents"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Stable error envelope",
+        "Tool contract 1.2.0"
+      ],
+      "anchors": [
+        "catalog",
+        "envelope"
+      ]
+    },
+    {
+      "slug": "reference-constraints",
+      "title": "Constraint and evidence reference",
+      "description": "All deterministic Constraint evaluators, operational categories, evidence families, and normalized units.",
+      "canonicalPath": "/docs/reference-constraints",
+      "audience": [
+        "operators",
+        "developers",
+        "agents"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Validation 2.7.0",
+        "Spatial evidence 1"
+      ],
+      "anchors": [
+        "evaluators",
+        "outcomes",
+        "schema"
+      ]
+    },
+    {
+      "slug": "reference-ledger",
+      "title": "Activity Ledger events",
+      "description": "The complete event vocabulary for human, agent, system, planning, review, simulation, and integrity activity.",
+      "canonicalPath": "/docs/reference-ledger",
+      "audience": [
+        "operators",
+        "developers",
+        "auditors"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Ledger schema 1",
+        "Hash chained"
+      ],
+      "anchors": [
+        "events",
+        "integrity"
+      ]
+    },
+    {
+      "slug": "reference-plan-lifecycle",
+      "title": "Plan and Proposal lifecycle",
+      "description": "Branch, rebase, conflict, Approval, adjustment, undo, redo, and replay behavior at the shared command boundary.",
+      "canonicalPath": "/docs/reference-plan-lifecycle",
+      "audience": [
+        "operators",
+        "developers",
+        "agents"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Ledger schema 1"
+      ],
+      "anchors": [
+        "truth",
+        "conflicts",
+        "approval",
+        "history",
+        "schemas"
+      ]
+    },
+    {
+      "slug": "reference-persistence",
+      "title": "Persistence and recovery",
+      "description": "Remote authority, browser recovery, import safety, soft deletion, normalization, and integrity behavior.",
+      "canonicalPath": "/docs/reference-persistence",
+      "audience": [
+        "operators",
+        "developers"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "D1 repository"
+      ],
+      "anchors": [
+        "semantics",
+        "concurrency",
+        "collaboration",
+        "recovery"
+      ]
+    },
+    {
+      "slug": "reference-authorization",
+      "title": "Authorization reference",
+      "description": "Human Roles, Agent Grant scopes, service-boundary permissions, and Approval authority from the published authorization policy.",
+      "canonicalPath": "/docs/reference-authorization",
+      "audience": [
+        "operators",
+        "developers",
+        "security reviewers"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Authorization policy 1",
+        "Agent Grant ≤ 1 hour"
+      ],
+      "anchors": [
+        "human-roles",
+        "agent-scopes",
+        "policy"
+      ]
+    },
+    {
+      "slug": "reference-compatibility",
+      "title": "Compatibility and deprecation",
+      "description": "Current public versions, comparison rules, migration guarantees, and the policy for changing stable surfaces.",
+      "canonicalPath": "/docs/reference-compatibility",
+      "audience": [
+        "developers",
+        "agent integrators",
+        "operators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Current release",
+        "No active deprecations"
+      ],
+      "anchors": [
+        "versions",
+        "deprecation",
+        "status"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-list-projects",
+      "title": "venue.list_projects",
+      "description": "List durable VenueMind Projects available to the current authenticated or local host scope without returning full snapshots.",
+      "canonicalPath": "/docs/reference-tool-venue-list-projects",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-open-project",
+      "title": "venue.open_project",
+      "description": "Select one durable Project as the active Project for this agent session. This never changes accepted Plan truth.",
+      "canonicalPath": "/docs/reference-tool-venue-open-project",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-inspect-templates",
+      "title": "venue.inspect_templates",
+      "description": "Read versioned Venue, Room, and Inventory Item Templates, including starter room types and current inventory availability metadata.",
+      "canonicalPath": "/docs/reference-tool-venue-inspect-templates",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-get-project-brief",
+      "title": "venue.get_project_brief",
+      "description": "Read the structured Event Brief, stable Requirement IDs, priorities, ownership, ambiguity flags, and accepted-Plan versus active-Proposal coverage.",
+      "canonicalPath": "/docs/reference-tool-venue-get-project-brief",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-list-constraints",
+      "title": "venue.list_constraints",
+      "description": "List versioned Constraints with current evaluation status, thresholds, policy sources, and remediation metadata.",
+      "canonicalPath": "/docs/reference-tool-venue-list-constraints",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-inspect-layout",
+      "title": "venue.inspect_layout",
+      "description": "Read the active venue plan, stable object IDs, locked objects, constraints, metrics, proposal state, and branch summaries.",
+      "canonicalPath": "/docs/reference-tool-venue-inspect-layout",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-get-object",
+      "title": "venue.get_object",
+      "description": "Read one stable object with scoped accepted or Proposal geometry, operational metadata, and effective Locks.",
+      "canonicalPath": "/docs/reference-tool-venue-get-object",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-search-objects",
+      "title": "venue.search_objects",
+      "description": "Search stable venue objects with bounded text, kind, layer, Lock, and accepted-versus-Proposal filters.",
+      "canonicalPath": "/docs/reference-tool-venue-search-objects",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-preview-revision",
+      "title": "venue.preview_revision",
+      "description": "Create a non-destructive venue revision preview. The result remains pending until a human approves it in VenueMind.",
+      "canonicalPath": "/docs/reference-tool-venue-preview-revision",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:propose"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-preview-template-update",
+      "title": "venue.preview_template_update",
+      "description": "Create a non-destructive Proposal containing safe Room Template differences while preserving Project Overrides. Human Approval is always required.",
+      "canonicalPath": "/docs/reference-tool-venue-preview-template-update",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:propose"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-apply-edit",
+      "title": "venue.apply_edit",
+      "description": "Create one non-destructive, undoable spatial editing Change for placement, transform, duplication, alignment, distribution, grouping, zoning, paste, or deletion.",
+      "canonicalPath": "/docs/reference-tool-venue-apply-edit",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:propose"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-measure-objects",
+      "title": "venue.measure_objects",
+      "description": "Measure deterministic center points and pairwise distances for selected Project objects.",
+      "canonicalPath": "/docs/reference-tool-venue-measure-objects",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-validate-layout",
+      "title": "venue.validate_layout",
+      "description": "Validate the visible proposal or committed plan against locks, accessibility, capacity, sightlines, and circulation constraints.",
+      "canonicalPath": "/docs/reference-tool-venue-validate-layout",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-get-validation-evidence",
+      "title": "venue.get_validation_evidence",
+      "description": "Read deterministic evidence for the current Validation, optionally restricted to stable Constraint IDs.",
+      "canonicalPath": "/docs/reference-tool-venue-get-validation-evidence",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-list-proposal-branches",
+      "title": "venue.list_proposal_branches",
+      "description": "Compare proposal branches by base version, change count, validation status, unresolved issues, and projected metrics.",
+      "canonicalPath": "/docs/reference-tool-venue-list-proposal-branches",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-compare-proposal-branches",
+      "title": "venue.compare_proposal_branches",
+      "description": "Compare two Proposal Branches by spatial object differences, Change membership, projected metrics, and deterministic Constraint improvements or regressions.",
+      "canonicalPath": "/docs/reference-tool-venue-compare-proposal-branches",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-create-proposal-branch",
+      "title": "venue.create_proposal_branch",
+      "description": "Create and activate a non-destructive proposal branch using a balanced, access-first, circulation-first, or sightlines-first strategy.",
+      "canonicalPath": "/docs/reference-tool-venue-create-proposal-branch",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:propose"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-switch-proposal-branch",
+      "title": "venue.switch_proposal_branch",
+      "description": "Activate an existing proposal branch in the visible VenueMind workspace without approving it.",
+      "canonicalPath": "/docs/reference-tool-venue-switch-proposal-branch",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:propose"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-update-proposal-branch",
+      "title": "venue.update_proposal_branch",
+      "description": "Update a Proposal Branch name or review notes without changing its Proposal geometry.",
+      "canonicalPath": "/docs/reference-tool-venue-update-proposal-branch",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:propose"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-duplicate-proposal-branch",
+      "title": "venue.duplicate_proposal_branch",
+      "description": "Duplicate the current or a prior Proposal revision into a new active Branch with preserved stable Change IDs.",
+      "canonicalPath": "/docs/reference-tool-venue-duplicate-proposal-branch",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:propose"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-archive-proposal-branch",
+      "title": "venue.archive_proposal_branch",
+      "description": "Archive a Proposal Branch without deleting its revisions or audit history.",
+      "canonicalPath": "/docs/reference-tool-venue-archive-proposal-branch",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:propose"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-restore-proposal-branch",
+      "title": "venue.restore_proposal_branch",
+      "description": "Restore an archived Proposal Branch to the active comparison set.",
+      "canonicalPath": "/docs/reference-tool-venue-restore-proposal-branch",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:propose"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-detect-proposal-conflicts",
+      "title": "venue.detect_proposal_conflicts",
+      "description": "Detect stale-base, deleted-dependency, locked-object, same-object, and Constraint-regression conflicts for a Proposal Branch.",
+      "canonicalPath": "/docs/reference-tool-venue-detect-proposal-conflicts",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-rebase-proposal",
+      "title": "venue.rebase_proposal",
+      "description": "Rebase a stale Proposal Branch onto the latest accepted Plan Version while preserving unchanged stable Change IDs.",
+      "canonicalPath": "/docs/reference-tool-venue-rebase-proposal",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:propose"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-request-adjustment",
+      "title": "venue.request_adjustment",
+      "description": "Create a new non-destructive Proposal revision recording an agent-requested adjustment. Human Approval is still required.",
+      "canonicalPath": "/docs/reference-tool-venue-request-adjustment",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:propose"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-list-comments",
+      "title": "venue.list_comments",
+      "description": "Read comments by status, author, subject kind, or decision relevance without changing planning state.",
+      "canonicalPath": "/docs/reference-tool-venue-list-comments",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-add-comment",
+      "title": "venue.add_comment",
+      "description": "Add a non-planning Comment anchored to an immutable VenueMind subject or spatial coordinate.",
+      "canonicalPath": "/docs/reference-tool-venue-add-comment",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:comment"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-edit-comment",
+      "title": "venue.edit_comment",
+      "description": "Edit Comment text, mentions, or decision relevance while retaining immutable edit history.",
+      "canonicalPath": "/docs/reference-tool-venue-edit-comment",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:comment"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-set-comment-status",
+      "title": "venue.set_comment_status",
+      "description": "Resolve or reopen a Comment without changing its immutable anchor or planning state.",
+      "canonicalPath": "/docs/reference-tool-venue-set-comment-status",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:comment"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-get-change-log",
+      "title": "venue.get_change_log",
+      "description": "Read the ordered human and agent Activity Ledger for the active Plan.",
+      "canonicalPath": "/docs/reference-tool-venue-get-change-log",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-replay-history",
+      "title": "venue.replay_history",
+      "description": "Verify the Activity Ledger hash chain and replay accepted Plan transitions against the current Plan fingerprint.",
+      "canonicalPath": "/docs/reference-tool-venue-replay-history",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-list-scenarios",
+      "title": "venue.list_scenarios",
+      "description": "Read stored immutable Scenario definitions without running a simulation.",
+      "canonicalPath": "/docs/reference-tool-venue-list-scenarios",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-list-scenario-runs",
+      "title": "venue.list_scenario_runs",
+      "description": "Read queued, running, completed, cancelled, and failed Simulation Runs, including progress and partial results.",
+      "canonicalPath": "/docs/reference-tool-venue-list-scenario-runs",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-get-scenario-result",
+      "title": "venue.get_scenario_result",
+      "description": "Read one stable Scenario Run and its completed or partial result, with density frames omitted unless explicitly requested.",
+      "canonicalPath": "/docs/reference-tool-venue-get-scenario-result",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:simulate"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-run-scenario",
+      "title": "venue.run_scenario",
+      "description": "Run one seeded operations, ingress-egress, or spatial queue Scenario against an exact Proposal Branch geometry. Results never replace deterministic Validation.",
+      "canonicalPath": "/docs/reference-tool-venue-run-scenario",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:simulate"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-compare-simulations",
+      "title": "venue.compare_simulations",
+      "description": "Compare two completed Runs with matching Scenario fingerprints and engine versions across Proposal Branches, including clearance, bottleneck, and accessible-route deltas for flow models.",
+      "canonicalPath": "/docs/reference-tool-venue-compare-simulations",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:simulate"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-export-simulation",
+      "title": "venue.export_simulation",
+      "description": "Export one completed Simulation Run with its normalized Scenario parameters, engine version, input fingerprint, and confidence metadata.",
+      "canonicalPath": "/docs/reference-tool-venue-export-simulation",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:export"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-export-audit-package",
+      "title": "venue.export_audit_package",
+      "description": "Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.",
+      "canonicalPath": "/docs/reference-tool-venue-export-audit-package",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:export"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-export-plan",
+      "title": "venue.export_plan",
+      "description": "Export the validated Plan as JSON, compact text, layered SVG, print-ready plan or emergency PDF, object, inventory, staffing, production, catering, or replenishment CSV, staffing or production SVG, or a portable audit package.",
+      "canonicalPath": "/docs/reference-tool-venue-export-plan",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Contract 1.2.0",
+        "Scope venue:export"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-command-inspect-templates",
+      "title": "inspect_templates",
+      "description": "Execute Inspect Templates through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-inspect-templates",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission plan.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-measure-objects",
+      "title": "measure_objects",
+      "description": "Execute Measure Objects through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-measure-objects",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission plan.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-inspect-layout",
+      "title": "inspect_layout",
+      "description": "Execute Inspect Layout through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-inspect-layout",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission plan.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-get-project-brief",
+      "title": "get_project_brief",
+      "description": "Execute Get Project Brief through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-get-project-brief",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission plan.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-list-constraints",
+      "title": "list_constraints",
+      "description": "Execute List Constraints through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-list-constraints",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission plan.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-get-validation-evidence",
+      "title": "get_validation_evidence",
+      "description": "Execute Get Validation Evidence through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-get-validation-evidence",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission plan.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-get-object",
+      "title": "get_object",
+      "description": "Execute Get Object through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-get-object",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission plan.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-search-objects",
+      "title": "search_objects",
+      "description": "Execute Search Objects through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-search-objects",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission plan.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-validate-layout",
+      "title": "validate_layout",
+      "description": "Execute Validate Layout through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-validate-layout",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission plan.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-list-branches",
+      "title": "list_branches",
+      "description": "Execute List Branches through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-list-branches",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-compare-branches",
+      "title": "compare_branches",
+      "description": "Execute Compare Branches through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-compare-branches",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-get-change-log",
+      "title": "get_change_log",
+      "description": "Execute Get Change Log through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-get-change-log",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission audit.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-replay-history",
+      "title": "replay_history",
+      "description": "Execute Replay History through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-replay-history",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission audit.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-list-scenarios",
+      "title": "list_scenarios",
+      "description": "Execute List Scenarios through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-list-scenarios",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission simulation.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-list-scenario-runs",
+      "title": "list_scenario_runs",
+      "description": "Execute List Scenario Runs through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-list-scenario-runs",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission simulation.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-get-scenario-result",
+      "title": "get_scenario_result",
+      "description": "Execute Get Scenario Result through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-get-scenario-result",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission simulation.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-run-scenario",
+      "title": "run_scenario",
+      "description": "Execute Run Scenario through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-run-scenario",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission simulation.run"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-compare-simulations",
+      "title": "compare_simulations",
+      "description": "Execute Compare Simulations through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-compare-simulations",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission simulation.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-export-simulation",
+      "title": "export_simulation",
+      "description": "Execute Export Simulation through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-export-simulation",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission export.plan"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-detect-conflicts",
+      "title": "detect_conflicts",
+      "description": "Execute Detect Conflicts through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-detect-conflicts",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-preview-revision",
+      "title": "preview_revision",
+      "description": "Execute Preview Revision through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-preview-revision",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.create"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-preview-template-update",
+      "title": "preview_template_update",
+      "description": "Execute Preview Template Update through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-preview-template-update",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.create"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-apply-edit",
+      "title": "apply_edit",
+      "description": "Execute Apply Edit through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-apply-edit",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-create-branch",
+      "title": "create_branch",
+      "description": "Execute Create Branch through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-create-branch",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.create"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-recover-unsynchronized-branch",
+      "title": "recover_unsynchronized_branch",
+      "description": "Execute Recover Unsynchronized Branch through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-recover-unsynchronized-branch",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-record-share-link-created",
+      "title": "record_share_link_created",
+      "description": "Execute Record Share Link Created through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-record-share-link-created",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission project.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-record-share-link-revoked",
+      "title": "record_share_link_revoked",
+      "description": "Execute Record Share Link Revoked through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-record-share-link-revoked",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission project.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-switch-branch",
+      "title": "switch_branch",
+      "description": "Execute Switch Branch through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-switch-branch",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-update-branch-metadata",
+      "title": "update_branch_metadata",
+      "description": "Execute Update Branch Metadata through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-update-branch-metadata",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-duplicate-branch",
+      "title": "duplicate_branch",
+      "description": "Execute Duplicate Branch through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-duplicate-branch",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.create"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-archive-branch",
+      "title": "archive_branch",
+      "description": "Execute Archive Branch through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-archive-branch",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-restore-branch",
+      "title": "restore_branch",
+      "description": "Execute Restore Branch through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-restore-branch",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-record-branch-decision",
+      "title": "record_branch_decision",
+      "description": "Execute Record Branch Decision through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-record-branch-decision",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.review"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-list-comments",
+      "title": "list_comments",
+      "description": "Execute List Comments through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-list-comments",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission comment.read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-add-comment",
+      "title": "add_comment",
+      "description": "Execute Add Comment through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-add-comment",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission comment.write"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-edit-comment",
+      "title": "edit_comment",
+      "description": "Execute Edit Comment through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-edit-comment",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission comment.write"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-set-comment-status",
+      "title": "set_comment_status",
+      "description": "Execute Set Comment Status through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-set-comment-status",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission comment.write"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-request-adjustment",
+      "title": "request_adjustment",
+      "description": "Execute Request Adjustment through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-request-adjustment",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-revert-change",
+      "title": "revert_change",
+      "description": "Execute Revert Change through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-revert-change",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-waive-warning",
+      "title": "waive_warning",
+      "description": "Execute Waive Warning through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-waive-warning",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission approval.waive"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-set-object-lock",
+      "title": "set_object_lock",
+      "description": "Execute Set Object Lock through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-set-object-lock",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission lock.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-release-object-lock",
+      "title": "release_object_lock",
+      "description": "Execute Release Object Lock through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-release-object-lock",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission lock.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-approve-proposal",
+      "title": "approve_proposal",
+      "description": "Execute Approve Proposal through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-approve-proposal",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission approval.approve"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-undo",
+      "title": "undo",
+      "description": "Execute Undo through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-undo",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission plan.update"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-redo",
+      "title": "redo",
+      "description": "Execute Redo through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-redo",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission plan.update"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-rebase-proposal",
+      "title": "rebase_proposal",
+      "description": "Execute Rebase Proposal through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-rebase-proposal",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-resolve-conflict",
+      "title": "resolve_conflict",
+      "description": "Execute Resolve Conflict through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-resolve-conflict",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.review"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-update-event-brief",
+      "title": "update_event_brief",
+      "description": "Execute Update Event Brief through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-update-event-brief",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission proposal.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-restore-snapshot",
+      "title": "restore_snapshot",
+      "description": "Execute Restore Snapshot through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-restore-snapshot",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission project.manage"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "reference-command-export-plan",
+      "title": "export_plan",
+      "description": "Execute Export Plan through the shared VenueMind planner boundary.",
+      "canonicalPath": "/docs/reference-command-export-plan",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Permission export.plan"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors"
+      ]
+    },
+    {
+      "slug": "architecture-contributing",
+      "title": "Architecture and contributing",
+      "description": "Runtime boundaries, extension paths, migrations, testing layers, release checks, recovery, and architecture decisions.",
+      "canonicalPath": "/docs/architecture-contributing",
+      "audience": [
+        "developers",
+        "maintainers",
+        "security reviewers"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Tool contract 1.2.0"
+      ],
+      "anchors": [
+        "architecture",
+        "first-change",
+        "contracts",
+        "operations",
+        "decisions"
+      ]
+    },
+    {
+      "slug": "contracts",
+      "title": "Schemas and contracts",
+      "description": "JSON Schemas are generated from the runtime contract source during every production build.",
+      "canonicalPath": "/docs/contracts",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Project schema 10",
+        "Tool contract 1.2.0"
+      ],
+      "anchors": [
+        "schemas",
+        "authorization",
+        "tool-manifest",
+        "errors",
+        "interchange",
+        "drawing-adapters",
+        "discovery",
+        "compatibility"
+      ]
+    },
+    {
+      "slug": "changelog",
+      "title": "Documentation changelog",
+      "description": "Visible changes to VenueMind contracts, workflows, compatibility, and operational guidance.",
+      "canonicalPath": "/docs/changelog",
+      "audience": [
+        "operators",
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Docs 1.0.0",
+        "Reviewed 2026-08-27"
+      ],
+      "anchors": [
+        "docs-1-2-0",
+        "docs-1-1-0",
+        "tool-contract-1-2-0",
+        "skills-1-1-0",
+        "project-schema-10",
+        "docs-policy"
+      ]
+    },
+    {
+      "slug": "safety",
+      "title": "Safety and supervision",
+      "description": "Agent leverage is high; mutation authority stays narrow and inspectable.",
+      "canonicalPath": "/docs/safety",
+      "audience": [
+        "operators",
+        "reviewers",
+        "agents"
+      ],
+      "lastReviewedVersion": "VenueMind 0.4.0",
+      "compatibility": [
+        "Authorization policy 1",
+        "Ledger schema 1"
+      ],
+      "anchors": [
+        "preview",
+        "concurrency",
+        "idempotency",
+        "locks",
+        "waivers",
+        "emergency-review",
+        "trace"
+      ]
+    }
+  ],
+  "navigation": [
+    {
+      "label": "Start",
+      "pages": [
+        {
+          "slug": "overview",
+          "title": "Venue planning, built for agents and humans",
+          "href": "/docs"
+        },
+        {
+          "slug": "quickstart",
+          "title": "Quickstart",
+          "href": "/docs/quickstart"
+        }
+      ]
+    },
+    {
+      "label": "Build",
+      "pages": [
+        {
+          "slug": "concepts",
+          "title": "Core concepts",
+          "href": "/docs/concepts"
+        }
+      ]
+    },
+    {
+      "label": "Tutorials",
+      "pages": [
+        {
+          "slug": "tutorial-first-project",
+          "title": "Create your first Project",
+          "href": "/docs/tutorial-first-project"
+        },
+        {
+          "slug": "tutorial-supervised-loop",
+          "title": "Run the supervised planning loop",
+          "href": "/docs/tutorial-supervised-loop"
+        },
+        {
+          "slug": "tutorial-compare-branches",
+          "title": "Compare access-first and capacity-first branches",
+          "href": "/docs/tutorial-compare-branches"
+        },
+        {
+          "slug": "tutorial-stale-proposal",
+          "title": "Resolve a stale Proposal",
+          "href": "/docs/tutorial-stale-proposal"
+        },
+        {
+          "slug": "tutorial-audit-plan",
+          "title": "Audit an approved Plan Version",
+          "href": "/docs/tutorial-audit-plan"
+        },
+        {
+          "slug": "tutorial-mcp-install",
+          "title": "Install the VenueMind MCP server",
+          "href": "/docs/tutorial-mcp-install"
+        },
+        {
+          "slug": "tutorial-webmcp",
+          "title": "Use VenueMind through native WebMCP",
+          "href": "/docs/tutorial-webmcp"
+        },
+        {
+          "slug": "tutorial-skills",
+          "title": "Install and invoke VenueMind agent skills",
+          "href": "/docs/tutorial-skills"
+        },
+        {
+          "slug": "tutorial-import-export",
+          "title": "Import, validate, and export a venue plan",
+          "href": "/docs/tutorial-import-export"
+        },
+        {
+          "slug": "tutorial-offline-recovery",
+          "title": "Recover from offline local state",
+          "href": "/docs/tutorial-offline-recovery"
+        }
+      ]
+    },
+    {
+      "label": "Agents",
+      "pages": [
+        {
+          "slug": "webmcp",
+          "title": "WebMCP tools",
+          "href": "/docs/webmcp"
+        },
+        {
+          "slug": "mcp",
+          "title": "MCP server",
+          "href": "/docs/mcp"
+        },
+        {
+          "slug": "skills",
+          "title": "Agent skills",
+          "href": "/docs/skills"
+        },
+        {
+          "slug": "client-examples",
+          "title": "Client examples",
+          "href": "/docs/client-examples"
+        }
+      ]
+    },
+    {
+      "label": "Reference",
+      "pages": [
+        {
+          "slug": "reference-tools",
+          "title": "Tool reference",
+          "href": "/docs/reference-tools"
+        },
+        {
+          "slug": "reference-commands",
+          "title": "Command reference",
+          "href": "/docs/reference-commands"
+        },
+        {
+          "slug": "reference-errors",
+          "title": "Error catalog",
+          "href": "/docs/reference-errors"
+        },
+        {
+          "slug": "reference-constraints",
+          "title": "Constraint and evidence reference",
+          "href": "/docs/reference-constraints"
+        },
+        {
+          "slug": "reference-ledger",
+          "title": "Activity Ledger events",
+          "href": "/docs/reference-ledger"
+        },
+        {
+          "slug": "reference-plan-lifecycle",
+          "title": "Plan and Proposal lifecycle",
+          "href": "/docs/reference-plan-lifecycle"
+        },
+        {
+          "slug": "reference-persistence",
+          "title": "Persistence and recovery",
+          "href": "/docs/reference-persistence"
+        },
+        {
+          "slug": "reference-authorization",
+          "title": "Authorization reference",
+          "href": "/docs/reference-authorization"
+        },
+        {
+          "slug": "reference-compatibility",
+          "title": "Compatibility and deprecation",
+          "href": "/docs/reference-compatibility"
+        },
+        {
+          "slug": "architecture-contributing",
+          "title": "Architecture and contributing",
+          "href": "/docs/architecture-contributing"
+        },
+        {
+          "slug": "contracts",
+          "title": "Schemas and contracts",
+          "href": "/docs/contracts"
+        },
+        {
+          "slug": "changelog",
+          "title": "Documentation changelog",
+          "href": "/docs/changelog"
+        },
+        {
+          "slug": "safety",
+          "title": "Safety and supervision",
+          "href": "/docs/safety"
+        }
+      ]
+    }
+  ]
+}

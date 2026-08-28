@@ -1,0 +1,3 @@
+# Simulation never substitutes for Validation
+
+VenueMind treats Constraint Validation and simulation as separate evidence systems. Validation is deterministic pass/fail evidence over canonical geometry; a Simulation Run is a seeded probabilistic estimate with confidence metadata and may be partial, cancelled, or obsolete. Simulation results can inform a Proposal and can be compared across Proposal Branches, but they cannot satisfy, waive, or change a Constraint and cannot authorize Approval. This preserves reproducible safety decisions while allowing richer operational forecasts to evolve independently.

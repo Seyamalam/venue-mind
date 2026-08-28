@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/activity-ledger.schema.json",
+  "title": "VenueMind Activity Ledger",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "id",
+      "schemaVersion",
+      "sequence",
+      "type",
+      "actor",
+      "actorId",
+      "actorType",
+      "source",
+      "sessionId",
+      "occurredAt",
+      "details",
+      "previousHash",
+      "hash"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^ledger-[0-9]+$"
+      },
+      "schemaVersion": {
+        "const": 1
+      },
+      "sequence": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "type": {
+        "type": "string",
+        "minLength": 1
+      },
+      "actor": {
+        "enum": [
+          "human",
+          "agent",
+          "system"
+        ]
+      },
+      "actorId": {
+        "type": "string",
+        "minLength": 1
+      },
+      "actorType": {
+        "enum": [
+          "human",
+          "agent",
+          "system"
+        ]
+      },
+      "source": {
+        "enum": [
+          "studio",
+          "webmcp",
+          "mcp",
+          "system",
+          "agent-tool"
+        ]
+      },
+      "sessionId": {
+        "type": "string",
+        "minLength": 1
+      },
+      "occurredAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "details": {
+        "type": "object"
+      },
+      "previousHash": {
+        "anyOf": [
+          {
+            "const": "genesis"
+          },
+          {
+            "type": "string",
+            "pattern": "^ledger-[0-9a-f]{8}$"
+          }
+        ]
+      },
+      "hash": {
+        "type": "string",
+        "pattern": "^ledger-[0-9a-f]{8}$"
+      }
+    },
+    "additionalProperties": false
+  }
+}

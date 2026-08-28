@@ -1,0 +1,4 @@
+interface:
+  display_name: "VenueMind Access Review"
+  short_description: "Review access evidence and remediation branches"
+  default_prompt: "Use $venuemind-access-review to audit accessibility evidence and prepare a supervised remediation proposal."

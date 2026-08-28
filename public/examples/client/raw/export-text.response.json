@@ -1,0 +1,19 @@
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"format\":\"text\",\"filename\":\"summitforward-2026-v3-2.txt\",\"mimeType\":\"text/plain;charset=utf-8\",\"encoding\":\"utf8\",\"content\":\"VenueMind · SummitForward 2026\\nPlan v3.2\\nStatus PASS\\nCapacity 400\\nAccessible route 1.829 m\\nSightlines 100%\\nGeometry geom-4514a6c8\\nAccess graph graph-8afec60e · 6 destinations · 1.829 m\\nOccupancy 400 effective · 438/450 load\\nCapacity scopes 2 sections · 1 zones · 0 exceptions\\nEgress 2 paths · bottleneck 1.829 m · index 66.5\\nSightline evidence sightlines-eacd3f8c · 16/16 clear\\nLedger entries 2\"}"
+      }
+    ],
+    "structuredContent": {
+      "format": "text",
+      "filename": "summitforward-2026-v3-2.txt",
+      "mimeType": "text/plain;charset=utf-8",
+      "encoding": "utf8",
+      "content": "VenueMind · SummitForward 2026\nPlan v3.2\nStatus PASS\nCapacity 400\nAccessible route 1.829 m\nSightlines 100%\nGeometry geom-4514a6c8\nAccess graph graph-8afec60e · 6 destinations · 1.829 m\nOccupancy 400 effective · 438/450 load\nCapacity scopes 2 sections · 1 zones · 0 exceptions\nEgress 2 paths · bottleneck 1.829 m · index 66.5\nSightline evidence sightlines-eacd3f8c · 16/16 clear\nLedger entries 2"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "VenueMind Plan"
+  short_description: "Plan and validate venue revisions"
+  default_prompt: "Use $venuemind-plan to inspect this event plan and prepare a validated proposal."

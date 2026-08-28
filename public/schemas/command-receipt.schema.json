@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/command-receipt.schema.json",
+  "title": "VenueMind Command Receipt",
+  "type": "object",
+  "required": [
+    "id",
+    "idempotencyKey",
+    "commandType",
+    "inputFingerprint",
+    "correlationId",
+    "actor",
+    "resultIds",
+    "occurredAt"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^receipt-[0-9]+$"
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "minLength": 1
+    },
+    "commandType": {
+      "type": "string",
+      "minLength": 1
+    },
+    "inputFingerprint": {
+      "type": "string",
+      "pattern": "^command-[0-9a-f]{8}$"
+    },
+    "correlationId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "actor": {
+      "enum": [
+        "human",
+        "agent",
+        "system"
+      ]
+    },
+    "resultIds": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "result": {
+      "type": "object",
+      "description": "Stored original result used to answer exact retries."
+    },
+    "error": {
+      "type": "object",
+      "required": [
+        "code",
+        "message",
+        "remediation",
+        "details"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "remediation": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,572 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/spatial-evidence.schema.json",
+  "title": "VenueMind Spatial Evidence",
+  "type": "object",
+  "required": [
+    "accessibility",
+    "capacity",
+    "circulation",
+    "sightlines"
+  ],
+  "properties": {
+    "accessibility": {
+      "type": "object",
+      "required": [
+        "source",
+        "graphFingerprint",
+        "connected",
+        "routeObjectIds",
+        "reachableDestinationIds",
+        "unreachableDestinationIds",
+        "minimumClearWidthM",
+        "turningClearanceM",
+        "accessibleSeats",
+        "companionSeats",
+        "seatingDistributed",
+        "accessibleSeatSampleIds",
+        "blockedAccessibleSeatSampleIds",
+        "accessibleSeatSightlineCoverageRatio",
+        "accessibleSeatSightlineSections",
+        "doorClearanceZones",
+        "accessibleDoorObjectIds",
+        "minimumDoorClearWidthM",
+        "obstructedDoorObjectIds",
+        "ramps",
+        "rampPolicy",
+        "nodes",
+        "edges"
+      ],
+      "properties": {
+        "source": {
+          "const": "canonical-geometry"
+        },
+        "graphFingerprint": {
+          "pattern": "^graph-[0-9a-f]{8}$"
+        },
+        "connected": {
+          "type": "boolean"
+        },
+        "routeObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reachableDestinationIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unreachableDestinationIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "minimumClearWidthM": {
+          "type": "number"
+        },
+        "turningClearanceM": {
+          "type": "number"
+        },
+        "accessibleSeats": {
+          "type": "integer"
+        },
+        "companionSeats": {
+          "type": "integer"
+        },
+        "seatingDistributed": {
+          "type": "boolean"
+        },
+        "accessibleSeatSampleIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "blockedAccessibleSeatSampleIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "accessibleSeatSightlineCoverageRatio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "accessibleSeatSightlineSections": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "doorClearanceZones": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "accessibleDoorObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "minimumDoorClearWidthM": {
+          "type": "number"
+        },
+        "obstructedDoorObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ramps": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "rampPolicy": {
+          "type": "object"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "capacity": {
+      "type": "object",
+      "required": [
+        "source",
+        "roomAreaM2",
+        "excludedAreaM2",
+        "usableRoomAreaM2",
+        "occupancyMode",
+        "densityCapacity",
+        "sectionCapacities",
+        "zoneCapacities",
+        "placedCapacity",
+        "venueMaximum",
+        "nonAttendeeLoad",
+        "operationalLoad",
+        "effectiveCapacity",
+        "explanations",
+        "changeDeltas"
+      ],
+      "properties": {
+        "source": {
+          "const": "canonical-geometry"
+        },
+        "roomAreaM2": {
+          "type": "number"
+        },
+        "excludedAreaM2": {
+          "type": "number"
+        },
+        "usableRoomAreaM2": {
+          "type": "number"
+        },
+        "occupancyMode": {
+          "type": "string"
+        },
+        "densityCapacity": {
+          "type": "integer"
+        },
+        "sectionCapacities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "objectId",
+              "label",
+              "zoneId",
+              "capacity",
+              "minimumCapacity",
+              "maximumCapacity",
+              "status",
+              "deltaFromMinimum",
+              "headroom"
+            ],
+            "properties": {
+              "objectId": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "zoneId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "capacity": {
+                "type": "integer"
+              },
+              "minimumCapacity": {
+                "type": "integer"
+              },
+              "maximumCapacity": {
+                "type": "integer"
+              },
+              "status": {
+                "enum": [
+                  "within-limit",
+                  "under-target",
+                  "over-capacity"
+                ]
+              },
+              "deltaFromMinimum": {
+                "type": "integer"
+              },
+              "headroom": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "zoneCapacities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "zoneId",
+              "label",
+              "sectionObjectIds",
+              "capacity",
+              "minimumCapacity",
+              "maximumCapacity",
+              "status",
+              "deltaFromMinimum",
+              "headroom"
+            ],
+            "properties": {
+              "zoneId": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "sectionObjectIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "capacity": {
+                "type": "integer"
+              },
+              "minimumCapacity": {
+                "type": "integer"
+              },
+              "maximumCapacity": {
+                "type": "integer"
+              },
+              "status": {
+                "enum": [
+                  "within-limit",
+                  "under-target",
+                  "over-capacity"
+                ]
+              },
+              "deltaFromMinimum": {
+                "type": "integer"
+              },
+              "headroom": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "placedCapacity": {
+          "type": "integer"
+        },
+        "venueMaximum": {
+          "type": "integer"
+        },
+        "nonAttendeeLoad": {
+          "type": "integer"
+        },
+        "operationalLoad": {
+          "type": "integer"
+        },
+        "effectiveCapacity": {
+          "type": "integer"
+        },
+        "explanations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "code",
+              "scopeKind",
+              "scopeId",
+              "actual",
+              "target",
+              "delta"
+            ],
+            "properties": {
+              "code": {
+                "enum": [
+                  "SECTION_UNDER_TARGET",
+                  "SECTION_OVER_CAPACITY",
+                  "ZONE_UNDER_TARGET",
+                  "ZONE_OVER_CAPACITY",
+                  "PLAN_UNDER_TARGET",
+                  "VENUE_OVER_CAPACITY",
+                  "DENSITY_OVER_CAPACITY"
+                ]
+              },
+              "scopeKind": {
+                "enum": [
+                  "section",
+                  "zone",
+                  "plan",
+                  "venue"
+                ]
+              },
+              "scopeId": {
+                "type": "string"
+              },
+              "actual": {
+                "type": "integer"
+              },
+              "target": {
+                "type": "integer"
+              },
+              "delta": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "changeDeltas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "changeId",
+              "placedCapacityDelta",
+              "effectiveCapacityDelta",
+              "operationalLoadDelta",
+              "sectionDeltas",
+              "zoneDeltas"
+            ],
+            "properties": {
+              "changeId": {
+                "type": "string"
+              },
+              "placedCapacityDelta": {
+                "type": "integer"
+              },
+              "effectiveCapacityDelta": {
+                "type": "integer"
+              },
+              "operationalLoadDelta": {
+                "type": "integer"
+              },
+              "sectionDeltas": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "zoneDeltas": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "circulation": {
+      "type": "object",
+      "required": [
+        "source",
+        "graphFingerprint",
+        "connected",
+        "graphNodes",
+        "graphEdges",
+        "blockedRouteObjectIds",
+        "blockingObjectIds",
+        "exitApproachZones",
+        "obstructedExitObjectIds",
+        "criticalRouteEdges",
+        "bottleneckLoads",
+        "bottleneckWidthM",
+        "peakCongestionIndex",
+        "shortestExitPaths",
+        "phaseProfiles",
+        "changeDeltas"
+      ],
+      "properties": {
+        "source": {
+          "const": "canonical-geometry"
+        },
+        "graphFingerprint": {
+          "pattern": "^graph-[0-9a-f]{8}$"
+        },
+        "connected": {
+          "type": "boolean"
+        },
+        "graphNodes": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "graphEdges": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "blockedRouteObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "blockingObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exitApproachZones": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "obstructedExitObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "criticalRouteEdges": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "bottleneckLoads": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "bottleneckWidthM": {
+          "type": "number"
+        },
+        "peakCongestionIndex": {
+          "type": "number"
+        },
+        "shortestExitPaths": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "phaseProfiles": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "changeDeltas": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "sightlines": {
+      "type": "object",
+      "required": [
+        "source",
+        "evidenceFingerprint",
+        "focalPointId",
+        "sampledSeatIds",
+        "blockedSampleIds",
+        "coverageRatio",
+        "maximumViewingDistanceM",
+        "sectionSummaries",
+        "rays"
+      ],
+      "properties": {
+        "source": {
+          "const": "canonical-geometry"
+        },
+        "evidenceFingerprint": {
+          "pattern": "^sightlines-[0-9a-f]{8}$"
+        },
+        "focalPointId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sampledSeatIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "blockedSampleIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "coverageRatio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maximumViewingDistanceM": {
+          "type": "number"
+        },
+        "sectionSummaries": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "rays": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "generatedFrom": [
+    "CONTRIBUTING.md",
+    "docs/"
+  ],
+  "guides": [
+    {
+      "sourcePath": "CONTRIBUTING.md",
+      "publicPath": "/guides/contributing.md",
+      "title": "Contributor entry point"
+    },
+    {
+      "sourcePath": "SECURITY.md",
+      "publicPath": "/guides/security.md",
+      "title": "Security reporting policy"
+    },
+    {
+      "sourcePath": "docs/architecture.md",
+      "publicPath": "/guides/architecture.md",
+      "title": "Architecture and extension paths"
+    },
+    {
+      "sourcePath": "docs/authentication-and-tenancy.md",
+      "publicPath": "/guides/authentication-and-tenancy.md",
+      "title": "Authentication and tenancy"
+    },
+    {
+      "sourcePath": "docs/persistence-and-recovery.md",
+      "publicPath": "/guides/persistence-and-recovery.md",
+      "title": "Persistence and recovery"
+    },
+    {
+      "sourcePath": "docs/optimistic-concurrency.md",
+      "publicPath": "/guides/optimistic-concurrency.md",
+      "title": "Optimistic concurrency"
+    },
+    {
+      "sourcePath": "docs/realtime-collaboration.md",
+      "publicPath": "/guides/realtime-collaboration.md",
+      "title": "Real-time collaboration"
+    },
+    {
+      "sourcePath": "docs/database-operations.md",
+      "publicPath": "/guides/database-operations.md",
+      "title": "Database operations"
+    },
+    {
+      "sourcePath": "docs/schema-migrations.md",
+      "publicPath": "/guides/schema-migrations.md",
+      "title": "Schema migrations"
+    },
+    {
+      "sourcePath": "docs/development.md",
+      "publicPath": "/guides/development.md",
+      "title": "Local development"
+    },
+    {
+      "sourcePath": "docs/testing.md",
+      "publicPath": "/guides/testing.md",
+      "title": "Testing by layer"
+    },
+    {
+      "sourcePath": "docs/release-checklist.md",
+      "publicPath": "/guides/release-checklist.md",
+      "title": "Release checklist"
+    },
+    {
+      "sourcePath": "docs/runbooks/failure-recovery.md",
+      "publicPath": "/guides/runbooks/failure-recovery.md",
+      "title": "Failure recovery runbook"
+    },
+    {
+      "sourcePath": "docs/adr/0001-single-command-interface.md",
+      "publicPath": "/guides/adr/0001-single-command-interface.md",
+      "title": "Architecture decision 0001"
+    },
+    {
+      "sourcePath": "docs/adr/0002-durable-project-state.md",
+      "publicPath": "/guides/adr/0002-durable-project-state.md",
+      "title": "Architecture decision 0002"
+    },
+    {
+      "sourcePath": "docs/adr/0003-canonical-spatial-frame.md",
+      "publicPath": "/guides/adr/0003-canonical-spatial-frame.md",
+      "title": "Architecture decision 0003"
+    },
+    {
+      "sourcePath": "docs/adr/0004-geometry-is-validation-evidence.md",
+      "publicPath": "/guides/adr/0004-geometry-is-validation-evidence.md",
+      "title": "Architecture decision 0004"
+    },
+    {
+      "sourcePath": "docs/adr/0005-import-is-create-only.md",
+      "publicPath": "/guides/adr/0005-import-is-create-only.md",
+      "title": "Architecture decision 0005"
+    },
+    {
+      "sourcePath": "docs/adr/0006-warning-waivers-follow-approved-plans.md",
+      "publicPath": "/guides/adr/0006-warning-waivers-follow-approved-plans.md",
+      "title": "Architecture decision 0006"
+    },
+    {
+      "sourcePath": "docs/adr/0007-locks-protect-properties-not-objects.md",
+      "publicPath": "/guides/adr/0007-locks-protect-properties-not-objects.md",
+      "title": "Architecture decision 0007"
+    },
+    {
+      "sourcePath": "docs/adr/0008-template-versions-are-pinned.md",
+      "publicPath": "/guides/adr/0008-template-versions-are-pinned.md",
+      "title": "Architecture decision 0008"
+    },
+    {
+      "sourcePath": "docs/adr/0009-assisted-floor-plan-adapters.md",
+      "publicPath": "/guides/adr/0009-assisted-floor-plan-adapters.md",
+      "title": "Architecture decision 0009"
+    },
+    {
+      "sourcePath": "docs/adr/0010-simulation-does-not-validate.md",
+      "publicPath": "/guides/adr/0010-simulation-does-not-validate.md",
+      "title": "Architecture decision 0010"
+    },
+    {
+      "sourcePath": "docs/adr/0011-aggregate-flow-simulation.md",
+      "publicPath": "/guides/adr/0011-aggregate-flow-simulation.md",
+      "title": "Architecture decision 0011"
+    },
+    {
+      "sourcePath": "docs/adr/0012-queue-options-remain-proposals.md",
+      "publicPath": "/guides/adr/0012-queue-options-remain-proposals.md",
+      "title": "Architecture decision 0012"
+    },
+    {
+      "sourcePath": "docs/adr/0013-staff-routes-stay-out-of-attendee-graph.md",
+      "publicPath": "/guides/adr/0013-staff-routes-stay-out-of-attendee-graph.md",
+      "title": "Architecture decision 0013"
+    },
+    {
+      "sourcePath": "docs/adr/0014-production-evidence-is-validation.md",
+      "publicPath": "/guides/adr/0014-production-evidence-is-validation.md",
+      "title": "Architecture decision 0014"
+    },
+    {
+      "sourcePath": "docs/adr/0015-service-capacity-is-plan-evidence.md",
+      "publicPath": "/guides/adr/0015-service-capacity-is-plan-evidence.md",
+      "title": "Architecture decision 0015"
+    },
+    {
+      "sourcePath": "docs/adr/0016-emergency-review-is-separate-authority.md",
+      "publicPath": "/guides/adr/0016-emergency-review-is-separate-authority.md",
+      "title": "Architecture decision 0016"
+    },
+    {
+      "sourcePath": "docs/adr/0017-human-roles-and-agent-grants.md",
+      "publicPath": "/guides/adr/0017-human-roles-and-agent-grants.md",
+      "title": "Architecture decision 0017"
+    },
+    {
+      "sourcePath": "docs/adr/0018-shared-runtime-contracts.md",
+      "publicPath": "/guides/adr/0018-shared-runtime-contracts.md",
+      "title": "Architecture decision 0018"
+    },
+    {
+      "sourcePath": "docs/adr/0019-versioned-constraint-registry.md",
+      "publicPath": "/guides/adr/0019-versioned-constraint-registry.md",
+      "title": "Architecture decision 0019"
+    },
+    {
+      "sourcePath": "docs/adr/0020-hash-chained-ledger-and-replay.md",
+      "publicPath": "/guides/adr/0020-hash-chained-ledger-and-replay.md",
+      "title": "Architecture decision 0020"
+    },
+    {
+      "sourcePath": "docs/adr/0021-sites-identity-and-server-owned-tenancy.md",
+      "publicPath": "/guides/adr/0021-sites-identity-and-server-owned-tenancy.md",
+      "title": "Architecture decision 0021"
+    },
+    {
+      "sourcePath": "docs/adr/0022-project-revisions-and-recovery-branches.md",
+      "publicPath": "/guides/adr/0022-project-revisions-and-recovery-branches.md",
+      "title": "Architecture decision 0022"
+    },
+    {
+      "sourcePath": "docs/adr/0023-durable-cursor-collaboration.md",
+      "publicPath": "/guides/adr/0023-durable-cursor-collaboration.md",
+      "title": "Architecture decision 0023"
+    }
+  ]
+}

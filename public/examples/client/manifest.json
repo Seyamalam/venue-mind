@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-27",
+  "safetyBoundary": "Agent examples stop at human Approval.",
+  "files": [
+    {
+      "path": "config/generic-stdio.json",
+      "validation": "configuration"
+    },
+    {
+      "path": "config/claude-desktop.json",
+      "validation": "configuration"
+    },
+    {
+      "path": "config/cursor-project.json",
+      "validation": "configuration"
+    },
+    {
+      "path": "config/codex.toml",
+      "validation": "configuration"
+    },
+    {
+      "path": "workflows/host-prompts.json",
+      "validation": "content"
+    },
+    {
+      "path": "raw/preview-revision.request.json",
+      "validation": "runtime-contract"
+    },
+    {
+      "path": "raw/preview-revision.response.json",
+      "validation": "runtime-contract"
+    },
+    {
+      "path": "raw/retry-sequence.json",
+      "validation": "runtime-contract"
+    },
+    {
+      "path": "raw/stale-base.error.json",
+      "validation": "runtime-contract"
+    },
+    {
+      "path": "raw/validation-failure.response.json",
+      "validation": "runtime-contract"
+    },
+    {
+      "path": "raw/export-text.response.json",
+      "validation": "runtime-contract"
+    },
+    {
+      "path": "webmcp/browser-invocation.mjs",
+      "validation": "executed-webmcp"
+    },
+    {
+      "path": "typescript/supervised-workflow.ts",
+      "validation": "compiled-and-executed-mcp"
+    }
+  ],
+  "sourceVersions": {
+    "projectSchema": 10,
+    "toolContract": "1.2.0",
+    "mcpServer": "0.4.0",
+    "validationEngine": "2.7.0"
+  },
+  "expected": {
+    "retryReceiptId": "receipt-0001",
+    "staleErrorCode": "PLAN_VERSION_CONFLICT",
+    "validationStatus": "fail",
+    "validationBlockingIssues": 1,
+    "exportFormat": "text"
+  }
+}

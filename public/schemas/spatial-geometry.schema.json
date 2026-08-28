@@ -1,0 +1,365 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/spatial-geometry.schema.json",
+  "title": "VenueMind Spatial Geometry",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "unit",
+    "units",
+    "layers",
+    "coordinateSystem",
+    "precision",
+    "roomBoundary",
+    "fingerprint"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "unit": {
+      "const": "m"
+    },
+    "units": {
+      "type": "object",
+      "required": [
+        "length",
+        "area",
+        "angle",
+        "time"
+      ],
+      "properties": {
+        "length": {
+          "const": "m"
+        },
+        "area": {
+          "const": "m2"
+        },
+        "angle": {
+          "const": "deg"
+        },
+        "time": {
+          "const": "s"
+        }
+      },
+      "additionalProperties": false
+    },
+    "layers": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "const": "architecture"
+        },
+        {
+          "const": "furniture"
+        },
+        {
+          "const": "access"
+        },
+        {
+          "const": "production"
+        },
+        {
+          "const": "catering"
+        },
+        {
+          "const": "safety"
+        },
+        {
+          "const": "annotations"
+        }
+      ],
+      "minItems": 7,
+      "maxItems": 7
+    },
+    "coordinateSystem": {
+      "type": "object",
+      "required": [
+        "origin",
+        "xAxis",
+        "yAxis",
+        "rotationDirection"
+      ],
+      "properties": {
+        "origin": {
+          "const": "southwest"
+        },
+        "xAxis": {
+          "const": "east"
+        },
+        "yAxis": {
+          "const": "north"
+        },
+        "rotationDirection": {
+          "const": "clockwise"
+        }
+      },
+      "additionalProperties": false
+    },
+    "precision": {
+      "type": "object",
+      "required": [
+        "distance",
+        "angle"
+      ],
+      "properties": {
+        "distance": {
+          "const": 3
+        },
+        "angle": {
+          "const": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "roomBoundary": {
+      "type": "object",
+      "required": [
+        "outer",
+        "holes"
+      ],
+      "properties": {
+        "outer": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "object",
+            "required": [
+              "x",
+              "y"
+            ],
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "holes": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 3,
+            "items": {
+              "type": "object",
+              "required": [
+                "x",
+                "y"
+              ],
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "fingerprint": {
+      "type": "string",
+      "pattern": "^geom-[0-9a-f]{8}$"
+    }
+  },
+  "$defs": {
+    "point": {
+      "type": "object",
+      "required": [
+        "x",
+        "y"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "footprint": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "center",
+            "width",
+            "depth",
+            "rotationDegrees"
+          ],
+          "properties": {
+            "kind": {
+              "const": "rectangle"
+            },
+            "center": {
+              "type": "object",
+              "required": [
+                "x",
+                "y"
+              ],
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "additionalProperties": false
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "depth": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 360
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "center",
+            "radius"
+          ],
+          "properties": {
+            "kind": {
+              "const": "circle"
+            },
+            "center": {
+              "type": "object",
+              "required": [
+                "x",
+                "y"
+              ],
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "additionalProperties": false
+            },
+            "radius": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "start",
+            "end",
+            "width"
+          ],
+          "properties": {
+            "kind": {
+              "const": "line"
+            },
+            "start": {
+              "type": "object",
+              "required": [
+                "x",
+                "y"
+              ],
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "additionalProperties": false
+            },
+            "end": {
+              "type": "object",
+              "required": [
+                "x",
+                "y"
+              ],
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "additionalProperties": false
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "points",
+            "rotationDegrees"
+          ],
+          "properties": {
+            "kind": {
+              "const": "polygon"
+            },
+            "points": {
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "object",
+                "required": [
+                  "x",
+                  "y"
+                ],
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 360
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

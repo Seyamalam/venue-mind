@@ -1,0 +1,155 @@
+{
+  "humanRoles": [
+    "viewer",
+    "planner",
+    "reviewer",
+    "approver",
+    "venue-administrator",
+    "organization-administrator"
+  ],
+  "agentScopes": [
+    "venue:read",
+    "venue:propose",
+    "venue:comment",
+    "venue:simulate",
+    "venue:export"
+  ],
+  "permissions": [
+    "project.read",
+    "project.manage",
+    "plan.read",
+    "plan.update",
+    "proposal.read",
+    "proposal.create",
+    "proposal.manage",
+    "proposal.review",
+    "comment.read",
+    "comment.write",
+    "simulation.read",
+    "simulation.run",
+    "export.plan",
+    "export.audit",
+    "audit.read",
+    "approval.approve",
+    "approval.waive",
+    "lock.manage"
+  ],
+  "rolePermissions": {
+    "viewer": [
+      "project.read",
+      "plan.read",
+      "proposal.read",
+      "comment.read",
+      "simulation.read"
+    ],
+    "planner": [
+      "project.read",
+      "plan.read",
+      "proposal.read",
+      "comment.read",
+      "simulation.read",
+      "proposal.create",
+      "proposal.manage",
+      "comment.write",
+      "simulation.run",
+      "export.plan"
+    ],
+    "reviewer": [
+      "project.read",
+      "plan.read",
+      "proposal.read",
+      "comment.read",
+      "simulation.read",
+      "proposal.review",
+      "comment.write",
+      "export.audit",
+      "audit.read"
+    ],
+    "approver": [
+      "project.read",
+      "plan.read",
+      "proposal.read",
+      "comment.read",
+      "simulation.read",
+      "proposal.review",
+      "comment.write",
+      "export.audit",
+      "audit.read",
+      "approval.approve",
+      "approval.waive"
+    ],
+    "venue-administrator": [
+      "project.read",
+      "plan.read",
+      "proposal.read",
+      "comment.read",
+      "simulation.read",
+      "proposal.create",
+      "proposal.manage",
+      "comment.write",
+      "simulation.run",
+      "export.plan",
+      "proposal.review",
+      "export.audit",
+      "audit.read",
+      "approval.approve",
+      "approval.waive",
+      "project.manage",
+      "plan.update",
+      "lock.manage"
+    ],
+    "organization-administrator": [
+      "project.read",
+      "project.manage",
+      "plan.read",
+      "plan.update",
+      "proposal.read",
+      "proposal.create",
+      "proposal.manage",
+      "proposal.review",
+      "comment.read",
+      "comment.write",
+      "simulation.read",
+      "simulation.run",
+      "export.plan",
+      "export.audit",
+      "audit.read",
+      "approval.approve",
+      "approval.waive",
+      "lock.manage"
+    ]
+  },
+  "agentScopePermissions": {
+    "venue:read": [
+      "project.read",
+      "plan.read",
+      "proposal.read",
+      "comment.read",
+      "simulation.read",
+      "audit.read"
+    ],
+    "venue:propose": [
+      "proposal.create",
+      "proposal.manage"
+    ],
+    "venue:comment": [
+      "comment.read",
+      "comment.write"
+    ],
+    "venue:simulate": [
+      "simulation.read",
+      "simulation.run"
+    ],
+    "venue:export": [
+      "export.plan",
+      "export.audit"
+    ]
+  },
+  "approvalPolicy": {
+    "requiredReviewerRoles": [
+      "approver",
+      "venue-administrator",
+      "organization-administrator"
+    ]
+  }
+}

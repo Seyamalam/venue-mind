@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "toolContractVersion": "1.2.0",
+  "mcpServerVersion": "0.4.0",
+  "packages": [
+    { "name": "venuemind-plan", "version": "1.1.0", "path": "venuemind-plan", "entrypoint": "SKILL.md" },
+    { "name": "venuemind-audit", "version": "1.1.0", "path": "venuemind-audit", "entrypoint": "SKILL.md" },
+    { "name": "venuemind-access-review", "version": "1.1.0", "path": "venuemind-access-review", "entrypoint": "SKILL.md" },
+    { "name": "venuemind-crowd-flow", "version": "1.1.0", "path": "venuemind-crowd-flow", "entrypoint": "SKILL.md" },
+    { "name": "venuemind-production-plan", "version": "1.1.0", "path": "venuemind-production-plan", "entrypoint": "SKILL.md" },
+    { "name": "venuemind-event-day", "version": "1.1.0", "path": "venuemind-event-day", "entrypoint": "SKILL.md" }
+  ]
+}

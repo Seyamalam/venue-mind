@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/object-lock.schema.json",
+  "title": "VenueMind Object Lock",
+  "type": "object",
+  "required": [
+    "id",
+    "objectId",
+    "type",
+    "source",
+    "reasonCode",
+    "authorId",
+    "active"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "objectId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "type": {
+      "enum": [
+        "position",
+        "rotation",
+        "dimension",
+        "deletion",
+        "role"
+      ]
+    },
+    "source": {
+      "enum": [
+        "venue-template",
+        "project"
+      ]
+    },
+    "reasonCode": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authorId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expiresAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "releasedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "releasedBy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "active": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "databaseSchemaVersion": 6,
+  "migrations": [
+    {
+      "version": 1,
+      "name": "initial_projects",
+      "checksum": "35c5016e7ae358e1a8f477845b742f6738661a43959baf78dfc8d3d98deabc18",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0001_initial_projects.sql",
+      "wrangler": "/db/wrangler/0001_initial_projects.sql",
+      "statementCount": 3
+    },
+    {
+      "version": 2,
+      "name": "project_lifecycle",
+      "checksum": "60b091a88ba6bfd1c5a327d7ba594e6c9d74e72579696e0057804bc9636e7f4b",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0002_project_lifecycle.sql",
+      "wrangler": "/db/wrangler/0002_project_lifecycle.sql",
+      "statementCount": 6
+    },
+    {
+      "version": 3,
+      "name": "accounts_and_tenancy",
+      "checksum": "9818dbe0d6e276af37e70d245f7c9558b1ad803458786ebef315e9af4ed10836",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0003_accounts_and_tenancy.sql",
+      "wrangler": "/db/wrangler/0003_accounts_and_tenancy.sql",
+      "statementCount": 17
+    },
+    {
+      "version": 4,
+      "name": "optimistic_concurrency",
+      "checksum": "bfac1ab0c7d6320045da6af0863e094ff270087262d56fa8507ab414a59b169b",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0004_optimistic_concurrency.sql",
+      "wrangler": "/db/wrangler/0004_optimistic_concurrency.sql",
+      "statementCount": 3
+    },
+    {
+      "version": 5,
+      "name": "realtime_collaboration",
+      "checksum": "9aaa50b1ee0f730ede2ba825a035471c2559cbd6dcb87524139822648478bea8",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0005_realtime_collaboration.sql",
+      "wrangler": "/db/wrangler/0005_realtime_collaboration.sql",
+      "statementCount": 4
+    },
+    {
+      "version": 6,
+      "name": "sharing_notifications",
+      "checksum": "b7271cddc304567f93e12c4177069a91187a2ab92a6ded865d5e625b8c05034d",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0006_sharing_notifications.sql",
+      "wrangler": "/db/wrangler/0006_sharing_notifications.sql",
+      "statementCount": 6
+    }
+  ]
+}

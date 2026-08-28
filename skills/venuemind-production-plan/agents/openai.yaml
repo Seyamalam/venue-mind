@@ -1,0 +1,4 @@
+interface:
+  display_name: "VenueMind Production Plan"
+  short_description: "Plan validated staging, AV, power, and cables"
+  default_prompt: "Use $venuemind-production-plan to prepare a supervised production-layout proposal with validation evidence."

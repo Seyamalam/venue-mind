@@ -1,0 +1,2284 @@
+[
+  {
+    "name": "venue.list_projects",
+    "description": "List durable VenueMind Projects available to the current authenticated or local host scope without returning full snapshots.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "title": "List Projects",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {},
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "PROJECT_TOOL_UNAVAILABLE",
+      "PROJECT_NOT_FOUND"
+    ]
+  },
+  {
+    "name": "venue.open_project",
+    "description": "Select one durable Project as the active Project for this agent session. This never changes accepted Plan truth.",
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "projectId"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Open Project",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "projectId": "project-summit-forward"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "PROJECT_TOOL_UNAVAILABLE",
+      "PROJECT_NOT_FOUND"
+    ]
+  },
+  {
+    "name": "venue.inspect_templates",
+    "description": "Read versioned Venue, Room, and Inventory Item Templates, including starter room types and current inventory availability metadata.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "title": "Inspect Templates",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {},
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.get_project_brief",
+    "description": "Read the structured Event Brief, stable Requirement IDs, priorities, ownership, ambiguity flags, and accepted-Plan versus active-Proposal coverage.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "title": "Get Project Brief",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {},
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.list_constraints",
+    "description": "List versioned Constraints with current evaluation status, thresholds, policy sources, and remediation metadata.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "preference"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "title": "List Constraints",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {},
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.inspect_layout",
+    "description": "Read the active venue plan, stable object IDs, locked objects, constraints, metrics, proposal state, and branch summaries.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "title": "Inspect Layout",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 1048576
+    },
+    "exampleInput": {},
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.get_object",
+    "description": "Read one stable object with scoped accepted or Proposal geometry, operational metadata, and effective Locks.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "enum": [
+            "accepted",
+            "proposal"
+          ],
+          "default": "proposal"
+        }
+      },
+      "required": [
+        "objectId"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Get Object",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "objectId": "obj-av-desk",
+      "scope": "proposal"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "OBJECT_NOT_FOUND"
+    ]
+  },
+  {
+    "name": "venue.search_objects",
+    "description": "Search stable venue objects with bounded text, kind, layer, Lock, and accepted-versus-Proposal filters.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "kinds": {
+          "type": "array",
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "layers": {
+          "type": "array",
+          "maxItems": 7,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "architecture",
+              "furniture",
+              "access",
+              "production",
+              "catering",
+              "safety",
+              "annotations"
+            ]
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "scope": {
+          "enum": [
+            "accepted",
+            "proposal"
+          ],
+          "default": "proposal"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "default": 20
+        }
+      },
+      "additionalProperties": false
+    },
+    "title": "Search Objects",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "query": "route",
+      "layers": [
+        "access"
+      ],
+      "limit": 10
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.preview_revision",
+    "description": "Create a non-destructive venue revision preview. The result remains pending until a human approves it in VenueMind.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "goal": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The spatial outcome the revision should achieve."
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "goal",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Preview Revision",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:propose"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "goal": "Reduce entrance congestion",
+      "idempotencyKey": "example-preview-001",
+      "correlationId": "example-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.preview_template_update",
+    "description": "Create a non-destructive Proposal containing safe Room Template differences while preserving Project Overrides. Human Approval is always required.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "templateId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "toVersion": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "templateId",
+        "toVersion",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Preview Template Update",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:propose"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "templateId": "room-template-harborview-main-hall",
+      "toVersion": "1.1.0",
+      "idempotencyKey": "example-template-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.apply_edit",
+    "description": "Create one non-destructive, undoable spatial editing Change for placement, transform, duplication, alignment, distribution, grouping, zoning, paste, or deletion.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "edit": {
+          "type": "object",
+          "required": [
+            "operation"
+          ],
+          "properties": {
+            "operation": {
+              "enum": [
+                "place",
+                "move",
+                "rotate",
+                "resize",
+                "duplicate",
+                "align",
+                "distribute",
+                "delete",
+                "group",
+                "ungroup",
+                "create-zone",
+                "edit-zone-vertices",
+                "paste",
+                "apply-layout"
+              ]
+            }
+          },
+          "additionalProperties": true
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "edit",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Apply Edit",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:propose"
+    },
+    "limits": {
+      "maximumInputBytes": 262144,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "edit": {
+        "operation": "move",
+        "objectIds": [
+          "obj-av-desk"
+        ],
+        "delta": {
+          "x": 1,
+          "y": 0
+        }
+      },
+      "idempotencyKey": "example-edit-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.measure_objects",
+    "description": "Measure deterministic center points and pairwise distances for selected Project objects.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "objectIds"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Measure Objects",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "objectIds": [
+        "obj-stage-west",
+        "obj-av-desk"
+      ]
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.validate_layout",
+    "description": "Validate the visible proposal or committed plan against locks, accessibility, capacity, sightlines, and circulation constraints.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "title": "Validate Layout",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 1048576
+    },
+    "exampleInput": {},
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.get_validation_evidence",
+    "description": "Read deterministic evidence for the current Validation, optionally restricted to stable Constraint IDs.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "validationId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "constraintIds": {
+          "type": "array",
+          "maxItems": 50,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "includeSpatialEvidence": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "title": "Get Validation Evidence",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 1048576
+    },
+    "exampleInput": {
+      "constraintIds": [
+        "constraint-accessible-route"
+      ],
+      "includeSpatialEvidence": true
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "VALIDATION_NOT_FOUND"
+    ]
+  },
+  {
+    "name": "venue.list_proposal_branches",
+    "description": "Compare proposal branches by base version, change count, validation status, unresolved issues, and projected metrics.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "title": "List Proposal Branches",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {},
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.compare_proposal_branches",
+    "description": "Compare two Proposal Branches by spatial object differences, Change membership, projected metrics, and deterministic Constraint improvements or regressions.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "leftBranchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rightBranchId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "leftBranchId",
+        "rightBranchId"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Compare Proposal Branches",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "leftBranchId": "branch-balanced",
+      "rightBranchId": "branch-access"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.create_proposal_branch",
+    "description": "Create and activate a non-destructive proposal branch using a balanced, access-first, circulation-first, or sightlines-first strategy.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "strategy": {
+          "type": "string",
+          "enum": [
+            "balanced",
+            "access-first",
+            "circulation-first",
+            "sightlines-first"
+          ]
+        },
+        "goal": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "name",
+        "strategy",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Create Proposal Branch",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:propose"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "name": "Access first",
+      "strategy": "access-first",
+      "goal": "Protect accessible arrival",
+      "idempotencyKey": "example-branch-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.switch_proposal_branch",
+    "description": "Activate an existing proposal branch in the visible VenueMind workspace without approving it.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "branchId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Switch Proposal Branch",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:propose"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "branchId": "branch-balanced",
+      "idempotencyKey": "example-switch-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.update_proposal_branch",
+    "description": "Update a Proposal Branch name or review notes without changing its Proposal geometry.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "branchId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Update Proposal Branch",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:propose"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "branchId": "branch-balanced",
+      "notes": "Review access route",
+      "idempotencyKey": "example-branch-note-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.duplicate_proposal_branch",
+    "description": "Duplicate the current or a prior Proposal revision into a new active Branch with preserved stable Change IDs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proposalId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "branchId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Duplicate Proposal Branch",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:propose"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "branchId": "branch-balanced",
+      "name": "Balanced copy",
+      "idempotencyKey": "example-duplicate-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.archive_proposal_branch",
+    "description": "Archive a Proposal Branch without deleting its revisions or audit history.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "branchId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Archive Proposal Branch",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:propose"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "branchId": "branch-balanced",
+      "idempotencyKey": "example-archive-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.restore_proposal_branch",
+    "description": "Restore an archived Proposal Branch to the active comparison set.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "branchId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Restore Proposal Branch",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:propose"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "branchId": "branch-balanced",
+      "idempotencyKey": "example-restore-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.detect_proposal_conflicts",
+    "description": "Detect stale-base, deleted-dependency, locked-object, same-object, and Constraint-regression conflicts for a Proposal Branch.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "title": "Detect Proposal Conflicts",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "branchId": "branch-balanced"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.rebase_proposal",
+    "description": "Rebase a stale Proposal Branch onto the latest accepted Plan Version while preserving unchanged stable Change IDs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "branchId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Rebase Proposal",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:propose"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "branchId": "branch-balanced",
+      "idempotencyKey": "example-rebase-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.request_adjustment",
+    "description": "Create a new non-destructive Proposal revision recording an agent-requested adjustment. Human Approval is still required.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "instruction": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "instruction",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Request Adjustment",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:propose"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "instruction": "Increase rear clearance",
+      "idempotencyKey": "example-adjustment-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.list_comments",
+    "description": "Read comments by status, author, subject kind, or decision relevance without changing planning state.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [
+            "open",
+            "resolved"
+          ]
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subjectKind": {
+          "enum": [
+            "project",
+            "plan-version",
+            "proposal",
+            "change",
+            "constraint",
+            "coordinate"
+          ]
+        },
+        "decisionRelevant": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "title": "List Comments",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "status": "open",
+      "decisionRelevant": true
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.add_comment",
+    "description": "Add a non-planning Comment anchored to an immutable VenueMind subject or spatial coordinate.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "anchor": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "project",
+                "plan-version",
+                "proposal",
+                "change",
+                "constraint",
+                "coordinate"
+              ]
+            },
+            "projectId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "planVersion": {
+              "type": "string",
+              "minLength": 1
+            },
+            "proposalId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "changeId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "constraintId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "point": {
+              "type": "object",
+              "required": [
+                "x",
+                "y"
+              ],
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5000
+        },
+        "mentions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "decisionRelevant": {
+          "type": "boolean"
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "anchor",
+        "body",
+        "authorId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Add Comment",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:comment"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "anchor": {
+        "kind": "coordinate",
+        "planVersion": "3.2",
+        "point": {
+          "x": 12,
+          "y": 8
+        }
+      },
+      "body": "Review route intersection",
+      "authorId": "agent-reviewer",
+      "idempotencyKey": "example-comment-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.edit_comment",
+    "description": "Edit Comment text, mentions, or decision relevance while retaining immutable edit history.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "commentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5000
+        },
+        "mentions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "decisionRelevant": {
+          "type": "boolean"
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "commentId",
+        "body",
+        "authorId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Edit Comment",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:comment"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "commentId": "comment-0001",
+      "body": "Review route intersection before approval",
+      "authorId": "agent-reviewer",
+      "idempotencyKey": "example-comment-edit-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.set_comment_status",
+    "description": "Resolve or reopen a Comment without changing its immutable anchor or planning state.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "commentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "open",
+            "resolved"
+          ]
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "commentId",
+        "status",
+        "authorId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Set Comment Status",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:comment"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "commentId": "comment-0001",
+      "status": "resolved",
+      "authorId": "agent-reviewer",
+      "idempotencyKey": "example-comment-status-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.get_change_log",
+    "description": "Read the ordered human and agent Activity Ledger for the active Plan.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "title": "Get Change Log",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {},
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.replay_history",
+    "description": "Verify the Activity Ledger hash chain and replay accepted Plan transitions against the current Plan fingerprint.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "title": "Replay History",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {},
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.list_scenarios",
+    "description": "Read stored immutable Scenario definitions without running a simulation.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "title": "List Scenarios",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {},
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.list_scenario_runs",
+    "description": "Read queued, running, completed, cancelled, and failed Simulation Runs, including progress and partial results.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "title": "List Scenario Runs",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {},
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.get_scenario_result",
+    "description": "Read one stable Scenario Run and its completed or partial result, with density frames omitted unless explicitly requested.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "runId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "includeDensityFrames": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "runId"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Get Scenario Result",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:simulate"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 1048576
+    },
+    "exampleInput": {
+      "runId": "simulation-example",
+      "includeDensityFrames": false
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "SCENARIO_RUN_NOT_FOUND"
+    ]
+  },
+  {
+    "name": "venue.run_scenario",
+    "description": "Run one seeded operations, ingress-egress, or spatial queue Scenario against an exact Proposal Branch geometry. Results never replace deterministic Validation.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "scenario": {
+          "type": "object",
+          "required": [
+            "id",
+            "seed",
+            "horizonSeconds",
+            "inputs"
+          ],
+          "properties": {
+            "model": {
+              "enum": [
+                "operations",
+                "ingress-egress",
+                "queue"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "seed": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "horizonSeconds": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "sampleCount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            },
+            "phases": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "startSecond",
+                  "endSecond"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "startSecond": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "endSecond": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "demandShare": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "inputs": {
+              "type": "object",
+              "properties": {
+                "population": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "arrivalRatePerMinute": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "serviceRatePerMinute": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "servers": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "mobilityFactor": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "required": [
+                "population",
+                "arrivalRatePerMinute",
+                "serviceRatePerMinute",
+                "servers"
+              ],
+              "additionalProperties": false
+            },
+            "ingressEgress": {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "normal",
+                    "emergency"
+                  ]
+                },
+                "curves": {
+                  "type": "object",
+                  "properties": {
+                    "arrival": {
+                      "type": "array",
+                      "minItems": 2,
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "second",
+                          "cumulativeShare"
+                        ],
+                        "properties": {
+                          "second": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "cumulativeShare": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "departure": {
+                      "type": "array",
+                      "minItems": 2,
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "second",
+                          "cumulativeShare"
+                        ],
+                        "properties": {
+                          "second": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "cumulativeShare": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "mobilityProfiles": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "share"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "share": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "maximum": 1
+                      },
+                      "speedFactor": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "accessibleRouteRequired": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "assumptions": {
+                  "type": "object",
+                  "properties": {
+                    "normal": {
+                      "type": "object",
+                      "properties": {
+                        "responseDelaySeconds": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "flowFactor": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "elevatorsAvailable": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "emergency": {
+                      "type": "object",
+                      "properties": {
+                        "responseDelaySeconds": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "flowFactor": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "elevatorsAvailable": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "queue": {
+              "type": "object",
+              "properties": {
+                "category": {
+                  "enum": [
+                    "registration",
+                    "security",
+                    "cloakroom",
+                    "food",
+                    "beverage",
+                    "restroom",
+                    "merchandise",
+                    "transport"
+                  ]
+                },
+                "arrivalRatePerMinute": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "serviceRatePerServerMinute": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "servers": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "abandonment": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "meanPatienceSeconds": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "priorityLanes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "arrivalShare": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "maximum": 1
+                      },
+                      "servers": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "serviceRatePerServerMinute": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "queueObjectId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "bufferAreaM2": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "personAreaM2": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "scenario",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Run Scenario",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:simulate"
+    },
+    "limits": {
+      "maximumInputBytes": 131072,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "scenario": {
+        "id": "scenario-example",
+        "name": "Arrival peak",
+        "seed": 42,
+        "horizonSeconds": 1800,
+        "sampleCount": 32,
+        "inputs": {
+          "population": 400,
+          "arrivalRatePerMinute": 30,
+          "serviceRatePerMinute": 10,
+          "servers": 3
+        }
+      },
+      "branchId": "branch-balanced",
+      "idempotencyKey": "example-scenario-001"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT"
+    ]
+  },
+  {
+    "name": "venue.compare_simulations",
+    "description": "Compare two completed Runs with matching Scenario fingerprints and engine versions across Proposal Branches, including clearance, bottleneck, and accessible-route deltas for flow models.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "leftRunId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rightRunId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "leftRunId",
+        "rightRunId"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Compare Simulations",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:simulate"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "leftRunId": "simulation-left",
+      "rightRunId": "simulation-right"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.export_simulation",
+    "description": "Export one completed Simulation Run with its normalized Scenario parameters, engine version, input fingerprint, and confidence metadata.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "runId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "runId"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Export Simulation",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:export"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "runId": "simulation-example"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.export_audit_package",
+    "description": "Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "title": "Export Audit Package",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:export"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 2000000
+    },
+    "exampleInput": {},
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  },
+  {
+    "name": "venue.export_plan",
+    "description": "Export the validated Plan as JSON, compact text, layered SVG, print-ready plan or emergency PDF, object, inventory, staffing, production, catering, or replenishment CSV, staffing or production SVG, or a portable audit package.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": [
+            "json",
+            "text",
+            "svg",
+            "pdf",
+            "pdf-emergency",
+            "csv",
+            "csv-objects",
+            "csv-inventory",
+            "csv-staffing",
+            "svg-post-map",
+            "csv-production",
+            "svg-production",
+            "csv-catering-stations",
+            "csv-replenishment",
+            "audit"
+          ],
+          "default": "json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "title": "Export Plan",
+    "contractVersion": "1.2.0",
+    "authorization": {
+      "requiredScope": "venue:export"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 2000000
+    },
+    "exampleInput": {
+      "format": "json"
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR"
+    ]
+  }
+]

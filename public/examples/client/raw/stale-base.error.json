@@ -1,0 +1,14 @@
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "error": {
+    "code": "PLAN_VERSION_CONFLICT",
+    "message": "Plan version conflict.",
+    "remediation": "Inspect the latest Plan Version and create or rebase the Proposal before retrying.",
+    "details": {
+      "expectedVersion": "3.3",
+      "receivedVersion": "3.2",
+      "proposalId": "proposal-32-b"
+    }
+  }
+}

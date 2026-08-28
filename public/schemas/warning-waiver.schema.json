@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/warning-waiver.schema.json",
+  "title": "VenueMind Warning Waiver",
+  "type": "object",
+  "required": [
+    "id",
+    "constraintId",
+    "proposalId",
+    "baseVersion",
+    "validationInputFingerprint",
+    "authorId",
+    "reasonCode",
+    "createdAt"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^waiver-[a-z0-9-]+-[0-9a-f]{8}$"
+    },
+    "constraintId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "proposalId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "validationInputFingerprint": {
+      "type": "string",
+      "pattern": "^input-[0-9a-f]{8}$"
+    },
+    "authorId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reasonCode": {
+      "enum": [
+        "operational-acceptance",
+        "temporary-condition",
+        "equivalent-control",
+        "owner-approved-deviation"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "acceptedPlanVersion": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": false
+}

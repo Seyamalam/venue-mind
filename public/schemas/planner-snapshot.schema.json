@@ -1,0 +1,1589 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/planner-snapshot.schema.json",
+  "title": "VenueMind Planner Snapshot",
+  "type": "object",
+  "required": [
+    "plan",
+    "brief",
+    "proposal",
+    "activeBranchId",
+    "branches",
+    "ledger",
+    "receipts",
+    "projectLocks",
+    "scenarios",
+    "scenarioRuns"
+  ],
+  "properties": {
+    "plan": {
+      "type": "object",
+      "required": [
+        "id",
+        "version",
+        "event",
+        "venue",
+        "spatial",
+        "objects",
+        "constraints",
+        "metrics"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event": {
+          "type": "object"
+        },
+        "venue": {
+          "type": "object"
+        },
+        "occupancy": {
+          "type": "object",
+          "required": [
+            "venueMaximum",
+            "staff",
+            "performers",
+            "vendors",
+            "sections",
+            "zones"
+          ],
+          "properties": {
+            "venueMaximum": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "staff": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "performers": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "vendors": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "densityM2PerAttendee": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "objectId",
+                  "zoneId",
+                  "minimumCapacity",
+                  "maximumCapacity"
+                ],
+                "properties": {
+                  "objectId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "zoneId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "minimumCapacity": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "maximumCapacity": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "zones": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "label",
+                  "sectionObjectIds",
+                  "minimumCapacity",
+                  "maximumCapacity"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sectionObjectIds": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "minimumCapacity": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "maximumCapacity": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "staffing": {
+          "type": "object"
+        },
+        "productionPolicy": {
+          "type": "object"
+        },
+        "cateringPolicy": {
+          "type": "object"
+        },
+        "emergencyPlan": {
+          "type": "object"
+        },
+        "emergencyReviews": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "proposalId",
+              "basePlanVersion",
+              "acceptedPlanVersion",
+              "validationInputFingerprint",
+              "emergencyEvidenceFingerprint",
+              "changedObjectIds",
+              "reviewerId",
+              "reviewerRole",
+              "assumptionsAccepted",
+              "assumptions",
+              "note",
+              "reviewedAt"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^emergency-review-"
+              },
+              "proposalId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "basePlanVersion": {
+                "type": "string",
+                "minLength": 1
+              },
+              "acceptedPlanVersion": {
+                "type": "string",
+                "minLength": 1
+              },
+              "validationInputFingerprint": {
+                "type": "string",
+                "pattern": "^input-"
+              },
+              "emergencyEvidenceFingerprint": {
+                "type": "string",
+                "pattern": "^emergency-planning-"
+              },
+              "changedObjectIds": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "reviewerId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reviewerRole": {
+                "enum": [
+                  "safety-officer",
+                  "venue-administrator"
+                ]
+              },
+              "assumptionsAccepted": {
+                "const": true
+              },
+              "assumptions": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "note": {
+                "type": "string"
+              },
+              "reviewedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "spatial": {
+          "$ref": "https://venuemind.dev/schemas/spatial-geometry.schema.json"
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "kind",
+              "label",
+              "layer",
+              "elevationM",
+              "footprint",
+              "locked",
+              "locks"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "enum": [
+                  "stage",
+                  "screen",
+                  "projector",
+                  "speaker",
+                  "camera",
+                  "cable_route",
+                  "backstage_zone",
+                  "fire_exit",
+                  "assembly_point",
+                  "emergency_access_lane",
+                  "fire_equipment",
+                  "first_aid",
+                  "command_post",
+                  "entrance",
+                  "column",
+                  "table",
+                  "chair",
+                  "av_desk",
+                  "refreshment",
+                  "bar",
+                  "buffet",
+                  "kitchen",
+                  "prep_zone",
+                  "waste_point",
+                  "water_point",
+                  "barrier",
+                  "signage",
+                  "queue",
+                  "staff_post",
+                  "checkpoint",
+                  "stairs",
+                  "elevator",
+                  "utility_point",
+                  "rigging_point",
+                  "accessible_entrance",
+                  "seating_section",
+                  "accessible_restroom",
+                  "accessible_route",
+                  "door",
+                  "corridor",
+                  "aisle",
+                  "service_lane",
+                  "restricted_zone",
+                  "temporary_ramp"
+                ]
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "layer": {
+                "enum": [
+                  "architecture",
+                  "furniture",
+                  "access",
+                  "production",
+                  "catering",
+                  "safety",
+                  "annotations"
+                ]
+              },
+              "elevationM": {
+                "type": "number",
+                "minimum": 0
+              },
+              "footprint": {
+                "$ref": "https://venuemind.dev/schemas/spatial-geometry.schema.json#/$defs/footprint"
+              },
+              "locked": {
+                "type": "boolean"
+              },
+              "locks": {
+                "type": "array",
+                "items": {
+                  "$ref": "https://venuemind.dev/schemas/object-lock.schema.json"
+                }
+              },
+              "door": {
+                "type": "object",
+                "required": [
+                  "clearWidthM",
+                  "swing",
+                  "accessible"
+                ],
+                "properties": {
+                  "clearWidthM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "swing": {
+                    "enum": [
+                      "inward",
+                      "outward",
+                      "sliding",
+                      "revolving"
+                    ]
+                  },
+                  "accessible": {
+                    "type": "boolean"
+                  },
+                  "clearance": {
+                    "type": "object",
+                    "required": [
+                      "side",
+                      "depthM",
+                      "latchSideM"
+                    ],
+                    "properties": {
+                      "side": {
+                        "enum": [
+                          "left",
+                          "right",
+                          "both"
+                        ]
+                      },
+                      "depthM": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "latchSideM": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "exit": {
+                "type": "object",
+                "required": [
+                  "clearWidthM",
+                  "emergency",
+                  "capacityPersons"
+                ],
+                "properties": {
+                  "clearWidthM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "emergency": {
+                    "type": "boolean"
+                  },
+                  "capacityPersons": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "additionalProperties": false
+              },
+              "route": {
+                "type": "object",
+                "required": [
+                  "direction",
+                  "accessible",
+                  "purpose"
+                ],
+                "properties": {
+                  "direction": {
+                    "enum": [
+                      "one-way",
+                      "bidirectional"
+                    ]
+                  },
+                  "accessible": {
+                    "type": "boolean"
+                  },
+                  "purpose": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "staffOnly": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "restriction": {
+                "type": "object",
+                "required": [
+                  "access",
+                  "reasonCode",
+                  "blocksPlacement"
+                ],
+                "properties": {
+                  "access": {
+                    "enum": [
+                      "prohibited",
+                      "staff-only",
+                      "conditional"
+                    ]
+                  },
+                  "reasonCode": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "blocksPlacement": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "ramp": {
+                "type": "object",
+                "required": [
+                  "riseM",
+                  "runM",
+                  "clearWidthM",
+                  "landingLengthM",
+                  "edgeProtectionHeightM",
+                  "handrails"
+                ],
+                "properties": {
+                  "riseM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "runM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "clearWidthM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "landingLengthM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "edgeProtectionHeightM": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "handrails": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "placement": {
+                "type": "object",
+                "required": [
+                  "collisionMode"
+                ],
+                "properties": {
+                  "collisionMode": {
+                    "const": "solid"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "circulation": {
+                "type": "object",
+                "properties": {
+                  "blocksPath": {
+                    "type": "boolean"
+                  },
+                  "blocksExitApproach": {
+                    "type": "boolean"
+                  },
+                  "role": {
+                    "enum": [
+                      "queue",
+                      "checkpoint"
+                    ]
+                  },
+                  "demandPersons": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "capacityPersons": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "capacityPersonsPerMinute": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "clearWidthM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "carCapacityPersons": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "cycleSeconds": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "servesZoneIds": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "additionalProperties": false
+              },
+              "queue": {
+                "type": "object",
+                "required": [
+                  "category",
+                  "servers",
+                  "serviceRatePerServerMinute",
+                  "priorityLaneCount"
+                ],
+                "properties": {
+                  "category": {
+                    "enum": [
+                      "registration",
+                      "security",
+                      "cloakroom",
+                      "food",
+                      "beverage",
+                      "restroom",
+                      "merchandise",
+                      "transport"
+                    ]
+                  },
+                  "servers": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "serviceRatePerServerMinute": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "priorityLaneCount": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "additionalProperties": false
+              },
+              "staffPost": {
+                "type": "object",
+                "required": [
+                  "coverageZoneObjectIds",
+                  "assignments"
+                ],
+                "properties": {
+                  "coverageZoneObjectIds": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "assignments": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "shiftId",
+                        "roleId",
+                        "count"
+                      ],
+                      "properties": {
+                        "shiftId": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "roleId": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "count": {
+                          "type": "integer",
+                          "minimum": 1
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "additionalProperties": false
+              },
+              "utility": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "circuitId",
+                  "voltage",
+                  "maxWatts"
+                ],
+                "properties": {
+                  "type": {
+                    "const": "power"
+                  },
+                  "circuitId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "rating": {
+                    "type": "string"
+                  },
+                  "voltage": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "maxWatts": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "powerKw": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "additionalProperties": false
+              },
+              "rigging": {
+                "type": "object",
+                "required": [
+                  "safeWorkingLoadKg"
+                ],
+                "properties": {
+                  "safeWorkingLoadKg": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "additionalProperties": false
+              },
+              "productionZone": {
+                "type": "object",
+                "required": [
+                  "access"
+                ],
+                "properties": {
+                  "access": {
+                    "enum": [
+                      "crew-only",
+                      "performer-only",
+                      "mixed"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "production": {
+                "type": "object",
+                "required": [
+                  "equipmentType"
+                ],
+                "properties": {
+                  "equipmentType": {
+                    "enum": [
+                      "screen",
+                      "projector",
+                      "speaker",
+                      "camera",
+                      "control-desk",
+                      "cable-route",
+                      "power-distribution",
+                      "rigged-equipment"
+                    ]
+                  },
+                  "targetObjectId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "targetObjectIds": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "targetZoneObjectIds": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "sourceObjectId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "circuitId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "riggingPointId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "viewableWidthM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "viewableHeightM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "throwRatioMin": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "throwRatioMax": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "powerWatts": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "weightKg": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "requiresRigging": {
+                    "type": "boolean"
+                  },
+                  "aimPoint": {
+                    "type": "object",
+                    "required": [
+                      "x",
+                      "y"
+                    ],
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "coverageRangeM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "coverageAngleDegrees": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 360
+                  },
+                  "minimumDistanceM": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "maximumDistanceM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "cableType": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "crossingTreatment": {
+                    "enum": [
+                      "none",
+                      "overhead",
+                      "cable-ramp",
+                      "floor-channel"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "catering": {
+                "type": "object",
+                "required": [
+                  "type"
+                ],
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "bar",
+                      "buffet",
+                      "service-counter",
+                      "kitchen",
+                      "prep",
+                      "waste",
+                      "water",
+                      "queue-zone",
+                      "replenishment-route"
+                    ]
+                  },
+                  "servers": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "serviceRatePerServerMinute": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "demandShare": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1
+                  },
+                  "queueZoneObjectId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "queueBufferPersons": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "accessibleServicePoint": {
+                    "type": "boolean"
+                  },
+                  "serviceHeightM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "dietaryOptions": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "allergenLabels": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "replenishmentSourceObjectId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "waterSourceObjectId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceObjectId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "targetObjectIds": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "crossingControl": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "additionalProperties": false
+              },
+              "emergency": {
+                "type": "object",
+                "required": [
+                  "type"
+                ],
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "assembly-point",
+                      "emergency-access-lane",
+                      "fire-equipment",
+                      "first-aid",
+                      "command-post"
+                    ]
+                  },
+                  "capacityPersons": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "designatedExitObjectIds": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "responderOnly": {
+                    "type": "boolean"
+                  },
+                  "equipmentClass": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "coverageRadiusM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "clearanceM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "accessible": {
+                    "type": "boolean"
+                  },
+                  "powerSourceCircuitId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "backupPowerMinutes": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                },
+                "additionalProperties": false
+              },
+              "templateRef": {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "templateId",
+                  "version"
+                ],
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "venue-template",
+                      "room-template",
+                      "inventory-item-template"
+                    ]
+                  },
+                  "templateId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "templateObjectId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "version": {
+                    "type": "string",
+                    "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "templateOverrides": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "inventoryCount": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "door"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "door"
+                  ],
+                  "properties": {
+                    "footprint": {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "const": "line"
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "fire_exit"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "exit"
+                  ],
+                  "properties": {
+                    "footprint": {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "const": "line"
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "accessible_route",
+                        "corridor",
+                        "aisle",
+                        "service_lane"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "route"
+                  ],
+                  "properties": {
+                    "footprint": {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "const": "line"
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "restricted_zone"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "restriction"
+                  ],
+                  "properties": {
+                    "footprint": {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "enum": [
+                            "rectangle",
+                            "polygon"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "temporary_ramp"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "ramp"
+                  ],
+                  "properties": {
+                    "footprint": {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "const": "line"
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "staff_post"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "staffPost"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "utility_point"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "utility"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "rigging_point"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "rigging"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "backstage_zone"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "productionZone"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "cable_route"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "production"
+                  ],
+                  "properties": {
+                    "footprint": {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "const": "line"
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "bar",
+                        "buffet",
+                        "kitchen",
+                        "prep_zone",
+                        "waste_point",
+                        "water_point"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "catering"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "assembly_point",
+                        "emergency_access_lane",
+                        "fire_equipment",
+                        "first_aid",
+                        "command_post"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "emergency"
+                  ]
+                }
+              }
+            ],
+            "additionalProperties": true
+          }
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "$ref": "https://venuemind.dev/schemas/venue-constraint.schema.json"
+          }
+        },
+        "waivers": {
+          "type": "array",
+          "items": {
+            "$ref": "https://venuemind.dev/schemas/warning-waiver.schema.json"
+          }
+        },
+        "metrics": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "brief": {
+      "$ref": "https://venuemind.dev/schemas/event-brief.schema.json"
+    },
+    "proposal": {
+      "type": "object",
+      "required": [
+        "id",
+        "baseVersion",
+        "status",
+        "changes",
+        "waivers"
+      ],
+      "properties": {
+        "waivers": {
+          "type": "array",
+          "items": {
+            "$ref": "https://venuemind.dev/schemas/warning-waiver.schema.json"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "activeBranchId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "branches": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "strategy",
+          "proposal"
+        ],
+        "properties": {
+          "proposal": {
+            "type": "object",
+            "required": [
+              "waivers"
+            ],
+            "properties": {
+              "waivers": {
+                "type": "array",
+                "items": {
+                  "$ref": "https://venuemind.dev/schemas/warning-waiver.schema.json"
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "ledger": {
+      "$ref": "https://venuemind.dev/schemas/activity-ledger.schema.json"
+    },
+    "receipts": {
+      "type": "array",
+      "items": {
+        "$ref": "https://venuemind.dev/schemas/command-receipt.schema.json"
+      }
+    },
+    "projectLocks": {
+      "type": "array",
+      "items": {
+        "$ref": "https://venuemind.dev/schemas/object-lock.schema.json"
+      }
+    },
+    "editHistory": {
+      "type": "object",
+      "required": [
+        "undo",
+        "redo"
+      ],
+      "properties": {
+        "undo": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "redo": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "$ref": "https://venuemind.dev/schemas/comment.schema.json"
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "$ref": "https://venuemind.dev/schemas/scenario-definition.schema.json"
+      }
+    },
+    "scenarioRuns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "scenarioId",
+          "branchId",
+          "inputFingerprint",
+          "engineVersion",
+          "status",
+          "progress"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "scenarioId": {
+            "type": "string"
+          },
+          "scenarioFingerprint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scenarioSnapshot": {
+            "$ref": "https://venuemind.dev/schemas/scenario-definition.schema.json"
+          },
+          "model": {
+            "enum": [
+              "operations",
+              "ingress-egress",
+              "queue"
+            ]
+          },
+          "branchId": {
+            "type": "string"
+          },
+          "planId": {
+            "type": "string"
+          },
+          "planVersion": {
+            "type": "string"
+          },
+          "geometryFingerprint": {
+            "type": "string"
+          },
+          "inputFingerprint": {
+            "type": "string"
+          },
+          "engineVersion": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "completed",
+              "cancelled",
+              "failed"
+            ]
+          },
+          "progress": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "completedPhaseIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "partialResult": {
+            "anyOf": [
+              {
+                "$ref": "https://venuemind.dev/schemas/simulation-result.schema.json"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "https://venuemind.dev/schemas/simulation-result.schema.json"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "cancellationReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cacheHit": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

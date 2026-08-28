@@ -1,0 +1,151 @@
+# VenueMind
+
+> A versioned, human-supervised venue planning system for agents and operators.
+
+VenueMind lets agents inspect accepted Plans, preview non-destructive Proposals, validate spatial Constraints, compare Proposal Branches, and export validated plans.
+
+## Safety boundary
+
+- Agents may inspect, propose, validate, compare, comment, simulate, and export within an Organization- and Project-scoped Agent Grant.
+- Approval, Warning Waivers, Project Locks, and conflict decisions are human-only.
+- Proposal actions never mutate the accepted Plan; Approval creates the next immutable Plan Version.
+
+## Documentation
+
+- [Overview](/docs)
+- [Quickstart](/docs/quickstart)
+- [Core concepts](/docs/concepts)
+- [Create your first Project](/docs/tutorial-first-project)
+- [Run the supervised planning loop](/docs/tutorial-supervised-loop)
+- [Compare access-first and capacity-first branches](/docs/tutorial-compare-branches)
+- [Resolve a stale Proposal](/docs/tutorial-stale-proposal)
+- [Audit an approved Plan Version](/docs/tutorial-audit-plan)
+- [Install the VenueMind MCP server](/docs/tutorial-mcp-install)
+- [Use VenueMind through native WebMCP](/docs/tutorial-webmcp)
+- [Install and invoke VenueMind agent skills](/docs/tutorial-skills)
+- [Import, validate, and export a venue plan](/docs/tutorial-import-export)
+- [Recover from offline local state](/docs/tutorial-offline-recovery)
+- [WebMCP tools](/docs/webmcp)
+- [MCP server](/docs/mcp)
+- [Agent skills](/docs/skills)
+- [Client examples](/docs/client-examples)
+- [Tool reference](/docs/reference-tools)
+- [Command reference](/docs/reference-commands)
+- [Error catalog](/docs/reference-errors)
+- [Constraint and evidence reference](/docs/reference-constraints)
+- [Activity Ledger events](/docs/reference-ledger)
+- [Plan and Proposal lifecycle](/docs/reference-plan-lifecycle)
+- [Persistence and recovery](/docs/reference-persistence)
+- [Authorization reference](/docs/reference-authorization)
+- [Compatibility and deprecation](/docs/reference-compatibility)
+- [Architecture and contributing](/docs/architecture-contributing)
+- [Schemas and contracts](/docs/contracts)
+- [Documentation changelog](/docs/changelog)
+- [Safety and supervision](/docs/safety)
+- [Complete agent reference](/llms-full.txt)
+
+## Golden loop
+
+1. Call venue.get_project_brief and venue.inspect_layout.
+2. Call venue.preview_revision with a measurable outcome.
+3. Call venue.validate_layout.
+4. Review the Proposal and Requirement coverage in VenueMind Studio.
+5. A human approves the Proposal into the next immutable Plan Version.
+6. Export the validated plan, Event Brief, and Activity Ledger.
+
+## Tools
+
+- venue.list_projects: List durable VenueMind Projects available to the current authenticated or local host scope without returning full snapshots.
+- venue.open_project: Select one durable Project as the active Project for this agent session. This never changes accepted Plan truth.
+- venue.inspect_templates: Read versioned Venue, Room, and Inventory Item Templates, including starter room types and current inventory availability metadata.
+- venue.get_project_brief: Read the structured Event Brief, stable Requirement IDs, priorities, ownership, ambiguity flags, and accepted-Plan versus active-Proposal coverage.
+- venue.list_constraints: List versioned Constraints with current evaluation status, thresholds, policy sources, and remediation metadata.
+- venue.inspect_layout: Read the active venue plan, stable object IDs, locked objects, constraints, metrics, proposal state, and branch summaries.
+- venue.get_object: Read one stable object with scoped accepted or Proposal geometry, operational metadata, and effective Locks.
+- venue.search_objects: Search stable venue objects with bounded text, kind, layer, Lock, and accepted-versus-Proposal filters.
+- venue.preview_revision: Create a non-destructive venue revision preview. The result remains pending until a human approves it in VenueMind.
+- venue.preview_template_update: Create a non-destructive Proposal containing safe Room Template differences while preserving Project Overrides. Human Approval is always required.
+- venue.apply_edit: Create one non-destructive, undoable spatial editing Change for placement, transform, duplication, alignment, distribution, grouping, zoning, paste, or deletion.
+- venue.measure_objects: Measure deterministic center points and pairwise distances for selected Project objects.
+- venue.validate_layout: Validate the visible proposal or committed plan against locks, accessibility, capacity, sightlines, and circulation constraints.
+- venue.get_validation_evidence: Read deterministic evidence for the current Validation, optionally restricted to stable Constraint IDs.
+- venue.list_proposal_branches: Compare proposal branches by base version, change count, validation status, unresolved issues, and projected metrics.
+- venue.compare_proposal_branches: Compare two Proposal Branches by spatial object differences, Change membership, projected metrics, and deterministic Constraint improvements or regressions.
+- venue.create_proposal_branch: Create and activate a non-destructive proposal branch using a balanced, access-first, circulation-first, or sightlines-first strategy.
+- venue.switch_proposal_branch: Activate an existing proposal branch in the visible VenueMind workspace without approving it.
+- venue.update_proposal_branch: Update a Proposal Branch name or review notes without changing its Proposal geometry.
+- venue.duplicate_proposal_branch: Duplicate the current or a prior Proposal revision into a new active Branch with preserved stable Change IDs.
+- venue.archive_proposal_branch: Archive a Proposal Branch without deleting its revisions or audit history.
+- venue.restore_proposal_branch: Restore an archived Proposal Branch to the active comparison set.
+- venue.detect_proposal_conflicts: Detect stale-base, deleted-dependency, locked-object, same-object, and Constraint-regression conflicts for a Proposal Branch.
+- venue.rebase_proposal: Rebase a stale Proposal Branch onto the latest accepted Plan Version while preserving unchanged stable Change IDs.
+- venue.request_adjustment: Create a new non-destructive Proposal revision recording an agent-requested adjustment. Human Approval is still required.
+- venue.list_comments: Read comments by status, author, subject kind, or decision relevance without changing planning state.
+- venue.add_comment: Add a non-planning Comment anchored to an immutable VenueMind subject or spatial coordinate.
+- venue.edit_comment: Edit Comment text, mentions, or decision relevance while retaining immutable edit history.
+- venue.set_comment_status: Resolve or reopen a Comment without changing its immutable anchor or planning state.
+- venue.get_change_log: Read the ordered human and agent Activity Ledger for the active Plan.
+- venue.replay_history: Verify the Activity Ledger hash chain and replay accepted Plan transitions against the current Plan fingerprint.
+- venue.list_scenarios: Read stored immutable Scenario definitions without running a simulation.
+- venue.list_scenario_runs: Read queued, running, completed, cancelled, and failed Simulation Runs, including progress and partial results.
+- venue.get_scenario_result: Read one stable Scenario Run and its completed or partial result, with density frames omitted unless explicitly requested.
+- venue.run_scenario: Run one seeded operations, ingress-egress, or spatial queue Scenario against an exact Proposal Branch geometry. Results never replace deterministic Validation.
+- venue.compare_simulations: Compare two completed Runs with matching Scenario fingerprints and engine versions across Proposal Branches, including clearance, bottleneck, and accessible-route deltas for flow models.
+- venue.export_simulation: Export one completed Simulation Run with its normalized Scenario parameters, engine version, input fingerprint, and confidence metadata.
+- venue.export_audit_package: Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.
+- venue.export_plan: Export the validated Plan as JSON, compact text, layered SVG, print-ready plan or emergency PDF, object, inventory, staffing, production, catering, or replenishment CSV, staffing or production SVG, or a portable audit package.
+
+## Agent skills
+
+- venuemind-plan 1.1.0
+- venuemind-audit 1.1.0
+- venuemind-access-review 1.1.0
+- venuemind-crowd-flow 1.1.0
+- venuemind-production-plan 1.1.0
+- venuemind-event-day 1.1.0
+
+## Compatibility
+
+- Project record: 10
+- Spatial geometry: 1
+- Venue Template catalog: 1
+- Validation engine: 2.7.0
+- Simulation engine: 1.2.1
+- Activity Ledger: 1
+- Tool contracts: 1.2.0
+- MCP server: 0.4.0
+- Agent skills: 1.1.0
+- Interchange Package: 1
+
+## Machine-readable contracts
+
+- [Venue command schema](/schemas/venue-command.schema.json)
+- [Venue tool manifest schema](/schemas/venue-tool-manifest.schema.json)
+- [Venue tool manifest](/venue-tools.json)
+- [Venue tool examples](/examples/venue-tool-examples.json)
+- [Tool error catalog](/tool-error-catalog.json)
+- [Reference manifest](/reference-manifest.json)
+- [Agent skill package manifest](/skills-manifest.json)
+- [Agent skill evaluation metrics](/skill-evaluation-metrics.json)
+- [Authorization policy](/authorization-policy.json)
+- [Agent Grant schema](/schemas/agent-grant.schema.json)
+- [Authorization policy schema](/schemas/authorization-policy.schema.json)
+- [Event Brief schema](/schemas/event-brief.schema.json)
+- [Scenario definition schema](/schemas/scenario-definition.schema.json)
+- [Simulation result schema](/schemas/simulation-result.schema.json)
+- [Spatial geometry schema](/schemas/spatial-geometry.schema.json)
+- [Spatial evidence schema](/schemas/spatial-evidence.schema.json)
+- [Venue Constraint schema](/schemas/venue-constraint.schema.json)
+- [Warning Waiver schema](/schemas/warning-waiver.schema.json)
+- [Object Lock schema](/schemas/object-lock.schema.json)
+- [Venue error schema](/schemas/venue-error.schema.json)
+- [Error catalog](/error-catalog.json)
+- [Validation result schema](/schemas/validation-result.schema.json)
+- [Command receipt schema](/schemas/command-receipt.schema.json)
+- [Activity Ledger schema](/schemas/activity-ledger.schema.json)
+- [Proposal conflicts schema](/schemas/proposal-conflicts.schema.json)
+- [Proposal comparison schema](/schemas/proposal-comparison.schema.json)
+- [Planner snapshot schema](/schemas/planner-snapshot.schema.json)
+- [Project record schema](/schemas/project-record.schema.json)
+- [VenueMind Interchange Package schema](/schemas/venue-project-package.schema.json)
+- [VenueMind Interchange Package example](/examples/venuemind-project-package.json)

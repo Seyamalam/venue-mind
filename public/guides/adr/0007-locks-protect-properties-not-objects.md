@@ -1,0 +1,3 @@
+# Locks protect properties, not whole objects
+
+VenueMind represents protection as stable Lock records bound to one object and one property class: position, rotation, dimension, deletion, or role. Venue-template Locks travel with accepted Plan geometry. Human-authored Project Locks remain outside the immutable Plan, carry reason and authorship metadata, and require an explicit release command. Every boundary uses the same conflict detector, while Validation and Proposal conflict evidence retain the exact Lock ID, type, source, object ID, and Change ID. Legacy boolean locks migrate to five venue-template Locks so older Projects keep their original full-protection behavior.

@@ -1,0 +1,406 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/scenario-definition.schema.json",
+  "title": "VenueMind Scenario",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "model",
+    "id",
+    "name",
+    "seed",
+    "horizonSeconds",
+    "sampleCount",
+    "phases",
+    "inputs",
+    "confidence"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "model": {
+      "enum": [
+        "operations",
+        "ingress-egress",
+        "queue"
+      ]
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "horizonSeconds": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "sampleCount": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "phases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "startSecond",
+          "endSecond",
+          "demandShare"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "startSecond": {
+            "type": "number"
+          },
+          "endSecond": {
+            "type": "number"
+          },
+          "demandShare": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "population",
+        "arrivalRatePerMinute",
+        "serviceRatePerMinute",
+        "servers",
+        "mobilityFactor"
+      ],
+      "properties": {
+        "population": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "arrivalRatePerMinute": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "serviceRatePerMinute": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "servers": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mobilityFactor": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "ingressEgress": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "enum": [
+            "normal",
+            "emergency"
+          ]
+        },
+        "curves": {
+          "type": "object",
+          "properties": {
+            "arrival": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "object",
+                "required": [
+                  "second",
+                  "cumulativeShare"
+                ],
+                "properties": {
+                  "second": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "cumulativeShare": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "departure": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "object",
+                "required": [
+                  "second",
+                  "cumulativeShare"
+                ],
+                "properties": {
+                  "second": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "cumulativeShare": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "mobilityProfiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "share"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string"
+              },
+              "share": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1
+              },
+              "speedFactor": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "accessibleRouteRequired": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "assumptions": {
+          "type": "object",
+          "properties": {
+            "normal": {
+              "type": "object",
+              "properties": {
+                "responseDelaySeconds": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "flowFactor": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "elevatorsAvailable": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "emergency": {
+              "type": "object",
+              "properties": {
+                "responseDelaySeconds": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "flowFactor": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "elevatorsAvailable": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "queue": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "enum": [
+            "registration",
+            "security",
+            "cloakroom",
+            "food",
+            "beverage",
+            "restroom",
+            "merchandise",
+            "transport"
+          ]
+        },
+        "arrivalRatePerMinute": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "serviceRatePerServerMinute": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "servers": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "abandonment": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "meanPatienceSeconds": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "priorityLanes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string"
+              },
+              "arrivalShare": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1
+              },
+              "servers": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "serviceRatePerServerMinute": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "queueObjectId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "bufferAreaM2": {
+          "type": "number",
+          "minimum": 0
+        },
+        "personAreaM2": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "confidence": {
+      "type": "object",
+      "required": [
+        "method",
+        "level",
+        "uncertaintyDrivers"
+      ],
+      "properties": {
+        "method": {
+          "const": "seeded-percentile-sampling"
+        },
+        "level": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "uncertaintyDrivers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "model": {
+            "const": "ingress-egress"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
+      "then": {
+        "required": [
+          "ingressEgress"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "model": {
+            "const": "queue"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
+      "then": {
+        "required": [
+          "queue"
+        ]
+      }
+    }
+  ],
+  "additionalProperties": false
+}

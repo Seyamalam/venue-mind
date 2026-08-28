@@ -1,0 +1,4 @@
+interface:
+  display_name: "VenueMind Event Day"
+  short_description: "Triage live venue issues with evidence"
+  default_prompt: "Use $venuemind-event-day to triage this live venue issue and prepare any supervised adjustment."

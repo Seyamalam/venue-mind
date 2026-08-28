@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/venue-error.schema.json",
+  "title": "VenueMind Error",
+  "type": "object",
+  "required": [
+    "code",
+    "message",
+    "remediation",
+    "details"
+  ],
+  "properties": {
+    "code": {
+      "enum": [
+        "COMMAND_INVALID",
+        "COMMAND_UNSUPPORTED",
+        "IDEMPOTENCY_KEY_REQUIRED",
+        "IDEMPOTENCY_KEY_CONFLICT",
+        "SNAPSHOT_INVALID",
+        "ADJUSTMENT_REQUIRED",
+        "PROPOSAL_NOT_REVIEWABLE",
+        "PROPOSAL_MISMATCH",
+        "BRANCH_NAME_REQUIRED",
+        "BRANCH_NOT_FOUND",
+        "REBASE_CONFLICT",
+        "CONFLICT_NOT_FOUND",
+        "CONFLICT_RESOLUTION_INVALID",
+        "CONFLICT_HUMAN_REQUIRED",
+        "LOCK_CONFLICT",
+        "LOCK_HUMAN_REQUIRED",
+        "LOCK_OBJECT_NOT_FOUND",
+        "LOCK_TYPE_INVALID",
+        "LOCK_NOT_FOUND",
+        "PLAN_VERSION_CONFLICT",
+        "VALIDATION_FAILED",
+        "WARNING_WAIVER_REQUIRED",
+        "EMERGENCY_REVIEW_REQUIRED",
+        "EMERGENCY_REVIEW_UNAUTHORIZED",
+        "WAIVER_HUMAN_REQUIRED",
+        "WAIVER_AUTHOR_REQUIRED",
+        "WAIVER_REASON_INVALID",
+        "WARNING_NOT_WAIVABLE",
+        "WARNING_ALREADY_WAIVED",
+        "CONSTRAINT_NOT_FOUND",
+        "CONSTRAINT_INVALID",
+        "CONSTRAINT_DUPLICATE",
+        "CONSTRAINT_EVIDENCE_INVALID",
+        "CONSTRAINT_EVALUATOR_UNSUPPORTED",
+        "GEOMETRY_INVALID",
+        "SPATIAL_CHANGE_TARGET_MISSING",
+        "SPATIAL_CHANGE_TARGET_EXISTS",
+        "SPATIAL_CHANGE_UNSUPPORTED",
+        "TEMPLATE_VERSION_NOT_FOUND",
+        "TEMPLATE_SCHEMA_UNSUPPORTED",
+        "TEMPLATE_BINDING_NOT_FOUND",
+        "TEMPLATE_VERSION_CURRENT",
+        "COMMENT_INVALID",
+        "COMMENT_ANCHOR_INVALID",
+        "COMMENT_AUTHOR_REQUIRED",
+        "COMMENT_NOT_FOUND",
+        "PROJECT_NOT_FOUND",
+        "PROJECT_TOOL_UNAVAILABLE",
+        "OBJECT_NOT_FOUND",
+        "VALIDATION_NOT_FOUND",
+        "SCENARIO_RUN_NOT_FOUND",
+        "TOOL_SCOPE_REQUIRED",
+        "AUTHORIZATION_DENIED",
+        "AGENT_GRANT_INVALID",
+        "TOOL_PAYLOAD_TOO_LARGE",
+        "TOOL_CALL_CANCELLED",
+        "LEDGER_INTEGRITY_FAILED",
+        "VENUE_INTERNAL_ERROR"
+      ]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1
+    },
+    "remediation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "details": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

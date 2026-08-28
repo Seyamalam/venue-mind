@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/venue-constraint.schema.json",
+  "title": "VenueMind Constraint",
+  "type": "object",
+  "required": [
+    "id",
+    "checkId",
+    "evaluator",
+    "label",
+    "category",
+    "severity",
+    "waivable",
+    "scope",
+    "parameters",
+    "remediation"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "checkId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evaluator": {
+      "enum": [
+        "minimum_metric",
+        "maximum_metric",
+        "protected_objects_unchanged",
+        "accessible_route_graph",
+        "turning_clearance",
+        "accessible_seating",
+        "accessible_seating_sightlines",
+        "door_clearance",
+        "temporary_ramp",
+        "occupancy_capacity",
+        "circulation_graph",
+        "sightline_raycast",
+        "production_readiness",
+        "catering_readiness",
+        "emergency_readiness"
+      ]
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "severity": {
+      "enum": [
+        "error",
+        "warning"
+      ]
+    },
+    "waivable": {
+      "type": "boolean"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "scope": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "plan",
+            "zone",
+            "object"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "policy": {
+      "type": "object",
+      "required": [
+        "source",
+        "jurisdiction",
+        "effectiveDate"
+      ],
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "jurisdiction": {
+          "type": "string"
+        },
+        "effectiveDate": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "additionalProperties": false
+    },
+    "remediation": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "severity": {
+            "const": "error"
+          }
+        },
+        "required": [
+          "severity"
+        ]
+      },
+      "then": {
+        "properties": {
+          "waivable": {
+            "const": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "severity": {
+            "const": "warning"
+          }
+        },
+        "required": [
+          "severity"
+        ]
+      },
+      "then": {
+        "properties": {
+          "waivable": {
+            "const": true
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

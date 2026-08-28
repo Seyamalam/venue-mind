@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/event-brief.schema.json",
+  "title": "VenueMind Event Brief",
+  "type": "object",
+  "required": [
+    "id",
+    "eventName",
+    "date",
+    "timezone",
+    "venueId",
+    "roomId",
+    "attendeeTarget",
+    "occupancyMode",
+    "requirements"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "eventName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "date": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
+    "timezone": {
+      "type": "string",
+      "minLength": 1
+    },
+    "venueId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "roomId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "attendeeTarget": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "occupancyMode": {
+      "enum": [
+        "theater",
+        "classroom",
+        "banquet",
+        "standing",
+        "mixed",
+        "custom"
+      ]
+    },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "category",
+          "label",
+          "priority",
+          "owner",
+          "status",
+          "measurable",
+          "constraintIds",
+          "evidenceRefs"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "category": {
+            "enum": [
+              "accessibility",
+              "seating",
+              "production",
+              "catering",
+              "staffing",
+              "security",
+              "emergency",
+              "circulation"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "priority": {
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "owner": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "enum": [
+              "open",
+              "confirmed",
+              "satisfied",
+              "waived"
+            ]
+          },
+          "measurable": {
+            "type": "boolean"
+          },
+          "constraintIds": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "evidenceRefs": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

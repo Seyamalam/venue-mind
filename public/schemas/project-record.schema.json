@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/project-record.schema.json",
+  "title": "VenueMind Project Record",
+  "type": "object",
+  "required": [
+    "id",
+    "organizationId",
+    "name",
+    "activePlanId",
+    "schemaVersion",
+    "snapshot",
+    "createdAt",
+    "updatedAt",
+    "revision"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "organizationId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "activePlanId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schemaVersion": {
+      "const": 10
+    },
+    "snapshot": {
+      "$ref": "https://venuemind.dev/schemas/planner-snapshot.schema.json"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "archivedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "deletedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "recoveryUntil": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "pinned": {
+      "type": "boolean"
+    },
+    "lastOpenedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "sourceFormat",
+        "formatVersion",
+        "packageId",
+        "payloadSha256",
+        "exportedAt",
+        "importedAt",
+        "originalProjectId",
+        "source"
+      ],
+      "properties": {
+        "sourceFormat": {
+          "const": "venuemind-project"
+        },
+        "formatVersion": {
+          "const": 1
+        },
+        "packageId": {
+          "type": "string",
+          "pattern": "^package-[0-9a-f]{16}$"
+        },
+        "payloadSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "exportedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "importedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "originalProjectId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

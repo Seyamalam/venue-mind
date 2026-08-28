@@ -1,0 +1,166 @@
+{
+  "venue.list_projects": {},
+  "venue.open_project": {
+    "projectId": "project-summit-forward"
+  },
+  "venue.inspect_templates": {},
+  "venue.get_project_brief": {},
+  "venue.list_constraints": {},
+  "venue.inspect_layout": {},
+  "venue.get_object": {
+    "objectId": "obj-av-desk",
+    "scope": "proposal"
+  },
+  "venue.search_objects": {
+    "query": "route",
+    "layers": [
+      "access"
+    ],
+    "limit": 10
+  },
+  "venue.preview_revision": {
+    "goal": "Reduce entrance congestion",
+    "idempotencyKey": "example-preview-001",
+    "correlationId": "example-001"
+  },
+  "venue.preview_template_update": {
+    "templateId": "room-template-harborview-main-hall",
+    "toVersion": "1.1.0",
+    "idempotencyKey": "example-template-001"
+  },
+  "venue.apply_edit": {
+    "edit": {
+      "operation": "move",
+      "objectIds": [
+        "obj-av-desk"
+      ],
+      "delta": {
+        "x": 1,
+        "y": 0
+      }
+    },
+    "idempotencyKey": "example-edit-001"
+  },
+  "venue.measure_objects": {
+    "objectIds": [
+      "obj-stage-west",
+      "obj-av-desk"
+    ]
+  },
+  "venue.validate_layout": {},
+  "venue.get_validation_evidence": {
+    "constraintIds": [
+      "constraint-accessible-route"
+    ],
+    "includeSpatialEvidence": true
+  },
+  "venue.list_proposal_branches": {},
+  "venue.compare_proposal_branches": {
+    "leftBranchId": "branch-balanced",
+    "rightBranchId": "branch-access"
+  },
+  "venue.create_proposal_branch": {
+    "name": "Access first",
+    "strategy": "access-first",
+    "goal": "Protect accessible arrival",
+    "idempotencyKey": "example-branch-001"
+  },
+  "venue.switch_proposal_branch": {
+    "branchId": "branch-balanced",
+    "idempotencyKey": "example-switch-001"
+  },
+  "venue.update_proposal_branch": {
+    "branchId": "branch-balanced",
+    "notes": "Review access route",
+    "idempotencyKey": "example-branch-note-001"
+  },
+  "venue.duplicate_proposal_branch": {
+    "branchId": "branch-balanced",
+    "name": "Balanced copy",
+    "idempotencyKey": "example-duplicate-001"
+  },
+  "venue.archive_proposal_branch": {
+    "branchId": "branch-balanced",
+    "idempotencyKey": "example-archive-001"
+  },
+  "venue.restore_proposal_branch": {
+    "branchId": "branch-balanced",
+    "idempotencyKey": "example-restore-001"
+  },
+  "venue.detect_proposal_conflicts": {
+    "branchId": "branch-balanced"
+  },
+  "venue.rebase_proposal": {
+    "branchId": "branch-balanced",
+    "idempotencyKey": "example-rebase-001"
+  },
+  "venue.request_adjustment": {
+    "instruction": "Increase rear clearance",
+    "idempotencyKey": "example-adjustment-001"
+  },
+  "venue.list_comments": {
+    "status": "open",
+    "decisionRelevant": true
+  },
+  "venue.add_comment": {
+    "anchor": {
+      "kind": "coordinate",
+      "planVersion": "3.2",
+      "point": {
+        "x": 12,
+        "y": 8
+      }
+    },
+    "body": "Review route intersection",
+    "authorId": "agent-reviewer",
+    "idempotencyKey": "example-comment-001"
+  },
+  "venue.edit_comment": {
+    "commentId": "comment-0001",
+    "body": "Review route intersection before approval",
+    "authorId": "agent-reviewer",
+    "idempotencyKey": "example-comment-edit-001"
+  },
+  "venue.set_comment_status": {
+    "commentId": "comment-0001",
+    "status": "resolved",
+    "authorId": "agent-reviewer",
+    "idempotencyKey": "example-comment-status-001"
+  },
+  "venue.get_change_log": {},
+  "venue.replay_history": {},
+  "venue.list_scenarios": {},
+  "venue.list_scenario_runs": {},
+  "venue.get_scenario_result": {
+    "runId": "simulation-example",
+    "includeDensityFrames": false
+  },
+  "venue.run_scenario": {
+    "scenario": {
+      "id": "scenario-example",
+      "name": "Arrival peak",
+      "seed": 42,
+      "horizonSeconds": 1800,
+      "sampleCount": 32,
+      "inputs": {
+        "population": 400,
+        "arrivalRatePerMinute": 30,
+        "serviceRatePerMinute": 10,
+        "servers": 3
+      }
+    },
+    "branchId": "branch-balanced",
+    "idempotencyKey": "example-scenario-001"
+  },
+  "venue.compare_simulations": {
+    "leftRunId": "simulation-left",
+    "rightRunId": "simulation-right"
+  },
+  "venue.export_simulation": {
+    "runId": "simulation-example"
+  },
+  "venue.export_audit_package": {},
+  "venue.export_plan": {
+    "format": "json"
+  }
+}

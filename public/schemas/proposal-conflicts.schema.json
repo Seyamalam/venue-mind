@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/proposal-conflicts.schema.json",
+  "title": "VenueMind Proposal Conflicts",
+  "type": "object",
+  "required": [
+    "status",
+    "branchId",
+    "proposalId",
+    "stale",
+    "baseVersion",
+    "currentVersion",
+    "conflicts",
+    "blockingConflicts",
+    "validation"
+  ],
+  "properties": {
+    "status": {
+      "enum": [
+        "clear",
+        "conflicts"
+      ]
+    },
+    "branchId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "proposalId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stale": {
+      "type": "boolean"
+    },
+    "baseVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "currentVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "severity",
+          "blocking",
+          "baseVersion",
+          "currentVersion",
+          "changeIds",
+          "objectIds",
+          "resolutionOptions"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "enum": [
+              "stale-base",
+              "deleted-dependency",
+              "lock-conflict",
+              "same-object-edit",
+              "geometry-overlap",
+              "constraint-regression"
+            ]
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning"
+            ]
+          },
+          "blocking": {
+            "type": "boolean"
+          },
+          "baseVersion": {
+            "type": "string"
+          },
+          "currentVersion": {
+            "type": "string"
+          },
+          "changeIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "objectIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "constraintId": {
+            "type": "string"
+          },
+          "validationId": {
+            "type": "string"
+          },
+          "lockId": {
+            "type": "string"
+          },
+          "lockType": {
+            "enum": [
+              "position",
+              "rotation",
+              "dimension",
+              "deletion",
+              "role"
+            ]
+          },
+          "lockSource": {
+            "enum": [
+              "venue-template",
+              "project"
+            ]
+          },
+          "resolutionOptions": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "rebase",
+                "drop-change",
+                "keep-proposal",
+                "keep-plan",
+                "manual-resolution",
+                "revise-proposal"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "blockingConflicts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "validation": {
+      "$ref": "https://venuemind.dev/schemas/validation-result.schema.json"
+    }
+  },
+  "additionalProperties": false
+}

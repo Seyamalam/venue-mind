@@ -1,0 +1,11 @@
+{
+  "transport": "stdio",
+  "command": "node",
+  "args": [
+    "<VENUE_MIND_ROOT>/packages/mcp-server/dist/index.js"
+  ],
+  "env": {
+    "VENUEMIND_DATA_DIR": "<WRITABLE_DATA_DIR>",
+    "VENUEMIND_ORGANIZATION_ID": "<ORGANIZATION_ID>"
+  }
+}

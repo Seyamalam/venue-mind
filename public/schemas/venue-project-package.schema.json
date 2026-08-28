@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/venue-project-package.schema.json",
+  "title": "VenueMind Interchange Package",
+  "type": "object",
+  "required": [
+    "format",
+    "formatVersion",
+    "manifest",
+    "project"
+  ],
+  "properties": {
+    "format": {
+      "const": "venuemind-project"
+    },
+    "formatVersion": {
+      "const": 1
+    },
+    "manifest": {
+      "type": "object",
+      "required": [
+        "packageId",
+        "exportedAt",
+        "payloadBytes",
+        "payloadSha256",
+        "manifestSha256",
+        "source"
+      ],
+      "properties": {
+        "packageId": {
+          "type": "string",
+          "pattern": "^package-[0-9a-f]{16}$"
+        },
+        "exportedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payloadBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2000000
+        },
+        "payloadSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "manifestSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "application",
+            "projectId",
+            "projectSchemaVersion"
+          ],
+          "properties": {
+            "application": {
+              "type": "string",
+              "minLength": 1
+            },
+            "applicationVersion": {
+              "type": "string"
+            },
+            "projectId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "projectSchemaVersion": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10
+            },
+            "external": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "activePlanId",
+        "schemaVersion",
+        "snapshot",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "activePlanId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "snapshot": {
+          "$ref": "https://venuemind.dev/schemas/planner-snapshot.schema.json"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "provenance": {
+          "type": "object",
+          "required": [
+            "sourceFormat",
+            "formatVersion",
+            "packageId",
+            "payloadSha256",
+            "exportedAt",
+            "importedAt",
+            "originalProjectId",
+            "source"
+          ],
+          "properties": {
+            "sourceFormat": {
+              "const": "venuemind-project"
+            },
+            "formatVersion": {
+              "const": 1
+            },
+            "packageId": {
+              "type": "string",
+              "pattern": "^package-[0-9a-f]{16}$"
+            },
+            "payloadSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "exportedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "importedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "originalProjectId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/comment.schema.json",
+  "title": "VenueMind Comment",
+  "type": "object",
+  "required": [
+    "id",
+    "anchor",
+    "body",
+    "mentions",
+    "decisionRelevant",
+    "status",
+    "authorId",
+    "authorType",
+    "createdAt",
+    "updatedAt",
+    "resolvedAt",
+    "resolvedBy",
+    "editHistory"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^comment-[0-9]+$"
+    },
+    "anchor": {
+      "$ref": "https://venuemind.dev/schemas/comment-anchor.schema.json"
+    },
+    "body": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 5000
+    },
+    "mentions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "decisionRelevant": {
+      "type": "boolean"
+    },
+    "status": {
+      "enum": [
+        "open",
+        "resolved"
+      ]
+    },
+    "authorId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authorType": {
+      "enum": [
+        "human",
+        "agent",
+        "system"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolvedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "resolvedBy": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "editHistory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "body",
+          "mentions",
+          "decisionRelevant",
+          "editedAt",
+          "editedBy"
+        ],
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "mentions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "decisionRelevant": {
+            "type": "boolean"
+          },
+          "editedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "editedBy": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

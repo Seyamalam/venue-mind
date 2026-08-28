@@ -1,0 +1,2360 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/venue-command.schema.json",
+  "title": "VenueMind Command",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "inspect_templates"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "measure_objects"
+        },
+        "objectIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "type",
+        "objectIds"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "inspect_layout"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "get_project_brief"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "list_constraints"
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "preference"
+          ]
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "get_validation_evidence"
+        },
+        "validationId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "constraintIds": {
+          "type": "array",
+          "maxItems": 50,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "includeSpatialEvidence": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "get_object"
+        },
+        "objectId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "enum": [
+            "accepted",
+            "proposal"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "objectId"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "search_objects"
+        },
+        "query": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "kinds": {
+          "type": "array",
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "layers": {
+          "type": "array",
+          "maxItems": 7,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "architecture",
+              "furniture",
+              "access",
+              "production",
+              "catering",
+              "safety",
+              "annotations"
+            ]
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "scope": {
+          "enum": [
+            "accepted",
+            "proposal"
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "validate_layout"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "list_branches"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "compare_branches"
+        },
+        "leftBranchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rightBranchId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "leftBranchId",
+        "rightBranchId"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "get_change_log"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "replay_history"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "list_scenarios"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "list_scenario_runs"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "get_scenario_result"
+        },
+        "runId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "includeDensityFrames": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "runId"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "run_scenario"
+        },
+        "scenario": {
+          "type": "object",
+          "required": [
+            "id",
+            "seed",
+            "horizonSeconds",
+            "inputs"
+          ],
+          "properties": {
+            "model": {
+              "enum": [
+                "operations",
+                "ingress-egress",
+                "queue"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "seed": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "horizonSeconds": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "sampleCount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            },
+            "phases": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "startSecond",
+                  "endSecond"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "startSecond": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "endSecond": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "demandShare": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "inputs": {
+              "type": "object",
+              "properties": {
+                "population": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "arrivalRatePerMinute": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "serviceRatePerMinute": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "servers": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "mobilityFactor": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "required": [
+                "population",
+                "arrivalRatePerMinute",
+                "serviceRatePerMinute",
+                "servers"
+              ],
+              "additionalProperties": false
+            },
+            "ingressEgress": {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "normal",
+                    "emergency"
+                  ]
+                },
+                "curves": {
+                  "type": "object",
+                  "properties": {
+                    "arrival": {
+                      "type": "array",
+                      "minItems": 2,
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "second",
+                          "cumulativeShare"
+                        ],
+                        "properties": {
+                          "second": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "cumulativeShare": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "departure": {
+                      "type": "array",
+                      "minItems": 2,
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "second",
+                          "cumulativeShare"
+                        ],
+                        "properties": {
+                          "second": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "cumulativeShare": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "mobilityProfiles": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "share"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "share": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "maximum": 1
+                      },
+                      "speedFactor": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "accessibleRouteRequired": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "assumptions": {
+                  "type": "object",
+                  "properties": {
+                    "normal": {
+                      "type": "object",
+                      "properties": {
+                        "responseDelaySeconds": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "flowFactor": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "elevatorsAvailable": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "emergency": {
+                      "type": "object",
+                      "properties": {
+                        "responseDelaySeconds": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "flowFactor": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "elevatorsAvailable": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "queue": {
+              "type": "object",
+              "properties": {
+                "category": {
+                  "enum": [
+                    "registration",
+                    "security",
+                    "cloakroom",
+                    "food",
+                    "beverage",
+                    "restroom",
+                    "merchandise",
+                    "transport"
+                  ]
+                },
+                "arrivalRatePerMinute": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "serviceRatePerServerMinute": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "servers": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "abandonment": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "meanPatienceSeconds": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "priorityLanes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "arrivalShare": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "maximum": 1
+                      },
+                      "servers": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "serviceRatePerServerMinute": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "queueObjectId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "bufferAreaM2": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "personAreaM2": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "scenario",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "compare_simulations"
+        },
+        "leftRunId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rightRunId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "leftRunId",
+        "rightRunId"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "export_simulation"
+        },
+        "runId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "runId"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "detect_conflicts"
+        },
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "preview_revision"
+        },
+        "goal": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "goal",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "preview_template_update"
+        },
+        "templateId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "toVersion": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "templateId",
+        "toVersion",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "apply_edit"
+        },
+        "edit": {
+          "type": "object",
+          "required": [
+            "operation"
+          ],
+          "properties": {
+            "operation": {
+              "enum": [
+                "place",
+                "move",
+                "rotate",
+                "resize",
+                "duplicate",
+                "align",
+                "distribute",
+                "delete",
+                "group",
+                "ungroup",
+                "create-zone",
+                "edit-zone-vertices",
+                "paste",
+                "apply-layout"
+              ]
+            }
+          },
+          "additionalProperties": true
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "edit",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "create_branch"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "strategy": {
+          "enum": [
+            "balanced",
+            "access-first",
+            "circulation-first",
+            "sightlines-first"
+          ]
+        },
+        "goal": {
+          "type": "string"
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "strategy",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "recover_unsynchronized_branch"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proposal": {
+          "type": "object"
+        },
+        "sourceRevision": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "remoteRevision": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "actor": {
+          "const": "human"
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "proposal",
+        "actor",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "switch_branch"
+        },
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "branchId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "update_branch_metadata"
+        },
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "branchId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "duplicate_branch"
+        },
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proposalId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "branchId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "archive_branch"
+        },
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "branchId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "restore_branch"
+        },
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "branchId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "record_branch_decision"
+        },
+        "chosenBranchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rejectedBranchIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "comparisonId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "actor": {
+          "const": "human"
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "chosenBranchId",
+        "rejectedBranchIds",
+        "actor",
+        "actorId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "list_comments"
+        },
+        "filters": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "open",
+                "resolved"
+              ]
+            },
+            "authorId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "subjectKind": {
+              "enum": [
+                "project",
+                "plan-version",
+                "proposal",
+                "change",
+                "constraint",
+                "coordinate"
+              ]
+            },
+            "decisionRelevant": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "add_comment"
+        },
+        "anchor": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "project",
+                "plan-version",
+                "proposal",
+                "change",
+                "constraint",
+                "coordinate"
+              ]
+            },
+            "projectId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "planVersion": {
+              "type": "string",
+              "minLength": 1
+            },
+            "proposalId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "changeId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "constraintId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "point": {
+              "type": "object",
+              "required": [
+                "x",
+                "y"
+              ],
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5000
+        },
+        "mentions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "decisionRelevant": {
+          "type": "boolean"
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "anchor",
+        "body",
+        "actorId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "edit_comment"
+        },
+        "commentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5000
+        },
+        "mentions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "decisionRelevant": {
+          "type": "boolean"
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "commentId",
+        "body",
+        "actorId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "set_comment_status"
+        },
+        "commentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "open",
+            "resolved"
+          ]
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "commentId",
+        "status",
+        "actorId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "request_adjustment"
+        },
+        "instruction": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "instruction",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "revert_change"
+        },
+        "changeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "changeId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "waive_warning"
+        },
+        "constraintId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reasonCode": {
+          "enum": [
+            "operational-acceptance",
+            "temporary-condition",
+            "equivalent-control",
+            "owner-approved-deviation"
+          ]
+        },
+        "actor": {
+          "const": "human"
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "constraintId",
+        "reasonCode",
+        "actor",
+        "actorId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "set_object_lock"
+        },
+        "objectId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lockType": {
+          "enum": [
+            "position",
+            "rotation",
+            "dimension",
+            "deletion",
+            "role"
+          ]
+        },
+        "reasonCode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expiresAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "actor": {
+          "const": "human"
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "objectId",
+        "lockType",
+        "reasonCode",
+        "actor",
+        "actorId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "release_object_lock"
+        },
+        "lockId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "const": "human"
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "lockId",
+        "actor",
+        "actorId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "approve_proposal"
+        },
+        "proposalId": {
+          "type": "string"
+        },
+        "baseVersion": {
+          "type": "string"
+        },
+        "actor": {
+          "const": "human"
+        },
+        "emergencyReview": {
+          "type": "object",
+          "required": [
+            "reviewerId",
+            "reviewerRole",
+            "assumptionsAccepted"
+          ],
+          "properties": {
+            "reviewerId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reviewerRole": {
+              "enum": [
+                "safety-officer",
+                "venue-administrator"
+              ]
+            },
+            "assumptionsAccepted": {
+              "const": true
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 2000
+            }
+          },
+          "additionalProperties": false
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "proposalId",
+        "baseVersion",
+        "actor",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "undo",
+            "redo"
+          ]
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "rebase_proposal"
+        },
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "agent",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "branchId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "resolve_conflict"
+        },
+        "branchId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "conflictId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outcome": {
+          "enum": [
+            "keep-proposal",
+            "keep-plan",
+            "manual-resolution"
+          ]
+        },
+        "manualChange": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "shortTitle": {
+              "type": "string"
+            },
+            "metrics": {
+              "type": "array"
+            },
+            "targetObjectIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "spatialEffects": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "effects": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "targetObjectIds",
+            "spatialEffects"
+          ],
+          "additionalProperties": false
+        },
+        "actor": {
+          "const": "human"
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "branchId",
+        "conflictId",
+        "outcome",
+        "actor",
+        "actorId",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "update_event_brief"
+        },
+        "brief": {
+          "$ref": "https://venuemind.dev/schemas/event-brief.schema.json"
+        },
+        "actor": {
+          "enum": [
+            "human",
+            "system"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        },
+        "source": {
+          "enum": [
+            "studio",
+            "webmcp",
+            "mcp",
+            "system",
+            "agent-tool"
+          ]
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "brief",
+        "actor",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "restore_snapshot"
+        },
+        "snapshot": {
+          "$ref": "https://venuemind.dev/schemas/planner-snapshot.schema.json"
+        }
+      },
+      "required": [
+        "type",
+        "snapshot"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "export_plan"
+        },
+        "format": {
+          "enum": [
+            "json",
+            "text",
+            "svg",
+            "pdf",
+            "pdf-emergency",
+            "csv",
+            "csv-objects",
+            "csv-inventory",
+            "csv-staffing",
+            "svg-post-map",
+            "csv-production",
+            "svg-production",
+            "csv-catering-stations",
+            "csv-replenishment",
+            "audit"
+          ]
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

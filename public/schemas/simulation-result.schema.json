@@ -1,0 +1,308 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/simulation-result.schema.json",
+  "title": "VenueMind Simulation Result",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "kind",
+    "model",
+    "engineVersion",
+    "inputFingerprint",
+    "scenarioFingerprint",
+    "scenarioId",
+    "planId",
+    "planVersion",
+    "geometryFingerprint",
+    "seed",
+    "horizonSeconds",
+    "sampleCount",
+    "confidence",
+    "phases",
+    "summary"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "simulation-result"
+    },
+    "model": {
+      "enum": [
+        "operations",
+        "ingress-egress",
+        "queue"
+      ]
+    },
+    "engineVersion": {
+      "type": "string"
+    },
+    "inputFingerprint": {
+      "type": "string",
+      "pattern": "^simulation-input-"
+    },
+    "scenarioFingerprint": {
+      "type": "string",
+      "pattern": "^scenario-definition-"
+    },
+    "scenarioId": {
+      "type": "string"
+    },
+    "planId": {
+      "type": "string"
+    },
+    "planVersion": {
+      "type": "string"
+    },
+    "geometryFingerprint": {
+      "type": "string"
+    },
+    "branchId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "horizonSeconds": {
+      "type": "number"
+    },
+    "sampleCount": {
+      "type": "integer"
+    },
+    "completedSamples": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "confidence": {
+      "type": "object"
+    },
+    "phases": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "summary": {
+      "type": "object"
+    },
+    "infrastructure": {
+      "type": "object",
+      "required": [
+        "entrances",
+        "exits",
+        "checkpoints",
+        "doors",
+        "stairs",
+        "elevators",
+        "corridors",
+        "sections",
+        "graphFingerprint",
+        "fingerprint"
+      ],
+      "properties": {
+        "entrances": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "exits": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "checkpoints": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "doors": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "stairs": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "elevators": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "corridors": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "graphFingerprint": {
+          "type": "string"
+        },
+        "fingerprint": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ingress": {
+      "type": "object"
+    },
+    "egress": {
+      "type": "object"
+    },
+    "assumptions": {
+      "type": "object",
+      "required": [
+        "normal",
+        "emergency"
+      ],
+      "properties": {
+        "normal": {
+          "type": "object"
+        },
+        "emergency": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "assumptionComparison": {
+      "type": "object"
+    },
+    "densityFrames": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "second",
+          "progress",
+          "cells",
+          "peakDensityPersonsPerM2"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "second": {
+            "type": "number"
+          },
+          "progress": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "cells": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "objectId",
+                "kind",
+                "point",
+                "occupancyPersons",
+                "densityPersonsPerM2",
+                "level"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "objectId": {
+                  "type": "string"
+                },
+                "kind": {
+                  "enum": [
+                    "zone",
+                    "route"
+                  ]
+                },
+                "point": {
+                  "type": "object",
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "occupancyPersons": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "densityPersonsPerM2": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "level": {
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high",
+                    "critical"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "peakDensityPersonsPerM2": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "queue": {
+      "type": "object"
+    },
+    "lanes": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "spill": {
+      "type": "object"
+    },
+    "suggestion": {
+      "type": "object"
+    },
+    "evidenceFingerprint": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

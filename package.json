@@ -1,0 +1,45 @@
+{
+  "name": "venue-mind",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run generate:contracts && npm run generate:docs && npm run build:skills && vite build && npm run build:worker && npm run build:mcp && node scripts/prepare-sites-build.mjs",
+    "build:worker": "npm run generate:migrations && node scripts/build-worker.mjs",
+    "build:mcp": "node scripts/build-mcp.mjs",
+    "build:skills": "node scripts/build-skills.mjs",
+    "generate:contracts": "node scripts/generate-contracts.mjs",
+    "generate:migrations": "node scripts/generate-db-migrations.mjs",
+    "db:migrate": "node scripts/database-maintenance.mjs migrate",
+    "db:verify": "node scripts/database-maintenance.mjs verify",
+    "db:backup": "node scripts/database-maintenance.mjs backup",
+    "db:restore": "node scripts/database-maintenance.mjs restore",
+    "generate:examples": "node scripts/generate-client-examples.mjs",
+    "generate:guides": "node scripts/generate-contributor-guides.mjs",
+    "generate:docs": "npm run generate:examples && npm run generate:guides && node scripts/generate-agent-docs.mjs && node scripts/generate-site-metadata.mjs",
+    "check:generated": "node scripts/check-generated-drift.mjs",
+    "preview": "vite preview",
+    "test": "npm run generate:contracts && npm run generate:docs && npm run build:skills && npm run build:worker && npm run build:mcp && node --test tests/*.test.mjs",
+    "test:mcp": "npm run build:mcp && node --test tests/mcp-server.test.mjs",
+    "test:domain": "node --test tests/venue-planner.test.mjs",
+    "test:sites": "npm run build:worker && node --test tests/sites-worker.test.mjs",
+    "test:skills": "npm run build:skills && node --test tests/skills.test.mjs",
+    "test:tutorials": "node scripts/verify-tutorials.mjs",
+    "validate:skills": "node scripts/validate-skills.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "@phosphor-icons/react": "^2.1.10",
+    "@vitejs/plugin-react": "5.0.4",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "vite": "6.4.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.0.0",
+    "esbuild": "^0.28.2"
+  }
+}

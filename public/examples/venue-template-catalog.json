@@ -1,0 +1,1392 @@
+{
+  "schemaVersion": 1,
+  "venueTemplates": [
+    {
+      "schemaVersion": 1,
+      "kind": "venue-template",
+      "id": "venue-template-harborview",
+      "version": "1.0.0",
+      "name": "Harborview Convention Center",
+      "roomTemplateIds": [
+        "room-template-harborview-main-hall"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "venue-template",
+      "id": "venue-template-conference-starter",
+      "version": "1.0.0",
+      "name": "conference starter venue",
+      "roomTemplateIds": [
+        "room-template-conference"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "venue-template",
+      "id": "venue-template-concert-starter",
+      "version": "1.0.0",
+      "name": "concert starter venue",
+      "roomTemplateIds": [
+        "room-template-concert"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "venue-template",
+      "id": "venue-template-banquet-starter",
+      "version": "1.0.0",
+      "name": "banquet starter venue",
+      "roomTemplateIds": [
+        "room-template-banquet"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "venue-template",
+      "id": "venue-template-exhibition-starter",
+      "version": "1.0.0",
+      "name": "exhibition starter venue",
+      "roomTemplateIds": [
+        "room-template-exhibition"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "venue-template",
+      "id": "venue-template-classroom-starter",
+      "version": "1.0.0",
+      "name": "classroom starter venue",
+      "roomTemplateIds": [
+        "room-template-classroom"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "venue-template",
+      "id": "venue-template-community-event-starter",
+      "version": "1.0.0",
+      "name": "community event starter venue",
+      "roomTemplateIds": [
+        "room-template-community-event"
+      ]
+    }
+  ],
+  "roomTemplates": [
+    {
+      "schemaVersion": 1,
+      "kind": "room-template",
+      "id": "room-template-harborview-main-hall",
+      "version": "1.0.0",
+      "name": "Harborview Main Hall",
+      "useCase": "conference",
+      "unit": "m",
+      "boundary": {
+        "outer": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 30,
+            "y": 0
+          },
+          {
+            "x": 30,
+            "y": 20
+          },
+          {
+            "x": 0,
+            "y": 20
+          }
+        ],
+        "holes": []
+      },
+      "capacity": 450,
+      "objects": [
+        {
+          "id": "roomobj-fire-exit-east",
+          "kind": "fire_exit",
+          "label": "East fire exit",
+          "layer": "safety",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "line",
+            "start": {
+              "x": 29.9,
+              "y": 8.5
+            },
+            "end": {
+              "x": 29.9,
+              "y": 11.5
+            },
+            "width": 0.2
+          },
+          "exit": {
+            "clearWidthM": 3,
+            "emergency": true,
+            "capacityPersons": 450
+          }
+        },
+        {
+          "id": "roomobj-column-southwest",
+          "kind": "column",
+          "label": "Southwest column",
+          "layer": "architecture",
+          "elevationM": 4.5,
+          "footprint": {
+            "kind": "circle",
+            "center": {
+              "x": 8,
+              "y": 4
+            },
+            "radius": 0.45
+          }
+        },
+        {
+          "id": "roomobj-power-west",
+          "kind": "utility_point",
+          "label": "West power",
+          "layer": "architecture",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "rectangle",
+            "center": {
+              "x": 2,
+              "y": 3
+            },
+            "width": 0.3,
+            "depth": 0.3,
+            "rotationDegrees": 0
+          },
+          "utility": {
+            "type": "power",
+            "circuitId": "circuit-west-63a",
+            "rating": "63A",
+            "voltage": 230,
+            "maxWatts": 43600,
+            "powerKw": 43.6
+          }
+        },
+        {
+          "id": "roomobj-rigging-center",
+          "kind": "rigging_point",
+          "label": "Center rigging",
+          "layer": "production",
+          "elevationM": 8,
+          "footprint": {
+            "kind": "circle",
+            "center": {
+              "x": 15,
+              "y": 10
+            },
+            "radius": 0.15
+          },
+          "rigging": {
+            "safeWorkingLoadKg": 1000
+          }
+        },
+        {
+          "id": "roomobj-production-zone",
+          "kind": "restricted_zone",
+          "label": "Production clearance",
+          "layer": "safety",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "rectangle",
+            "center": {
+              "x": 4,
+              "y": 18
+            },
+            "width": 6,
+            "depth": 2,
+            "rotationDegrees": 0
+          },
+          "restriction": {
+            "access": "staff-only",
+            "reasonCode": "production-clearance",
+            "blocksPlacement": true
+          }
+        },
+        {
+          "id": "roomobj-main-route",
+          "kind": "corridor",
+          "label": "Main access spine",
+          "layer": "access",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "line",
+            "start": {
+              "x": 15,
+              "y": 0.5
+            },
+            "end": {
+              "x": 15,
+              "y": 10
+            },
+            "width": 1.219
+          },
+          "route": {
+            "direction": "bidirectional",
+            "accessible": true,
+            "purpose": "primary-access"
+          }
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "room-template",
+      "id": "room-template-harborview-main-hall",
+      "version": "1.1.0",
+      "name": "Harborview Main Hall",
+      "useCase": "conference",
+      "unit": "m",
+      "boundary": {
+        "outer": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 30,
+            "y": 0
+          },
+          {
+            "x": 30,
+            "y": 20
+          },
+          {
+            "x": 0,
+            "y": 20
+          }
+        ],
+        "holes": []
+      },
+      "capacity": 450,
+      "objects": [
+        {
+          "id": "roomobj-fire-exit-east",
+          "kind": "fire_exit",
+          "label": "East fire exit",
+          "layer": "safety",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "line",
+            "start": {
+              "x": 29.9,
+              "y": 8.5
+            },
+            "end": {
+              "x": 29.9,
+              "y": 11.5
+            },
+            "width": 0.2
+          },
+          "exit": {
+            "clearWidthM": 3,
+            "emergency": true,
+            "capacityPersons": 450
+          }
+        },
+        {
+          "id": "roomobj-column-southwest",
+          "kind": "column",
+          "label": "Southwest column",
+          "layer": "architecture",
+          "elevationM": 4.5,
+          "footprint": {
+            "kind": "circle",
+            "center": {
+              "x": 8,
+              "y": 4
+            },
+            "radius": 0.45
+          }
+        },
+        {
+          "id": "roomobj-power-west",
+          "kind": "utility_point",
+          "label": "West power",
+          "layer": "architecture",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "rectangle",
+            "center": {
+              "x": 2,
+              "y": 3
+            },
+            "width": 0.3,
+            "depth": 0.3,
+            "rotationDegrees": 0
+          },
+          "utility": {
+            "type": "power",
+            "circuitId": "circuit-west-63a",
+            "rating": "63A",
+            "voltage": 230,
+            "maxWatts": 43600,
+            "powerKw": 43.6
+          }
+        },
+        {
+          "id": "roomobj-rigging-center",
+          "kind": "rigging_point",
+          "label": "Center rigging",
+          "layer": "production",
+          "elevationM": 8,
+          "footprint": {
+            "kind": "circle",
+            "center": {
+              "x": 15,
+              "y": 10
+            },
+            "radius": 0.15
+          },
+          "rigging": {
+            "safeWorkingLoadKg": 1000
+          }
+        },
+        {
+          "id": "roomobj-production-zone",
+          "kind": "restricted_zone",
+          "label": "Production clearance",
+          "layer": "safety",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "rectangle",
+            "center": {
+              "x": 4,
+              "y": 18
+            },
+            "width": 6,
+            "depth": 2,
+            "rotationDegrees": 0
+          },
+          "restriction": {
+            "access": "staff-only",
+            "reasonCode": "production-clearance",
+            "blocksPlacement": true
+          }
+        },
+        {
+          "id": "roomobj-main-route",
+          "kind": "corridor",
+          "label": "Main access spine",
+          "layer": "access",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "line",
+            "start": {
+              "x": 15,
+              "y": 0.5
+            },
+            "end": {
+              "x": 15,
+              "y": 10
+            },
+            "width": 1.829
+          },
+          "route": {
+            "direction": "bidirectional",
+            "accessible": true,
+            "purpose": "primary-access"
+          }
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "room-template",
+      "id": "room-template-conference",
+      "version": "1.0.0",
+      "name": "Conference hall",
+      "useCase": "conference",
+      "unit": "m",
+      "boundary": {
+        "outer": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 24,
+            "y": 0
+          },
+          {
+            "x": 24,
+            "y": 16
+          },
+          {
+            "x": 0,
+            "y": 16
+          }
+        ],
+        "holes": []
+      },
+      "capacity": 300,
+      "objects": [
+        {
+          "id": "roomobj-conference-exit",
+          "kind": "fire_exit",
+          "label": "Primary exit",
+          "layer": "safety",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "line",
+            "start": {
+              "x": 23.9,
+              "y": 7
+            },
+            "end": {
+              "x": 23.9,
+              "y": 9
+            },
+            "width": 0.2
+          },
+          "exit": {
+            "clearWidthM": 2,
+            "emergency": true,
+            "capacityPersons": 300
+          }
+        },
+        {
+          "id": "roomobj-conference-power",
+          "kind": "utility_point",
+          "label": "Power",
+          "layer": "architecture",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "rectangle",
+            "center": {
+              "x": 1,
+              "y": 1
+            },
+            "width": 0.25,
+            "depth": 0.25,
+            "rotationDegrees": 0
+          },
+          "utility": {
+            "type": "power",
+            "circuitId": "circuit-conference-32a",
+            "rating": "32A",
+            "voltage": 230,
+            "maxWatts": 22000,
+            "powerKw": 22
+          }
+        },
+        {
+          "id": "roomobj-conference-rigging",
+          "kind": "rigging_point",
+          "label": "Rigging",
+          "layer": "production",
+          "elevationM": 6,
+          "footprint": {
+            "kind": "circle",
+            "center": {
+              "x": 12,
+              "y": 8
+            },
+            "radius": 0.15
+          },
+          "rigging": {
+            "safeWorkingLoadKg": 500
+          }
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "room-template",
+      "id": "room-template-concert",
+      "version": "1.0.0",
+      "name": "Concert hall",
+      "useCase": "concert",
+      "unit": "m",
+      "boundary": {
+        "outer": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 36,
+            "y": 0
+          },
+          {
+            "x": 36,
+            "y": 24
+          },
+          {
+            "x": 0,
+            "y": 24
+          }
+        ],
+        "holes": []
+      },
+      "capacity": 800,
+      "objects": [
+        {
+          "id": "roomobj-concert-exit",
+          "kind": "fire_exit",
+          "label": "Primary exit",
+          "layer": "safety",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "line",
+            "start": {
+              "x": 35.9,
+              "y": 11
+            },
+            "end": {
+              "x": 35.9,
+              "y": 13
+            },
+            "width": 0.2
+          },
+          "exit": {
+            "clearWidthM": 2,
+            "emergency": true,
+            "capacityPersons": 800
+          }
+        },
+        {
+          "id": "roomobj-concert-power",
+          "kind": "utility_point",
+          "label": "Power",
+          "layer": "architecture",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "rectangle",
+            "center": {
+              "x": 1,
+              "y": 1
+            },
+            "width": 0.25,
+            "depth": 0.25,
+            "rotationDegrees": 0
+          },
+          "utility": {
+            "type": "power",
+            "circuitId": "circuit-concert-32a",
+            "rating": "32A",
+            "voltage": 230,
+            "maxWatts": 22000,
+            "powerKw": 22
+          }
+        },
+        {
+          "id": "roomobj-concert-rigging",
+          "kind": "rigging_point",
+          "label": "Rigging",
+          "layer": "production",
+          "elevationM": 6,
+          "footprint": {
+            "kind": "circle",
+            "center": {
+              "x": 18,
+              "y": 12
+            },
+            "radius": 0.15
+          },
+          "rigging": {
+            "safeWorkingLoadKg": 500
+          }
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "room-template",
+      "id": "room-template-banquet",
+      "version": "1.0.0",
+      "name": "Banquet hall",
+      "useCase": "banquet",
+      "unit": "m",
+      "boundary": {
+        "outer": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 24,
+            "y": 0
+          },
+          {
+            "x": 24,
+            "y": 18
+          },
+          {
+            "x": 0,
+            "y": 18
+          }
+        ],
+        "holes": []
+      },
+      "capacity": 260,
+      "objects": [
+        {
+          "id": "roomobj-banquet-exit",
+          "kind": "fire_exit",
+          "label": "Primary exit",
+          "layer": "safety",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "line",
+            "start": {
+              "x": 23.9,
+              "y": 8
+            },
+            "end": {
+              "x": 23.9,
+              "y": 10
+            },
+            "width": 0.2
+          },
+          "exit": {
+            "clearWidthM": 2,
+            "emergency": true,
+            "capacityPersons": 260
+          }
+        },
+        {
+          "id": "roomobj-banquet-power",
+          "kind": "utility_point",
+          "label": "Power",
+          "layer": "architecture",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "rectangle",
+            "center": {
+              "x": 1,
+              "y": 1
+            },
+            "width": 0.25,
+            "depth": 0.25,
+            "rotationDegrees": 0
+          },
+          "utility": {
+            "type": "power",
+            "circuitId": "circuit-banquet-32a",
+            "rating": "32A",
+            "voltage": 230,
+            "maxWatts": 22000,
+            "powerKw": 22
+          }
+        },
+        {
+          "id": "roomobj-banquet-rigging",
+          "kind": "rigging_point",
+          "label": "Rigging",
+          "layer": "production",
+          "elevationM": 6,
+          "footprint": {
+            "kind": "circle",
+            "center": {
+              "x": 12,
+              "y": 9
+            },
+            "radius": 0.15
+          },
+          "rigging": {
+            "safeWorkingLoadKg": 500
+          }
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "room-template",
+      "id": "room-template-exhibition",
+      "version": "1.0.0",
+      "name": "Exhibition hall",
+      "useCase": "exhibition",
+      "unit": "m",
+      "boundary": {
+        "outer": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 40,
+            "y": 0
+          },
+          {
+            "x": 40,
+            "y": 28
+          },
+          {
+            "x": 0,
+            "y": 28
+          }
+        ],
+        "holes": []
+      },
+      "capacity": 1000,
+      "objects": [
+        {
+          "id": "roomobj-exhibition-exit",
+          "kind": "fire_exit",
+          "label": "Primary exit",
+          "layer": "safety",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "line",
+            "start": {
+              "x": 39.9,
+              "y": 13
+            },
+            "end": {
+              "x": 39.9,
+              "y": 15
+            },
+            "width": 0.2
+          },
+          "exit": {
+            "clearWidthM": 2,
+            "emergency": true,
+            "capacityPersons": 1000
+          }
+        },
+        {
+          "id": "roomobj-exhibition-power",
+          "kind": "utility_point",
+          "label": "Power",
+          "layer": "architecture",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "rectangle",
+            "center": {
+              "x": 1,
+              "y": 1
+            },
+            "width": 0.25,
+            "depth": 0.25,
+            "rotationDegrees": 0
+          },
+          "utility": {
+            "type": "power",
+            "circuitId": "circuit-exhibition-32a",
+            "rating": "32A",
+            "voltage": 230,
+            "maxWatts": 22000,
+            "powerKw": 22
+          }
+        },
+        {
+          "id": "roomobj-exhibition-rigging",
+          "kind": "rigging_point",
+          "label": "Rigging",
+          "layer": "production",
+          "elevationM": 6,
+          "footprint": {
+            "kind": "circle",
+            "center": {
+              "x": 20,
+              "y": 14
+            },
+            "radius": 0.15
+          },
+          "rigging": {
+            "safeWorkingLoadKg": 500
+          }
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "room-template",
+      "id": "room-template-classroom",
+      "version": "1.0.0",
+      "name": "Classroom",
+      "useCase": "classroom",
+      "unit": "m",
+      "boundary": {
+        "outer": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 14,
+            "y": 0
+          },
+          {
+            "x": 14,
+            "y": 10
+          },
+          {
+            "x": 0,
+            "y": 10
+          }
+        ],
+        "holes": []
+      },
+      "capacity": 60,
+      "objects": [
+        {
+          "id": "roomobj-classroom-exit",
+          "kind": "fire_exit",
+          "label": "Primary exit",
+          "layer": "safety",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "line",
+            "start": {
+              "x": 13.9,
+              "y": 4
+            },
+            "end": {
+              "x": 13.9,
+              "y": 6
+            },
+            "width": 0.2
+          },
+          "exit": {
+            "clearWidthM": 2,
+            "emergency": true,
+            "capacityPersons": 60
+          }
+        },
+        {
+          "id": "roomobj-classroom-power",
+          "kind": "utility_point",
+          "label": "Power",
+          "layer": "architecture",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "rectangle",
+            "center": {
+              "x": 1,
+              "y": 1
+            },
+            "width": 0.25,
+            "depth": 0.25,
+            "rotationDegrees": 0
+          },
+          "utility": {
+            "type": "power",
+            "circuitId": "circuit-classroom-32a",
+            "rating": "32A",
+            "voltage": 230,
+            "maxWatts": 22000,
+            "powerKw": 22
+          }
+        },
+        {
+          "id": "roomobj-classroom-rigging",
+          "kind": "rigging_point",
+          "label": "Rigging",
+          "layer": "production",
+          "elevationM": 6,
+          "footprint": {
+            "kind": "circle",
+            "center": {
+              "x": 7,
+              "y": 5
+            },
+            "radius": 0.15
+          },
+          "rigging": {
+            "safeWorkingLoadKg": 500
+          }
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "room-template",
+      "id": "room-template-community-event",
+      "version": "1.0.0",
+      "name": "Community hall",
+      "useCase": "community-event",
+      "unit": "m",
+      "boundary": {
+        "outer": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 20,
+            "y": 0
+          },
+          {
+            "x": 20,
+            "y": 14
+          },
+          {
+            "x": 0,
+            "y": 14
+          }
+        ],
+        "holes": []
+      },
+      "capacity": 180,
+      "objects": [
+        {
+          "id": "roomobj-community-event-exit",
+          "kind": "fire_exit",
+          "label": "Primary exit",
+          "layer": "safety",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "line",
+            "start": {
+              "x": 19.9,
+              "y": 6
+            },
+            "end": {
+              "x": 19.9,
+              "y": 8
+            },
+            "width": 0.2
+          },
+          "exit": {
+            "clearWidthM": 2,
+            "emergency": true,
+            "capacityPersons": 180
+          }
+        },
+        {
+          "id": "roomobj-community-event-power",
+          "kind": "utility_point",
+          "label": "Power",
+          "layer": "architecture",
+          "elevationM": 0,
+          "footprint": {
+            "kind": "rectangle",
+            "center": {
+              "x": 1,
+              "y": 1
+            },
+            "width": 0.25,
+            "depth": 0.25,
+            "rotationDegrees": 0
+          },
+          "utility": {
+            "type": "power",
+            "circuitId": "circuit-community-event-32a",
+            "rating": "32A",
+            "voltage": 230,
+            "maxWatts": 22000,
+            "powerKw": 22
+          }
+        },
+        {
+          "id": "roomobj-community-event-rigging",
+          "kind": "rigging_point",
+          "label": "Rigging",
+          "layer": "production",
+          "elevationM": 6,
+          "footprint": {
+            "kind": "circle",
+            "center": {
+              "x": 10,
+              "y": 7
+            },
+            "radius": 0.15
+          },
+          "rigging": {
+            "safeWorkingLoadKg": 500
+          }
+        }
+      ]
+    }
+  ],
+  "inventoryTemplates": [
+    {
+      "schemaVersion": 1,
+      "kind": "inventory-item-template",
+      "id": "inventory-template-banquet-chair",
+      "version": "1.0.0",
+      "name": "Banquet chair",
+      "category": "seating",
+      "dimensions": {
+        "widthM": 0.5,
+        "depthM": 0.55,
+        "heightM": 0.9
+      },
+      "weightKg": 5,
+      "power": {
+        "watts": 0,
+        "connector": "none"
+      },
+      "capacity": 1,
+      "cost": {
+        "amount": 4,
+        "currency": "USD",
+        "basis": "day"
+      },
+      "availability": {
+        "total": 500,
+        "unavailable": 0
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "inventory-item-template",
+      "id": "inventory-template-round-table",
+      "version": "1.0.0",
+      "name": "Round table",
+      "category": "furniture",
+      "dimensions": {
+        "diameterM": 1.8,
+        "heightM": 0.75
+      },
+      "weightKg": 32,
+      "power": {
+        "watts": 0,
+        "connector": "none"
+      },
+      "capacity": 10,
+      "cost": {
+        "amount": 28,
+        "currency": "USD",
+        "basis": "day"
+      },
+      "availability": {
+        "total": 60,
+        "unavailable": 0
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "inventory-item-template",
+      "id": "inventory-template-crowd-barrier",
+      "version": "1.0.0",
+      "name": "Crowd barrier",
+      "category": "barriers",
+      "dimensions": {
+        "widthM": 2.5,
+        "depthM": 0.5,
+        "heightM": 1.1
+      },
+      "weightKg": 18,
+      "power": {
+        "watts": 0,
+        "connector": "none"
+      },
+      "capacity": 0,
+      "cost": {
+        "amount": 12,
+        "currency": "USD",
+        "basis": "day"
+      },
+      "availability": {
+        "total": 120,
+        "unavailable": 0
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "inventory-item-template",
+      "id": "inventory-template-stage-deck",
+      "version": "1.0.0",
+      "name": "Stage deck",
+      "category": "staging",
+      "dimensions": {
+        "widthM": 2,
+        "depthM": 1,
+        "heightM": 0.4
+      },
+      "weightKg": 48,
+      "power": {
+        "watts": 0,
+        "connector": "none"
+      },
+      "capacity": 8,
+      "cost": {
+        "amount": 45,
+        "currency": "USD",
+        "basis": "day"
+      },
+      "availability": {
+        "total": 80,
+        "unavailable": 0
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "inventory-item-template",
+      "id": "inventory-template-line-array",
+      "version": "1.0.0",
+      "name": "Line array cabinet",
+      "category": "av",
+      "dimensions": {
+        "widthM": 0.75,
+        "depthM": 0.55,
+        "heightM": 1.1
+      },
+      "weightKg": 42,
+      "power": {
+        "watts": 1600,
+        "connector": "powerCON"
+      },
+      "capacity": 0,
+      "cost": {
+        "amount": 180,
+        "currency": "USD",
+        "basis": "day"
+      },
+      "availability": {
+        "total": 24,
+        "unavailable": 0
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "inventory-item-template",
+      "id": "inventory-template-laser-projector",
+      "version": "1.0.0",
+      "name": "Laser projector",
+      "category": "av",
+      "dimensions": {
+        "widthM": 0.55,
+        "depthM": 0.65,
+        "heightM": 0.25
+      },
+      "weightKg": 25,
+      "power": {
+        "watts": 1200,
+        "connector": "powerCON"
+      },
+      "capacity": 0,
+      "cost": {
+        "amount": 420,
+        "currency": "USD",
+        "basis": "day"
+      },
+      "availability": {
+        "total": 8,
+        "unavailable": 0
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "inventory-item-template",
+      "id": "inventory-template-projection-screen-5m",
+      "version": "1.0.0",
+      "name": "5 m projection screen",
+      "category": "av",
+      "dimensions": {
+        "widthM": 5,
+        "depthM": 0.15,
+        "heightM": 3
+      },
+      "weightKg": 82,
+      "power": {
+        "watts": 0,
+        "connector": "none"
+      },
+      "capacity": 0,
+      "cost": {
+        "amount": 260,
+        "currency": "USD",
+        "basis": "day"
+      },
+      "availability": {
+        "total": 4,
+        "unavailable": 0
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "inventory-item-template",
+      "id": "inventory-template-broadcast-camera",
+      "version": "1.0.0",
+      "name": "Broadcast camera",
+      "category": "av",
+      "dimensions": {
+        "widthM": 0.35,
+        "depthM": 0.55,
+        "heightM": 1.7
+      },
+      "weightKg": 18,
+      "power": {
+        "watts": 180,
+        "connector": "NEMA 5-15"
+      },
+      "capacity": 0,
+      "cost": {
+        "amount": 300,
+        "currency": "USD",
+        "basis": "day"
+      },
+      "availability": {
+        "total": 10,
+        "unavailable": 0
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "inventory-item-template",
+      "id": "inventory-template-av-control-console",
+      "version": "1.0.0",
+      "name": "AV control console",
+      "category": "av",
+      "dimensions": {
+        "widthM": 3,
+        "depthM": 1.5,
+        "heightM": 0.75
+      },
+      "weightKg": 95,
+      "power": {
+        "watts": 600,
+        "connector": "NEMA 5-15"
+      },
+      "capacity": 0,
+      "cost": {
+        "amount": 380,
+        "currency": "USD",
+        "basis": "day"
+      },
+      "availability": {
+        "total": 4,
+        "unavailable": 0
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "inventory-item-template",
+      "id": "inventory-template-cable-loom-25m",
+      "version": "1.0.0",
+      "name": "25 m protected cable loom",
+      "category": "av",
+      "dimensions": {
+        "widthM": 25,
+        "depthM": 0.1,
+        "heightM": 0.03
+      },
+      "weightKg": 14,
+      "power": {
+        "watts": 0,
+        "connector": "mixed"
+      },
+      "capacity": 0,
+      "cost": {
+        "amount": 55,
+        "currency": "USD",
+        "basis": "day"
+      },
+      "availability": {
+        "total": 20,
+        "unavailable": 0
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "inventory-item-template",
+      "id": "inventory-template-buffet-station",
+      "version": "1.0.0",
+      "name": "Buffet station",
+      "category": "catering",
+      "dimensions": {
+        "widthM": 1.8,
+        "depthM": 0.8,
+        "heightM": 0.9
+      },
+      "weightKg": 38,
+      "power": {
+        "watts": 1200,
+        "connector": "NEMA 5-15"
+      },
+      "capacity": 80,
+      "cost": {
+        "amount": 90,
+        "currency": "USD",
+        "basis": "day"
+      },
+      "availability": {
+        "total": 20,
+        "unavailable": 0
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "inventory-item-template",
+      "id": "inventory-template-mobile-bar",
+      "version": "1.0.0",
+      "name": "Mobile bar",
+      "category": "catering",
+      "dimensions": {
+        "widthM": 1.5,
+        "depthM": 0.7,
+        "heightM": 0.9
+      },
+      "weightKg": 44,
+      "power": {
+        "watts": 350,
+        "connector": "NEMA 5-15"
+      },
+      "capacity": 60,
+      "cost": {
+        "amount": 110,
+        "currency": "USD",
+        "basis": "day"
+      },
+      "availability": {
+        "total": 12,
+        "unavailable": 0
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "inventory-item-template",
+      "id": "inventory-template-wayfinding-sign",
+      "version": "1.0.0",
+      "name": "Wayfinding sign",
+      "category": "signage",
+      "dimensions": {
+        "widthM": 0.6,
+        "depthM": 0.6,
+        "heightM": 1.8
+      },
+      "weightKg": 8,
+      "power": {
+        "watts": 0,
+        "connector": "none"
+      },
+      "capacity": 0,
+      "cost": {
+        "amount": 10,
+        "currency": "USD",
+        "basis": "day"
+      },
+      "availability": {
+        "total": 75,
+        "unavailable": 0
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "inventory-item-template",
+      "id": "inventory-template-queue-stanchion",
+      "version": "1.0.0",
+      "name": "Queue stanchion",
+      "category": "queue",
+      "dimensions": {
+        "widthM": 0.35,
+        "depthM": 0.35,
+        "heightM": 1
+      },
+      "weightKg": 9,
+      "power": {
+        "watts": 0,
+        "connector": "none"
+      },
+      "capacity": 0,
+      "cost": {
+        "amount": 8,
+        "currency": "USD",
+        "basis": "day"
+      },
+      "availability": {
+        "total": 160,
+        "unavailable": 0
+      }
+    }
+  ]
+}

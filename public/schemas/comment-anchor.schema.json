@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/comment-anchor.schema.json",
+  "title": "VenueMind Comment Anchor",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "kind",
+        "planId",
+        "projectId"
+      ],
+      "properties": {
+        "kind": {
+          "const": "project"
+        },
+        "planId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "kind",
+        "planId",
+        "planVersion"
+      ],
+      "properties": {
+        "kind": {
+          "const": "plan-version"
+        },
+        "planId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "planVersion": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "kind",
+        "planId",
+        "proposalId"
+      ],
+      "properties": {
+        "kind": {
+          "const": "proposal"
+        },
+        "planId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proposalId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "kind",
+        "planId",
+        "proposalId",
+        "changeId"
+      ],
+      "properties": {
+        "kind": {
+          "const": "change"
+        },
+        "planId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proposalId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "changeId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "kind",
+        "planId",
+        "constraintId"
+      ],
+      "properties": {
+        "kind": {
+          "const": "constraint"
+        },
+        "planId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "constraintId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "kind",
+        "planId",
+        "planVersion",
+        "point"
+      ],
+      "properties": {
+        "kind": {
+          "const": "coordinate"
+        },
+        "planId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "planVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "point": {
+          "type": "object",
+          "required": [
+            "x",
+            "y"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

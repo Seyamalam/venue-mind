@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/authorization-policy.schema.json",
+  "title": "VenueMind Authorization Policy",
+  "type": "object",
+  "required": [
+    "humanRoles",
+    "agentScopes",
+    "permissions",
+    "rolePermissions",
+    "agentScopePermissions",
+    "approvalPolicy"
+  ],
+  "properties": {
+    "humanRoles": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "viewer",
+          "planner",
+          "reviewer",
+          "approver",
+          "venue-administrator",
+          "organization-administrator"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "agentScopes": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "venue:read",
+          "venue:propose",
+          "venue:comment",
+          "venue:simulate",
+          "venue:export"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "project.read",
+          "project.manage",
+          "plan.read",
+          "plan.update",
+          "proposal.read",
+          "proposal.create",
+          "proposal.manage",
+          "proposal.review",
+          "comment.read",
+          "comment.write",
+          "simulation.read",
+          "simulation.run",
+          "export.plan",
+          "export.audit",
+          "audit.read",
+          "approval.approve",
+          "approval.waive",
+          "lock.manage"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "rolePermissions": {
+      "type": "object"
+    },
+    "agentScopePermissions": {
+      "type": "object"
+    },
+    "approvalPolicy": {
+      "type": "object",
+      "required": [
+        "requiredReviewerRoles"
+      ],
+      "properties": {
+        "requiredReviewerRoles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "viewer",
+              "planner",
+              "reviewer",
+              "approver",
+              "venue-administrator",
+              "organization-administrator"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

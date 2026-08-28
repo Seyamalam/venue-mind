@@ -1,0 +1,4 @@
+interface:
+  display_name: "VenueMind Crowd Flow"
+  short_description: "Compare deterministic crowd-flow evidence"
+  default_prompt: "Use $venuemind-crowd-flow to run a repeatable crowd-flow analysis and compare congestion evidence."

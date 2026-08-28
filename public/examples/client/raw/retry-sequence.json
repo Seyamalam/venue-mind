@@ -1,0 +1,95 @@
+{
+  "requests": [
+    {
+      "jsonrpc": "2.0",
+      "id": 3,
+      "method": "tools/call",
+      "params": {
+        "name": "venue.preview_revision",
+        "arguments": {
+          "goal": "Protect the west accessible route",
+          "idempotencyKey": "fixture-preview-001",
+          "correlationId": "fixture-001"
+        }
+      }
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 4,
+      "method": "tools/call",
+      "params": {
+        "name": "venue.preview_revision",
+        "arguments": {
+          "goal": "Protect the west accessible route",
+          "idempotencyKey": "fixture-preview-001",
+          "correlationId": "fixture-001"
+        }
+      }
+    }
+  ],
+  "responses": [
+    {
+      "jsonrpc": "2.0",
+      "id": 3,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"proposalId\":\"proposal-32-b\",\"baseVersion\":\"3.2\",\"revision\":2,\"changedItems\":4,\"requiresHumanApproval\":true,\"receipt\":{\"id\":\"receipt-0001\",\"idempotencyKey\":\"fixture-preview-001\",\"commandType\":\"preview_revision\",\"inputFingerprint\":\"command-b6de627b\",\"correlationId\":\"fixture-001\",\"actor\":\"agent\",\"resultIds\":{\"proposalId\":\"proposal-32-b\"},\"occurredAt\":\"2026-08-27T10:00:00.000Z\"}}"
+          }
+        ],
+        "structuredContent": {
+          "proposalId": "proposal-32-b",
+          "baseVersion": "3.2",
+          "revision": 2,
+          "changedItems": 4,
+          "requiresHumanApproval": true,
+          "receipt": {
+            "id": "receipt-0001",
+            "idempotencyKey": "fixture-preview-001",
+            "commandType": "preview_revision",
+            "inputFingerprint": "command-b6de627b",
+            "correlationId": "fixture-001",
+            "actor": "agent",
+            "resultIds": {
+              "proposalId": "proposal-32-b"
+            },
+            "occurredAt": "2026-08-27T10:00:00.000Z"
+          }
+        }
+      }
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 4,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"proposalId\":\"proposal-32-b\",\"baseVersion\":\"3.2\",\"revision\":2,\"changedItems\":4,\"requiresHumanApproval\":true,\"receipt\":{\"id\":\"receipt-0001\",\"idempotencyKey\":\"fixture-preview-001\",\"commandType\":\"preview_revision\",\"inputFingerprint\":\"command-b6de627b\",\"correlationId\":\"fixture-001\",\"actor\":\"agent\",\"resultIds\":{\"proposalId\":\"proposal-32-b\"},\"occurredAt\":\"2026-08-27T10:00:00.000Z\"}}"
+          }
+        ],
+        "structuredContent": {
+          "proposalId": "proposal-32-b",
+          "baseVersion": "3.2",
+          "revision": 2,
+          "changedItems": 4,
+          "requiresHumanApproval": true,
+          "receipt": {
+            "id": "receipt-0001",
+            "idempotencyKey": "fixture-preview-001",
+            "commandType": "preview_revision",
+            "inputFingerprint": "command-b6de627b",
+            "correlationId": "fixture-001",
+            "actor": "agent",
+            "resultIds": {
+              "proposalId": "proposal-32-b"
+            },
+            "occurredAt": "2026-08-27T10:00:00.000Z"
+          }
+        }
+      }
+    }
+  ],
+  "invariant": "responses[0].result.structuredContent.receipt.id === responses[1].result.structuredContent.receipt.id"
+}

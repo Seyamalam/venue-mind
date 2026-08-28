@@ -1,0 +1,400 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/proposal-comparison.schema.json",
+  "title": "VenueMind Proposal Branch Comparison",
+  "type": "object",
+  "required": [
+    "comparisonId",
+    "planVersion",
+    "left",
+    "right",
+    "changeSet",
+    "objectDeltas",
+    "acceptedDeltas",
+    "overlay",
+    "metricDeltas",
+    "constraintDeltas",
+    "improvements",
+    "regressions"
+  ],
+  "properties": {
+    "comparisonId": {
+      "type": "string",
+      "pattern": "^comparison-[0-9a-f]{8}$"
+    },
+    "planVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "left": {
+      "$ref": "#/$defs/branchSummary"
+    },
+    "right": {
+      "$ref": "#/$defs/branchSummary"
+    },
+    "changeSet": {
+      "type": "object",
+      "required": [
+        "sharedIds",
+        "leftOnlyIds",
+        "rightOnlyIds"
+      ],
+      "properties": {
+        "sharedIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "leftOnlyIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rightOnlyIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "objectDeltas": {
+      "type": "object",
+      "required": [
+        "addedObjectIds",
+        "removedObjectIds",
+        "movedObjectIds",
+        "rotatedObjectIds",
+        "resizedObjectIds",
+        "metadataObjectIds"
+      ],
+      "properties": {
+        "addedObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "removedObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "movedObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rotatedObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "resizedObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "metadataObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "acceptedDeltas": {
+      "type": "object",
+      "required": [
+        "left",
+        "right"
+      ],
+      "properties": {
+        "left": {
+          "$ref": "#/$defs/objectDeltas"
+        },
+        "right": {
+          "$ref": "#/$defs/objectDeltas"
+        }
+      },
+      "additionalProperties": false
+    },
+    "overlay": {
+      "type": "object",
+      "required": [
+        "roomBoundary",
+        "acceptedObjects",
+        "leftObjects",
+        "rightObjects"
+      ],
+      "properties": {
+        "roomBoundary": {
+          "type": "object"
+        },
+        "acceptedObjects": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "leftObjects": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "rightObjects": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "metricDeltas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "metric",
+          "label",
+          "unit",
+          "left",
+          "right",
+          "delta"
+        ],
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "left": {
+            "type": "number"
+          },
+          "right": {
+            "type": "number"
+          },
+          "delta": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "constraintDeltas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "constraintId",
+          "label",
+          "category",
+          "leftStatus",
+          "rightStatus",
+          "leftActual",
+          "rightActual",
+          "unit",
+          "outcome"
+        ],
+        "properties": {
+          "constraintId": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "leftStatus": {
+            "enum": [
+              "pass",
+              "warning",
+              "fail",
+              "not-applicable"
+            ]
+          },
+          "rightStatus": {
+            "enum": [
+              "pass",
+              "warning",
+              "fail",
+              "not-applicable"
+            ]
+          },
+          "leftActual": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "rightActual": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outcome": {
+            "enum": [
+              "improved",
+              "regressed",
+              "unchanged"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "improvements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "regressions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "objectDeltas": {
+      "type": "object",
+      "required": [
+        "addedObjectIds",
+        "removedObjectIds",
+        "movedObjectIds",
+        "rotatedObjectIds",
+        "resizedObjectIds",
+        "metadataObjectIds"
+      ],
+      "properties": {
+        "addedObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "removedObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "movedObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rotatedObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "resizedObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "metadataObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "branchSummary": {
+      "type": "object",
+      "required": [
+        "branchId",
+        "name",
+        "notes",
+        "strategy",
+        "proposalId",
+        "baseVersion",
+        "changedItems",
+        "changeIds",
+        "validationId",
+        "validationStatus",
+        "blockingIssues",
+        "unresolvedIssues",
+        "geometryFingerprint"
+      ],
+      "properties": {
+        "branchId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "strategy": {
+          "type": "string"
+        },
+        "proposalId": {
+          "type": "string"
+        },
+        "baseVersion": {
+          "type": "string"
+        },
+        "changedItems": {
+          "type": "integer"
+        },
+        "changeIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "validationId": {
+          "type": "string"
+        },
+        "validationStatus": {
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "blockingIssues": {
+          "type": "integer"
+        },
+        "unresolvedIssues": {
+          "type": "integer"
+        },
+        "geometryFingerprint": {
+          "pattern": "^geom-[0-9a-f]{8}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

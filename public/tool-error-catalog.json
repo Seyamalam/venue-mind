@@ -1,0 +1,1435 @@
+{
+  "venue.list_projects": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "PROJECT_TOOL_UNAVAILABLE",
+      "message": "Project tools are unavailable in this session.",
+      "remediation": "Open VenueMind from a Project-aware host and retry the Project operation."
+    },
+    {
+      "code": "PROJECT_NOT_FOUND",
+      "message": "Project not found.",
+      "remediation": "List Projects and retry with an existing stable Project ID."
+    }
+  ],
+  "venue.open_project": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "PROJECT_TOOL_UNAVAILABLE",
+      "message": "Project tools are unavailable in this session.",
+      "remediation": "Open VenueMind from a Project-aware host and retry the Project operation."
+    },
+    {
+      "code": "PROJECT_NOT_FOUND",
+      "message": "Project not found.",
+      "remediation": "List Projects and retry with an existing stable Project ID."
+    }
+  ],
+  "venue.inspect_templates": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.get_project_brief": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.list_constraints": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.inspect_layout": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.get_object": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "OBJECT_NOT_FOUND",
+      "message": "Venue object not found.",
+      "remediation": "Search objects and retry with an existing stable object ID."
+    }
+  ],
+  "venue.search_objects": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.preview_revision": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.preview_template_update": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.apply_edit": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.measure_objects": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.validate_layout": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.get_validation_evidence": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "VALIDATION_NOT_FOUND",
+      "message": "Validation result not found.",
+      "remediation": "Validate the current Proposal and retry with its Validation ID."
+    }
+  ],
+  "venue.list_proposal_branches": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.compare_proposal_branches": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.create_proposal_branch": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.switch_proposal_branch": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.update_proposal_branch": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.duplicate_proposal_branch": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.archive_proposal_branch": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.restore_proposal_branch": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.detect_proposal_conflicts": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.rebase_proposal": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.request_adjustment": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.list_comments": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.add_comment": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.edit_comment": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.set_comment_status": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.get_change_log": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.replay_history": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.list_scenarios": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.list_scenario_runs": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.get_scenario_result": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "SCENARIO_RUN_NOT_FOUND",
+      "message": "Scenario Run not found.",
+      "remediation": "List Scenario Runs and retry with an existing stable Run ID."
+    }
+  ],
+  "venue.run_scenario": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    }
+  ],
+  "venue.compare_simulations": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.export_simulation": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.export_audit_package": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ],
+  "venue.export_plan": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    }
+  ]
+}

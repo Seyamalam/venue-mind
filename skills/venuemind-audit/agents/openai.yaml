@@ -1,0 +1,4 @@
+interface:
+  display_name: "VenueMind Audit"
+  short_description: "Audit constraints, versions, and decisions"
+  default_prompt: "Use $venuemind-audit to review this VenueMind plan and its Activity Ledger."

@@ -1,0 +1,371 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/validation-result.schema.json",
+  "title": "VenueMind Validation Result",
+  "type": "object",
+  "required": [
+    "validationId",
+    "inputFingerprint",
+    "engineVersion",
+    "evaluatedPlanVersion",
+    "evaluatedProposalId",
+    "status",
+    "checks",
+    "candidateMetrics",
+    "candidateGeometryFingerprint",
+    "spatialEvidence",
+    "productionEvidence",
+    "cateringEvidence",
+    "emergencyEvidence",
+    "emergencyReviewRequired",
+    "emergencyChangedObjectIds",
+    "authorizedEmergencyReviewerRoles",
+    "blockingIssues",
+    "waivedWarnings",
+    "unwaivedWarnings",
+    "unresolvedIssues",
+    "inventoryAvailability",
+    "inventoryWarnings"
+  ],
+  "properties": {
+    "validationId": {
+      "type": "string",
+      "pattern": "^validation-[0-9a-f]{8}$"
+    },
+    "inputFingerprint": {
+      "type": "string",
+      "pattern": "^input-[0-9a-f]{8}$"
+    },
+    "engineVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evaluatedPlanVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evaluatedProposalId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "enum": [
+        "pass",
+        "fail"
+      ]
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "constraintId",
+          "evaluator",
+          "label",
+          "category",
+          "severity",
+          "waivable",
+          "scope",
+          "status",
+          "actual",
+          "threshold",
+          "unit",
+          "evidence",
+          "remediation",
+          "waiver"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "constraintId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evaluator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "category": {
+            "type": "string",
+            "minLength": 1
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning"
+            ]
+          },
+          "waivable": {
+            "type": "boolean"
+          },
+          "scope": {
+            "type": "object"
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "warning",
+              "fail",
+              "not-applicable"
+            ]
+          },
+          "actual": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "threshold": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "object"
+          },
+          "remediation": {
+            "type": "string"
+          },
+          "waiver": {
+            "anyOf": [
+              {
+                "$ref": "https://venuemind.dev/schemas/warning-waiver.schema.json"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "candidateMetrics": {
+      "type": "object"
+    },
+    "candidateGeometryFingerprint": {
+      "type": "string",
+      "pattern": "^geom-[0-9a-f]{8}$"
+    },
+    "spatialEvidence": {
+      "$ref": "https://venuemind.dev/schemas/spatial-evidence.schema.json"
+    },
+    "productionEvidence": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "kind",
+        "planId",
+        "planVersion",
+        "geometryFingerprint",
+        "summary",
+        "evidenceFingerprint"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "kind": {
+          "const": "production-planning-result"
+        },
+        "planId": {
+          "type": "string"
+        },
+        "planVersion": {
+          "type": "string"
+        },
+        "geometryFingerprint": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "object"
+        },
+        "evidenceFingerprint": {
+          "type": "string",
+          "pattern": "^production-planning-"
+        }
+      },
+      "additionalProperties": true
+    },
+    "cateringEvidence": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "kind",
+        "planId",
+        "planVersion",
+        "geometryFingerprint",
+        "summary",
+        "evidenceFingerprint"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "kind": {
+          "const": "catering-planning-result"
+        },
+        "planId": {
+          "type": "string"
+        },
+        "planVersion": {
+          "type": "string"
+        },
+        "geometryFingerprint": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "object"
+        },
+        "evidenceFingerprint": {
+          "type": "string",
+          "pattern": "^catering-planning-"
+        }
+      },
+      "additionalProperties": true
+    },
+    "emergencyEvidence": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "kind",
+        "planId",
+        "planVersion",
+        "geometryFingerprint",
+        "summary",
+        "degradedScenarios",
+        "evidenceFingerprint"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "kind": {
+          "const": "emergency-planning-result"
+        },
+        "planId": {
+          "type": "string"
+        },
+        "planVersion": {
+          "type": "string"
+        },
+        "geometryFingerprint": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "object"
+        },
+        "degradedScenarios": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "evidenceFingerprint": {
+          "type": "string",
+          "pattern": "^emergency-planning-"
+        }
+      },
+      "additionalProperties": true
+    },
+    "emergencyReviewRequired": {
+      "type": "boolean"
+    },
+    "emergencyChangedObjectIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "authorizedEmergencyReviewerRoles": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "safety-officer",
+          "venue-administrator"
+        ]
+      }
+    },
+    "blockingIssues": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "waivedWarnings": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unwaivedWarnings": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unresolvedIssues": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "inventoryAvailability": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "templateId",
+          "version",
+          "requested",
+          "available",
+          "status",
+          "shortage"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "templateId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "requested": {
+            "type": "integer"
+          },
+          "available": {
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "warning"
+            ]
+          },
+          "shortage": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "inventoryWarnings": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false
+}

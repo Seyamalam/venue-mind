@@ -1,0 +1,292 @@
+{
+  "COMMAND_INVALID": {
+    "code": "COMMAND_INVALID",
+    "message": "Venue command requires a type.",
+    "remediation": "Send one published Venue command with its required fields."
+  },
+  "COMMAND_UNSUPPORTED": {
+    "code": "COMMAND_UNSUPPORTED",
+    "message": "Venue command is not supported.",
+    "remediation": "Refresh the command contract and use a published command type."
+  },
+  "IDEMPOTENCY_KEY_REQUIRED": {
+    "code": "IDEMPOTENCY_KEY_REQUIRED",
+    "message": "Idempotency key is required for mutating commands.",
+    "remediation": "Retry with one stable idempotency key for this semantic action."
+  },
+  "IDEMPOTENCY_KEY_CONFLICT": {
+    "code": "IDEMPOTENCY_KEY_CONFLICT",
+    "message": "Idempotency key conflict.",
+    "remediation": "Use the original command input or generate a new idempotency key."
+  },
+  "SNAPSHOT_INVALID": {
+    "code": "SNAPSHOT_INVALID",
+    "message": "Invalid VenueMind snapshot.",
+    "remediation": "Restore a schema-compatible snapshot containing a Plan, Proposal, and Activity Ledger."
+  },
+  "ADJUSTMENT_REQUIRED": {
+    "code": "ADJUSTMENT_REQUIRED",
+    "message": "Adjustment instruction is required.",
+    "remediation": "Provide a concise operational adjustment."
+  },
+  "PROPOSAL_NOT_REVIEWABLE": {
+    "code": "PROPOSAL_NOT_REVIEWABLE",
+    "message": "Only a Proposal under review can be changed.",
+    "remediation": "Create or activate a Proposal with review status before changing it."
+  },
+  "PROPOSAL_MISMATCH": {
+    "code": "PROPOSAL_MISMATCH",
+    "message": "Proposal ID does not match the active Proposal.",
+    "remediation": "Inspect the active Proposal and retry with its stable ID."
+  },
+  "BRANCH_NAME_REQUIRED": {
+    "code": "BRANCH_NAME_REQUIRED",
+    "message": "Proposal Branch name is required.",
+    "remediation": "Provide a non-empty Branch name."
+  },
+  "BRANCH_NOT_FOUND": {
+    "code": "BRANCH_NOT_FOUND",
+    "message": "Proposal Branch not found.",
+    "remediation": "List Proposal Branches and retry with an existing stable Branch ID."
+  },
+  "REBASE_CONFLICT": {
+    "code": "REBASE_CONFLICT",
+    "message": "Unresolved Proposal conflicts block rebase.",
+    "remediation": "Resolve blocking conflicts, then retry the rebase."
+  },
+  "CONFLICT_NOT_FOUND": {
+    "code": "CONFLICT_NOT_FOUND",
+    "message": "Proposal conflict not found.",
+    "remediation": "Detect current Proposal conflicts and retry with a stable conflict ID."
+  },
+  "CONFLICT_RESOLUTION_INVALID": {
+    "code": "CONFLICT_RESOLUTION_INVALID",
+    "message": "Conflict resolution is not valid for this conflict.",
+    "remediation": "Choose one of the conflict's published resolution options."
+  },
+  "CONFLICT_HUMAN_REQUIRED": {
+    "code": "CONFLICT_HUMAN_REQUIRED",
+    "message": "Only a human can resolve a Proposal conflict.",
+    "remediation": "Ask an authorized human operator to choose a conflict outcome in VenueMind Studio."
+  },
+  "LOCK_CONFLICT": {
+    "code": "LOCK_CONFLICT",
+    "message": "Proposal Change conflicts with an active Lock.",
+    "remediation": "Remove the locked property mutation or have a human release the applicable Project Lock."
+  },
+  "LOCK_HUMAN_REQUIRED": {
+    "code": "LOCK_HUMAN_REQUIRED",
+    "message": "Only a human can manage Project Locks.",
+    "remediation": "Ask an authorized human operator to add or release the Project Lock."
+  },
+  "LOCK_OBJECT_NOT_FOUND": {
+    "code": "LOCK_OBJECT_NOT_FOUND",
+    "message": "Lock target object not found.",
+    "remediation": "Inspect stable object IDs and retry with an object in the active Plan."
+  },
+  "LOCK_TYPE_INVALID": {
+    "code": "LOCK_TYPE_INVALID",
+    "message": "Lock type is invalid.",
+    "remediation": "Use position, rotation, dimension, deletion, or role."
+  },
+  "LOCK_NOT_FOUND": {
+    "code": "LOCK_NOT_FOUND",
+    "message": "Project Lock not found.",
+    "remediation": "Inspect Project Locks and retry with an active stable Lock ID."
+  },
+  "PLAN_VERSION_CONFLICT": {
+    "code": "PLAN_VERSION_CONFLICT",
+    "message": "Plan version conflict.",
+    "remediation": "Inspect the latest Plan Version and create or rebase the Proposal before retrying."
+  },
+  "VALIDATION_FAILED": {
+    "code": "VALIDATION_FAILED",
+    "message": "Proposal validation failed.",
+    "remediation": "Resolve every hard Constraint failure and validate again."
+  },
+  "WARNING_WAIVER_REQUIRED": {
+    "code": "WARNING_WAIVER_REQUIRED",
+    "message": "Proposal has warnings that require a human Warning Waiver.",
+    "remediation": "Have a human record a reason-coded waiver for every open warning."
+  },
+  "EMERGENCY_REVIEW_REQUIRED": {
+    "code": "EMERGENCY_REVIEW_REQUIRED",
+    "message": "Emergency Plan Change requires an authorized human Emergency Review.",
+    "remediation": "Supply a reviewer ID, authorized reviewer role, and explicit assumption acceptance in VenueMind Studio."
+  },
+  "EMERGENCY_REVIEW_UNAUTHORIZED": {
+    "code": "EMERGENCY_REVIEW_UNAUTHORIZED",
+    "message": "Emergency reviewer role is not authorized.",
+    "remediation": "Use a reviewer assigned to one of the Emergency Plan's authorized reviewer roles."
+  },
+  "WAIVER_HUMAN_REQUIRED": {
+    "code": "WAIVER_HUMAN_REQUIRED",
+    "message": "Only a human can create a Warning Waiver.",
+    "remediation": "Ask an authorized human operator to record the disposition in VenueMind Studio."
+  },
+  "WAIVER_AUTHOR_REQUIRED": {
+    "code": "WAIVER_AUTHOR_REQUIRED",
+    "message": "Warning Waiver requires an author ID.",
+    "remediation": "Supply the authenticated or local operator identity."
+  },
+  "WAIVER_REASON_INVALID": {
+    "code": "WAIVER_REASON_INVALID",
+    "message": "Warning Waiver requires a supported reason code.",
+    "remediation": "Choose one reason code from the Warning Waiver contract."
+  },
+  "WARNING_NOT_WAIVABLE": {
+    "code": "WARNING_NOT_WAIVABLE",
+    "message": "Constraint does not have a waivable warning.",
+    "remediation": "Validate again and select an open warning Constraint."
+  },
+  "WARNING_ALREADY_WAIVED": {
+    "code": "WARNING_ALREADY_WAIVED",
+    "message": "Warning is already waived.",
+    "remediation": "Use the existing Warning Waiver or revise the Proposal before recording another disposition."
+  },
+  "CONSTRAINT_NOT_FOUND": {
+    "code": "CONSTRAINT_NOT_FOUND",
+    "message": "Constraint not found.",
+    "remediation": "Inspect the Plan and retry with an existing stable Constraint ID."
+  },
+  "CONSTRAINT_INVALID": {
+    "code": "CONSTRAINT_INVALID",
+    "message": "Constraint metadata is invalid.",
+    "remediation": "Conform the Constraint to the published schema and retry."
+  },
+  "CONSTRAINT_DUPLICATE": {
+    "code": "CONSTRAINT_DUPLICATE",
+    "message": "Constraint ID is duplicated.",
+    "remediation": "Assign a unique stable ID to every Constraint."
+  },
+  "CONSTRAINT_EVIDENCE_INVALID": {
+    "code": "CONSTRAINT_EVIDENCE_INVALID",
+    "message": "Constraint evidence is invalid.",
+    "remediation": "Provide numeric evidence and threshold values required by the evaluator."
+  },
+  "CONSTRAINT_EVALUATOR_UNSUPPORTED": {
+    "code": "CONSTRAINT_EVALUATOR_UNSUPPORTED",
+    "message": "Constraint evaluator is not supported.",
+    "remediation": "Use an evaluator published in the Venue Constraint schema."
+  },
+  "GEOMETRY_INVALID": {
+    "code": "GEOMETRY_INVALID",
+    "message": "Spatial geometry is invalid.",
+    "remediation": "Correct the reported boundary, Footprint, unit, or operational metadata and validate again."
+  },
+  "SPATIAL_CHANGE_TARGET_MISSING": {
+    "code": "SPATIAL_CHANGE_TARGET_MISSING",
+    "message": "Spatial Change targets a missing object.",
+    "remediation": "Inspect stable object IDs and rebuild the Change against the active Plan."
+  },
+  "SPATIAL_CHANGE_TARGET_EXISTS": {
+    "code": "SPATIAL_CHANGE_TARGET_EXISTS",
+    "message": "Spatial Change would reuse an existing object ID.",
+    "remediation": "Create a new Project-scoped stable object ID and retry the placement."
+  },
+  "SPATIAL_CHANGE_UNSUPPORTED": {
+    "code": "SPATIAL_CHANGE_UNSUPPORTED",
+    "message": "Spatial Change operation is not supported.",
+    "remediation": "Use a published spatial Change operation."
+  },
+  "TEMPLATE_VERSION_NOT_FOUND": {
+    "code": "TEMPLATE_VERSION_NOT_FOUND",
+    "message": "Template version not found.",
+    "remediation": "List the template catalog and select a published template ID and version."
+  },
+  "TEMPLATE_SCHEMA_UNSUPPORTED": {
+    "code": "TEMPLATE_SCHEMA_UNSUPPORTED",
+    "message": "Template schema version is not supported.",
+    "remediation": "Migrate the template document with a published migration path."
+  },
+  "TEMPLATE_BINDING_NOT_FOUND": {
+    "code": "TEMPLATE_BINDING_NOT_FOUND",
+    "message": "Project is not bound to this template.",
+    "remediation": "Inspect the Project Template Binding and retry with its Room Template ID."
+  },
+  "TEMPLATE_VERSION_CURRENT": {
+    "code": "TEMPLATE_VERSION_CURRENT",
+    "message": "Project already uses this template version.",
+    "remediation": "Select a newer published Room Template version."
+  },
+  "COMMENT_INVALID": {
+    "code": "COMMENT_INVALID",
+    "message": "Comment metadata is invalid.",
+    "remediation": "Provide a non-empty comment body, supported status, and published fields."
+  },
+  "COMMENT_ANCHOR_INVALID": {
+    "code": "COMMENT_ANCHOR_INVALID",
+    "message": "Comment anchor does not resolve to an immutable VenueMind subject.",
+    "remediation": "Inspect stable Project, Plan Version, Proposal, Change, Constraint, or coordinate identifiers and retry."
+  },
+  "COMMENT_AUTHOR_REQUIRED": {
+    "code": "COMMENT_AUTHOR_REQUIRED",
+    "message": "Comment action requires an author ID.",
+    "remediation": "Supply the authenticated or local author identity."
+  },
+  "COMMENT_NOT_FOUND": {
+    "code": "COMMENT_NOT_FOUND",
+    "message": "Comment not found.",
+    "remediation": "List comments and retry with an existing stable Comment ID."
+  },
+  "PROJECT_NOT_FOUND": {
+    "code": "PROJECT_NOT_FOUND",
+    "message": "Project not found.",
+    "remediation": "List Projects and retry with an existing stable Project ID."
+  },
+  "PROJECT_TOOL_UNAVAILABLE": {
+    "code": "PROJECT_TOOL_UNAVAILABLE",
+    "message": "Project tools are unavailable in this session.",
+    "remediation": "Open VenueMind from a Project-aware host and retry the Project operation."
+  },
+  "OBJECT_NOT_FOUND": {
+    "code": "OBJECT_NOT_FOUND",
+    "message": "Venue object not found.",
+    "remediation": "Search objects and retry with an existing stable object ID."
+  },
+  "VALIDATION_NOT_FOUND": {
+    "code": "VALIDATION_NOT_FOUND",
+    "message": "Validation result not found.",
+    "remediation": "Validate the current Proposal and retry with its Validation ID."
+  },
+  "SCENARIO_RUN_NOT_FOUND": {
+    "code": "SCENARIO_RUN_NOT_FOUND",
+    "message": "Scenario Run not found.",
+    "remediation": "List Scenario Runs and retry with an existing stable Run ID."
+  },
+  "TOOL_SCOPE_REQUIRED": {
+    "code": "TOOL_SCOPE_REQUIRED",
+    "message": "Tool authorization scope is required.",
+    "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+  },
+  "AUTHORIZATION_DENIED": {
+    "code": "AUTHORIZATION_DENIED",
+    "message": "The current principal is not authorized for this VenueMind action.",
+    "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+  },
+  "AGENT_GRANT_INVALID": {
+    "code": "AGENT_GRANT_INVALID",
+    "message": "Agent Grant is invalid.",
+    "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+  },
+  "TOOL_PAYLOAD_TOO_LARGE": {
+    "code": "TOOL_PAYLOAD_TOO_LARGE",
+    "message": "Tool payload exceeds its published size limit.",
+    "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+  },
+  "TOOL_CALL_CANCELLED": {
+    "code": "TOOL_CALL_CANCELLED",
+    "message": "Tool call was cancelled.",
+    "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+  },
+  "LEDGER_INTEGRITY_FAILED": {
+    "code": "LEDGER_INTEGRITY_FAILED",
+    "message": "Activity Ledger integrity failed.",
+    "remediation": "Restore an untampered snapshot or recover the last verified Project record."
+  },
+  "VENUE_INTERNAL_ERROR": {
+    "code": "VENUE_INTERNAL_ERROR",
+    "message": "VenueMind could not complete the operation.",
+    "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+  }
+}

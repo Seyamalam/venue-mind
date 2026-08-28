@@ -1,0 +1,13 @@
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "venue.preview_revision",
+    "arguments": {
+      "goal": "Protect the west accessible route",
+      "idempotencyKey": "fixture-preview-001",
+      "correlationId": "fixture-001"
+    }
+  }
+}

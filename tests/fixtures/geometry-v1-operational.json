@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "unit": "m",
+  "units": { "length": "m", "area": "m2", "angle": "deg", "time": "s" },
+  "layers": ["architecture", "furniture", "access", "production", "catering", "safety", "annotations"],
+  "coordinateSystem": { "origin": "southwest", "xAxis": "east", "yAxis": "north", "rotationDirection": "clockwise" },
+  "precision": { "distance": 3, "angle": 1 },
+  "roomBoundary": {
+    "outer": [{ "x": 0, "y": 0 }, { "x": 20, "y": 0 }, { "x": 20, "y": 12 }, { "x": 14, "y": 12 }, { "x": 14, "y": 16 }, { "x": 0, "y": 16 }],
+    "holes": []
+  },
+  "objects": [
+    {
+      "id": "obj-fixture-table-rotated",
+      "kind": "table",
+      "label": "Table A",
+      "layer": "furniture",
+      "elevationM": 0.75,
+      "locked": false,
+      "footprint": { "kind": "rectangle", "center": { "x": 6.1234, "y": 8.2222 }, "width": 4.1234, "depth": 2.2222, "rotationDegrees": 33.34 }
+    },
+    {
+      "id": "obj-fixture-door-south",
+      "kind": "door",
+      "label": "South door",
+      "layer": "architecture",
+      "elevationM": 0,
+      "locked": true,
+      "door": { "clearWidthM": 1.8, "swing": "inward", "accessible": true },
+      "footprint": { "kind": "line", "start": { "x": 9.1, "y": 0.1 }, "end": { "x": 10.9, "y": 0.1 }, "width": 0.2 }
+    },
+    {
+      "id": "obj-fixture-aisle-main",
+      "kind": "aisle",
+      "label": "Main aisle",
+      "layer": "access",
+      "elevationM": 0,
+      "locked": false,
+      "route": { "direction": "bidirectional", "accessible": true, "purpose": "guest-circulation" },
+      "footprint": { "kind": "line", "start": { "x": 10, "y": 0.5 }, "end": { "x": 10, "y": 10 }, "width": 1.5 }
+    },
+    {
+      "id": "obj-fixture-restricted-irregular",
+      "kind": "restricted_zone",
+      "label": "Rigging exclusion",
+      "layer": "safety",
+      "elevationM": 0,
+      "locked": false,
+      "occupancy": { "excludesUsableArea": true },
+      "restriction": { "access": "prohibited", "reasonCode": "overhead-rigging", "blocksPlacement": true },
+      "footprint": { "kind": "polygon", "points": [{ "x": 15, "y": 2 }, { "x": 19, "y": 2 }, { "x": 19, "y": 6 }, { "x": 17, "y": 7 }, { "x": 15, "y": 6 }], "rotationDegrees": 0 }
+    }
+  ]
+}

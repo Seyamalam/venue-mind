@@ -1,0 +1,9 @@
+{
+  "cases": 12,
+  "packages": 6,
+  "requiredToolSelections": 72,
+  "toolSelectionAccuracy": 1,
+  "referencedTools": 83,
+  "unnecessaryCalls": 0,
+  "unnecessaryCallRate": 0
+}
