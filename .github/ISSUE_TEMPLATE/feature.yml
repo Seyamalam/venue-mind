@@ -1,0 +1,31 @@
+name: Product capability
+description: Track one bounded VenueMind capability and its completion evidence.
+title: "feat: "
+labels: ["feature"]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: What observable product capability must exist?
+    validations:
+      required: true
+  - type: textarea
+    id: invariants
+    attributes:
+      label: Product invariants
+      description: Name authorization, Proposal, Validation, ledger, stable-ID, or tenant constraints.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance evidence
+      description: List deterministic tests and operational proof required to close this issue.
+    validations:
+      required: true
+  - type: textarea
+    id: exclusions
+    attributes:
+      label: Out of scope
+      description: Name intentionally deferred work.

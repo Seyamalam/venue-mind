@@ -1,0 +1,29 @@
+name: Defect
+description: Report a reproducible VenueMind behavior or integrity failure.
+title: "fix: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected invariant
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include stable IDs, versions, error codes, and exact commands without secrets or sensitive geometry.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Diagnostic evidence
+      description: Include relevant test output, ledger verification, or recovery state.
