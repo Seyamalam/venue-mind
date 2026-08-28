@@ -34,6 +34,7 @@ const isPolicyFailure = (error) => error.code.startsWith("ADAPTER_SECRET_")
   || error.code === "ADAPTER_ENTITY_TYPE_UNSUPPORTED"
   || error.code === "ADAPTER_PROTECTED_FIELD"
   || error.code === "ADAPTER_CHECKSUM_INVALID"
+  || error.code === "ADAPTER_CHECKSUM_MISMATCH"
   || error.code.startsWith("ADAPTER_CONTRACT_");
 
 const assertAdapterImportResult = async (adapter, output) => {
@@ -99,8 +100,8 @@ export function createAdapterRuntime(options = {}) {
   const sleep = options.sleep ?? ((milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
   const deadLetterSink = options.deadLetterSink ?? { async add() {} };
   const processedBatchStore = options.processedBatchStore ?? createMemoryProcessedBatchStore();
+  const webhookEventStore = options.webhookEventStore ?? createMemoryProcessedBatchStore();
   const requestTimes = new Map();
-  const processedWebhooks = new Map();
 
   const acquireRateLimit = async (definition) => {
     const key = `${definition.id}@${definition.version}`;
@@ -119,7 +120,8 @@ export function createAdapterRuntime(options = {}) {
     async execute(adapter, capability, input, authorization = {}) {
       const { definition } = adapter;
       assertAdapterScope(definition, capability, authorization.grantedScopes ?? []);
-      const preparedInput = typeof adapter.prepareInput === "function" ? await adapter.prepareInput(capability, clone(input)) : clone(input);
+      const adapterContext = authorization.trustedAdapterContexts?.[definition.id];
+      const preparedInput = typeof adapter.prepareInput === "function" ? await adapter.prepareInput(capability, clone(input), { adapterContext: clone(adapterContext) }) : clone(input);
       const invocationId = adapterInvocationId(definition, capability, preparedInput);
       const inputChecksum = await sha256Checksum(preparedInput);
       const stagesImport = capability === "import" || capability === "synchronize";
@@ -138,11 +140,15 @@ export function createAdapterRuntime(options = {}) {
         try {
           const output = await adapter.invoke(capability, preparedInput, { invocationId, attempt, clock: () => new Date(clock()).toISOString(), secrets: secretReader });
           if (stagesImport) await assertAdapterImportResult(adapter, output);
+          if (capability === "webhook" && typeof adapter.assertWebhookResult === "function") await adapter.assertWebhookResult(output);
           attempts.push({ attempt, status: "succeeded", at: new Date(clock()).toISOString() });
           if (stagesImport) {
             const completedAt = new Date(clock()).toISOString();
             const stored = await processedBatchStore.putIfAbsent(processedBatchKey, { invocationId, inputChecksum, completedAt, output });
-            if (!stored.inserted) return { status: "duplicate", invocationId, attempts, duplicateOf: stored.value.completedAt, output: clone(stored.value.output) };
+            if (!stored.inserted) {
+              await assertAdapterImportResult(adapter, stored.value.output);
+              return { status: "duplicate", invocationId, attempts, duplicateOf: stored.value.completedAt, output: clone(stored.value.output) };
+            }
           }
           return { status: "succeeded", invocationId, attempts, output };
         } catch (cause) {
@@ -179,13 +185,13 @@ export function createAdapterRuntime(options = {}) {
     async acceptWebhook(adapter, input, authorization = {}) {
       const result = await this.execute(adapter, "webhook", input, authorization);
       if (result.status !== "succeeded") return result;
-      const key = `${adapter.definition.id}\u0000${result.output.eventId}`;
-      const existing = processedWebhooks.get(key);
-      if (existing) {
-        if (existing.checksum !== result.output.checksum) fail("ADAPTER_WEBHOOK_REPLAY_MISMATCH", "Webhook event ID was replayed with different content", { eventId: result.output.eventId });
-        return { ...result, status: "duplicate", output: clone(existing) };
+      const key = `${adapter.definition.id}@${adapter.definition.version}\u0000${result.output.sourceSystem}\u0000${result.output.eventId}`;
+      const stored = await webhookEventStore.putIfAbsent(key, result.output);
+      if (!stored.inserted) {
+        if (stored.value.checksum !== result.output.checksum) fail("ADAPTER_WEBHOOK_REPLAY_MISMATCH", "Webhook event ID was replayed with different content", { eventId: result.output.eventId });
+        if (typeof adapter.assertWebhookResult === "function") await adapter.assertWebhookResult(stored.value);
+        return { ...result, status: "duplicate", output: clone(stored.value) };
       }
-      processedWebhooks.set(key, clone(result.output));
       return result;
     },
 

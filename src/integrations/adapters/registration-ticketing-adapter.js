@@ -4,6 +4,9 @@ const MAX_TICKET_CLASSES = 500;
 const MAX_ZONES = 500;
 const MAX_ACCESSIBILITY_REQUIREMENTS = 100;
 const MAX_COUNT = 1_000_000;
+const MAX_TRAVERSAL_DEPTH = 32;
+const MAX_TRAVERSAL_NODES = 10_000;
+const MAX_UNTRUSTED_STRING_LENGTH = 10_000;
 const IDENTIFIER = /^[a-z0-9][a-z0-9._-]{0,119}$/;
 const FORBIDDEN_PERSONAL_KEYS = new Set([
   "attendee", "attendees", "attendeeid", "person", "people", "personid", "userid", "customerid",
@@ -13,6 +16,7 @@ const FORBIDDEN_PERSONAL_KEYS = new Set([
 ]);
 
 const clone = (value) => structuredClone(value);
+const compareCodePoints = (left, right) => left < right ? -1 : left > right ? 1 : 0;
 
 const fail = (code, message, details = {}) => {
   throw new AdapterContractError(code, message, details);
@@ -44,9 +48,15 @@ const assertCount = (value, label) => {
 
 const normalizedPersonalKey = (key) => key.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-const assertNoPersonalData = (value, path = []) => {
+const assertTraversalBudget = (value, path, state) => {
+  state.nodes += 1;
+  if (state.nodes > MAX_TRAVERSAL_NODES || path.length > MAX_TRAVERSAL_DEPTH || (typeof value === "string" && value.length > MAX_UNTRUSTED_STRING_LENGTH)) fail("ADAPTER_SOURCE_INVALID", "Registration aggregate exceeds safe traversal limits");
+};
+
+const assertNoPersonalData = (value, path = [], state = { nodes: 0 }) => {
+  assertTraversalBudget(value, path, state);
   if (Array.isArray(value)) {
-    value.forEach((item, index) => assertNoPersonalData(item, [...path, String(index)]));
+    value.forEach((item, index) => assertNoPersonalData(item, [...path, String(index)], state));
     return;
   }
   if (!value || typeof value !== "object") {
@@ -55,7 +65,7 @@ const assertNoPersonalData = (value, path = []) => {
   }
   for (const [key, item] of Object.entries(value)) {
     if (FORBIDDEN_PERSONAL_KEYS.has(normalizedPersonalKey(key))) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Registration input contains a forbidden person-level field", { field: key, path: [...path, key].join(".") });
-    assertNoPersonalData(item, [...path, key]);
+    assertNoPersonalData(item, [...path, key], state);
   }
 };
 
@@ -74,7 +84,7 @@ const normalizeProjectOccupancy = (input) => {
     };
     if (normalized.maximumCapacity < normalized.minimumCapacity) fail("ADAPTER_SOURCE_INVALID", "Project occupancy maximumCapacity must be at least minimumCapacity", { zoneId: normalized.zoneId });
     return normalized;
-  }).sort((left, right) => left.zoneId.localeCompare(right.zoneId));
+  }).sort((left, right) => compareCodePoints(left.zoneId, right.zoneId));
   if (new Set(zones.map((zone) => zone.zoneId)).size !== zones.length) fail("ADAPTER_SOURCE_INVALID", "Project occupancy zone IDs must be unique");
   return { attendeeTarget, zones };
 };
@@ -89,7 +99,7 @@ const normalizeAccessibilityRequirements = (input, zoneIds) => {
     const foreignZoneIds = normalizedZoneIds.filter((zoneId) => !zoneIds.has(zoneId));
     if (foreignZoneIds.length) fail("ADAPTER_ZONE_MAPPING_INVALID", "Aggregate accessibility requirement references unknown Project zones", { zoneIds: foreignZoneIds });
     return { code: assertIdentifier(requirement.code, "Aggregate accessibility requirement code"), count: assertCount(requirement.count, "Aggregate accessibility requirement count"), zoneIds: normalizedZoneIds };
-  }).sort((left, right) => left.code.localeCompare(right.code));
+  }).sort((left, right) => compareCodePoints(left.code, right.code));
   if (new Set(requirements.map((requirement) => requirement.code)).size !== requirements.length) fail("ADAPTER_SOURCE_INVALID", "Aggregate accessibility requirement codes must be unique");
   return requirements;
 };
@@ -105,8 +115,10 @@ const normalizeTicketClasses = (input, zoneIds, accessCodes) => {
       assertExactKeys(allocation, ["zoneId", "ticketedCount", "attendanceForecast"], "Ticket class zone allocation");
       const zoneId = assertIdentifier(allocation.zoneId, "Ticket class zoneId");
       if (!zoneIds.has(zoneId)) fail("ADAPTER_ZONE_MAPPING_INVALID", "Ticket class references an unknown Project zone", { zoneId });
-      return { zoneId, ticketedCount: assertCount(allocation.ticketedCount, "Ticket class zone ticketedCount"), attendanceForecast: assertCount(allocation.attendanceForecast, "Ticket class zone attendanceForecast") };
-    }).sort((left, right) => left.zoneId.localeCompare(right.zoneId));
+      const normalized = { zoneId, ticketedCount: assertCount(allocation.ticketedCount, "Ticket class zone ticketedCount"), attendanceForecast: assertCount(allocation.attendanceForecast, "Ticket class zone attendanceForecast") };
+      if (normalized.attendanceForecast > normalized.ticketedCount) fail("ADAPTER_SOURCE_INVALID", "Ticket class zone attendanceForecast cannot exceed ticketedCount", { zoneId });
+      return normalized;
+    }).sort((left, right) => compareCodePoints(left.zoneId, right.zoneId));
     if (new Set(zoneAllocations.map((allocation) => allocation.zoneId)).size !== zoneAllocations.length) fail("ADAPTER_SOURCE_INVALID", "Ticket class zone allocations must be unique");
     const ticketedCount = assertCount(ticketClass.ticketedCount, "Ticket class ticketedCount");
     const attendanceForecast = assertCount(ticketClass.attendanceForecast, "Ticket class attendanceForecast");
@@ -117,7 +129,7 @@ const normalizeTicketClasses = (input, zoneIds, accessCodes) => {
     const foreignCodes = accessRequirementCodes.filter((code) => !accessCodes.has(code));
     if (foreignCodes.length) fail("ADAPTER_ACCESS_MAPPING_INVALID", "Ticket class references unknown aggregate accessibility requirements", { codes: foreignCodes });
     return { externalId: assertIdentifier(ticketClass.externalId, "Ticket class externalId"), ticketedCount, attendanceForecast, zoneAllocations, accessRequirementCodes };
-  }).sort((left, right) => left.externalId.localeCompare(right.externalId));
+  }).sort((left, right) => compareCodePoints(left.externalId, right.externalId));
   if (new Set(ticketClasses.map((ticketClass) => ticketClass.externalId)).size !== ticketClasses.length) fail("ADAPTER_SOURCE_INVALID", "Ticket class external IDs must be unique");
   return ticketClasses;
 };
@@ -141,7 +153,7 @@ const normalizeCheckIn = (input, eventDayMode, ticketClasses) => {
     const aggregateCount = assertCount(count.count, "Aggregate check-in count");
     if (aggregateCount > ticketClass.ticketedCount) fail("ADAPTER_CHECK_IN_INVALID", "Aggregate check-in count cannot exceed its ticket class total", { ticketClassId });
     return { ticketClassId, count: aggregateCount };
-  }).sort((left, right) => left.ticketClassId.localeCompare(right.ticketClassId));
+  }).sort((left, right) => compareCodePoints(left.ticketClassId, right.ticketClassId));
   if (new Set(counts.map((count) => count.ticketClassId)).size !== counts.length) fail("ADAPTER_SOURCE_INVALID", "Aggregate check-in ticket class IDs must be unique");
   return { asOf: input.asOf, counts };
 };
@@ -172,23 +184,38 @@ const normalizeCoreInput = (input) => {
   };
 };
 
-const IMPORT_KEYS = ["sourceSystem", "sourceVersion", "projectId", "planVersion", "nextCursor", "eventDayMode", "projectOccupancy", "ticketClasses", "accessibilityRequirements", "checkIn"];
-const WEBHOOK_KEYS = ["id", "type", "occurredAt", ...IMPORT_KEYS];
+const SOURCE_IMPORT_KEYS = ["sourceSystem", "sourceVersion", "nextCursor", "eventDayMode", "ticketClasses", "accessibilityRequirements", "checkIn"];
+const TRUSTED_PROJECT_KEYS = ["projectId", "planVersion", "projectOccupancy"];
+const PREPARED_IMPORT_KEYS = [...SOURCE_IMPORT_KEYS, ...TRUSTED_PROJECT_KEYS];
+const SOURCE_WEBHOOK_KEYS = ["id", "type", "occurredAt", ...SOURCE_IMPORT_KEYS];
+const PREPARED_WEBHOOK_KEYS = ["id", "type", "occurredAt", ...PREPARED_IMPORT_KEYS];
 
-export function normalizeRegistrationAdapterInput(capability, input) {
+const normalizePreparedRegistrationInput = (capability, input) => {
   assertNoPersonalData(input);
   assertPlainObject(input, "Registration adapter input");
   if (capability === "import" || capability === "synchronize") {
-    assertExactKeys(input, IMPORT_KEYS, "Registration adapter input");
+    assertExactKeys(input, PREPARED_IMPORT_KEYS, "Prepared registration adapter input");
     return Object.freeze(normalizeCoreInput(input));
   }
   if (capability === "webhook") {
-    assertExactKeys(input, WEBHOOK_KEYS, "Registration webhook input");
+    assertExactKeys(input, PREPARED_WEBHOOK_KEYS, "Prepared registration webhook input");
     if (input.type !== "aggregate-check-in.updated") fail("ADAPTER_SOURCE_INVALID", "Registration webhook type must be aggregate-check-in.updated");
     assertIsoTimestamp(input.occurredAt, "Registration webhook occurredAt");
     return Object.freeze({ id: assertIdentifier(input.id, "Registration webhook id"), type: input.type, occurredAt: input.occurredAt, ...normalizeCoreInput(input) });
   }
   fail("ADAPTER_CAPABILITY_UNSUPPORTED", `Registration adapter does not support ${capability}`);
+};
+
+export function normalizeRegistrationAdapterInput(capability, input, trustedProjectContext) {
+  assertNoPersonalData(input);
+  assertNoPersonalData(trustedProjectContext);
+  assertPlainObject(input, "Registration source input");
+  assertPlainObject(trustedProjectContext, "Trusted Project context");
+  assertExactKeys(trustedProjectContext, TRUSTED_PROJECT_KEYS, "Trusted Project context");
+  const sourceKeys = capability === "webhook" ? SOURCE_WEBHOOK_KEYS : SOURCE_IMPORT_KEYS;
+  if (capability !== "import" && capability !== "synchronize" && capability !== "webhook") fail("ADAPTER_CAPABILITY_UNSUPPORTED", `Registration adapter does not support ${capability}`);
+  assertExactKeys(input, sourceKeys, "Registration source input");
+  return normalizePreparedRegistrationInput(capability, { ...input, ...trustedProjectContext });
 }
 
 const namespacedTicketClassId = (sourceSystem, externalId) => `${sourceSystem}:${externalId}`;
@@ -213,14 +240,14 @@ export function reconcileRegistrationOccupancy(input) {
   });
   const accessibility = input.accessibilityRequirements.map((requirement) => {
     const mapped = ticketClasses.filter((ticketClass) => ticketClass.accessRequirementCodes.includes(requirement.code) && ticketClass.zoneAllocations.some((allocation) => requirement.zoneIds.includes(allocation.zoneId)));
-    const mappedTicketedCount = mapped.reduce((sum, ticketClass) => sum + ticketClass.ticketedCount, 0);
+    const mappedTicketedCount = mapped.reduce((sum, ticketClass) => sum + ticketClass.zoneAllocations.filter((allocation) => requirement.zoneIds.includes(allocation.zoneId)).reduce((allocationSum, allocation) => allocationSum + allocation.ticketedCount, 0), 0);
     return { code: requirement.code, requiredCount: requirement.count, zoneIds: clone(requirement.zoneIds), ticketClassIds: mapped.map((ticketClass) => ticketClass.ticketClassId).sort(), mappedTicketedCount, status: mappedTicketedCount >= requirement.count ? "covered" : "under-mapped" };
   });
   const issues = [
     ...(ticketClassTotal === input.projectOccupancy.attendeeTarget ? [] : [{ code: "TICKET_TOTAL_MISMATCH", actual: ticketClassTotal, target: input.projectOccupancy.attendeeTarget }]),
     ...zones.filter((zone) => zone.status !== "within-limit").map((zone) => ({ code: zone.status === "under-target" ? "ZONE_UNDER_TARGET" : "ZONE_OVER_CAPACITY", zoneId: zone.zoneId, actual: zone.ticketedCount, target: zone.status === "under-target" ? zone.minimumCapacity : zone.maximumCapacity })),
     ...accessibility.filter((requirement) => requirement.status !== "covered").map((requirement) => ({ code: "ACCESS_REQUIREMENT_UNDER_MAPPED", requirementCode: requirement.code, actual: requirement.mappedTicketedCount, target: requirement.requiredCount })),
-  ].sort((left, right) => left.code.localeCompare(right.code) || String(left.zoneId ?? left.requirementCode ?? "").localeCompare(String(right.zoneId ?? right.requirementCode ?? "")));
+  ].sort((left, right) => compareCodePoints(left.code, right.code) || compareCodePoints(String(left.zoneId ?? left.requirementCode ?? ""), String(right.zoneId ?? right.requirementCode ?? "")));
   return Object.freeze({
     status: issues.length === 0 ? "pass" : "attention-required",
     projectAttendeeTarget: input.projectOccupancy.attendeeTarget,
@@ -272,12 +299,13 @@ const registrationSnapshot = async (definition, input, synchronizedAt) => {
   return Object.freeze({ id: `registration-snapshot-${checksum.slice(0, 16)}`, status: reconciliation.status === "pass" ? "reconciled" : "attention-required", ...content, checksum });
 };
 
-const assertNoPlanningEffects = (value, path = []) => {
-  if (Array.isArray(value)) return value.forEach((item, index) => assertNoPlanningEffects(item, [...path, String(index)]));
+const assertNoPlanningEffects = (value, path = [], state = { nodes: 0 }) => {
+  assertTraversalBudget(value, path, state);
+  if (Array.isArray(value)) return value.forEach((item, index) => assertNoPlanningEffects(item, [...path, String(index)], state));
   if (!value || typeof value !== "object") return;
   for (const [key, item] of Object.entries(value)) {
     if (["acceptedPlan", "changes", "planningEffects", "proposal", "spatialEffects"].includes(key)) fail("ADAPTER_REVIEW_BYPASS", "Aggregate registration evidence cannot contain executable or accepted-state effects", { field: key, path: [...path, key].join(".") });
-    assertNoPlanningEffects(item, [...path, key]);
+    assertNoPlanningEffects(item, [...path, key], state);
   }
 };
 
@@ -288,15 +316,96 @@ export async function assertRegistrationSnapshot(snapshot) {
   assertExactKeys(snapshot, ["id", "status", "schemaVersion", "adapterId", "adapterVersion", "sourceSystem", "sourceVersion", "synchronizedAt", "projectId", "planVersion", "eventDayMode", "syncCursor", "ticketClasses", "accessibilityRequirements", "checkIn", "reconciliation", "privacy", "checksum"], "Registration snapshot");
   if (snapshot.schemaVersion !== 1 || snapshot.adapterId !== registrationTicketingAdapterDefinition.id || snapshot.adapterVersion !== registrationTicketingAdapterDefinition.version) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot adapter identity is invalid");
   assertIsoTimestamp(snapshot.synchronizedAt, "Registration snapshot synchronizedAt");
-  if (!snapshot.reconciliation || !["pass", "attention-required"].includes(snapshot.reconciliation.status)) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot reconciliation is invalid");
-  const expectedStatus = snapshot.reconciliation.status === "pass" ? "reconciled" : "attention-required";
-  if (snapshot.status !== expectedStatus) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot status does not match reconciliation");
-  if (!snapshot.privacy || snapshot.privacy.mode !== "aggregate-only" || snapshot.privacy.attendeeIdentityStored !== false || snapshot.privacy.individualCheckInStored !== false || snapshot.privacy.freeFormAccessibilityStored !== false) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Registration snapshot privacy evidence is invalid");
-  if (!Array.isArray(snapshot.ticketClasses) || snapshot.ticketClasses.some((ticketClass) => typeof ticketClass.ticketClassId !== "string" || !ticketClass.ticketClassId.startsWith(`${snapshot.sourceSystem}:`) || Object.hasOwn(ticketClass, "externalId"))) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot Ticket Class identity is invalid");
   if (!/^[0-9a-f]{64}$/.test(snapshot.checksum ?? "")) fail("ADAPTER_CHECKSUM_INVALID", "Registration snapshot checksum is invalid");
   const { id, status: _status, checksum, ...content } = snapshot;
   const actual = await sha256Checksum(content);
   if (actual !== checksum || id !== `registration-snapshot-${checksum.slice(0, 16)}`) fail("ADAPTER_CHECKSUM_MISMATCH", "Registration snapshot checksum does not match normalized aggregate content");
+
+  assertIdentifier(snapshot.sourceSystem, "Registration snapshot sourceSystem");
+  assertBoundedString(snapshot.sourceVersion, "Registration snapshot sourceVersion");
+  assertIdentifier(snapshot.projectId, "Registration snapshot projectId");
+  assertBoundedString(snapshot.planVersion, "Registration snapshot planVersion");
+  if (snapshot.eventDayMode !== true && snapshot.eventDayMode !== false) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot eventDayMode must be boolean");
+
+  assertPlainObject(snapshot.syncCursor, "Registration snapshot syncCursor");
+  assertExactKeys(snapshot.syncCursor, ["adapterId", "adapterVersion", "opaque", "sourceVersion", "checksum"], "Registration snapshot syncCursor");
+  if (snapshot.syncCursor.adapterId !== snapshot.adapterId || snapshot.syncCursor.adapterVersion !== snapshot.adapterVersion || snapshot.syncCursor.sourceVersion !== snapshot.sourceVersion) fail("ADAPTER_CURSOR_INCOMPATIBLE", "Registration snapshot cursor identity is invalid");
+  assertBoundedString(snapshot.syncCursor.opaque, "Registration snapshot syncCursor opaque");
+  const { checksum: cursorChecksum, ...cursorContent } = snapshot.syncCursor;
+  if (!/^[0-9a-f]{64}$/.test(cursorChecksum ?? "") || await sha256Checksum(cursorContent) !== cursorChecksum) fail("ADAPTER_CHECKSUM_MISMATCH", "Registration snapshot cursor checksum is invalid");
+
+  if (!Array.isArray(snapshot.ticketClasses)) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot ticketClasses must be an array");
+  const ticketPrefix = `${snapshot.sourceSystem}:`;
+  const rawTicketClasses = snapshot.ticketClasses.map((ticketClass) => {
+    assertPlainObject(ticketClass, "Registration snapshot Ticket Class");
+    assertExactKeys(ticketClass, ["ticketClassId", "ticketedCount", "attendanceForecast", "zoneAllocations", "accessRequirementCodes"], "Registration snapshot Ticket Class");
+    if (typeof ticketClass.ticketClassId !== "string" || !ticketClass.ticketClassId.startsWith(ticketPrefix)) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot Ticket Class identity is invalid");
+    return { externalId: ticketClass.ticketClassId.slice(ticketPrefix.length), ticketedCount: ticketClass.ticketedCount, attendanceForecast: ticketClass.attendanceForecast, zoneAllocations: ticketClass.zoneAllocations, accessRequirementCodes: ticketClass.accessRequirementCodes };
+  });
+
+  assertPlainObject(snapshot.reconciliation, "Registration snapshot reconciliation");
+  assertExactKeys(snapshot.reconciliation, ["status", "projectAttendeeTarget", "ticketClassTotal", "attendanceForecastTotal", "ticketDelta", "zones", "accessibility", "issues"], "Registration snapshot reconciliation");
+  if (!Array.isArray(snapshot.reconciliation.zones) || !Array.isArray(snapshot.reconciliation.accessibility) || !Array.isArray(snapshot.reconciliation.issues)) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot reconciliation collections are invalid");
+  const rawProjectOccupancy = {
+    attendeeTarget: snapshot.reconciliation.projectAttendeeTarget,
+    zones: snapshot.reconciliation.zones.map((zone) => {
+      assertPlainObject(zone, "Registration snapshot reconciliation zone");
+      assertExactKeys(zone, ["zoneId", "minimumCapacity", "maximumCapacity", "ticketedCount", "attendanceForecast", "ticketClassIds", "status"], "Registration snapshot reconciliation zone");
+      return { zoneId: zone.zoneId, minimumCapacity: zone.minimumCapacity, maximumCapacity: zone.maximumCapacity };
+    }),
+  };
+  const projectOccupancy = normalizeProjectOccupancy(rawProjectOccupancy);
+  const zoneIds = new Set(projectOccupancy.zones.map((zone) => zone.zoneId));
+  const accessibilityRequirements = normalizeAccessibilityRequirements(snapshot.accessibilityRequirements, zoneIds);
+  if (JSON.stringify(accessibilityRequirements) !== JSON.stringify(snapshot.accessibilityRequirements)) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot accessibility requirements are not canonical");
+  const ticketClasses = normalizeTicketClasses(rawTicketClasses, zoneIds, new Set(accessibilityRequirements.map((requirement) => requirement.code)));
+  if (ticketClasses.reduce((sum, ticketClass) => sum + ticketClass.ticketedCount, 0) > MAX_COUNT || ticketClasses.reduce((sum, ticketClass) => sum + ticketClass.attendanceForecast, 0) > MAX_COUNT) fail("ADAPTER_CONTRACT_INVALID", `Registration snapshot aggregate totals cannot exceed ${MAX_COUNT}`);
+  const canonicalTicketClasses = ticketClasses.map((ticketClass) => ({ ticketClassId: namespacedTicketClassId(snapshot.sourceSystem, ticketClass.externalId), ticketedCount: ticketClass.ticketedCount, attendanceForecast: ticketClass.attendanceForecast, zoneAllocations: ticketClass.zoneAllocations, accessRequirementCodes: ticketClass.accessRequirementCodes }));
+  if (JSON.stringify(canonicalTicketClasses) !== JSON.stringify(snapshot.ticketClasses)) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot Ticket Classes are not canonical");
+  const expectedReconciliation = reconcileRegistrationOccupancy({ sourceSystem: snapshot.sourceSystem, projectOccupancy, accessibilityRequirements, ticketClasses });
+  if (JSON.stringify(expectedReconciliation) !== JSON.stringify(snapshot.reconciliation)) fail("ADAPTER_RECONCILIATION_INVALID", "Registration snapshot reconciliation does not match its aggregate evidence");
+
+  if (snapshot.eventDayMode) {
+    assertPlainObject(snapshot.checkIn, "Registration snapshot checkIn");
+    assertExactKeys(snapshot.checkIn, ["asOf", "total", "byTicketClass"], "Registration snapshot checkIn");
+    if (!Array.isArray(snapshot.checkIn.byTicketClass)) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot checkIn byTicketClass must be an array");
+    const rawCheckIn = {
+      asOf: snapshot.checkIn.asOf,
+      counts: snapshot.checkIn.byTicketClass.map((count) => {
+        assertPlainObject(count, "Registration snapshot checkIn count");
+        assertExactKeys(count, ["ticketClassId", "count"], "Registration snapshot checkIn count");
+        if (typeof count.ticketClassId !== "string" || !count.ticketClassId.startsWith(ticketPrefix)) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot checkIn Ticket Class identity is invalid");
+        return { ticketClassId: count.ticketClassId.slice(ticketPrefix.length), count: count.count };
+      }),
+    };
+    const checkIn = normalizeCheckIn(rawCheckIn, true, ticketClasses);
+    if (checkIn.counts.reduce((sum, count) => sum + count.count, 0) > MAX_COUNT) fail("ADAPTER_CONTRACT_INVALID", `Registration snapshot aggregate checkIn cannot exceed ${MAX_COUNT}`);
+    const canonicalCheckIn = { asOf: checkIn.asOf, total: checkIn.counts.reduce((sum, count) => sum + count.count, 0), byTicketClass: checkIn.counts.map((count) => ({ ticketClassId: namespacedTicketClassId(snapshot.sourceSystem, count.ticketClassId), count: count.count })) };
+    if (JSON.stringify(canonicalCheckIn) !== JSON.stringify(snapshot.checkIn)) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot checkIn aggregates are not canonical");
+    if (Date.parse(snapshot.checkIn.asOf) > Date.parse(snapshot.synchronizedAt)) fail("ADAPTER_CHECK_IN_INVALID", "Registration snapshot checkIn cannot be later than synchronization time");
+  } else if (snapshot.checkIn !== null) {
+    fail("ADAPTER_EVENT_DAY_REQUIRED", "Registration snapshot checkIn requires event-day mode");
+  }
+
+  assertPlainObject(snapshot.privacy, "Registration snapshot privacy");
+  assertExactKeys(snapshot.privacy, ["mode", "attendeeIdentityStored", "individualCheckInStored", "freeFormAccessibilityStored"], "Registration snapshot privacy");
+  if (snapshot.privacy.mode !== "aggregate-only" || snapshot.privacy.attendeeIdentityStored !== false || snapshot.privacy.individualCheckInStored !== false || snapshot.privacy.freeFormAccessibilityStored !== false) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Registration snapshot privacy evidence is invalid");
+  const expectedStatus = snapshot.reconciliation.status === "pass" ? "reconciled" : "attention-required";
+  if (snapshot.status !== expectedStatus) fail("ADAPTER_CONTRACT_INVALID", "Registration snapshot status does not match reconciliation");
+  return true;
+}
+
+export async function assertRegistrationWebhook(event) {
+  assertNoPersonalData(event);
+  assertNoPlanningEffects(event);
+  assertPlainObject(event, "Registration webhook result");
+  assertExactKeys(event, ["schemaVersion", "adapterId", "adapterVersion", "sourceSystem", "eventId", "eventType", "occurredAt", "sourceVersion", "payload", "checksum"], "Registration webhook result");
+  if (event.schemaVersion !== 1 || event.adapterId !== registrationTicketingAdapterDefinition.id || event.adapterVersion !== registrationTicketingAdapterDefinition.version || event.eventType !== "aggregate-check-in.updated") fail("ADAPTER_CONTRACT_INVALID", "Registration webhook identity is invalid");
+  assertIsoTimestamp(event.occurredAt, "Registration webhook occurredAt");
+  await assertRegistrationSnapshot(event.payload);
+  if (event.sourceSystem !== event.payload.sourceSystem || event.sourceVersion !== event.payload.sourceVersion || event.occurredAt !== event.payload.synchronizedAt) fail("ADAPTER_SOURCE_MISMATCH", "Registration webhook envelope does not match its aggregate payload");
+  const { checksum, ...content } = event;
+  if (!/^[0-9a-f]{64}$/.test(checksum ?? "") || await sha256Checksum(content) !== checksum) fail("ADAPTER_CHECKSUM_MISMATCH", "Registration webhook checksum does not match normalized aggregate content");
   return true;
 }
 
@@ -319,11 +428,12 @@ export const registrationTicketingAdapterDefinition = defineAdapter({
 export const registrationTicketingAdapter = Object.freeze({
   definition: registrationTicketingAdapterDefinition,
   assertImportResult: assertRegistrationSnapshot,
-  async prepareInput(capability, input) {
-    return normalizeRegistrationAdapterInput(capability, input);
+  assertWebhookResult: assertRegistrationWebhook,
+  async prepareInput(capability, input, context) {
+    return normalizeRegistrationAdapterInput(capability, input, context?.adapterContext);
   },
   async invoke(capability, input, context) {
-    const normalized = normalizeRegistrationAdapterInput(capability, input);
+    const normalized = normalizePreparedRegistrationInput(capability, input);
     await context.secrets.get("registration-ticketing/api-token");
     if (capability === "import" || capability === "synchronize") return registrationSnapshot(registrationTicketingAdapterDefinition, normalized, context.clock());
     if (capability === "webhook") {

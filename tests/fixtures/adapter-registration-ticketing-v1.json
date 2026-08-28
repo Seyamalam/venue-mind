@@ -1,20 +1,8 @@
 {
   "sourceSystem": "registration-prod",
   "sourceVersion": "registration-2026-08-28-1200",
-  "projectId": "project-summit-forward",
-  "planVersion": "3.2",
   "nextCursor": "registration-page-43",
   "eventDayMode": true,
-  "projectOccupancy": {
-    "attendeeTarget": 400,
-    "zones": [
-      {
-        "zoneId": "zone-keynote-floor",
-        "minimumCapacity": 390,
-        "maximumCapacity": 410
-      }
-    ]
-  },
   "ticketClasses": [
     {
       "externalId": "general-admission",
