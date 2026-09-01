@@ -1,10 +1,11 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { buildAgentDocuments } from "../src/docs/agent-documents.js";
+import { defaultPublicOrigin } from "../src/docs/public-origin.js";
 
 const outputDirectory = new URL("../public/", import.meta.url);
 const skillsManifest = JSON.parse(await readFile(new URL("../skills/manifest.json", import.meta.url), "utf8"));
 const documents = buildAgentDocuments({
-  origin: process.env.VENUEMIND_PUBLIC_ORIGIN?.trim() ?? "",
+  origin: process.env.VENUEMIND_PUBLIC_ORIGIN?.trim() || defaultPublicOrigin,
   skillPackages: skillsManifest.packages,
 });
 

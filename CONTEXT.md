@@ -176,6 +176,18 @@ _Avoid_: Check-in event, attendee timeline, scan log
 Deterministic evidence comparing Ticket Class totals and zone allocations with the Project attendee target and Occupancy Zone limits.
 _Avoid_: Capacity Validation, attendee manifest, admission approval
 
+**Calendar Event Snapshot**:
+A sanitized, checksum-bound external event record retained as adapter evidence; descriptive title, location, and organizer labels are not planning truth.
+_Avoid_: Event Brief, calendar Project, spatial Change
+
+**Planning Effect Binding**:
+The Project-owned allocation that authorizes one adapter planning operation to target one stable Requirement and its exact Constraint set.
+_Avoid_: Caller-provided Requirement ID, adapter hint
+
+**Webhook Delivery Record**:
+The durable checksum-bound receipt for one adapter version, source system, and external event ID; concurrent or restarted delivery resolves against this same identity.
+_Avoid_: Process cache, event-ID-only deduplication
+
 **Event Brief**:
 The structured Project intent and operating requirements that every Proposal must address.
 _Avoid_: Notes, prompt
@@ -277,7 +289,12 @@ A named alternative Proposal lineage based on one Plan Version, used to preserve
 _Avoid_: Copy, scenario file
 
 **Change**:
-One stable, inspectable spatial difference contained in a Proposal.
+One stable, inspectable planning difference contained in a Proposal, expressed through typed Spatial Effects or Planning Effects.
+_Avoid_: Adapter record, direct mutation
+
+**Planning Effect**:
+An executable, typed Event Brief or Requirement transition carried by a Change and applied only through human Proposal Approval.
+_Avoid_: Metadata patch, free-form effect, calendar update
 _Avoid_: Mutation, tweak
 
 **Proposal Conflict**:

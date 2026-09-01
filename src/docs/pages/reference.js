@@ -107,6 +107,8 @@ const stringExample = (name, schema) => {
   if (name === "timezone") return "Asia/Dhaka";
   if (name.endsWith("Ids")) return undefined;
   if (name.endsWith("Id")) return `${name.replace(/Id$/, "").replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}-example`;
+  if (name === "startAt") return "2026-09-18T09:00:00+06:00";
+  if (name === "endAt") return "2026-09-18T17:00:00+06:00";
   if (schema.format === "date-time") return "2026-08-27T10:00:00.000Z";
   return name === "goal" ? "Improve access while preserving capacity" : name === "instruction" ? "Increase rear clearance" : `example-${slugToken(name)}`;
 };
@@ -176,12 +178,16 @@ const commandErrorCodes = (type, schema) => {
   if (/comment/.test(type)) codes.add("COMMENT_NOT_FOUND").add("COMMENT_INVALID");
   if (/scenario|simulation/.test(type)) codes.add("SCENARIO_RUN_NOT_FOUND");
   if (/warning/.test(type)) codes.add("WARNING_NOT_WAIVABLE").add("WAIVER_REASON_INVALID");
-  if (type === "approve_proposal") ["PROPOSAL_MISMATCH", "PLAN_VERSION_CONFLICT", "VALIDATION_FAILED", "WARNING_WAIVER_REQUIRED", "EMERGENCY_REVIEW_REQUIRED"].forEach((codeValue) => codes.add(codeValue));
+  if (type === "approve_proposal") ["PROPOSAL_MISMATCH", "PROPOSAL_EMPTY", "PLAN_VERSION_CONFLICT", "VALIDATION_FAILED", "WARNING_WAIVER_REQUIRED", "EMERGENCY_REVIEW_REQUIRED"].forEach((codeValue) => codes.add(codeValue));
   if (type === "restore_snapshot") codes.add("SNAPSHOT_INVALID").add("LEDGER_INTEGRITY_FAILED");
   return [...codes].filter((codeValue) => errorCatalog[codeValue]);
 };
 
-const commandExample = (type, schema) => Object.fromEntries((schema.required ?? []).map((name) => [name, exampleValue(schema.properties[name], name)]));
+const commandExample = (type, schema) => {
+  const example = Object.fromEntries((schema.required ?? []).map((name) => [name, exampleValue(schema.properties[name], name)]));
+  if (type === "update_event_brief") example.brief.schedule = exampleValue(eventBriefSchema.properties.schedule, "schedule");
+  return example;
+};
 const pageMetadata = (collection, hidden = false) => ({ hidden, collection, parentSlug: `reference-${collection}` });
 
 export const toolReferencePages = venueToolContracts.map((tool) => {

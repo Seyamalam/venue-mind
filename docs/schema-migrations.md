@@ -31,6 +31,10 @@ Current database schema: 7. Numbered, checksummed SQL migrations and production-
 - Invalid or tampered legacy state fails with a stable error instead of being repaired silently.
 - The compatibility and deprecation page names the supported range and migration behavior.
 
+## Activity Ledger accepted-Brief proof
+
+Early schema-10 snapshots sealed accepted Plan truth but did not include accepted Event Brief proof. Their unkeyed legacy ledger cannot authenticate a complete edited Brief, so snapshot-derived planner seeds and caller-labelled templates never authorize migration. Restore requires an explicit human attestation supplied through the server by an authenticated Venue Administrator or Organization Administrator. The proof actor and role must match the server-resolved principal and the proof must contain the exact Brief under review; a mismatch fails with `LEDGER_INTEGRITY_FAILED`, while a missing or unauthorized proof fails with `LEGACY_BRIEF_ATTESTATION_REQUIRED`. A successful restore appends one `activity-ledger-v1-accepted-brief-proof` entry containing the accepted Plan, Brief, SHA-256 challenge bindings, and proof reference. Imported snapshots cannot self-attest, and migration never infers Brief history.
+
 ## Add a database migration
 
 1. Add the next contiguous `db/migrations/NNNN_name.sql` file with one statement per `-- statement-breakpoint` block.

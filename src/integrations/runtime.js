@@ -9,7 +9,7 @@ import {
   sha256Checksum,
 } from "./contracts.js";
 import { createScopedSecretReader } from "./secret-store.js";
-import { assertReviewableStagingBatch, createAdapterStagingBatch } from "./staging.js";
+import { assertAdapterProjectContext, assertReviewableStagingBatch, assertStagingBatchIntegrity, createAdapterStagingBatch } from "./staging.js";
 import { createMemoryProcessedBatchStore } from "./processed-batch-store.js";
 
 const clone = (value) => structuredClone(value);
@@ -31,22 +31,19 @@ const isPolicyFailure = (error) => error.code.startsWith("ADAPTER_SECRET_")
   || error.code === "ADAPTER_BASE_PLAN_VERSION_REQUIRED"
   || error.code === "ADAPTER_PROPOSAL_REVISION_REQUIRED"
   || error.code === "ADAPTER_STAGING_INTEGRITY_FAILED"
+  || error.code === "ADAPTER_PROJECT_BINDING_REQUIRED"
+  || error.code === "ADAPTER_PROJECT_BINDING_MISMATCH"
+  || error.code === "ADAPTER_PLANNING_BINDING_MISMATCH"
+  || error.code === "ADAPTER_WEBHOOK_STORE_REQUIRED"
+  || error.code === "ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED"
+  || error.code === "ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED"
   || error.code === "ADAPTER_ENTITY_TYPE_INVALID"
   || error.code === "ADAPTER_ENTITY_TYPE_UNSUPPORTED"
   || error.code === "ADAPTER_PROTECTED_FIELD"
   || error.code === "ADAPTER_CHECKSUM_INVALID"
   || error.code === "ADAPTER_CHECKSUM_MISMATCH"
+  || error.code === "ADAPTER_PERSONAL_DATA_REJECTED"
   || error.code.startsWith("ADAPTER_CONTRACT_");
-
-const assertAdapterImportResult = async (adapter, output, capability, preparedInput) => {
-  if (adapter.definition.importResultMode === "reviewable-proposal") return assertReviewableStagingBatch(output);
-  if (adapter.definition.importResultMode === "aggregate-snapshot") {
-    if (typeof adapter.assertImportResult !== "function") fail("ADAPTER_CONTRACT_INVALID", "Aggregate snapshot adapters require an import-result validator", { adapterId: adapter.definition.id });
-    await adapter.assertImportResult(output, { capability, preparedInput: clone(preparedInput) });
-    return true;
-  }
-  fail("ADAPTER_CONTRACT_INVALID", "Adapter importResultMode is unsupported", { adapterId: adapter.definition.id });
-};
 
 const normalizeWebhookEvent = async (definition, value) => {
   if (!value || typeof value !== "object" || Array.isArray(value)) fail("ADAPTER_CONTRACT_INVALID", "Webhook result must be an object");
@@ -60,6 +57,29 @@ const normalizeWebhookEvent = async (definition, value) => {
   return Object.freeze({ schemaVersion: 1, ...content, checksum });
 };
 
+const validateStoredWebhookEvent = async (definition, value, expected, inserted) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", "Webhook store returned an invalid row");
+  const allowed = ["schemaVersion", "adapterId", "adapterVersion", "sourceSystem", "eventId", "eventType", "occurredAt", "sourceVersion", "payload", "checksum"];
+  const unknown = Object.keys(value).filter((key) => !allowed.includes(key));
+  if (unknown.length) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", "Webhook store row contains unknown fields", { fields: unknown.sort() });
+  if (value.schemaVersion !== 1 || value.adapterId !== definition.id || value.adapterVersion !== definition.version || value.sourceSystem !== expected.sourceSystem || value.eventId !== expected.eventId) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", "Webhook store row identity does not match its durable key", { adapterId: value.adapterId, adapterVersion: value.adapterVersion, sourceSystem: value.sourceSystem, eventId: value.eventId });
+  for (const field of ["eventType", "occurredAt", "sourceVersion"]) if (typeof value[field] !== "string" || !value[field]) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", `Webhook store ${field} is invalid`);
+  try {
+    assertIsoTimestamp(value.occurredAt, "Webhook store occurredAt");
+  } catch (error) {
+    fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", error.message);
+  }
+  const content = { adapterId: value.adapterId, adapterVersion: value.adapterVersion, sourceSystem: value.sourceSystem, eventId: value.eventId, eventType: value.eventType, occurredAt: value.occurredAt, sourceVersion: value.sourceVersion, payload: clone(value.payload) };
+  const checksum = await sha256Checksum(content);
+  const schemaBoundChecksum = await sha256Checksum({ schemaVersion: value.schemaVersion, ...content });
+  if (![checksum, schemaBoundChecksum].includes(value.checksum)) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", "Webhook store row checksum does not match its normalized content", { eventId: value.eventId });
+  if (value.checksum !== expected.checksum) {
+    const code = inserted ? "ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED" : "ADAPTER_WEBHOOK_REPLAY_MISMATCH";
+    fail(code, inserted ? "Webhook store did not persist the accepted event exactly" : "Webhook event ID was replayed with different content", { eventId: value.eventId, sourceSystem: value.sourceSystem });
+  }
+  return Object.freeze({ schemaVersion: 1, ...content, checksum: value.checksum });
+};
+
 const normalizeExport = async (definition, value) => {
   if (!value || typeof value !== "object" || Array.isArray(value)) fail("ADAPTER_CONTRACT_INVALID", "Export result must be an object");
   const unknown = Object.keys(value).filter((key) => !["sourceSystem", "mediaType", "sourceVersion", "data", "checksum"].includes(key));
@@ -71,9 +91,14 @@ const normalizeExport = async (definition, value) => {
   return Object.freeze({ schemaVersion: 1, ...content, checksum });
 };
 
+const assertAggregateImportResult = async (adapter, output, capability, preparedInput) => {
+  if (typeof adapter.assertImportResult !== "function") fail("ADAPTER_CONTRACT_INVALID", "Aggregate snapshot adapters require an import-result validator", { adapterId: adapter.definition.id });
+  await adapter.assertImportResult(output, { capability, preparedInput: clone(preparedInput) });
+  return output;
+};
+
 export function createVenueAdapter(definitionInput, handlers) {
   const definition = defineAdapter(definitionInput);
-  if (definition.importResultMode !== "reviewable-proposal") fail("ADAPTER_CONTRACT_INVALID", "createVenueAdapter supports reviewable Proposal imports only", { adapterId: definition.id, importResultMode: definition.importResultMode });
   if (!handlers || typeof handlers !== "object" || Array.isArray(handlers)) fail("ADAPTER_CONTRACT_INVALID", "Adapter handlers must be an object");
   const unknown = Object.keys(handlers).filter((key) => !definition.capabilities.includes(key));
   if (unknown.length) fail("ADAPTER_CAPABILITY_UNDECLARED", "Adapter implements undeclared capabilities", { capabilities: unknown.sort() });
@@ -86,7 +111,8 @@ export function createVenueAdapter(definitionInput, handlers) {
       const output = await handlers[capability](clone(input), context);
       if (capability === "import" || capability === "synchronize") {
         const staging = await createAdapterStagingBatch(definition, output, { basePlanVersion: input?.basePlanVersion, proposalRevision: input?.proposalRevision });
-        assertReviewableStagingBatch(staging);
+        if (staging.status === "awaiting-review") await assertReviewableStagingBatch(staging, null, { requireProjectContext: false });
+        else if (staging.status !== "no-changes" || staging.proposal !== null) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "No-change staging must not contain a Proposal");
         return staging;
       }
       if (capability === "export") return normalizeExport(definition, output);
@@ -101,8 +127,36 @@ export function createAdapterRuntime(options = {}) {
   const sleep = options.sleep ?? ((milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
   const deadLetterSink = options.deadLetterSink ?? { async add() {} };
   const processedBatchStore = options.processedBatchStore ?? createMemoryProcessedBatchStore();
-  const webhookEventStore = options.webhookEventStore ?? createMemoryProcessedBatchStore();
+  const webhookEventStore = options.webhookEventStore ?? null;
+  const resolveProjectContext = typeof options.resolveProjectContext === "function" ? options.resolveProjectContext : async () => options.projectContext ?? null;
   const requestTimes = new Map();
+
+  const validateStagingForPersistence = async (definition, capability, output) => {
+    await assertStagingBatchIntegrity(output);
+    const hasProjectMapping = output.mappings.some((mapping) => mapping.venueEntityType === "project");
+    const projectContext = hasProjectMapping ? await resolveProjectContext({ adapterId: definition.id, adapterVersion: definition.version, capability, sourceSystem: output.sourceSystem }) : null;
+    assertAdapterProjectContext(output, projectContext);
+    if (output.status === "awaiting-review") await assertReviewableStagingBatch(output, projectContext);
+    else if (output.status !== "no-changes" || output.proposal !== null) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "No-change staging must not contain a Proposal");
+    return output;
+  };
+
+  const validateImportForPersistence = async (adapter, capability, output, preparedInput) => {
+    if (adapter.definition.importResultMode === "reviewable-proposal") return validateStagingForPersistence(adapter.definition, capability, output);
+    if (adapter.definition.importResultMode === "aggregate-snapshot") return assertAggregateImportResult(adapter, output, capability, preparedInput);
+    fail("ADAPTER_CONTRACT_INVALID", "Adapter importResultMode is unsupported", { adapterId: adapter.definition.id });
+  };
+
+  const validateStoredProcessedBatch = async (adapter, capability, value, expected, preparedInput, requireExactOutput = false) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store returned an invalid row");
+    const unknown = Object.keys(value).filter((key) => !["invocationId", "inputChecksum", "completedAt", "output"].includes(key));
+    if (unknown.length || value.invocationId !== expected.invocationId || value.inputChecksum !== expected.inputChecksum) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store row identity does not match its durable key");
+    try { assertIsoTimestamp(value.completedAt, "Processed batch completedAt"); } catch { fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store timestamp is invalid"); }
+    await validateImportForPersistence(adapter, capability, value.output, preparedInput);
+    if (expected.completedAt !== undefined && value.completedAt !== expected.completedAt) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store changed the completion timestamp");
+    if (requireExactOutput && await sha256Checksum(value.output) !== await sha256Checksum(expected.output)) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store did not persist the accepted output exactly");
+    return value;
+  };
 
   const acquireRateLimit = async (definition) => {
     const key = `${definition.id}@${definition.version}`;
@@ -130,7 +184,7 @@ export function createAdapterRuntime(options = {}) {
       if (stagesImport) {
         const completed = await processedBatchStore.get(processedBatchKey);
         if (completed) {
-          await assertAdapterImportResult(adapter, completed.output, capability, preparedInput);
+          await validateStoredProcessedBatch(adapter, capability, completed, { invocationId, inputChecksum }, preparedInput);
           return { status: "duplicate", invocationId, attempts: [], duplicateOf: completed.completedAt, output: clone(completed.output) };
         }
       }
@@ -140,16 +194,16 @@ export function createAdapterRuntime(options = {}) {
         await acquireRateLimit(definition);
         try {
           const output = await adapter.invoke(capability, preparedInput, { invocationId, attempt, clock: () => new Date(clock()).toISOString(), secrets: secretReader });
-          if (stagesImport) await assertAdapterImportResult(adapter, output, capability, preparedInput);
+          if (stagesImport) await validateImportForPersistence(adapter, capability, output, preparedInput);
           if (capability === "webhook" && typeof adapter.assertWebhookResult === "function") await adapter.assertWebhookResult(output, { capability, preparedInput: clone(preparedInput) });
           attempts.push({ attempt, status: "succeeded", at: new Date(clock()).toISOString() });
           if (stagesImport) {
             const completedAt = new Date(clock()).toISOString();
-            const stored = await processedBatchStore.putIfAbsent(processedBatchKey, { invocationId, inputChecksum, completedAt, output });
-            if (!stored.inserted) {
-              await assertAdapterImportResult(adapter, stored.value.output, capability, preparedInput);
-              return { status: "duplicate", invocationId, attempts, duplicateOf: stored.value.completedAt, output: clone(stored.value.output) };
-            }
+            const expected = { invocationId, inputChecksum, completedAt, output };
+            const stored = await processedBatchStore.putIfAbsent(processedBatchKey, expected);
+            await validateStoredProcessedBatch(adapter, capability, stored.value, expected, preparedInput, true);
+            if (!stored.inserted) return { status: "duplicate", invocationId, attempts, duplicateOf: stored.value.completedAt, output: clone(stored.value.output) };
+            return { status: "succeeded", invocationId, attempts, output: clone(stored.value.output) };
           }
           return { status: "succeeded", invocationId, attempts, output };
         } catch (cause) {
@@ -184,16 +238,17 @@ export function createAdapterRuntime(options = {}) {
     },
 
     async acceptWebhook(adapter, input, authorization = {}) {
+      if (!webhookEventStore || typeof webhookEventStore.putIfAbsent !== "function") fail("ADAPTER_WEBHOOK_STORE_REQUIRED", "Webhook acceptance requires an injected atomic durable event store");
       const result = await this.execute(adapter, "webhook", input, authorization);
       if (result.status !== "succeeded") return result;
       const key = `${adapter.definition.id}@${adapter.definition.version}\u0000${result.output.sourceSystem}\u0000${result.output.eventId}`;
       const stored = await webhookEventStore.putIfAbsent(key, result.output);
+      const storedOutput = await validateStoredWebhookEvent(adapter.definition, stored.value, result.output, stored.inserted);
+      if (typeof adapter.assertWebhookResult === "function") await adapter.assertWebhookResult(storedOutput);
       if (!stored.inserted) {
-        if (stored.value.checksum !== result.output.checksum) fail("ADAPTER_WEBHOOK_REPLAY_MISMATCH", "Webhook event ID was replayed with different content", { eventId: result.output.eventId });
-        if (typeof adapter.assertWebhookResult === "function") await adapter.assertWebhookResult(stored.value);
-        return { ...result, status: "duplicate", output: clone(stored.value) };
+        return { ...result, status: "duplicate", output: clone(storedOutput) };
       }
-      return result;
+      return { ...result, output: clone(storedOutput) };
     },
 
     inspectRateLimit(adapter) {

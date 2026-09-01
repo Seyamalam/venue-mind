@@ -122,6 +122,44 @@ export function createProjectStore({
       }
     },
 
+    async inspectLegacyBriefMigration(projectId) {
+      const response = await fetchImpl(`/api/projects/${encodeURIComponent(projectId)}/migrations/legacy-brief`, { credentials: "same-origin", headers: requestHeaders({ accept: "application/json" }) });
+      const payload = await safeJson(response);
+      if (!response.ok) {
+        const error = new Error(payload.error ?? "Legacy Brief migration inspection failed");
+        error.code = payload.code ?? "LEGACY_BRIEF_MIGRATION_INVALID";
+        error.details = payload.details;
+        throw error;
+      }
+      return payload;
+    },
+
+    async attestLegacyBriefMigration(projectId, inspection, { reason, idempotencyKey }) {
+      const response = await fetchImpl(`/api/projects/${encodeURIComponent(projectId)}/migrations/legacy-brief/attest`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: requestHeaders({ "content-type": "application/json", accept: "application/json" }),
+        body: JSON.stringify({
+          challengeId: inspection.challengeId,
+          expectedProjectRevision: inspection.projectRevision,
+          expectedLedgerHeadHash: inspection.legacyLedgerHeadHash,
+          expectedPlanSha256: inspection.planSha256,
+          expectedBriefSha256: inspection.briefSha256,
+          reason,
+          idempotencyKey,
+        }),
+      });
+      const payload = await safeJson(response);
+      if (!response.ok) {
+        const error = new Error(payload.error ?? "Legacy Brief attestation failed");
+        error.code = payload.code ?? "LEGACY_BRIEF_ATTESTATION_INVALID";
+        error.details = payload.details;
+        throw error;
+      }
+      if (payload.project) writeRemoteCache(payload.project);
+      return payload;
+    },
+
     async save({ id, name, activePlanId, snapshot, createdAt, provenance, archivedAt, deletedAt, recoveryUntil, pinned, lastOpenedAt }) {
       const correlationId = snapshot.receipts?.at(-1)?.correlationId ?? `project-save-${id}`;
       const previous = readLocal(id);

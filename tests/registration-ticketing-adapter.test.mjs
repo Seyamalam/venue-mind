@@ -6,6 +6,7 @@ import { assertRegistrationSnapshot, assertRegistrationWebhook, registrationTick
 import { createMemoryProcessedBatchStore } from "../src/integrations/processed-batch-store.js";
 import { createAdapterRuntime, createMemoryDeadLetterSink, serializeDeadLetter } from "../src/integrations/runtime.js";
 import { createMemorySecretStore } from "../src/integrations/secret-store.js";
+import { createMemoryWebhookEventStore } from "../src/integrations/webhook-event-store.js";
 
 const fixture = JSON.parse(await readFile(new URL("./fixtures/adapter-registration-ticketing-v1.json", import.meta.url), "utf8"));
 const webhookFixture = JSON.parse(await readFile(new URL("./fixtures/adapter-registration-ticketing-webhook-v1.json", import.meta.url), "utf8"));
@@ -107,6 +108,10 @@ test("contact-shaped values are rejected without echoing their content", async (
   for (const sourceVersion of ["private@example.test", "+1 555 010 1000"]) {
     await assert.rejects(() => createAdapterRuntime({ clock }).execute(registrationTicketingAdapter, "import", { ...structuredClone(fixture), sourceVersion }, authorization), (error) => error.code === "ADAPTER_PERSONAL_DATA_REJECTED" && !JSON.stringify(error).includes(sourceVersion));
   }
+  const fieldName = "alice@example.test";
+  const keyed = structuredClone(fixture);
+  keyed[fieldName] = "opaque";
+  await assert.rejects(() => createAdapterRuntime({ clock }).execute(registrationTicketingAdapter, "import", keyed, authorization), (error) => error.code === "ADAPTER_PERSONAL_DATA_REJECTED" && !JSON.stringify(error).includes(fieldName));
 });
 
 test("foreign zones, unbounded counts, allocation drift, and invalid event-day input fail closed", async () => {
@@ -166,7 +171,7 @@ test("accessibility coverage counts only allocations in requirement zones and fo
 });
 
 test("aggregate check-in webhook storage is sanitized, deterministic, and replay-safe", async () => {
-  const runtime = createAdapterRuntime({ clock });
+  const runtime = createAdapterRuntime({ clock, webhookEventStore: createMemoryWebhookEventStore() });
   const first = await runtime.acceptWebhook(registrationTicketingAdapter, structuredClone(webhookFixture), webhookAuthorization);
   const duplicate = await runtime.acceptWebhook(registrationTicketingAdapter, reverseEveryCollection(webhookFixture), webhookAuthorization);
   assert.equal(first.status, "succeeded");
@@ -184,7 +189,8 @@ test("aggregate check-in webhook storage is sanitized, deterministic, and replay
   await assert.rejects(() => createAdapterRuntime({ clock }).execute({ ...registrationTicketingAdapter, async invoke() { return invalidOutput; } }, "webhook", structuredClone(webhookFixture), webhookAuthorization), (error) => error.code === "ADAPTER_CHECKSUM_MISMATCH");
 
   const nonEventDay = { ...structuredClone(webhookFixture), eventDayMode: false, checkIn: null };
-  await assert.rejects(() => createAdapterRuntime({ clock }).acceptWebhook(registrationTicketingAdapter, nonEventDay, webhookAuthorization), (error) => error.code === "ADAPTER_EVENT_DAY_REQUIRED");
+  await assert.rejects(() => createAdapterRuntime({ clock, webhookEventStore: createMemoryWebhookEventStore() }).acceptWebhook(registrationTicketingAdapter, nonEventDay, webhookAuthorization), (error) => error.code === "ADAPTER_EVENT_DAY_REQUIRED");
+  await assert.rejects(() => createAdapterRuntime({ clock }).acceptWebhook(registrationTicketingAdapter, structuredClone(webhookFixture), webhookAuthorization), (error) => error.code === "ADAPTER_WEBHOOK_STORE_REQUIRED");
   const invalidEventId = structuredClone(first.output);
   invalidEventId.eventId = "INVALID / event id";
   const { checksum: _checksum, ...eventContent } = invalidEventId;
@@ -209,7 +215,7 @@ test("aggregate check-in webhook storage is sanitized, deterministic, and replay
 });
 
 test("webhook replay storage is atomic, restart-safe, and source-namespaced", async () => {
-  const webhookEventStore = createMemoryProcessedBatchStore();
+  const webhookEventStore = createMemoryWebhookEventStore();
   const firstRuntime = createAdapterRuntime({ clock, webhookEventStore });
   const concurrent = await Promise.all([
     firstRuntime.acceptWebhook(registrationTicketingAdapter, structuredClone(webhookFixture), webhookAuthorization),
@@ -279,6 +285,12 @@ test("runtime rejects unvalidated, invalid, and tampered aggregate snapshot resu
   };
   await assert.rejects(() => createAdapterRuntime({ clock, processedBatchStore: racedStore }).execute(registrationTicketingAdapter, "import", structuredClone(fixture), authorization), (error) => error.code === "ADAPTER_CHECKSUM_MISMATCH");
 
+  const corruptInsertStore = {
+    async get() { return null; },
+    async putIfAbsent(_key, value) { return { inserted: true, value: { ...structuredClone(value), completedAt: "2026-08-28T12:00:01.000Z" } }; },
+  };
+  await assert.rejects(() => createAdapterRuntime({ clock, processedBatchStore: corruptInsertStore }).execute(registrationTicketingAdapter, "import", structuredClone(fixture), authorization), (error) => error.code === "ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED");
+
   const projectBAuthorization = { ...authorization, trustedAdapterContexts: { "registration-ticketing": { ...trustedProjectContext, projectId: "project-b", planVersion: "9" } } };
   const projectB = (await createAdapterRuntime({ clock }).execute(registrationTicketingAdapter, "import", structuredClone(fixture), projectBAuthorization)).output;
   await assert.rejects(() => createAdapterRuntime({ clock }).execute({ ...registrationTicketingAdapter, async invoke() { return projectB; } }, "import", structuredClone(fixture), authorization), (error) => error.code === "ADAPTER_SOURCE_MISMATCH");
@@ -286,7 +298,7 @@ test("runtime rejects unvalidated, invalid, and tampered aggregate snapshot resu
     async get() { return { completedAt: "2026-08-28T12:00:00.000Z", output: structuredClone(projectB) }; },
     async putIfAbsent() { throw new Error("unreachable"); },
   };
-  await assert.rejects(() => createAdapterRuntime({ clock, processedBatchStore: foreignDuplicateStore }).execute(registrationTicketingAdapter, "import", structuredClone(fixture), authorization), (error) => error.code === "ADAPTER_SOURCE_MISMATCH");
+  await assert.rejects(() => createAdapterRuntime({ clock, processedBatchStore: foreignDuplicateStore }).execute(registrationTicketingAdapter, "import", structuredClone(fixture), authorization), (error) => error.code === "ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED");
   const foreignRaceStore = {
     async get() { return null; },
     async putIfAbsent(_key, value) { return { inserted: false, value: { ...value, output: structuredClone(projectB) } }; },

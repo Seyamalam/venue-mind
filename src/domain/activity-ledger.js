@@ -20,6 +20,7 @@ export const stableFingerprint = (prefix, value) => {
 };
 
 export const fingerprintPlan = (plan) => stableFingerprint("plan", plan);
+export const fingerprintEventBrief = (brief) => stableFingerprint("brief", brief);
 
 export const createActivityEntry = (sequence, type, actor, details = {}, metadata = {}) => ({
   id: `ledger-${String(sequence).padStart(4, "0")}`,
@@ -88,9 +89,21 @@ export function normalizeActivityLedger(entries) {
   return clone(entries);
 }
 
-export function replayActivityLedger(entries, currentPlan) {
+export function replayActivityLedger(entries, currentPlan, currentBrief = null) {
   const integrity = verifyActivityLedger(entries);
   if (integrity.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { integrity });
+  const truthFingerprintViolations = entries.flatMap((entry) => {
+    const violations = [];
+    if (entry.details?.acceptedPlan) {
+      const actual = fingerprintPlan(entry.details.acceptedPlan);
+      if (entry.details.planFingerprint !== actual) violations.push({ ledgerEntryId: entry.id, truth: "plan", declared: entry.details.planFingerprint ?? null, actual });
+    }
+    if (entry.details?.acceptedBrief) {
+      const actual = fingerprintEventBrief(entry.details.acceptedBrief);
+      if (entry.details.briefFingerprint !== actual) violations.push({ ledgerEntryId: entry.id, truth: "brief", declared: entry.details.briefFingerprint ?? null, actual });
+    }
+    return violations;
+  });
   const transitions = entries
     .filter((entry) => entry.details?.acceptedPlan)
     .map((entry) => ({
@@ -99,10 +112,16 @@ export function replayActivityLedger(entries, currentPlan) {
       planVersion: entry.details.acceptedPlan.version,
       planFingerprint: fingerprintPlan(entry.details.acceptedPlan),
       plan: clone(entry.details.acceptedPlan),
+      briefFingerprint: entry.details.acceptedBrief ? fingerprintEventBrief(entry.details.acceptedBrief) : null,
+      brief: entry.details.acceptedBrief ? clone(entry.details.acceptedBrief) : null,
     }));
   const replayed = transitions.at(-1)?.plan ?? null;
   const replayedFingerprint = replayed ? fingerprintPlan(replayed) : null;
   const currentFingerprint = fingerprintPlan(currentPlan);
+  const briefTransitions = entries.filter((entry) => entry.details?.acceptedBrief).map((entry) => ({ ledgerEntryId: entry.id, brief: clone(entry.details.acceptedBrief) }));
+  const replayedBrief = briefTransitions.at(-1)?.brief ?? null;
+  const replayedBriefFingerprint = replayedBrief ? fingerprintEventBrief(replayedBrief) : null;
+  const currentBriefFingerprint = currentBrief ? fingerprintEventBrief(currentBrief) : null;
   const lockedObjectViolations = [];
   for (let index = 1; index < transitions.length; index += 1) {
     const before = transitions[index - 1];
@@ -133,12 +152,16 @@ export function replayActivityLedger(entries, currentPlan) {
     }
   }
   return {
-    status: replayedFingerprint === currentFingerprint && lockedObjectViolations.length === 0 ? "pass" : "fail",
-    transitions: transitions.map(({ plan: _plan, ...transition }) => transition),
+    status: replayedFingerprint === currentFingerprint && (!currentBrief || (replayedBrief && replayedBriefFingerprint === currentBriefFingerprint)) && lockedObjectViolations.length === 0 && truthFingerprintViolations.length === 0 ? "pass" : "fail",
+    transitions: transitions.map(({ plan: _plan, brief: _brief, ...transition }) => transition),
     currentPlanVersion: currentPlan.version,
     replayedFingerprint,
     currentFingerprint,
+    replayedBriefFingerprint,
+    currentBriefFingerprint,
+    briefTransitions: briefTransitions.map(({ brief: _brief, ...transition }) => transition),
     ledgerHeadHash: integrity.headHash,
     lockedObjectViolations,
+    truthFingerprintViolations,
   };
 }

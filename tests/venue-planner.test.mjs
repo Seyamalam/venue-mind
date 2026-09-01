@@ -1,10 +1,21 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createActivityEntry, fingerprintPlan, replayActivityLedger, sealActivityLedger } from "../src/domain/activity-ledger.js";
+import { createActivityEntry, fingerprintEventBrief, fingerprintPlan, replayActivityLedger, sealActivityLedger } from "../src/domain/activity-ledger.js";
 import { createVenuePlanner } from "../src/domain/venue-planner.js";
 
 const createPlanner = () => createVenuePlanner(summitForwardPlan);
+
+const pinAcceptedTruthForFixture = (snapshot) => {
+  const ledger = structuredClone(snapshot.ledger);
+  const index = ledger.findLastIndex((entry) => entry.details?.acceptedPlan);
+  ledger[index].details.acceptedPlan = structuredClone(snapshot.plan);
+  ledger[index].details.planFingerprint = fingerprintPlan(snapshot.plan);
+  ledger[index].details.acceptedBrief = structuredClone(snapshot.brief);
+  ledger[index].details.briefFingerprint = fingerprintEventBrief(snapshot.brief);
+  snapshot.ledger = sealActivityLedger(ledger);
+  return snapshot;
+};
 
 test("inspection exposes stable IDs, locks, constraints, and the active proposal", () => {
   const planner = createPlanner();
@@ -146,18 +157,14 @@ test("snapshot restore rejects operational geometry with an incompatible footpri
   assert.throws(() => planner.execute({ type: "restore_snapshot", snapshot }), /door.+line footprint/i);
 });
 
-test("snapshot restore canonicalizes geometry precision and rotation", () => {
+test("snapshot restore rejects accepted geometry changes without ledger evidence", () => {
   const planner = createPlanner();
   const snapshot = structuredClone(planner.getSnapshot());
   const avDesk = snapshot.plan.objects.find((object) => object.id === "obj-av-desk");
   avDesk.footprint.center.x = 21.12349;
   avDesk.footprint.rotationDegrees = 450.14;
 
-  planner.execute({ type: "restore_snapshot", snapshot });
-  const restored = planner.getSnapshot().plan.objects.find((object) => object.id === "obj-av-desk");
-
-  assert.equal(restored.footprint.center.x, 21.123);
-  assert.equal(restored.footprint.rotationDegrees, 90.1);
+  assert.throws(() => planner.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEDGER_INTEGRITY_FAILED" && error.details.replay.status === "fail");
 });
 
 test("snapshot restore rejects self-intersecting room boundaries", () => {
@@ -386,6 +393,7 @@ test("every planner mutation is retry-safe", () => {
     ["waiver", (planner) => {
       const snapshot = structuredClone(planner.getSnapshot());
       snapshot.plan.constraints.push({ id: "constraint-retry-warning", checkId: "check-retry-warning", evaluator: "minimum_metric", label: "Retry warning", category: "operations", severity: "warning", waivable: true, scope: { kind: "plan" }, parameters: { metric: "attendeeCapacity", comparator: "gte", threshold: 450, unit: "attendees" }, remediation: "Record a disposition." });
+      pinAcceptedTruthForFixture(snapshot);
       planner.execute({ type: "restore_snapshot", snapshot });
       return { type: "waive_warning", constraintId: "constraint-retry-warning", reasonCode: "operational-acceptance", actor: "human", actorId: "operator-retry", idempotencyKey: "retry-waiver" };
     }],
@@ -447,6 +455,7 @@ test("every planner mutation is retry-safe", () => {
       );
       snapshot.proposal.changes.push({ id: "chg-retry-overlap", number: 5, title: "Overlap", shortTitle: "Overlap", metrics: [], targetObjectIds: ["obj-retry-solid-a"], spatialEffects: [{ operation: "update_footprint", objectId: "obj-retry-solid-a", footprint: { center: { x: 8, y: 2 } } }], effects: {} });
       snapshot.branches[0].proposal = structuredClone(snapshot.proposal);
+      pinAcceptedTruthForFixture(snapshot);
       planner.execute({ type: "restore_snapshot", snapshot });
       const detected = planner.execute({ type: "detect_conflicts", branchId: "branch-balanced" });
       const overlap = detected.conflicts.find((conflict) => conflict.type === "geometry-overlap");
@@ -863,6 +872,7 @@ test("preference warnings remain non-blocking and disabled constraints are not a
       label: "Preferred capacity",
       category: "capacity",
       severity: "warning",
+      waivable: true,
       scope: { kind: "plan" },
       parameters: { metric: "attendeeCapacity", comparator: "gte", threshold: 450, unit: "attendees" },
       remediation: "Add optional seating if operationally useful.",
@@ -874,6 +884,7 @@ test("preference warnings remain non-blocking and disabled constraints are not a
       label: "Optional queue buffer",
       category: "circulation",
       severity: "warning",
+      waivable: true,
       enabled: false,
       scope: { kind: "plan" },
       parameters: { metric: "queueBufferSqFt", comparator: "gte", threshold: 200, unit: "sq ft" },
@@ -881,6 +892,7 @@ test("preference warnings remain non-blocking and disabled constraints are not a
     },
   );
 
+  pinAcceptedTruthForFixture(snapshot);
   planner.execute({ type: "restore_snapshot", snapshot });
   const validation = planner.execute({ type: "validate_layout" });
 
@@ -906,6 +918,7 @@ test("Approval requires an auditable human Warning Waiver for every waivable war
     parameters: { metric: "attendeeCapacity", comparator: "gte", threshold: 450, unit: "attendees" },
     remediation: "Add optional seating if operationally useful.",
   });
+  pinAcceptedTruthForFixture(snapshot);
   planner.execute({ type: "restore_snapshot", snapshot });
   const proposal = planner.getSnapshot().proposal;
   const before = planner.execute({ type: "validate_layout" });
@@ -955,6 +968,7 @@ test("Warning Waivers expire when Proposal input changes", () => {
   const planner = createPlanner();
   const snapshot = structuredClone(planner.getSnapshot());
   snapshot.plan.constraints.push({ id: "constraint-preferred-capacity", checkId: "check-preferred-capacity", evaluator: "minimum_metric", label: "Preferred capacity", category: "capacity", severity: "warning", waivable: true, scope: { kind: "plan" }, parameters: { metric: "attendeeCapacity", comparator: "gte", threshold: 450, unit: "attendees" }, remediation: "Add optional seating." });
+  pinAcceptedTruthForFixture(snapshot);
   planner.execute({ type: "restore_snapshot", snapshot });
   planner.execute({ type: "waive_warning", constraintId: "constraint-preferred-capacity", reasonCode: "temporary-condition", actor: "human", actorId: "operator-17", idempotencyKey: "waive-before-adjustment" });
 

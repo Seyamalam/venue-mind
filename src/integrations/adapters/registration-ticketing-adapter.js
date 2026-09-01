@@ -1,4 +1,5 @@
 import { AdapterContractError, assertIsoTimestamp, createSyncCursor, defineAdapter, sha256Checksum } from "../contracts.js";
+import { isNonContactLabel } from "../privacy.js";
 
 const MAX_TICKET_CLASSES = 500;
 const MAX_ZONES = 500;
@@ -28,7 +29,7 @@ const assertPlainObject = (value, label) => {
 
 const assertExactKeys = (value, allowed, label) => {
   const unknown = Object.keys(value).filter((key) => !allowed.includes(key)).sort();
-  if (unknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", `${label} contains unknown fields`, { fields: unknown });
+  if (unknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", `${label} contains unknown fields`, { fieldCount: unknown.length });
 };
 
 const assertIdentifier = (value, label) => {
@@ -60,11 +61,12 @@ const assertNoPersonalData = (value, path = [], state = { nodes: 0 }) => {
     return;
   }
   if (!value || typeof value !== "object") {
-    if (typeof value === "string" && /(?:[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9-]+\.[a-z]{2,}|\+\d[\d ().-]{8,}\d|\b\d{3}[ .()-]\d{3}[ .-]\d{4}\b)/i.test(value)) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Registration input contains person-level contact data", { path: path.join(".") });
+    if (typeof value === "string" && !isNonContactLabel(value)) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Registration input contains person-level contact data", { depth: path.length });
     return;
   }
   for (const [key, item] of Object.entries(value)) {
-    if (FORBIDDEN_PERSONAL_KEYS.has(normalizedPersonalKey(key))) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Registration input contains a forbidden person-level field", { field: key, path: [...path, key].join(".") });
+    if (!isNonContactLabel(key)) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Registration input contains person-level contact data in a field name", { depth: path.length + 1 });
+    if (FORBIDDEN_PERSONAL_KEYS.has(normalizedPersonalKey(key))) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Registration input contains a forbidden person-level field", { fieldCategory: "person-level" });
     assertNoPersonalData(item, [...path, key], state);
   }
 };
