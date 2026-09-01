@@ -1042,7 +1042,7 @@ Completion gate:
 - [ ] Migrate product controls, menus, popovers, sheets, tabs, forms, confirmations, and feedback to VenueMind compositions over shadcn primitives.
 - [x] Replace browser prompts with accessible dialogs and confirmation flows.
 - [x] Split the heavy editor, simulations, and comments surfaces behind interaction-driven client chunks.
-- [ ] Split the remaining history and sharing surfaces from the initial Studio runtime.
+- [x] Split history and sharing surfaces from the initial Studio runtime with interaction preloads and persistent close transitions.
 - [ ] Remove the obsolete Vite SPA entry after the Sites compatibility boundary has a supported Next.js handoff.
 - [ ] Verify route-specific bundles, WebMCP cleanup, persistence recovery, collaboration teardown, accessibility, and visual parity.
 
