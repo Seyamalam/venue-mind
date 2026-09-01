@@ -95,13 +95,28 @@ test("released v6 sharing rows upgrade to recoverable v7 lifecycle state", async
     await createFixture(database, 6);
     await sqlite(database, `INSERT INTO project_share_links (id,organization_id,project_id,proposal_id,scope,token_hash,created_by,created_at,expires_at) VALUES ('share-active','org-fixture','project-fixture',NULL,'read-only','${"a".repeat(64)}','user-fixture','2026-08-28T00:00:00.000Z','2026-08-29T00:00:00.000Z'); INSERT INTO project_share_links (id,organization_id,project_id,proposal_id,scope,token_hash,created_by,created_at,expires_at,revoked_at,revoked_by) VALUES ('share-revoked','org-fixture','project-fixture',NULL,'read-only','${"b".repeat(64)}','user-fixture','2026-08-28T00:00:00.000Z','2026-08-29T00:00:00.000Z','2026-08-28T01:00:00.000Z','user-fixture');\n`);
     const report = await cli("migrate", "--database", database);
-    assert.equal(report.currentVersion, 7);
+    assert.equal(report.currentVersion, DATABASE_SCHEMA_VERSION);
     const rows = JSON.parse(await sqlite(database, ".mode json\nSELECT id,lifecycle_state,creation_ledgered_at,revocation_ledgered_at FROM project_share_links ORDER BY id;\n"));
     assert.deepEqual(rows, [
       { id: "share-active", lifecycle_state: "active", creation_ledgered_at: "2026-08-28T00:00:00.000Z", revocation_ledgered_at: null },
       { id: "share-revoked", lifecycle_state: "pending-revoke", creation_ledgered_at: "2026-08-28T00:00:00.000Z", revocation_ledgered_at: null },
     ]);
     assert.equal((await cli("verify", "--database", database)).status, "pass");
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test("untracked complete event-day runbook schema adopts migration v8 without replaying tables", async () => {
+  const directory = await mkdtemp(path.join(root, ".venuemind-runbook-adoption-"));
+  try {
+    const database = path.join(directory, "untracked-v8.sqlite3");
+    await createFixture(database, 8, { tracked: false });
+    const dryRun = await cli("migrate", "--database", database, "--dry-run");
+    assert.equal(dryRun.currentVersion, 8);
+    assert.equal(dryRun.adoptionRequired, true);
+    assert.equal(dryRun.pending.length, 0);
+    const migrated = await cli("migrate", "--database", database);
+    assert.equal(migrated.currentVersion, DATABASE_SCHEMA_VERSION);
+    assert.equal(migrated.applied.filter((item) => item.adopted).length, 8);
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 

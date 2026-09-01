@@ -2,17 +2,17 @@
   "format": "venuemind-project",
   "formatVersion": 1,
   "manifest": {
-    "packageId": "package-72b0b0edf61e1ef6",
+    "packageId": "package-345b84b9b07fa700",
     "exportedAt": "2026-08-27T00:00:00.000Z",
-    "payloadBytes": 95942,
-    "payloadSha256": "af55b04edcf030e9cf9f1399ed16617393cdefc15fb9bff35b80c77f6ff78f2c",
+    "payloadBytes": 96144,
+    "payloadSha256": "eae8b54f0d323b38ba9c8726a6ea86c23bcdf6dde0e77579b86119c02b64fa8e",
     "source": {
       "application": "VenueMind",
       "applicationVersion": "0.1.0",
       "projectId": "project-summit-forward",
       "projectSchemaVersion": 10
     },
-    "manifestSha256": "72b0b0edf61e1ef6825bc4c8e7da76f1524a70e67437ef72965c9e758d63c236"
+    "manifestSha256": "345b84b9b07fa7003ccb93daa7db47f1ccdb940b9ce1f56fdd74b96caa4f170f"
   },
   "project": {
     "id": "project-summit-forward",
@@ -2783,7 +2783,11 @@
         "roomId": "room-harborview-main-hall",
         "attendeeTarget": 400,
         "occupancyMode": "theater",
-        "schedule": null,
+        "schedule": {
+          "startAt": "2026-09-12T08:00:00-04:00",
+          "endAt": "2026-09-12T16:00:00-04:00",
+          "timezone": "America/New_York"
+        },
         "requirements": [
           {
             "id": "req-theater-seating",
@@ -5989,7 +5993,11 @@
               "roomId": "room-harborview-main-hall",
               "attendeeTarget": 400,
               "occupancyMode": "theater",
-              "schedule": null,
+              "schedule": {
+                "startAt": "2026-09-12T08:00:00-04:00",
+                "endAt": "2026-09-12T16:00:00-04:00",
+                "timezone": "America/New_York"
+              },
               "requirements": [
                 {
                   "id": "req-theater-seating",
@@ -6096,10 +6104,10 @@
                 }
               ]
             },
-            "briefFingerprint": "brief-42aeb1ab"
+            "briefFingerprint": "brief-1f947930"
           },
           "previousHash": "genesis",
-          "hash": "ledger-71137e62"
+          "hash": "ledger-6af8c3b0"
         }
       ],
       "receipts": []

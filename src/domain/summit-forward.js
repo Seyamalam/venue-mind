@@ -52,6 +52,7 @@ export const summitForwardPlan = {
     eventName: "SummitForward 2026",
     date: "2026-09-12",
     timezone: "America/New_York",
+    schedule: { startAt: "2026-09-12T08:00:00-04:00", endAt: "2026-09-12T16:00:00-04:00", timezone: "America/New_York" },
     venueId: "venue-harborview-main-hall",
     roomId: "room-harborview-main-hall",
     attendeeTarget: 400,

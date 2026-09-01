@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "databaseSchemaVersion": 7,
+  "databaseSchemaVersion": 8,
   "migrations": [
     {
       "version": 1,
@@ -71,6 +71,16 @@
       "source": "/db/migrations/0007_sharing_delivery_integrity.sql",
       "wrangler": "/db/wrangler/0007_sharing_delivery_integrity.sql",
       "statementCount": 23
+    },
+    {
+      "version": 8,
+      "name": "event_day_runbooks",
+      "checksum": "60c2ced659cdc107b6fb8d5eb0d80d70074f7a7cc903596404d435d7a4d3158b",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0008_event_day_runbooks.sql",
+      "wrangler": "/db/wrangler/0008_event_day_runbooks.sql",
+      "statementCount": 20
     }
   ]
 }

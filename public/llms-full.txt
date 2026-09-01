@@ -1410,6 +1410,13 @@ Every stable VenueMind error code, user-safe message, and actionable remediation
 | TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
 | TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
 | LEDGER_INTEGRITY_FAILED | Activity Ledger integrity failed. | Restore an untampered snapshot or recover the last verified Project record. |
+| RUNBOOK_SCHEDULE_REQUIRED | Event Day Runbook requires an accepted canonical schedule. | Set and approve an Event Brief schedule with canonical start, end, and timezone values. |
+| RUNBOOK_DEFINITION_INVALID | Event Day Runbook definition is invalid. | Correct the reported phase, task, owner, dependency, or accepted-source reference. |
+| RUNBOOK_TASK_NOT_FOUND | Runbook task not found. | Inspect the active Runbook Version and retry with a stable task ID. |
+| RUNBOOK_TASK_REVISION_CONFLICT | Runbook task revision conflict. | Refresh the task projection, review the accepted transition, and retry only if another transition is still required. |
+| RUNBOOK_TRANSITION_INVALID | Runbook task transition is invalid. | Use a published task transition and supply a reason-coded human reopen for terminal work. |
+| RUNBOOK_DEPENDENCIES_INCOMPLETE | Runbook task dependencies are incomplete. | Complete every dependency before starting this task. |
+| RUNBOOK_EVIDENCE_REQUIRED | Runbook task evidence is incomplete. | Attach every required structured evidence code before completing the task. |
 | LEGACY_BRIEF_ATTESTATION_REQUIRED | Legacy Event Brief requires trusted human attestation. | Have an organization owner or administrator review and attest the legacy Event Brief before migration. |
 | VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
 

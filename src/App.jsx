@@ -22,10 +22,15 @@ import {
 } from "@phosphor-icons/react";
 import { summitForwardPlan } from "./domain/summit-forward.js";
 import { createEmptyVenuePlan } from "./domain/empty-project.js";
-import { createVenuePlanner } from "./domain/venue-planner.js";
+import { createVenuePlanner, validateVenueState } from "./domain/venue-planner.js";
+import { verifyActivityLedger } from "./domain/activity-ledger.js";
+import { createRunbookCommandBus } from "./domain/runbook-command-bus.js";
 import { createHumanPrincipal } from "./domain/authorization.js";
 import { venueError } from "./domain/errors.js";
 import { createProjectStore } from "./persistence/project-store.js";
+import { createRunbookStore } from "./persistence/runbook-store.js";
+import { createRunbookRemote } from "./persistence/runbook-remote.js";
+import { synchronizeRunbook } from "./persistence/runbook-sync.js";
 import { registerVenueTools } from "./webmcp/register-venue-tools.js";
 import { VENUE_TOOL_AUTHORIZATION_SCOPES, VENUE_TOOL_CONTRACT_VERSION, venueToolContracts } from "./contracts/venue-contracts.js";
 import { exportProjectPackage } from "./interchange/venue-package.js";
@@ -62,6 +67,8 @@ const loadScenarioPanel = () => import("./ScenarioPanel.jsx").then((module) => (
 const LazyScenarioPanel = lazy(loadScenarioPanel);
 const loadHistoryPanel = () => import("./HistoryPanel.jsx").then((module) => ({ default: module.HistoryPanel }));
 const LazyHistoryPanel = lazy(loadHistoryPanel);
+const loadRunbookPanel = () => import("./RunbookPanel.jsx").then((module) => ({ default: module.RunbookPanel }));
+const LazyRunbookPanel = lazy(loadRunbookPanel);
 
 const studioSessionId = `studio-session-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 const commandMetadata = (type) => {
@@ -164,14 +171,18 @@ function ComparisonShape({ object, maxY, className }) {
 
 export function App({ projectId = "project-summit-forward", organizationId = "org-local", account, accountStore, navigate = browserNavigate }) {
   const organizationRoles = useMemo(() => account?.organizations.find((organization) => organization.id === organizationId)?.roles ?? ["venue-administrator"], [account, organizationId]);
-  const studioAuthorization = useMemo(() => Object.freeze({ principal: createHumanPrincipal({ id: account?.user?.id ?? "studio-operator", organizationId, roles: organizationRoles, operationalRoles: ["safety-officer", "venue-administrator"] }) }), [account, organizationId, organizationRoles]);
+  const studioActorId = account?.user?.id ?? "studio-operator";
+  const studioAuthorization = useMemo(() => Object.freeze({ principal: createHumanPrincipal({ id: studioActorId, organizationId, roles: organizationRoles, operationalRoles: ["safety-officer", "venue-administrator"] }) }), [organizationId, organizationRoles, studioActorId]);
   const canManageSharing = organizationRoles.some((role) => ["venue-administrator", "organization-administrator"].includes(role));
   const planner = useMemo(() => createVenuePlanner(projectId === "project-summit-forward" ? summitForwardPlan : createEmptyVenuePlan({ projectId }), { authorization: studioAuthorization, projectId }), [projectId, studioAuthorization]);
   const projectStore = useMemo(() => createProjectStore({ organizationId }), [organizationId]);
+  const runbookStore = useMemo(() => createRunbookStore(), []);
+  const runbookRemote = useMemo(() => createRunbookRemote({ organizationId }), [organizationId]);
   const plannerState = useSyncExternalStore(planner.subscribe, planner.getSnapshot, planner.getSnapshot);
   const changes = plannerState.proposal.changes;
   const proposalState = plannerState.proposal.status;
   const validation = useMemo(() => planner.execute({ type: "validate_layout" }), [planner, plannerState]);
+  const acceptedValidation = useMemo(() => validateVenueState({ ...plannerState, proposal: null }), [plannerState]);
   const brief = useMemo(() => planner.execute({ type: "get_project_brief" }), [planner, plannerState]);
   const branches = useMemo(() => planner.execute({ type: "list_branches" }), [planner, plannerState]);
   const accessEvidence = validation.spatialEvidence.accessibility;
@@ -228,6 +239,17 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   const [simulationOpen, setSimulationOpen] = useState(false);
   const [simulationMounted, setSimulationMounted] = useState(false);
   const [simulationOverlay, setSimulationOverlay] = useState(null);
+  const [runbookOpen, setRunbookOpen] = useState(false);
+  const [runbookMounted, setRunbookMounted] = useState(false);
+  const [runbook, setRunbook] = useState(null);
+  const [runbookSyncState, setRunbookSyncState] = useState({ state: "online", pendingCount: 0 });
+  const [runbookEvidenceDrafts, setRunbookEvidenceDrafts] = useState({});
+  const [runbookHandoffs, setRunbookHandoffs] = useState([]);
+  const runbookClientSequence = useRef(0);
+  const runbookBus = useMemo(() => createRunbookCommandBus({ onChange: (next) => {
+    setRunbook(next);
+    if (next) void runbookStore.saveRunbook(next);
+  } }), [projectId, runbookStore]);
   const toastTimer = useRef(null);
   const projectRecordMetadata = useRef({ createdAt: null, revision: null, provenance: null, archivedAt: null, deletedAt: null, recoveryUntil: null, pinned: false, lastOpenedAt: null });
   const syncConflictRef = useRef(null);
@@ -235,6 +257,28 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   const collaborationClientRef = useRef(null);
   const persistenceStatusRef = useRef("SYNC");
   const saveInFlightRef = useRef(false);
+
+  const acceptedLedgerEntry = useMemo(() => plannerState.ledger.slice().reverse().find((entry) => entry.details?.acceptedPlan?.id === plannerState.plan.id && entry.details?.acceptedPlan?.version === plannerState.plan.version) ?? null, [plannerState.ledger, plannerState.plan.id, plannerState.plan.version]);
+  const runbookView = useMemo(() => {
+    if (!runbook) return null;
+    const tasks = runbookBus.execute({ type: "list_runbook_tasks" });
+    const phases = runbook.phases.map((phase) => ({ ...phase, label: phase.kind.replace("live-event", "live").toUpperCase() }));
+    const phaseById = new Map(phases.map((phase) => [phase.id, phase]));
+    return {
+      ...runbook,
+      sourcePlanVersion: runbook.source.planVersion,
+      phases,
+      owners: runbook.baseline.staffingEvidence.staffing.shifts.map((shift) => ({ id: shift.id, label: shift.label })),
+      tasks: tasks.map((task) => ({
+        ...task,
+        title: task.code.replaceAll("_", " "),
+        ownerLabel: task.owner.roleId ?? task.workstream,
+        dueAt: phaseById.get(task.phaseId)?.startAt ?? null,
+        evidence: [...task.evidence, ...(runbookEvidenceDrafts[task.id] ?? [])],
+        syncState: runbookSyncState.pendingCount > 0 ? "local" : "synced",
+      })),
+    };
+  }, [runbook, runbookBus, runbookEvidenceDrafts, runbookSyncState.pendingCount]);
 
   const activeChange = useMemo(() => changes.find((change) => change.number === selectedChange) ?? changes[0] ?? null, [changes, selectedChange]);
   const activeCapacityDelta = useMemo(() => capacityEvidence.changeDeltas.find((delta) => delta.changeId === activeChange?.id) ?? null, [activeChange, capacityEvidence.changeDeltas]);
@@ -270,6 +314,16 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
 
   useEffect(() => () => window.clearTimeout(toastTimer.current), []);
   useEffect(() => { persistenceStatusRef.current = persistenceStatus; }, [persistenceStatus]);
+  useEffect(() => {
+    let active = true;
+    void runbookStore.hydrateProject(projectId).then(({ runbook: cached, outbox }) => {
+      if (!active || !cached) return;
+      runbookClientSequence.current = Math.max(0, ...outbox.map((entry) => entry.command.clientSequence));
+      runbookBus.hydrate(cached);
+      setRunbookSyncState({ state: outbox.length ? "offline" : "online", pendingCount: outbox.length });
+    });
+    return () => { active = false; };
+  }, [projectId, runbookBus, runbookStore]);
 
   useEffect(() => {
     let cancelled = false;
@@ -450,7 +504,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
         proposalId: plannerState.proposal.id,
         baseVersion: plannerState.proposal.baseVersion,
         actor: "human",
-        actorId: "studio-operator",
+        actorId: studioActorId,
         ...(validation.emergencyReviewRequired ? { emergencyReview: { reviewerId: emergencyReviewerId, reviewerRole: emergencyReviewerRole, assumptionsAccepted: emergencyAssumptionsAccepted } } : {}),
         ...commandMetadata("approve"),
       });
@@ -469,7 +523,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
         constraintId,
         reasonCode: waiverReason,
         actor: "human",
-        actorId: "studio-operator",
+        actorId: studioActorId,
         ...commandMetadata("waiver"),
       });
       notify("WAIVER RECORDED");
@@ -479,18 +533,18 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   };
 
   const handleUndo = () => {
-    const result = planner.execute({ type: "undo", actor: "human", ...commandMetadata("undo") });
+    const result = planner.execute({ type: "undo", actor: "human", actorId: studioActorId, ...commandMetadata("undo") });
     notify(result.status === "edit-undone" ? `${result.changedItems} CHG` : result.status === "undone" ? `Plan v${result.planVersion} restored` : "No change");
   };
 
   const handleRedo = () => {
-    const result = planner.execute({ type: "redo", actor: "human", ...commandMetadata("redo") });
+    const result = planner.execute({ type: "redo", actor: "human", actorId: studioActorId, ...commandMetadata("redo") });
     notify(result.status === "edit-redone" ? `${result.changedItems} CHG` : result.status === "redone" ? `Plan v${result.planVersion} restored` : "No change");
   };
 
   const handleEdit = (edit) => {
     try {
-      const result = planner.execute({ type: "apply_edit", edit, actor: "human", actorId: "studio-operator", ...commandMetadata("edit") });
+      const result = planner.execute({ type: "apply_edit", edit, actor: "human", actorId: studioActorId, ...commandMetadata("edit") });
       const added = planner.getSnapshot().proposal.changes.find((change) => change.id === result.changeId);
       if (added) setSelectedChange(added.number);
       setViewMode("proposed");
@@ -509,7 +563,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   const handleRevertChange = () => {
     if (!activeChange) return;
     const nextChange = changes.find((change) => change.id !== activeChange.id);
-    const result = planner.execute({ type: "revert_change", changeId: activeChange.id, actor: "human", ...commandMetadata("revert") });
+    const result = planner.execute({ type: "revert_change", changeId: activeChange.id, actor: "human", actorId: studioActorId, ...commandMetadata("revert") });
     if (nextChange) setSelectedChange(nextChange.number);
     notify(result.status === "reverted" ? `${result.changedItems} changes` : "No change");
   };
@@ -518,7 +572,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
     event.preventDefault();
     if (!adjustment.trim()) return;
     try {
-      planner.execute({ type: "request_adjustment", instruction: adjustment, actor: "human", ...commandMetadata("adjustment") });
+      planner.execute({ type: "request_adjustment", instruction: adjustment, actor: "human", actorId: studioActorId, ...commandMetadata("adjustment") });
       setAdjustmentOpen(false);
       setAdjustment("");
       setViewMode("proposed");
@@ -583,7 +637,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   const handleBriefSave = (event) => {
     event.preventDefault();
     try {
-      planner.execute({ type: "update_event_brief", brief: briefDraft, actor: "human", ...commandMetadata("brief") });
+      planner.execute({ type: "update_event_brief", brief: briefDraft, actor: "human", actorId: studioActorId, ...commandMetadata("brief") });
       setBriefOpen(false);
       setBriefDraft(null);
       notify("Brief saved");
@@ -596,8 +650,8 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
     const strategy = branches.length % 2 === 1 ? "access-first" : "sightlines-first";
     const name = strategy === "access-first" ? `Access ${branches.length + 1}` : `Sightlines ${branches.length + 1}`;
     const balancedBranch = branches.find((branch) => branch.id === "branch-balanced");
-    if (balancedBranch && !balancedBranch.active) planner.execute({ type: "switch_branch", branchId: balancedBranch.id, actor: "human", ...commandMetadata("branch-source") });
-    const result = planner.execute({ type: "create_branch", name, strategy, actor: "human", ...commandMetadata("branch") });
+    if (balancedBranch && !balancedBranch.active) planner.execute({ type: "switch_branch", branchId: balancedBranch.id, actor: "human", actorId: studioActorId, ...commandMetadata("branch-source") });
+    const result = planner.execute({ type: "create_branch", name, strategy, actor: "human", actorId: studioActorId, ...commandMetadata("branch") });
     setCompareRightBranchId(result.branchId);
     setCompareLeftBranchId((current) => current === result.branchId ? "branch-balanced" : current);
     const next = planner.getSnapshot().proposal.changes[0];
@@ -608,7 +662,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
 
   const handleBranchMetadata = (branch, fields) => {
     try {
-      planner.execute({ type: "update_branch_metadata", branchId: branch.id, name: fields.name ?? branch.name, notes: fields.notes ?? branch.notes, actor: "human", ...commandMetadata("branch-meta") });
+      planner.execute({ type: "update_branch_metadata", branchId: branch.id, name: fields.name ?? branch.name, notes: fields.notes ?? branch.notes, actor: "human", actorId: studioActorId, ...commandMetadata("branch-meta") });
       notify("BRANCH SAVED");
     } catch (error) {
       notify(error.code ?? "BRANCH FAILED");
@@ -617,7 +671,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
 
   const handleDuplicateBranch = (branchId) => {
     try {
-      const result = planner.execute({ type: "duplicate_branch", branchId, proposalId: branchRevisionSelections[branchId], actor: "human", ...commandMetadata("branch-copy") });
+      const result = planner.execute({ type: "duplicate_branch", branchId, proposalId: branchRevisionSelections[branchId], actor: "human", actorId: studioActorId, ...commandMetadata("branch-copy") });
       setCompareRightBranchId(result.branchId);
       notify("BRANCH COPIED");
     } catch (error) {
@@ -627,7 +681,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
 
   const handleBranchArchive = (branch) => {
     try {
-      const result = planner.execute({ type: branch.archived ? "restore_branch" : "archive_branch", branchId: branch.id, actor: "human", ...commandMetadata(branch.archived ? "branch-restore" : "branch-archive") });
+      const result = planner.execute({ type: branch.archived ? "restore_branch" : "archive_branch", branchId: branch.id, actor: "human", actorId: studioActorId, ...commandMetadata(branch.archived ? "branch-restore" : "branch-archive") });
       if (!branch.archived) {
         setCompareLeftBranchId((value) => value === branch.id ? result.activeBranchId : value);
         setCompareRightBranchId((value) => value === branch.id ? result.activeBranchId : value);
@@ -640,7 +694,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
 
   const handleBranchDecision = (chosenBranchId, rejectedBranchId) => {
     try {
-      planner.execute({ type: "record_branch_decision", chosenBranchId, rejectedBranchIds: [rejectedBranchId], comparisonId: branchComparison.comparisonId, note: decisionNote, actor: "human", actorId: "studio-operator", ...commandMetadata("branch-decision") });
+      planner.execute({ type: "record_branch_decision", chosenBranchId, rejectedBranchIds: [rejectedBranchId], comparisonId: branchComparison.comparisonId, note: decisionNote, actor: "human", actorId: studioActorId, ...commandMetadata("branch-decision") });
       setDecisionNote("");
       setComparisonOpen(false);
       notify("DECISION RECORDED");
@@ -659,7 +713,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   };
 
   const handleSwitchBranch = (branchId) => {
-    planner.execute({ type: "switch_branch", branchId, actor: "human", ...commandMetadata("switch-branch") });
+    planner.execute({ type: "switch_branch", branchId, actor: "human", actorId: studioActorId, ...commandMetadata("switch-branch") });
     const next = planner.getSnapshot().proposal.changes[0];
     if (next) setSelectedChange(next.number);
     setViewMode("proposed");
@@ -667,7 +721,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
 
   const handleRebaseBranch = (branchId) => {
     try {
-      const result = planner.execute({ type: "rebase_proposal", branchId, actor: "human", ...commandMetadata("rebase") });
+      const result = planner.execute({ type: "rebase_proposal", branchId, actor: "human", actorId: studioActorId, ...commandMetadata("rebase") });
       notify(result.status === "rebased" ? `v${result.toVersion} · REBASED` : "CURRENT");
     } catch {
       notify("CONFLICT");
@@ -681,7 +735,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
       return;
     }
     try {
-      const result = planner.execute({ type: "resolve_conflict", branchId: plannerState.activeBranchId, conflictId: conflict.id, outcome, actor: "human", actorId: "studio-operator", ...commandMetadata("resolve-conflict") });
+      const result = planner.execute({ type: "resolve_conflict", branchId: plannerState.activeBranchId, conflictId: conflict.id, outcome, actor: "human", actorId: studioActorId, ...commandMetadata("resolve-conflict") });
       notify(`${result.outcome.toUpperCase()} · ${result.remainingConflicts} CFT`);
     } catch (error) {
       notify(error.code ?? "CONFLICT");
@@ -691,7 +745,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   const handleAddLock = (event) => {
     event.preventDefault();
     try {
-      const result = planner.execute({ type: "set_object_lock", objectId: lockObjectId, lockType, reasonCode: lockReason, actor: "human", actorId: "studio-operator", ...commandMetadata("set-lock") });
+      const result = planner.execute({ type: "set_object_lock", objectId: lockObjectId, lockType, reasonCode: lockReason, actor: "human", actorId: studioActorId, ...commandMetadata("set-lock") });
       notify(`${result.lockType.toUpperCase()} · LOCKED`);
     } catch (error) {
       notify(error.code ?? "LOCK FAILED");
@@ -700,7 +754,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
 
   const handleReleaseLock = (lockId) => {
     try {
-      planner.execute({ type: "release_object_lock", lockId, actor: "human", actorId: "studio-operator", ...commandMetadata("release-lock") });
+      planner.execute({ type: "release_object_lock", lockId, actor: "human", actorId: studioActorId, ...commandMetadata("release-lock") });
       notify("LOCK · RELEASED");
     } catch (error) {
       notify(error.code ?? "RELEASE FAILED");
@@ -709,7 +763,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
 
   const handleAddComment = (input) => {
     try {
-      const result = planner.execute({ type: "add_comment", ...input, actor: "human", actorId: "studio-operator", ...commandMetadata("comment-add") });
+      const result = planner.execute({ type: "add_comment", ...input, actor: "human", actorId: studioActorId, ...commandMetadata("comment-add") });
       setSelectedCommentId(result.commentId);
       notify("COMMENT ADDED");
       return result;
@@ -721,7 +775,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
 
   const handleEditComment = (comment, changes) => {
     try {
-      planner.execute({ type: "edit_comment", commentId: comment.id, body: changes.body ?? comment.body, mentions: changes.mentions ?? comment.mentions, decisionRelevant: changes.decisionRelevant ?? comment.decisionRelevant, actor: "human", actorId: "studio-operator", ...commandMetadata("comment-edit") });
+      planner.execute({ type: "edit_comment", commentId: comment.id, body: changes.body ?? comment.body, mentions: changes.mentions ?? comment.mentions, decisionRelevant: changes.decisionRelevant ?? comment.decisionRelevant, actor: "human", actorId: studioActorId, ...commandMetadata("comment-edit") });
       notify("COMMENT SAVED");
     } catch (error) {
       notify(error.code ?? "COMMENT FAILED");
@@ -730,7 +784,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
 
   const handleCommentStatus = (commentId, status) => {
     try {
-      planner.execute({ type: "set_comment_status", commentId, status, actor: "human", actorId: "studio-operator", ...commandMetadata("comment-status") });
+      planner.execute({ type: "set_comment_status", commentId, status, actor: "human", actorId: studioActorId, ...commandMetadata("comment-status") });
       notify(status === "resolved" ? "COMMENT DONE" : "COMMENT REOPENED");
     } catch (error) {
       notify(error.code ?? "COMMENT FAILED");
@@ -742,10 +796,121 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
     setCommentsOpen(true);
   };
 
+  const handleCreateRunbook = () => {
+    try {
+      const ledgerIntegrity = verifyActivityLedger(plannerState.ledger);
+      if (!acceptedLedgerEntry || ledgerIntegrity.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { planVersion: plannerState.plan.version });
+      const result = runbookBus.execute({
+        type: "create_runbook_version",
+        projectId,
+        plan: plannerState.plan,
+        brief: plannerState.brief,
+        validation: acceptedValidation,
+        sourceLedgerHeadHash: ledgerIntegrity.headHash,
+        approvalLedgerEntryId: acceptedLedgerEntry.id,
+        frozenBy: account?.user?.id ?? "studio-operator",
+        frozenAt: new Date().toISOString(),
+      });
+      setRunbookSyncState({ state: "offline", pendingCount: 0 });
+      notify(result.status === "created" ? "RUNBOOK CREATED" : "RUNBOOK ACTIVE");
+      void handleRunbookSync(result.runbook);
+    } catch (error) {
+      notify(error.code ?? "RUNBOOK BLOCKED");
+    }
+  };
+
+  const handleRunbookEvidence = ({ taskId, code, ref }) => {
+    setRunbookEvidenceDrafts((current) => ({ ...current, [taskId]: [...(current[taskId] ?? []).filter((item) => item.code !== code || item.ref !== ref), { code, ref }] }));
+    notify("EVIDENCE LOCAL");
+  };
+
+  const handleRunbookTransition = async ({ taskId, toStatus }) => {
+    if (!runbook) return;
+    try {
+      const task = runbook.tasks.find((candidate) => candidate.id === taskId);
+      if (!task) throw venueError("RUNBOOK_TASK_NOT_FOUND", { taskId });
+      const identity = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${task.revision}`;
+      const occurredAt = new Date().toISOString();
+      const command = {
+        type: "transition_runbook_task",
+        runbookVersionId: runbook.versionId,
+        taskId,
+        expectedTaskRevision: task.revision,
+        fromStatus: task.status,
+        toStatus,
+        ...(toStatus === "skipped" ? { reasonCode: "operator-skip" } : {}),
+        ...(toStatus === "pending" ? { reasonCode: "operator-reopen" } : {}),
+        evidence: [...task.evidence, ...(runbookEvidenceDrafts[taskId] ?? [])],
+        operationId: `runbook-operation-${identity}`,
+        idempotencyKey: `runbook-transition-${identity}`,
+        correlationId: `studio-runbook-${identity}`,
+        clientId: `studio-${projectId}`,
+        clientSequence: ++runbookClientSequence.current,
+        clientOccurredAt: occurredAt,
+        deviceOccurredAt: occurredAt,
+        committedAt: occurredAt,
+        deviceId: "studio-browser",
+        actorType: "human",
+        actorId: account?.user?.id ?? "studio-operator",
+        source: "studio",
+        sessionId: studioSessionId,
+      };
+      runbookBus.preview(command);
+      await runbookStore.enqueue(command);
+      const result = runbookBus.execute(command);
+      const pendingCount = (await runbookStore.listOutbox(runbook.versionId)).length;
+      setRunbookSyncState({ state: "offline", pendingCount });
+      setRunbookEvidenceDrafts((current) => ({ ...current, [taskId]: [] }));
+      notify(`TASK ${result.task.status.toUpperCase()} · LOCAL`);
+    } catch (error) {
+      notify(error.code ?? "TASK BLOCKED");
+    }
+  };
+
+  const handleRunbookSync = async (candidate = runbook) => {
+    if (!candidate) return;
+    const pendingCount = (await runbookStore.listOutbox(candidate.versionId)).length;
+    setRunbookSyncState((current) => ({ ...current, state: "syncing", pendingCount }));
+    try {
+      const result = await synchronizeRunbook({ projectId, runbook: candidate, store: runbookStore, remote: runbookRemote });
+      runbookBus.hydrate(result.runbook);
+      setRunbookSyncState(result.syncState);
+      notify(result.syncState.state === "online" ? "RUNBOOK SYNCED" : "RUNBOOK CONFLICT");
+    } catch (error) {
+      const remaining = (await runbookStore.listOutbox(candidate.versionId)).length;
+      setRunbookSyncState({ state: "offline", pendingCount: remaining });
+      notify(error.code === "RUNBOOK_API_UNAVAILABLE" ? "RUNBOOK LOCAL" : (error.code ?? "RUNBOOK SYNC FAILED"));
+    }
+  };
+
+  const handleCreateRunbookHandoff = ({ outgoingOwnerId, incomingOwnerId, roleId, at }) => {
+    try {
+      const handoff = runbookBus.execute({ type: "generate_shift_handoff", outgoingAssignmentId: outgoingOwnerId, incomingAssignmentId: incomingOwnerId, roleId: roleId === "all" ? null : roleId, at: new Date(at || Date.now()).toISOString() });
+      setRunbookHandoffs((current) => [...current, { ...handoff, id: `handoff-${handoff.ledgerSequence}-${current.length + 1}`, outgoingOwnerId, incomingOwnerId }]);
+      notify("HANDOFF CREATED");
+    } catch (error) {
+      notify(error.code ?? "HANDOFF BLOCKED");
+    }
+  };
+
+  const handleCopyRunbookHandoff = (handoff) => {
+    void navigator.clipboard?.writeText(JSON.stringify(handoff, null, 2));
+    notify("HANDOFF COPIED");
+  };
+
+  const handleExportRunbook = () => {
+    try {
+      downloadExport(runbookBus.execute({ type: "export_runbook", format: "audit" }));
+      notify("RUNBOOK EXPORT READY");
+    } catch (error) {
+      notify(error.code ?? "RUNBOOK EXPORT FAILED");
+    }
+  };
+
   const handleRunScenario = async (scenario, branchId) => {
     notify("SIM RUNNING");
     try {
-      const result = await planner.execute({ type: "run_scenario", scenario, branchId, actor: "human", actorId: "studio-operator", ...commandMetadata("simulation") });
+      const result = await planner.execute({ type: "run_scenario", scenario, branchId, actor: "human", actorId: studioActorId, ...commandMetadata("simulation") });
       notify(result.status === "completed" ? "SIM COMPLETE" : "SIM CANCELLED");
     } catch (error) {
       notify(error.code ?? "SIM FAILED");
@@ -767,8 +932,8 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
       const option = run?.result?.suggestion;
       const object = option?.change?.spatialEffects?.find((effect) => effect.operation === "add_object")?.object;
       if (!run || run.model !== "queue" || option?.preflight?.status !== "spatially-valid" || !object) throw new Error("QUEUE_OPTION_INVALID");
-      if (planner.getSnapshot().activeBranchId !== run.branchId) planner.execute({ type: "switch_branch", branchId: run.branchId, actor: "human", actorId: "studio-operator", ...commandMetadata("queue-option-branch") });
-      planner.execute({ type: "apply_edit", edit: { operation: "place", object, label: option.change.title, shortLabel: option.change.shortTitle, metrics: option.change.metrics }, actor: "human", actorId: "studio-operator", ...commandMetadata("queue-option") });
+      if (planner.getSnapshot().activeBranchId !== run.branchId) planner.execute({ type: "switch_branch", branchId: run.branchId, actor: "human", actorId: studioActorId, ...commandMetadata("queue-option-branch") });
+      planner.execute({ type: "apply_edit", edit: { operation: "place", object, label: option.change.title, shortLabel: option.change.shortTitle, metrics: option.change.metrics }, actor: "human", actorId: studioActorId, ...commandMetadata("queue-option") });
       const validationResult = planner.execute({ type: "validate_layout" });
       notify(validationResult.status === "pass" ? "QUEUE OPTION READY" : "QUEUE OPTION REVIEW");
     } catch (error) {
@@ -823,8 +988,14 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           </Popover>
           <HeaderButton className="history-button" ariaLabel="Open plan history" onPointerEnter={loadHistoryPanel} onFocus={loadHistoryPanel} onClick={() => { setHistoryMounted(true); setHistoryOpen((open) => !open); }}>Plan v{plannerState.plan.version}<span className={`save-indicator is-${persistenceStatus.toLowerCase()}`}>{persistenceStatus}</span><CaretDown size={14} /></HeaderButton>
           <HeaderButton className={`edit-button ${editorOpen ? "is-active" : ""}`} ariaLabel="Toggle plan editor" onClick={() => setEditorOpen((open) => !open)}>{editorOpen ? "REVIEW" : "EDIT"}</HeaderButton>
-          <HeaderButton className={`comments-button ${commentsOpen ? "is-active" : ""}`} ariaLabel="Open comments" onPointerEnter={loadCommentsPanel} onFocus={loadCommentsPanel} onClick={() => { setCommentsMounted(true); setSimulationOpen(false); setCommentsOpen((open) => !open); }}><ChatCircle size={17} /> {plannerState.comments.filter((comment) => comment.status === "open").length}</HeaderButton>
-          <HeaderButton className={`simulation-button ${simulationOpen ? "is-active" : ""}`} ariaLabel="Open simulations" onPointerEnter={loadScenarioPanel} onFocus={loadScenarioPanel} onClick={() => { setSimulationMounted(true); setCommentsOpen(false); setSimulationOpen((open) => !open); }}>SIM {plannerState.scenarioRuns.filter((run) => run.status === "completed").length}</HeaderButton>
+          <HeaderButton className={`comments-button ${commentsOpen ? "is-active" : ""}`} ariaLabel="Open comments" onPointerEnter={loadCommentsPanel} onFocus={loadCommentsPanel} onClick={() => { setCommentsMounted(true); setSimulationOpen(false); setRunbookOpen(false); setCommentsOpen((open) => !open); }}><ChatCircle size={17} /> {plannerState.comments.filter((comment) => comment.status === "open").length}</HeaderButton>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild><HeaderButton className={`simulation-button ${simulationOpen || runbookOpen ? "is-active" : ""}`} ariaLabel="Open operations" onPointerEnter={() => { loadRunbookPanel(); loadScenarioPanel(); }} onFocus={() => { loadRunbookPanel(); loadScenarioPanel(); }}>OPS <CaretDown size={14} /></HeaderButton></DropdownMenuTrigger>
+            <DropdownMenuContent className="export-menu" align="end" sideOffset={8} aria-label="Operational modes">
+              <DropdownMenuItem className="export-menu-item" onPointerEnter={loadRunbookPanel} onFocus={loadRunbookPanel} onSelect={() => { setRunbookMounted(true); setRunbookOpen(true); setCommentsOpen(false); setSimulationOpen(false); }}><b>RUNBOOK</b><span>{runbook ? runbook.tasks.filter((task) => task.status !== "completed").length : 0}</span></DropdownMenuItem>
+              <DropdownMenuItem className="export-menu-item" onPointerEnter={loadScenarioPanel} onFocus={loadScenarioPanel} onSelect={() => { setSimulationMounted(true); setSimulationOpen(true); setCommentsOpen(false); setRunbookOpen(false); }}><b>SIM</b><span>{plannerState.scenarioRuns.filter((run) => run.status === "completed").length}</span></DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button className="icon-button" variant="ghost" size="icon" type="button" onClick={handleUndo} aria-label="Undo"><ArrowCounterClockwise size={22} /></Button>
           <Button className="icon-button" variant="ghost" size="icon" type="button" onClick={handleRedo} aria-label="Redo"><ArrowCounterClockwise size={22} className="redo-icon" /></Button>
           <DropdownMenu open={exportOpen} onOpenChange={setExportOpen}>
@@ -1020,6 +1191,24 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
       /></Suspense>}
       {commentsMounted && <Suspense fallback={commentsOpen ? <div className="panel-loading is-side" role="status">COMMENTS</div> : null}><LazyCommentsPanel open={commentsOpen} state={plannerState} selectedCommentId={selectedCommentId} onAdd={handleAddComment} onEdit={handleEditComment} onStatus={handleCommentStatus} onClose={() => setCommentsOpen(false)} /></Suspense>}
       {simulationMounted && <Suspense fallback={simulationOpen ? <div className="panel-loading is-side" role="status">SIM</div> : null}><LazyScenarioPanel open={simulationOpen} branches={branches} runs={plannerState.scenarioRuns} onClose={() => { setSimulationOpen(false); setSimulationOverlay(null); }} onRun={handleRunScenario} onCompare={(leftRunId, rightRunId) => planner.execute({ type: "compare_simulations", leftRunId, rightRunId })} onExport={handleExportSimulation} onOverlayChange={setSimulationOverlay} onPreviewOption={handlePreviewQueueOption} /></Suspense>}
+      {runbookMounted && <Suspense fallback={runbookOpen ? <div className="panel-loading is-side" role="status">RUNBOOK</div> : null}><LazyRunbookPanel
+        open={runbookOpen}
+        runbook={runbookView}
+        sourcePlanVersion={runbook?.source.planVersion ?? plannerState.plan.version}
+        sourcePlanStatus={runbook ? "accepted" : acceptedValidation.status === "pass" ? "accepted" : "blocked"}
+        plannedTaskCount={9}
+        syncState={runbookSyncState}
+        handoffs={runbookHandoffs}
+        onClose={() => setRunbookOpen(false)}
+        onCreate={handleCreateRunbook}
+        onTaskTransition={handleRunbookTransition}
+        onAddEvidence={handleRunbookEvidence}
+        onCreateHandoff={handleCreateRunbookHandoff}
+        onCopyHandoff={handleCopyRunbookHandoff}
+        onExportHandoff={handleExportRunbook}
+        onSync={() => { void handleRunbookSync(); }}
+        onResolveSyncConflict={() => notify("RUNBOOK CONFLICT")}
+      /></Suspense>}
       <Sheet open={comparisonOpen && Boolean(branchComparison)} onOpenChange={(open) => { if (!open) setComparisonOpen(false); }}>
       {branchComparison && <SheetContent className="branch-comparison !h-auto !gap-0 !p-0 sm:!max-w-none" side="left" showOverlay={false} showCloseButton={false} aria-label="Proposal Branch comparison">
         <div className="branch-comparison-heading"><div><SheetTitle asChild><span className="eyebrow">BRANCH COMPARE</span></SheetTitle><strong>{branchComparison.comparisonId}</strong><SheetDescription className="sr-only">Proposal Branch metrics, constraints, spatial deltas, and decision controls</SheetDescription></div><Button variant="ghost" size="icon-sm" type="button" onClick={() => setComparisonOpen(false)} aria-label="Close branch comparison"><X size={18} /></Button></div>

@@ -6,7 +6,7 @@ test("optional Studio panels load behind React lazy boundaries", async () => {
   const app = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
   assert.doesNotMatch(app, /^import .*PlanEditor\.jsx/m);
   assert.match(app, /lazy\(\(\) => import\("\.\/PlanEditor\.jsx"\)/);
-  for (const moduleName of ["CommentsPanel", "ScenarioPanel", "HistoryPanel"]) {
+  for (const moduleName of ["CommentsPanel", "ScenarioPanel", "HistoryPanel", "RunbookPanel"]) {
     assert.doesNotMatch(app, new RegExp(`^import .*${moduleName}\\.jsx`, "m"));
     assert.match(app, new RegExp(`const load${moduleName} = \\(\\) => import\\("\\.\\/${moduleName}\\.jsx"\\)`));
     assert.match(app, new RegExp(`const Lazy${moduleName} = lazy\\(load${moduleName}\\)`));
@@ -25,6 +25,32 @@ test("comments and simulations use persistent non-modal shadcn sheets", async ()
     assert.match(panel, /showOverlay=\{false\}/);
     assert.match(panel, /<SheetTitle asChild>/);
   }
+});
+
+test("Event Day Runbook is lazy, persistent, and opened from the OPS menu", async () => {
+  const app = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+  const panel = await readFile(new URL("../src/RunbookPanel.jsx", import.meta.url), "utf8");
+  assert.match(app, /runbookMounted && <Suspense/);
+  assert.match(app, /<LazyRunbookPanel/);
+  assert.match(app, /onPointerEnter=\{loadRunbookPanel\}/);
+  assert.match(app, /<b>RUNBOOK<\/b>/);
+  assert.match(panel, /<Sheet open=\{open\} onOpenChange=/);
+  assert.match(panel, /modal=\{false\}/);
+  assert.match(panel, /showOverlay=\{false\}/);
+});
+
+test("Studio route avoids a delayed full-page streaming shell", async () => {
+  const page = await readFile(new URL("../app/(workspace)/studio/[projectId]/page.tsx", import.meta.url), "utf8");
+  const route = await readFile(new URL("../components/routes/studio-route.tsx", import.meta.url), "utf8");
+  assert.match(page, /export const instant = false/);
+  assert.doesNotMatch(route, /next\/dynamic/);
+  await assert.rejects(readFile(new URL("../app/(workspace)/studio/[projectId]/loading.tsx", import.meta.url)), { code: "ENOENT" });
+});
+
+test("Studio human commands use the authenticated account identity", async () => {
+  const app = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+  assert.match(app, /const studioActorId = account\?\.user\?\.id \?\? "studio-operator"/);
+  assert.doesNotMatch(app, /actorId: "studio-operator"/);
 });
 
 test("annotation pins stay in the initial canvas without importing the comments panel", async () => {

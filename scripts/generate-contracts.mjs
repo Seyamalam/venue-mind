@@ -13,7 +13,7 @@ const schemas = [venueCommandSchema, venueToolManifestSchema, venueTemplateCatal
 const canonicalizeTimes = (value) => {
   if (Array.isArray(value)) return value.map(canonicalizeTimes);
   if (!value || typeof value !== "object") return value;
-  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, /At$/.test(key) && typeof item === "string" ? "2026-08-27T00:00:00.000Z" : canonicalizeTimes(item)]));
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, /At$/.test(key) && !["startAt", "endAt"].includes(key) && typeof item === "string" ? "2026-08-27T00:00:00.000Z" : canonicalizeTimes(item)]));
 };
 await mkdir("public/schemas", { recursive: true });
 await mkdir("public/examples", { recursive: true });

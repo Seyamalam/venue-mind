@@ -54,3 +54,9 @@ Numbered database migrations, checksum verification, integrity/orphan inspection
 Real-time clients receive durable revision events rather than raw snapshot patches. Reconnect resumes from the last Collaboration Cursor; a missing chain link forces a full authoritative reload. Presence uses expiring leases and is never part of Project truth. See `docs/realtime-collaboration.md`.
 
 Public Share Links resolve through hashed bearer tokens, expire at a fixed instant, and fail closed outside the `active` lifecycle state. Reviewer Share Links expose one retained Proposal revision. Durable pending create and revoke operations reconcile their Activity Ledger transitions idempotently after an interrupted write. Notification records use fixed body codes plus an allowlist of stable references, creation-time preferences control in-app visibility, and the leased email outbox records delivery only after injected-provider success. See `docs/sharing-and-notifications.md`.
+
+## Event-day operations
+
+Event Day Runbooks do not live inside the Project snapshot. Each Runbook Version has a frozen accepted baseline, independent task revisions, transitions, idempotency receipts, and an anchored hash-chained ledger. The browser uses IndexedDB for the Runbook cache and ordered outbox; localStorage is not the operational queue.
+
+Reconnect sends the original commands in client sequence order. The server returns a result for every item and commits each accepted transition, task projection, receipt, and ledger entry atomically. Applied and already-applied items leave the outbox. Conflicts and rejections remain visible and recoverable. See `docs/event-day-runbooks.md` and ADR 0027.

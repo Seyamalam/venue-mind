@@ -52,6 +52,7 @@ The following foundation exists and should be protected by regression tests:
 - [x] VenueMind JSON export containing validation and ledger evidence.
 - [x] Native WebMCP tool registration.
 - [x] Standalone stdio MCP server using shared contracts.
+- [x] Next.js 16 App Router frontend with Cache Components and source-owned shadcn/ui compositions.
 - [x] Human-only Approval boundary across WebMCP and MCP.
 - [x] D1 Project repository and `/api/projects` API.
 - [x] Browser recovery cache and remote/local save status.
@@ -819,17 +820,17 @@ Completion gate:
 
 ## 8.1 Runbook mode
 
-- [ ] Create an event-day runbook from an approved Plan Version.
-- [ ] Freeze the operational baseline and record its source version.
-- [ ] Add timed tasks, owners, dependencies, status, and evidence.
-- [ ] Add setup, doors, live event, interval, egress, and breakdown phases.
-- [ ] Add filtered role views for production, front of house, security, catering, and venue operations.
-- [ ] Add offline-capable task updates.
-- [ ] Add shift handoff summaries derived from structured state.
+- [x] Create an event-day runbook from an approved Plan Version.
+- [x] Freeze the operational baseline and record its source version.
+- [x] Add timed tasks, owners, dependencies, status, and evidence.
+- [x] Add setup, doors, live event, interval, egress, and breakdown phases.
+- [x] Add filtered role views for production, front of house, security, catering, and venue operations.
+- [x] Add offline-capable task updates.
+- [x] Add shift handoff summaries derived from structured state.
 
 Completion gate:
 
-- [ ] A runbook can operate offline through a full seeded event and synchronize without duplicate task transitions.
+- [x] A runbook can operate offline through a full seeded event and synchronize without duplicate task transitions.
 
 ## 8.2 Live occupancy
 
@@ -1039,7 +1040,7 @@ Completion gate:
 - [x] Add source-owned shadcn primitives and map the selected Design 2 palette into semantic tokens.
 - [x] Replace manual internal navigation with Next Link and router APIs.
 - [x] Move docs content and navigation into Server Components; retain only search, copy, and keyboard behavior on the client.
-- [ ] Migrate product controls, menus, popovers, sheets, tabs, forms, confirmations, and feedback to VenueMind compositions over shadcn primitives.
+- [x] Migrate product controls, menus, popovers, sheets, tabs, forms, confirmations, and feedback to VenueMind compositions over shadcn primitives.
 - [x] Replace browser prompts with accessible dialogs and confirmation flows.
 - [x] Split the heavy editor, simulations, and comments surfaces behind interaction-driven client chunks.
 - [x] Split history and sharing surfaces from the initial Studio runtime with interaction preloads and persistent close transitions.

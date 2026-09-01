@@ -12,7 +12,7 @@ const rpcResponse = (id, value) => ({ jsonrpc: "2.0", id, result: { content: [{ 
 const canonicalizeTimes = (value) => {
   if (Array.isArray(value)) return value.map(canonicalizeTimes);
   if (!value || typeof value !== "object") return value;
-  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, /At$/.test(key) && typeof item === "string" ? "2026-08-27T10:00:00.000Z" : canonicalizeTimes(item)]));
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, /At$/.test(key) && !["startAt", "endAt"].includes(key) && typeof item === "string" ? "2026-08-27T10:00:00.000Z" : canonicalizeTimes(item)]));
 };
 
 const planner = createVenuePlanner(summitForwardPlan, { clock: () => "2026-08-27T10:00:00.000Z" });
