@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "../components/ui/sheet";
 import { createProjectStore } from "./persistence/project-store.js";
 import { browserNavigate, navigateInternalLink } from "./navigation.js";
@@ -176,28 +177,28 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
     <div className="projects-shell">
       <header className="projects-header">
         <a className="projects-brand" href="/" onClick={(event) => navigateInternalLink(event, navigate, "/")}><img src="/assets/venuemind-mark.webp" alt="" /><strong>VenueMind</strong></a>
-        <nav><select aria-label="Organization" value={organizationId} onChange={(event) => accountStore?.selectOrganization(event.target.value)}>{account?.organizations.map((organization) => <option value={organization.id} key={organization.id}>{organization.name}</option>)}</select><a href="/docs" onClick={(event) => navigateInternalLink(event, navigate, "/docs")}>Docs</a><span>{source}</span><a className="account-chip" href="/settings/organization" onClick={(event) => navigateInternalLink(event, navigate, "/settings/organization")}>{account?.user?.displayName?.slice(0, 2).toUpperCase() || "ID"}</a></nav>
+        <nav><Select value={organizationId} onValueChange={(value) => accountStore?.selectOrganization(value)}><SelectTrigger className="organization-select" size="sm" aria-label="Organization"><SelectValue /></SelectTrigger><SelectContent className="organization-select-content" position="popper" align="end"><SelectGroup>{account?.organizations.map((organization) => <SelectItem className="organization-select-item" value={organization.id} key={organization.id}>{organization.name}</SelectItem>)}</SelectGroup></SelectContent></Select><a href="/docs" onClick={(event) => navigateInternalLink(event, navigate, "/docs")}>Docs</a><span className="projects-source">{source}</span><a className="account-chip" href="/settings/organization" onClick={(event) => navigateInternalLink(event, navigate, "/settings/organization")}>{account?.user?.displayName?.slice(0, 2).toUpperCase() || "ID"}</a></nav>
       </header>
 
       <main className="projects-main">
         <section className="projects-titlebar">
           <div><span className="projects-kicker">Workspace index</span><h1>Projects</h1></div>
           <div className="projects-total"><strong>{projects.length}</strong><span>ACTIVE</span></div>
-          <div className="projects-actions"><input ref={importInput} type="file" accept="application/json,.json" onChange={inspectImport} /><button className="import-project" type="button" onClick={() => importInput.current?.click()}><UploadSimple size={18} />IMPORT</button><button className="new-project" type="button" onClick={createProject} disabled={creating}>{creating ? <CircleNotch className="spin" size={18} /> : <Plus size={18} weight="bold" />}NEW PROJECT</button></div>
+          <div className="projects-actions"><input ref={importInput} type="file" accept="application/json,.json" onChange={inspectImport} /><Button className="import-project" variant="outline" type="button" onClick={() => importInput.current?.click()}><UploadSimple data-icon="inline-start" size={18} />IMPORT</Button><Button className="new-project" type="button" onClick={createProject} disabled={creating}>{creating ? <CircleNotch data-icon="inline-start" className="spin" size={18} /> : <Plus data-icon="inline-start" size={18} weight="bold" />}NEW PROJECT</Button></div>
         </section>
 
         <section className="projects-controls" aria-label="Project controls">
-          <label><MagnifyingGlass size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="SEARCH" aria-label="Search projects" /></label>
-          <button type="button" onClick={() => setSort((current) => current === "recent" ? "name" : "recent")}><SlidersHorizontal size={16} />{sort === "recent" ? "RECENT" : "NAME"}</button>
-          <button type="button" onClick={() => setStatusFilter((current) => current === "ALL" ? "PASS" : current === "PASS" ? "CHECK" : "ALL")}>{statusFilter}</button>
-          <button type="button" onClick={() => setViewFilter((current) => current === "ACTIVE" ? "ARCHIVED" : current === "ARCHIVED" ? "RECOVERY" : "ACTIVE")}>{viewFilter}</button>
+          <label><MagnifyingGlass size={16} /><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="SEARCH" aria-label="Search projects" /></label>
+          <Button variant="outline" size="sm" type="button" onClick={() => setSort((current) => current === "recent" ? "name" : "recent")}><SlidersHorizontal data-icon="inline-start" size={16} />{sort === "recent" ? "RECENT" : "NAME"}</Button>
+          <Button variant="outline" size="sm" type="button" onClick={() => setStatusFilter((current) => current === "ALL" ? "PASS" : current === "PASS" ? "CHECK" : "ALL")}>{statusFilter}</Button>
+          <Button variant="outline" size="sm" type="button" onClick={() => setViewFilter((current) => current === "ACTIVE" ? "ARCHIVED" : current === "ARCHIVED" ? "RECOVERY" : "ACTIVE")}>{viewFilter}</Button>
           <span>{visibleProjects.length} SHOWN</span>
         </section>
 
         {loading ? (
           <div className="projects-state"><CircleNotch className="spin" size={22} /><strong>SYNC</strong></div>
         ) : visibleProjects.length === 0 ? (
-          <button className="projects-empty" type="button" onClick={createProject}><FolderOpen size={28} /><strong>0 PROJECTS</strong><span>NEW PROJECT</span></button>
+          <Button className="projects-empty" variant="outline" type="button" onClick={createProject}><FolderOpen data-icon="inline-start" size={28} /><strong>0 PROJECTS</strong><span>NEW PROJECT</span></Button>
         ) : (
           <section className="project-grid" aria-label="Projects">
             {visibleProjects.map((project, index) => {
@@ -217,7 +218,7 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
                   <span className="sheet-open">OPEN <ArrowRight size={15} /></span>
                   <DropdownMenu>
                     <span className="sheet-actions">
-                      <DropdownMenuTrigger asChild><button type="button" aria-label={`Project actions: ${project.name}`}><DotsThreeVertical size={16} weight="bold" /></button></DropdownMenuTrigger>
+                      <DropdownMenuTrigger asChild><Button variant="outline" size="icon-xs" type="button" aria-label={`Project actions: ${project.name}`}><DotsThreeVertical size={16} weight="bold" /></Button></DropdownMenuTrigger>
                     </span>
                     <DropdownMenuContent className="project-action-menu" align="end" sideOffset={6}>
                       {project.deletedAt ? (
@@ -268,7 +269,7 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
           <AlertDialogFooter className="project-dialog-footer"><AlertDialogCancel className="project-dialog-button is-secondary" disabled={deleting}>CANCEL</AlertDialogCancel><AlertDialogAction className="project-dialog-button is-destructive" variant="destructive" disabled={deleting || deleteConfirmation !== deleteTarget?.name} onClick={deleteProject}>{deleting ? "DELETING" : "DELETE"}</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      {importError && <div className="project-toast" role="status"><strong>{importError}</strong><button type="button" onClick={() => setImportError("")} aria-label="Dismiss import status"><X size={15} /></button></div>}
+      {importError && <div className="project-toast" role="status"><strong>{importError}</strong><Button variant="ghost" size="icon-xs" type="button" onClick={() => setImportError("")} aria-label="Dismiss import status"><X size={15} /></Button></div>}
     </div>
   );
 }
