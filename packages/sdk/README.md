@@ -21,6 +21,7 @@ npm install @venuemind/sdk
 | `@venuemind/sdk/testkit` | In-memory stores, deterministic clocks, contract fixtures, and adapter assertions |
 | `@venuemind/sdk/sandbox` | Local test server and sandbox Project fixtures |
 | `@venuemind/sdk/schemas/*` | Canonical JSON Schema artifacts |
+| `@venuemind/sdk/fixtures/*` | Published JSON fixtures for external contract tests |
 
 Import through these entry points. Files below `dist/` and repository-relative `src/` paths are implementation details.
 
@@ -37,7 +38,13 @@ const client = createVenueMindClient({
   },
 });
 
-await client.projects.open("project-summit-forward");
+const listed = await client.projects.list();
+const opened = await client.projects.open("project-summit-forward");
+
+if (opened.status !== "active") {
+  throw new Error(`Project ${opened.project.id} is still opening`);
+}
+
 const plan = await client.plans.inspect();
 const proposal = await client.proposals.preview({
   goal: "Protect the west accessible route",
@@ -49,8 +56,13 @@ if (validation.status !== "pass") {
   console.log(validation.checks.filter((check) => check.status !== "pass"));
 }
 
+console.log(listed.source, listed.projects.length, opened.project.id);
 console.log(plan.planVersion, proposal.proposalId, validation.validationId);
 ```
+
+Project results are canonical wrappers rather than host-specific payloads.
+`projects.list()` returns `{ source, projects }`; `projects.open(projectId)` returns
+`{ status, project }`, with `status` equal to `active` or `opening`.
 
 Proposal creation is non-destructive. A human reviewer approves or requests adjustment in VenueMind after inspecting the exact Proposal and Validation evidence.
 

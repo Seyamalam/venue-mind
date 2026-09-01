@@ -15,6 +15,7 @@ The SDK is a facade over canonical contracts. It does not recreate planning logi
 | `@venuemind/sdk/testkit` | Deterministic in-memory dependencies and contract assertions |
 | `@venuemind/sdk/sandbox` | Local test server and canonical fixtures |
 | `@venuemind/sdk/schemas/*` | Canonical read-only JSON Schema artifacts |
+| `@venuemind/sdk/fixtures/*` | Published JSON fixtures for external contract tests |
 
 Only declared package exports are public. Generated types derive from the same schema and tool registries used by WebMCP, the standalone MCP server, examples, and reference documentation.
 
@@ -39,7 +40,11 @@ const venue = createVenueMindClient({ transport });
 
 The transport performs protocol-specific work. An MCP transport unwraps MCP structured content; a WebMCP transport invokes the browser-registered tool; a local transport may call `createVenueToolService` directly. Each transport must preserve the exact tool name, input, structured result, stable error code, and abort signal.
 
-The client groups the golden loop without changing it:
+The client groups the golden loop without changing it. Project selection results use
+the same canonical wrappers on every transport: `projects.list()` returns
+`{ source, projects }`, while `projects.open(projectId)` returns
+`{ status, project }`. The `status` value is `active` when selection completes in
+the current call and `opening` when the host reports an in-progress selection.
 
 | Client family | Canonical tools | Result truth |
 | --- | --- | --- |
@@ -53,7 +58,12 @@ The client groups the golden loop without changing it:
 ## Supervised workflow
 
 ```ts
-await venue.projects.open("project-summit-forward");
+const { source, projects } = await venue.projects.list();
+const { status, project } = await venue.projects.open("project-summit-forward");
+
+if (status !== "active") {
+  throw new Error(`Project ${project.id} is still opening`);
+}
 
 const accepted = await venue.plans.inspect();
 const proposal = await venue.proposals.preview({
@@ -71,6 +81,8 @@ const ledger = await venue.ledger.list();
 const planExport = await venue.exports.plan("json");
 
 console.log({
+  projectCount: projects.length,
+  projectSource: source,
   acceptedVersion: accepted.planVersion,
   proposalId: proposal.proposalId,
   validationId: validation.validationId,

@@ -7,8 +7,14 @@ test("typed client delegates every namespace to the canonical tool seam", async 
   const transport = {
     async callTool(name, input, options) {
       calls.push({ name, input, signal: options?.signal ?? null });
-      if (name === "venue.list_projects") return [];
-      if (name === "venue.open_project") return { id: input.projectId };
+      if (name === "venue.list_projects") return {
+        source: "repository",
+        projects: [{ id: "project-main", name: "Main", activePlanId: "plan-main", planVersion: "3.3", active: true }],
+      };
+      if (name === "venue.open_project") return {
+        status: "active",
+        project: { id: input.projectId, name: "Main", activePlanId: "plan-main", planVersion: "3.3", active: true },
+      };
       if (name === "venue.inspect_layout") return { planId: "plan-main" };
       if (name === "venue.preview_revision") return { proposalId: "proposal-next" };
       if (name === "venue.validate_layout") return { status: "pass" };
@@ -19,8 +25,8 @@ test("typed client delegates every namespace to the canonical tool seam", async 
   const client = createVenueMindClient({ transport });
   const controller = new AbortController();
 
-  await client.projects.list();
-  await client.projects.open("project-main");
+  const projectList = await client.projects.list();
+  const projectOpen = await client.projects.open("project-main");
   await client.plans.inspect();
   await client.proposals.preview({ goal: "Protect access", idempotencyKey: "preview-001" });
   await client.validations.run({ signal: controller.signal });
@@ -41,6 +47,14 @@ test("typed client delegates every namespace to the canonical tool seam", async 
   assert.deepEqual(calls[1].input, { projectId: "project-main" });
   assert.deepEqual(calls[6].input, { format: "svg" });
   assert.equal(calls[4].signal, controller.signal);
+  assert.deepEqual(projectList, {
+    source: "repository",
+    projects: [{ id: "project-main", name: "Main", activePlanId: "plan-main", planVersion: "3.3", active: true }],
+  });
+  assert.deepEqual(projectOpen, {
+    status: "active",
+    project: { id: "project-main", name: "Main", activePlanId: "plan-main", planVersion: "3.3", active: true },
+  });
   assert.equal("approve" in client, false);
   assert.ok(Object.isFrozen(client));
 });

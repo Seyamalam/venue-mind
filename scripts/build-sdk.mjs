@@ -22,7 +22,7 @@ for (const entry of entries) {
     format: "esm",
     platform: entry === "sandbox" ? "node" : "neutral",
     target: "es2022",
-    sourcemap: true,
+    sourcemap: false,
     packages: "external",
   });
 }

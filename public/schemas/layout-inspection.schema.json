@@ -1,0 +1,1181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/layout-inspection.schema.json",
+  "title": "VenueMind Layout Inspection",
+  "type": "object",
+  "required": [
+    "planId",
+    "planVersion",
+    "event",
+    "venue",
+    "templateBindings",
+    "inventoryAvailability",
+    "occupancy",
+    "staffing",
+    "productionPolicy",
+    "cateringPolicy",
+    "emergencyPlan",
+    "emergencyReviews",
+    "spatial",
+    "spatialObjects",
+    "lockedObjects",
+    "projectLocks",
+    "comments",
+    "scenarios",
+    "scenarioRuns",
+    "constraints",
+    "metrics",
+    "proposal",
+    "activeBranchId",
+    "proposalBranches",
+    "commandReceiptCount",
+    "ledgerIntegrity",
+    "brief"
+  ],
+  "properties": {
+    "planId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "planVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "event": {
+      "type": "object"
+    },
+    "venue": {
+      "type": "object"
+    },
+    "templateBindings": {
+      "type": "object"
+    },
+    "inventoryAvailability": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "occupancy": {
+      "type": "object"
+    },
+    "staffing": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "productionPolicy": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "cateringPolicy": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "emergencyPlan": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "emergencyReviews": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "spatial": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://venuemind.dev/schemas/spatial-geometry.schema.json",
+      "title": "VenueMind Spatial Geometry",
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "unit",
+        "units",
+        "layers",
+        "coordinateSystem",
+        "precision",
+        "roomBoundary",
+        "fingerprint"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "unit": {
+          "const": "m"
+        },
+        "units": {
+          "type": "object",
+          "required": [
+            "length",
+            "area",
+            "angle",
+            "time"
+          ],
+          "properties": {
+            "length": {
+              "const": "m"
+            },
+            "area": {
+              "const": "m2"
+            },
+            "angle": {
+              "const": "deg"
+            },
+            "time": {
+              "const": "s"
+            }
+          },
+          "additionalProperties": false
+        },
+        "layers": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "const": "architecture"
+            },
+            {
+              "const": "furniture"
+            },
+            {
+              "const": "access"
+            },
+            {
+              "const": "production"
+            },
+            {
+              "const": "catering"
+            },
+            {
+              "const": "safety"
+            },
+            {
+              "const": "annotations"
+            }
+          ],
+          "minItems": 7,
+          "maxItems": 7
+        },
+        "coordinateSystem": {
+          "type": "object",
+          "required": [
+            "origin",
+            "xAxis",
+            "yAxis",
+            "rotationDirection"
+          ],
+          "properties": {
+            "origin": {
+              "const": "southwest"
+            },
+            "xAxis": {
+              "const": "east"
+            },
+            "yAxis": {
+              "const": "north"
+            },
+            "rotationDirection": {
+              "const": "clockwise"
+            }
+          },
+          "additionalProperties": false
+        },
+        "precision": {
+          "type": "object",
+          "required": [
+            "distance",
+            "angle"
+          ],
+          "properties": {
+            "distance": {
+              "const": 3
+            },
+            "angle": {
+              "const": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "roomBoundary": {
+          "type": "object",
+          "required": [
+            "outer",
+            "holes"
+          ],
+          "properties": {
+            "outer": {
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "object",
+                "required": [
+                  "x",
+                  "y"
+                ],
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "holes": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "minItems": 3,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "fingerprint": {
+          "type": "string",
+          "pattern": "^geom-[0-9a-f]{8}$"
+        }
+      },
+      "$defs": {
+        "point": {
+          "type": "object",
+          "required": [
+            "x",
+            "y"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        },
+        "footprint": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "center",
+                "width",
+                "depth",
+                "rotationDegrees"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "rectangle"
+                },
+                "center": {
+                  "type": "object",
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "width": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "depth": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "rotationDegrees": {
+                  "type": "number",
+                  "minimum": 0,
+                  "exclusiveMaximum": 360
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "center",
+                "radius"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "circle"
+                },
+                "center": {
+                  "type": "object",
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "radius": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "start",
+                "end",
+                "width"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "line"
+                },
+                "start": {
+                  "type": "object",
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "end": {
+                  "type": "object",
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "width": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "points",
+                "rotationDegrees"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "polygon"
+                },
+                "points": {
+                  "type": "array",
+                  "minItems": 3,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "x",
+                      "y"
+                    ],
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "rotationDegrees": {
+                  "type": "number",
+                  "minimum": 0,
+                  "exclusiveMaximum": 360
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "spatialObjects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "lockedObjects": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "projectLocks": {
+      "type": "array",
+      "items": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://venuemind.dev/schemas/object-lock.schema.json",
+        "title": "VenueMind Object Lock",
+        "type": "object",
+        "required": [
+          "id",
+          "objectId",
+          "type",
+          "source",
+          "reasonCode",
+          "authorId",
+          "active"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "objectId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "enum": [
+              "position",
+              "rotation",
+              "dimension",
+              "deletion",
+              "role"
+            ]
+          },
+          "source": {
+            "enum": [
+              "venue-template",
+              "project"
+            ]
+          },
+          "reasonCode": {
+            "type": "string",
+            "minLength": 1
+          },
+          "authorId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "releasedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "releasedBy": {
+            "type": "string",
+            "minLength": 1
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://venuemind.dev/schemas/comment.schema.json",
+        "title": "VenueMind Comment",
+        "type": "object",
+        "required": [
+          "id",
+          "anchor",
+          "body",
+          "mentions",
+          "decisionRelevant",
+          "status",
+          "authorId",
+          "authorType",
+          "createdAt",
+          "updatedAt",
+          "resolvedAt",
+          "resolvedBy",
+          "editHistory"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^comment-[0-9]+$"
+          },
+          "anchor": {
+            "$ref": "https://venuemind.dev/schemas/comment-anchor.schema.json"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000
+          },
+          "mentions": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "decisionRelevant": {
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "resolved"
+            ]
+          },
+          "authorId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "authorType": {
+            "enum": [
+              "human",
+              "agent",
+              "system"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolvedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "resolvedBy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "editHistory": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "body",
+                "mentions",
+                "decisionRelevant",
+                "editedAt",
+                "editedBy"
+              ],
+              "properties": {
+                "body": {
+                  "type": "string"
+                },
+                "mentions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "decisionRelevant": {
+                  "type": "boolean"
+                },
+                "editedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "editedBy": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "scenarioRuns": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://venuemind.dev/schemas/venue-constraint.schema.json",
+        "title": "VenueMind Constraint",
+        "type": "object",
+        "required": [
+          "id",
+          "checkId",
+          "evaluator",
+          "label",
+          "category",
+          "severity",
+          "waivable",
+          "scope",
+          "parameters",
+          "remediation"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "checkId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evaluator": {
+            "enum": [
+              "minimum_metric",
+              "maximum_metric",
+              "protected_objects_unchanged",
+              "accessible_route_graph",
+              "turning_clearance",
+              "accessible_seating",
+              "accessible_seating_sightlines",
+              "door_clearance",
+              "temporary_ramp",
+              "occupancy_capacity",
+              "circulation_graph",
+              "sightline_raycast",
+              "production_readiness",
+              "catering_readiness",
+              "emergency_readiness"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "category": {
+            "type": "string",
+            "minLength": 1
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning"
+            ]
+          },
+          "waivable": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "scope": {
+            "type": "object",
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "plan",
+                  "zone",
+                  "object"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "parameters": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "policy": {
+            "type": "object",
+            "required": [
+              "source",
+              "jurisdiction",
+              "effectiveDate"
+            ],
+            "properties": {
+              "source": {
+                "type": "string"
+              },
+              "jurisdiction": {
+                "type": "string"
+              },
+              "effectiveDate": {
+                "type": "string",
+                "format": "date"
+              }
+            },
+            "additionalProperties": false
+          },
+          "remediation": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "severity": {
+                  "const": "error"
+                }
+              },
+              "required": [
+                "severity"
+              ]
+            },
+            "then": {
+              "properties": {
+                "waivable": {
+                  "const": false
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "severity": {
+                  "const": "warning"
+                }
+              },
+              "required": [
+                "severity"
+              ]
+            },
+            "then": {
+              "properties": {
+                "waivable": {
+                  "const": true
+                }
+              }
+            }
+          }
+        ],
+        "additionalProperties": false
+      }
+    },
+    "metrics": {
+      "type": "object"
+    },
+    "proposal": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "id",
+            "baseVersion",
+            "revision",
+            "status",
+            "goal",
+            "changedItems",
+            "templateUpdate"
+          ],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "baseVersion": {
+              "type": "string"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "status": {
+              "type": "string"
+            },
+            "goal": {
+              "type": "string"
+            },
+            "changedItems": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "templateUpdate": {
+              "type": [
+                "object",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "activeBranchId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "proposalBranches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "strategy",
+          "proposalId"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "strategy": {
+            "type": "string"
+          },
+          "proposalId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "commandReceiptCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ledgerIntegrity": {
+      "type": "object"
+    },
+    "brief": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://venuemind.dev/schemas/event-brief.schema.json",
+      "title": "VenueMind Event Brief",
+      "type": "object",
+      "required": [
+        "id",
+        "eventName",
+        "date",
+        "timezone",
+        "venueId",
+        "roomId",
+        "attendeeTarget",
+        "occupancyMode",
+        "requirements"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "eventName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1
+        },
+        "venueId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "roomId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "attendeeTarget": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "occupancyMode": {
+          "enum": [
+            "theater",
+            "classroom",
+            "banquet",
+            "standing",
+            "mixed",
+            "custom"
+          ]
+        },
+        "schedule": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "startAt",
+                "endAt",
+                "timezone"
+              ],
+              "properties": {
+                "startAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?(?:Z|(?!-00:00)[+-]\\d{2}:\\d{2})$"
+                },
+                "endAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?(?:Z|(?!-00:00)[+-]\\d{2}:\\d{2})$"
+                },
+                "timezone": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "planningEffectBindings": {
+          "type": "object",
+          "properties": {
+            "set_attendance_target": {
+              "type": "object",
+              "required": [
+                "targetRequirementId",
+                "category",
+                "affectedConstraintIds"
+              ],
+              "properties": {
+                "targetRequirementId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "category": {
+                  "const": "seating"
+                },
+                "affectedConstraintIds": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "set_event_schedule": {
+              "type": "object",
+              "required": [
+                "targetRequirementId",
+                "category",
+                "affectedConstraintIds"
+              ],
+              "properties": {
+                "targetRequirementId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "category": {
+                  "const": "staffing"
+                },
+                "affectedConstraintIds": {
+                  "type": "array",
+                  "maxItems": 0
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "category",
+              "label",
+              "priority",
+              "owner",
+              "status",
+              "measurable",
+              "constraintIds",
+              "evidenceRefs"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "category": {
+                "enum": [
+                  "accessibility",
+                  "seating",
+                  "production",
+                  "catering",
+                  "staffing",
+                  "security",
+                  "emergency",
+                  "circulation"
+                ]
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "priority": {
+                "enum": [
+                  "critical",
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              "owner": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "status": {
+                "enum": [
+                  "open",
+                  "confirmed",
+                  "satisfied",
+                  "waived"
+                ]
+              },
+              "measurable": {
+                "type": "boolean"
+              },
+              "constraintIds": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "evidenceRefs": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

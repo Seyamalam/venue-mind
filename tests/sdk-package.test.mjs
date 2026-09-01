@@ -19,6 +19,7 @@ test("packed SDK installs, typechecks, imports, and runs the example adapter sui
   assert.ok(packedPaths.includes("schemas/planner-snapshot.schema.json"));
   assert.ok(packedPaths.includes("fixtures/manifest.json"));
   assert.equal(packedPaths.some((itemPath) => itemPath.startsWith("src/")), false);
+  assert.equal(packedPaths.some((itemPath) => itemPath.endsWith(".map")), false);
 
   const consumer = path.join(temporary, "consumer");
   await cp(path.join(root, "examples/sdk-adapter"), consumer, { recursive: true });
@@ -30,8 +31,20 @@ test("packed SDK installs, typechecks, imports, and runs the example adapter sui
   execFileSync(path.join(root, "node_modules/.bin/tsc"), ["-p", "tsconfig.json"], { cwd: consumer, stdio: "pipe" });
   execFileSync(process.execPath, ["--test", "test/contract.test.mjs"], { cwd: consumer, stdio: "pipe" });
 
+  const installedPackage = path.join(consumer, "node_modules/@venuemind/sdk");
+  for (const entry of ["index", "types", "client", "adapter", "testkit", "sandbox"]) {
+    const distributionSource = await readFile(path.join(installedPackage, "dist", `${entry}.js`), "utf8");
+    assert.equal(distributionSource.includes(root), false, `${entry}.js leaks the repository path`);
+    assert.equal(distributionSource.includes("../../../src/"), false, `${entry}.js leaks a private source path`);
+  }
+
   for (const entry of ["@venuemind/sdk", "@venuemind/sdk/client", "@venuemind/sdk/adapter", "@venuemind/sdk/testkit", "@venuemind/sdk/sandbox"]) {
     const probe = `import(${JSON.stringify(entry)}).then(() => process.exit(0))`;
     execFileSync(process.execPath, ["--input-type=module", "-e", probe], { cwd: consumer, stdio: "pipe" });
   }
+
+  const fixtureProbe = `import("@venuemind/sdk/fixtures/inventory-page-empty.json", { with: { type: "json" } }).then(({ default: fixture }) => {
+    if (fixture.sourceVersion !== "fixture-v1" || !Array.isArray(fixture.items)) process.exit(1);
+  })`;
+  execFileSync(process.execPath, ["--input-type=module", "-e", fixtureProbe], { cwd: consumer, stdio: "pipe" });
 });

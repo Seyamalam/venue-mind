@@ -87,4 +87,3 @@ An SDK release is ready when:
 - the example adapter imports only `@venuemind/sdk` entry points and passes its contract suite;
 - client examples pass against the matching local sandbox;
 - deprecations and migration notes match the released version set.
-

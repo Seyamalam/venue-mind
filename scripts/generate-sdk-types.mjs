@@ -16,6 +16,10 @@ const schemas = [
   ["activity-ledger", "VenueMindActivityLedger"],
   ["venue-error", "VenueMindError"],
   ["plan-export", "VenueMindPlanExport"],
+  ["project-list-result", "VenueMindProjectListResult"],
+  ["project-open-result", "VenueMindProjectOpenResult"],
+  ["layout-inspection", "VenueMindLayoutInspection"],
+  ["preview-revision-result", "VenueMindPreviewRevisionResult"],
 ];
 
 const venueMindResolver = {
@@ -52,6 +56,20 @@ const toolInputMap = await compile(toolInputMapSchema, "VenueMindToolInputMap", 
   style: { singleQuote: false, semi: true, tabWidth: 2 },
 });
 await writeFile(path.join(outputDirectory, "tool-inputs.ts"), toolInputMap);
+const toolOutputMapSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  title: "VenueMind Tool Output Map",
+  type: "object",
+  required: venueToolContracts.map(({ name }) => name),
+  properties: Object.fromEntries(venueToolContracts.map(({ name, outputSchema }) => [name, outputSchema])),
+  additionalProperties: false,
+};
+const toolOutputMap = await compile(toolOutputMapSchema, "VenueMindToolOutputMap", {
+  bannerComment: "/* Generated from VenueMind canonical tool output contracts. Do not edit. */",
+  style: { singleQuote: false, semi: true, tabWidth: 2 },
+  $refOptions: { resolve: { venueMind: venueMindResolver } },
+});
+await writeFile(path.join(outputDirectory, "tool-outputs.ts"), toolOutputMap);
 await writeFile(path.join(outputDirectory, "tool-metadata.ts"), [
   "/* Generated from VenueMind canonical tool contracts. Do not edit. */",
   `export const VENUE_TOOL_CONTRACT_VERSION = ${JSON.stringify(VENUE_TOOL_CONTRACT_VERSION)} as const;`,
@@ -62,6 +80,7 @@ await writeFile(path.join(outputDirectory, "tool-metadata.ts"), [
 
 const index = `${schemas.map(([filename, type]) => `export type { ${type} } from "./${filename}.js";`).join("\n")}
 export type { VenueMindToolInputMap } from "./tool-inputs.js";
+export type { VenueMindToolOutputMap } from "./tool-outputs.js";
 export { VENUE_TOOL_CONTRACT_VERSION, VENUE_TOOL_NAMES } from "./tool-metadata.js";
 export type { VenueToolName } from "./tool-metadata.js";
 `;

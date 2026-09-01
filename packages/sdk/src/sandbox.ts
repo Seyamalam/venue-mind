@@ -57,12 +57,17 @@ export async function createAdapterSandboxServer({
   const sandboxAuthorization = authorization.secretStore
     ? authorization
     : { ...authorization, secretStore: createMemorySecretStore() };
+  let allowedOrigin = "";
   const server = createServer(async (request, response) => {
     try {
       const url = new URL(request.url ?? "/", `http://${host}`);
       if (request.method === "GET" && url.pathname === "/health") return sendJson(response, 200, { status: "ok", adapterId: adapter.definition.id, adapterVersion: adapter.definition.version });
       if (request.method === "GET" && url.pathname === "/fixtures") return sendJson(response, 200, { fixtures });
       if (request.method === "POST" && url.pathname.startsWith("/invoke/")) {
+        const origin = request.headers.origin;
+        if (origin && origin !== allowedOrigin) return sendJson(response, 403, { error: { code: "SANDBOX_ORIGIN_DENIED" } });
+        const mediaType = request.headers["content-type"]?.split(";", 1)[0]?.trim().toLowerCase();
+        if (mediaType !== "application/json") return sendJson(response, 415, { error: { code: "SANDBOX_MEDIA_TYPE_REQUIRED" } });
         const capability = decodeURIComponent(url.pathname.slice("/invoke/".length));
         if (!["import", "export", "synchronize", "webhook"].includes(capability)) return sendJson(response, 404, { error: { code: "SANDBOX_ROUTE_NOT_FOUND" } });
         const input = await readJson(request, maximumBodyBytes);
@@ -86,9 +91,10 @@ export async function createAdapterSandboxServer({
     });
   });
   const address = server.address() as AddressInfo;
+  allowedOrigin = `http://${host.includes(":") ? `[${host}]` : host}:${address.port}`;
   let closed = false;
   return Object.freeze({
-    url: `http://${host.includes(":") ? `[${host}]` : host}:${address.port}`,
+    url: allowedOrigin,
     host,
     port: address.port,
     close: async () => {

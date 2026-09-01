@@ -14,7 +14,8 @@
     "./adapter",
     "./testkit",
     "./sandbox",
-    "./schemas/*"
+    "./schemas/*",
+    "./fixtures/*"
   ],
   "client": {
     "transport": "VenueMindTransport.callTool(name, input, options)",

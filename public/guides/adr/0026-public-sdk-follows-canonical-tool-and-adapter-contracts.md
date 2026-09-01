@@ -14,11 +14,11 @@ The SDK also participates in several independent compatibility domains: package 
 
 ## Decision
 
-VenueMind publishes `@venuemind/sdk` as an ESM-only Node.js 22 package. Version `0.1.0` declares only explicit runtime exports: `.`, `./types`, `./client`, `./adapter`, `./testkit`, and `./sandbox`, plus the read-only `./schemas/*` JSON Schema export.
+VenueMind publishes `@venuemind/sdk` as an ESM-only Node.js 22 package. Version `0.1.0` declares only explicit runtime exports: `.`, `./types`, `./client`, `./adapter`, `./testkit`, and `./sandbox`, plus read-only `./schemas/*` JSON Schema and `./fixtures/*` JSON fixture exports.
 
 Types are generated from canonical VenueMind schemas and versioned tool input/output contracts. Generated declarations are artifacts; their authoritative sources remain the contract registries.
 
-The typed client is transport-injected. It groups Project, Plan, Proposal, Validation, Activity Ledger, replay, and export operations, then calls the existing `venue.*` tool contract. MCP, WebMCP, local, and test transports retain protocol, authentication, Organization and Project binding, cancellation, and structured-result responsibilities. The client does not recreate command dispatch or domain rules.
+The typed client is transport-injected. It groups Project, Plan, Proposal, Validation, Activity Ledger, replay, and export operations, then calls the existing `venue.*` tool contract. MCP, WebMCP, local, and test transports retain protocol, authentication, Organization and Project binding, cancellation, and structured-result responsibilities. The shared tool service normalizes host-specific Project repository results into the canonical `{ source, projects }` list result and `{ status, project }` open result before any transport exposes them. The client does not recreate command dispatch or domain rules.
 
 Human Approval is intentionally absent from the public agent client. A Proposal remains non-destructive until an authenticated human surface approves it through the existing authorization and planner boundary. Warning Waivers, Project Locks, human conflict decisions, account administration, and destructive Project operations follow the same authority separation.
 

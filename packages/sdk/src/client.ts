@@ -3,7 +3,8 @@ import type {
   LayoutInspection,
   PlanExport,
   PreviewRevisionResult,
-  ProjectSummary,
+  ProjectListResult,
+  ProjectOpenResult,
   ValidationResult,
   VenueMindTransport,
   VenueToolCallOptions,
@@ -15,8 +16,8 @@ export type { VenueMindTransport, VenueToolCallOptions } from "./types.js";
 
 export interface VenueMindClient {
   readonly projects: {
-    list(options?: VenueToolCallOptions): Promise<ProjectSummary[]>;
-    open(projectId: string, options?: VenueToolCallOptions): Promise<ProjectSummary>;
+    list(options?: VenueToolCallOptions): Promise<ProjectListResult>;
+    open(projectId: string, options?: VenueToolCallOptions): Promise<ProjectOpenResult>;
   };
   readonly plans: {
     inspect(options?: VenueToolCallOptions): Promise<LayoutInspection>;

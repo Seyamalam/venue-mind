@@ -40,7 +40,8 @@
       "types": "./dist/sandbox.d.ts",
       "import": "./dist/sandbox.js"
     },
-    "./schemas/*": "./schemas/*"
+    "./schemas/*": "./schemas/*",
+    "./fixtures/*": "./fixtures/*"
   },
   "types": "./dist/index.d.ts",
   "publishConfig": {

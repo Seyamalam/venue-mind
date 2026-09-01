@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/preview-revision-result.schema.json",
+  "title": "VenueMind Preview Revision Result",
+  "type": "object",
+  "required": [
+    "proposalId",
+    "baseVersion",
+    "revision",
+    "changedItems",
+    "requiresHumanApproval"
+  ],
+  "properties": {
+    "proposalId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "changedItems": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "requiresHumanApproval": {
+      "const": true
+    }
+  },
+  "additionalProperties": false
+}

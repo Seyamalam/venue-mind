@@ -13,6 +13,7 @@
       "authorization",
       "limits",
       "inputSchema",
+      "outputSchema",
       "exampleInput",
       "errors"
     ],
@@ -73,6 +74,9 @@
         "additionalProperties": false
       },
       "inputSchema": {
+        "type": "object"
+      },
+      "outputSchema": {
         "type": "object"
       },
       "exampleInput": {

@@ -4,6 +4,17 @@ import { venueError } from "../domain/errors.js";
 
 const contracts = new Map(venueToolContracts.map((contract) => [contract.name, contract]));
 
+const canonicalProjectList = (value) => {
+  const source = Array.isArray(value) ? "repository" : value?.source ?? "repository";
+  const projects = Array.isArray(value) ? value : value?.projects;
+  if (!Array.isArray(projects)) throw venueError("PROJECT_TOOL_UNAVAILABLE", { reason: "project-list-contract" });
+  return { source, projects };
+};
+
+const canonicalProjectOpen = (value) => value?.project
+  ? { status: value.status ?? "active", project: { ...value.project, active: value.project.active ?? value.status === "active" } }
+  : { status: "active", project: { ...value, active: value?.active ?? true } };
+
 export function createVenueToolService({ executeCommand, projectOperations, authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, authorizationProvider, recordAuthorizationDenial } = {}) {
   if (typeof executeCommand !== "function") throw new TypeError("Venue tool service requires a command executor");
 
@@ -29,16 +40,14 @@ export function createVenueToolService({ executeCommand, projectOperations, auth
       let output;
       if (name === "venue.list_projects") {
         if (typeof projectOperations?.listProjects !== "function") throw venueError("PROJECT_TOOL_UNAVAILABLE", { toolName: name });
-        output = await projectOperations.listProjects();
+        output = canonicalProjectList(await projectOperations.listProjects());
         if (authorization?.principal?.type === "agent") {
           const allowedProjectId = authorization.grant?.projectId;
-          const records = Array.isArray(output) ? output : output.projects;
-          const filtered = records.filter((project) => project.id === allowedProjectId);
-          output = Array.isArray(output) ? filtered : { ...output, projects: filtered };
+          output = { ...output, projects: output.projects.filter((project) => project.id === allowedProjectId) };
         }
       } else if (name === "venue.open_project") {
         if (typeof projectOperations?.openProject !== "function") throw venueError("PROJECT_TOOL_UNAVAILABLE", { toolName: name });
-        output = await projectOperations.openProject(input.projectId);
+        output = canonicalProjectOpen(await projectOperations.openProject(input.projectId));
       } else {
         output = await executeCommand(commandForVenueTool(name, input, source), { signal, authorization, organizationId, projectId });
       }
