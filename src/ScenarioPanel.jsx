@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { DownloadSimple, Play, X } from "@phosphor-icons/react";
+import { Sheet, SheetContent, SheetTitle } from "../components/ui/sheet";
 
 const numeric = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 
 const secondsLabel = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.round(seconds % 60)).padStart(2, "0")}`;
 
-export function ScenarioPanel({ branches, runs, onClose, onRun, onCompare, onExport, onOverlayChange, onPreviewOption }) {
+export function ScenarioPanel({ open, branches, runs, onClose, onRun, onCompare, onExport, onOverlayChange, onPreviewOption }) {
   const [draft, setDraft] = useState({ name: "Egress", model: "ingress-egress", mode: "normal", category: "registration", curve: "steady", seed: 73421, minutes: 30, samples: 256, population: 400, arrivals: 28, service: 9, servers: 3, accessShare: 8, branchId: branches.find((branch) => branch.active)?.id ?? branches[0]?.id ?? "" });
   const [overlayRunId, setOverlayRunId] = useState(null);
   const [frameIndex, setFrameIndex] = useState(0);
@@ -47,8 +48,9 @@ export function ScenarioPanel({ branches, runs, onClose, onRun, onCompare, onExp
       ...(draft.model === "queue" ? { queue: { category: draft.category, arrivalRatePerMinute: Math.max(.1, numeric(draft.arrivals, 1)), serviceRatePerServerMinute: Math.max(.1, numeric(draft.service, 1)), servers: Math.max(1, Math.trunc(numeric(draft.servers, 1))), bufferAreaM2: 12, abandonment: { enabled: true, meanPatienceSeconds: 480 }, priorityLanes: [{ id: "lane-access", label: "Access", arrivalShare: accessShare, servers: 1, serviceRatePerServerMinute: Math.max(.1, numeric(draft.service, 1)) }] } } : {}),
     }, draft.branchId);
   };
-  return <aside className="scenario-panel" aria-label="Simulation scenarios">
-    <header><div><span>SIMULATION</span><strong>SCENARIOS</strong></div><button type="button" onClick={onClose} aria-label="Close simulations"><X size={15} /></button></header>
+  return <Sheet open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }} modal={false}>
+    <SheetContent className="scenario-panel !h-auto !gap-0 !p-0 sm:!max-w-none" side="right" showOverlay={false} showCloseButton={false} aria-label="Simulation scenarios">
+    <header><div><span>SIMULATION</span><SheetTitle asChild><strong>SCENARIOS</strong></SheetTitle></div><button type="button" onClick={onClose} aria-label="Close simulations"><X size={15} /></button></header>
     <form className="scenario-form" onSubmit={submit}>
       <label className="scenario-wide"><span>NAME</span><input value={draft.name} onChange={update("name")} /></label>
       <label className="scenario-wide"><span>BRANCH</span><select value={draft.branchId} onChange={update("branchId")}>{branches.filter((branch) => !branch.archived).map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></label>
@@ -66,5 +68,6 @@ export function ScenarioPanel({ branches, runs, onClose, onRun, onCompare, onExp
       const queue = run.result?.model === "queue" || run.partialResult?.model === "queue";
       return <article key={run.id} className={`scenario-run is-${run.status} ${overlayRunId === run.id ? "is-mapped" : ""}`}><header><span>{run.status.toUpperCase()}</span><code>{run.id}</code>{run.status === "completed" && <div className="scenario-run-actions">{flow && <button type="button" onClick={() => { setOverlayRunId(run.id); setFrameIndex(0); }} aria-label={`Map ${run.id}`}>MAP</button>}{queue && run.result?.suggestion?.preflight?.status === "spatially-valid" && <button type="button" onClick={() => onPreviewOption(run.id)} aria-label={`Preview option ${run.id}`}>OPTION</button>}<button type="button" onClick={() => onExport(run.id)} aria-label={`Export ${run.id}`}><DownloadSimple size={13} /></button></div>}</header><div className="scenario-progress"><i style={{ width: `${Math.round(run.progress * 100)}%` }} /></div><p>{run.branchId} · {run.model?.toUpperCase() ?? "OPS"} · {Math.round(run.progress * 100)}%</p>{metrics && <footer>{flow ? <><span><b>{secondsLabel(metrics.p95ClearanceSeconds)}</b><small>P95 CLEAR</small></span><span><b>{secondsLabel(metrics.worstBottleneckDurationSeconds)}</b><small>BOTTLENECK</small></span><span><b>{secondsLabel(metrics.accessibleRouteClearanceSeconds)}</b><small>ACCESS</small></span></> : queue ? <><span><b>{secondsLabel(metrics.p95WaitSeconds)}</b><small>P95 WAIT</small></span><span><b>{metrics.maximumQueueLength}</b><small>MAX Q</small></span><span><b>{metrics.overflowRisk?.toUpperCase()}</b><small>OVERFLOW</small></span></> : <><span><b>{metrics.meanProcessedPersons}</b><small>DONE</small></span><span><b>{metrics.maximumP95BacklogPersons}</b><small>P95 Q</small></span><span><b>{metrics.maximumP95Utilization}</b><small>P95 U</small></span></>}</footer>}</article>;
     })}</section>
-  </aside>;
+    </SheetContent>
+  </Sheet>;
 }

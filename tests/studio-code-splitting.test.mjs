@@ -4,14 +4,27 @@ import test from "node:test";
 
 test("optional Studio panels load behind React lazy boundaries", async () => {
   const app = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
-  for (const moduleName of ["PlanEditor", "CommentsPanel", "ScenarioPanel"]) {
+  assert.doesNotMatch(app, /^import .*PlanEditor\.jsx/m);
+  assert.match(app, /lazy\(\(\) => import\("\.\/PlanEditor\.jsx"\)/);
+  for (const moduleName of ["CommentsPanel", "ScenarioPanel", "HistoryPanel"]) {
     assert.doesNotMatch(app, new RegExp(`^import .*${moduleName}\\.jsx`, "m"));
-    assert.match(app, new RegExp(`lazy\\(\\(\\) => import\\("\\.\\/${moduleName}\\.jsx"\\)`));
+    assert.match(app, new RegExp(`const load${moduleName} = \\(\\) => import\\("\\.\\/${moduleName}\\.jsx"\\)`));
+    assert.match(app, new RegExp(`const Lazy${moduleName} = lazy\\(load${moduleName}\\)`));
   }
-  assert.doesNotMatch(app, /^import .*HistoryPanel\.jsx/m);
-  assert.match(app, /const loadHistoryPanel = \(\) => import\("\.\/HistoryPanel\.jsx"\)/);
-  assert.match(app, /const LazyHistoryPanel = lazy\(loadHistoryPanel\)/);
   assert.match(app, /<Suspense\b/);
+});
+
+test("comments and simulations use persistent non-modal shadcn sheets", async () => {
+  const app = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+  for (const [moduleName, mountedState] of [["CommentsPanel", "commentsMounted"], ["ScenarioPanel", "simulationMounted"]]) {
+    const panel = await readFile(new URL(`../src/${moduleName}.jsx`, import.meta.url), "utf8");
+    assert.match(app, new RegExp(`${mountedState} && <Suspense`));
+    assert.match(app, new RegExp(`onPointerEnter=\\{load${moduleName}\\}`));
+    assert.match(app, new RegExp(`onFocus=\\{load${moduleName}\\}`));
+    assert.match(panel, /<Sheet open=\{open\} onOpenChange=/);
+    assert.match(panel, /showOverlay=\{false\}/);
+    assert.match(panel, /<SheetTitle asChild>/);
+  }
 });
 
 test("annotation pins stay in the initial canvas without importing the comments panel", async () => {

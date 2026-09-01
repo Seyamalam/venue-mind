@@ -50,8 +50,10 @@ const briefIcons = {
 };
 
 const LazyPlanEditor = lazy(() => import("./PlanEditor.jsx").then((module) => ({ default: module.PlanEditor })));
-const LazyCommentsPanel = lazy(() => import("./CommentsPanel.jsx").then((module) => ({ default: module.CommentsPanel })));
-const LazyScenarioPanel = lazy(() => import("./ScenarioPanel.jsx").then((module) => ({ default: module.ScenarioPanel })));
+const loadCommentsPanel = () => import("./CommentsPanel.jsx").then((module) => ({ default: module.CommentsPanel }));
+const LazyCommentsPanel = lazy(loadCommentsPanel);
+const loadScenarioPanel = () => import("./ScenarioPanel.jsx").then((module) => ({ default: module.ScenarioPanel }));
+const LazyScenarioPanel = lazy(loadScenarioPanel);
 const loadHistoryPanel = () => import("./HistoryPanel.jsx").then((module) => ({ default: module.HistoryPanel }));
 const LazyHistoryPanel = lazy(loadHistoryPanel);
 
@@ -207,9 +209,11 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   const [decisionNote, setDecisionNote] = useState("");
   const [branchRevisionSelections, setBranchRevisionSelections] = useState({});
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentsMounted, setCommentsMounted] = useState(false);
   const [selectedCommentId, setSelectedCommentId] = useState(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [simulationOpen, setSimulationOpen] = useState(false);
+  const [simulationMounted, setSimulationMounted] = useState(false);
   const [simulationOverlay, setSimulationOverlay] = useState(null);
   const toastTimer = useRef(null);
   const projectRecordMetadata = useRef({ createdAt: null, revision: null, provenance: null, archivedAt: null, deletedAt: null, recoveryUntil: null, pinned: false, lastOpenedAt: null });
@@ -806,8 +810,8 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           </Popover>
           <HeaderButton className="history-button" ariaLabel="Open plan history" onPointerEnter={loadHistoryPanel} onFocus={loadHistoryPanel} onClick={() => { setHistoryMounted(true); setHistoryOpen((open) => !open); }}>Plan v{plannerState.plan.version}<span className={`save-indicator is-${persistenceStatus.toLowerCase()}`}>{persistenceStatus}</span><CaretDown size={14} /></HeaderButton>
           <HeaderButton className={`edit-button ${editorOpen ? "is-active" : ""}`} ariaLabel="Toggle plan editor" onClick={() => setEditorOpen((open) => !open)}>{editorOpen ? "REVIEW" : "EDIT"}</HeaderButton>
-          <HeaderButton className={`comments-button ${commentsOpen ? "is-active" : ""}`} ariaLabel="Open comments" onClick={() => { setSimulationOpen(false); setCommentsOpen((open) => !open); }}><ChatCircle size={17} /> {plannerState.comments.filter((comment) => comment.status === "open").length}</HeaderButton>
-          <HeaderButton className={`simulation-button ${simulationOpen ? "is-active" : ""}`} ariaLabel="Open simulations" onClick={() => { setCommentsOpen(false); setSimulationOpen((open) => !open); }}>SIM {plannerState.scenarioRuns.filter((run) => run.status === "completed").length}</HeaderButton>
+          <HeaderButton className={`comments-button ${commentsOpen ? "is-active" : ""}`} ariaLabel="Open comments" onPointerEnter={loadCommentsPanel} onFocus={loadCommentsPanel} onClick={() => { setCommentsMounted(true); setSimulationOpen(false); setCommentsOpen((open) => !open); }}><ChatCircle size={17} /> {plannerState.comments.filter((comment) => comment.status === "open").length}</HeaderButton>
+          <HeaderButton className={`simulation-button ${simulationOpen ? "is-active" : ""}`} ariaLabel="Open simulations" onPointerEnter={loadScenarioPanel} onFocus={loadScenarioPanel} onClick={() => { setSimulationMounted(true); setCommentsOpen(false); setSimulationOpen((open) => !open); }}>SIM {plannerState.scenarioRuns.filter((run) => run.status === "completed").length}</HeaderButton>
           <button className="icon-button" type="button" onClick={handleUndo} aria-label="Undo"><ArrowCounterClockwise size={22} /></button>
           <button className="icon-button" type="button" onClick={handleRedo} aria-label="Redo"><ArrowCounterClockwise size={22} className="redo-icon" /></button>
           <DropdownMenu open={exportOpen} onOpenChange={setExportOpen}>
@@ -1006,8 +1010,8 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
         onAddLock={handleAddLock}
         onReleaseLock={handleReleaseLock}
       /></Suspense>}
-      {commentsOpen && <Suspense fallback={<div className="panel-loading is-side" role="status">COMMENTS</div>}><LazyCommentsPanel state={plannerState} selectedCommentId={selectedCommentId} onAdd={handleAddComment} onEdit={handleEditComment} onStatus={handleCommentStatus} onClose={() => setCommentsOpen(false)} /></Suspense>}
-      {simulationOpen && <Suspense fallback={<div className="panel-loading is-side" role="status">SIM</div>}><LazyScenarioPanel branches={branches} runs={plannerState.scenarioRuns} onClose={() => { setSimulationOpen(false); setSimulationOverlay(null); }} onRun={handleRunScenario} onCompare={(leftRunId, rightRunId) => planner.execute({ type: "compare_simulations", leftRunId, rightRunId })} onExport={handleExportSimulation} onOverlayChange={setSimulationOverlay} onPreviewOption={handlePreviewQueueOption} /></Suspense>}
+      {commentsMounted && <Suspense fallback={commentsOpen ? <div className="panel-loading is-side" role="status">COMMENTS</div> : null}><LazyCommentsPanel open={commentsOpen} state={plannerState} selectedCommentId={selectedCommentId} onAdd={handleAddComment} onEdit={handleEditComment} onStatus={handleCommentStatus} onClose={() => setCommentsOpen(false)} /></Suspense>}
+      {simulationMounted && <Suspense fallback={simulationOpen ? <div className="panel-loading is-side" role="status">SIM</div> : null}><LazyScenarioPanel open={simulationOpen} branches={branches} runs={plannerState.scenarioRuns} onClose={() => { setSimulationOpen(false); setSimulationOverlay(null); }} onRun={handleRunScenario} onCompare={(leftRunId, rightRunId) => planner.execute({ type: "compare_simulations", leftRunId, rightRunId })} onExport={handleExportSimulation} onOverlayChange={setSimulationOverlay} onPreviewOption={handlePreviewQueueOption} /></Suspense>}
       {comparisonOpen && branchComparison && <aside className="branch-comparison" aria-label="Proposal Branch comparison">
         <div className="branch-comparison-heading"><div><span className="eyebrow">Branch comparison</span><strong>{branchComparison.comparisonId}</strong></div><button type="button" onClick={() => setComparisonOpen(false)} aria-label="Close branch comparison"><X size={18} /></button></div>
         <div className="branch-comparison-columns"><div><small>A · {branchComparison.left.strategy}</small><strong>{branchComparison.left.name}</strong><span className={`branch-status is-${branchComparison.left.validationStatus}`}>{branchComparison.left.validationStatus.toUpperCase()} · {branchComparison.left.changedItems} CHG</span><em>{branchComparison.left.notes || "—"}</em><code>{branchComparison.left.geometryFingerprint}</code></div><div><small>B · {branchComparison.right.strategy}</small><strong>{branchComparison.right.name}</strong><span className={`branch-status is-${branchComparison.right.validationStatus}`}>{branchComparison.right.validationStatus.toUpperCase()} · {branchComparison.right.changedItems} CHG</span><em>{branchComparison.right.notes || "—"}</em><code>{branchComparison.right.geometryFingerprint}</code></div></div>
