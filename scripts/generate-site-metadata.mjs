@@ -2,8 +2,9 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { docsPages } from "../src/docs/content.js";
 import { buildDocsNavigation } from "../src/docs/navigation.js";
 import { referenceManifest } from "../src/docs/pages/reference.js";
+import { defaultPublicOrigin } from "../src/docs/public-origin.js";
 
-const configuredOrigin = process.env.VENUEMIND_PUBLIC_ORIGIN?.trim() || "http://localhost:4173";
+const configuredOrigin = process.env.VENUEMIND_PUBLIC_ORIGIN?.trim() || defaultPublicOrigin;
 const originUrl = new URL(configuredOrigin);
 if (!["http:", "https:"].includes(originUrl.protocol) || originUrl.username || originUrl.password) {
   throw new Error("VENUEMIND_PUBLIC_ORIGIN must be an HTTP(S) origin without credentials");

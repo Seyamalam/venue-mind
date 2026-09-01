@@ -16,5 +16,7 @@ tmp/
 !.env.example
 
 .wrangler/
+.vercel/
 .dev.vars
 coverage/
+.devpost-hackathon-state.json
