@@ -18,3 +18,13 @@ test("annotation pins stay in the initial canvas without importing the comments 
   assert.match(editor, /from "\.\/AnnotationPins\.jsx"/);
   assert.doesNotMatch(editor, /from "\.\/CommentsPanel\.jsx"/);
 });
+
+test("plan history uses a non-modal shadcn sheet with accessible tabs", async () => {
+  const app = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+  assert.match(app, /<Sheet open=\{historyOpen\}/);
+  assert.match(app, /showOverlay=\{false\}/);
+  assert.match(app, /<Tabs className="history-tabs-shell" value=\{historyTab\}/);
+  for (const value of ["versions", "ledger", "branches", "locks"]) {
+    assert.match(app, new RegExp(`<TabsTrigger value="${value}"`));
+  }
+});

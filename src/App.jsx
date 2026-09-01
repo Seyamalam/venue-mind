@@ -37,6 +37,8 @@ import { SharingControls } from "./SharingControls.jsx";
 import { browserNavigate, navigateInternalLink } from "./navigation.js";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
+import { Sheet, SheetContent, SheetTitle } from "../components/ui/sheet";
+import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
 
 const briefIcons = {
   accessibility: Wheelchair,
@@ -971,15 +973,16 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           {analysisOpen && <div className="analysis-drawer"><div><Wheelchair size={18} /><span><strong>Route graph</strong><small>{accessEvidence.minimumClearWidthM} m · {accessEvidence.graphFingerprint}</small></span></div><div><UsersThree size={18} /><span><strong>Accessible seats</strong><small>{accessEvidence.accessibleSeatSampleIds.length} samples · {accessEvidence.blockedAccessibleSeatSampleIds.length} blocked</small></span></div><div><MapPin size={18} /><span><strong>Door clearance</strong><small>{accessEvidence.doorClearanceZones.length} zones · {accessEvidence.obstructedDoorObjectIds.length} blocked</small></span></div><div><UsersThree size={18} /><span><strong>Occupancy</strong><small>{capacityEvidence.placedCapacity} placed · {capacityEvidence.operationalLoad}/{capacityEvidence.venueMaximum} load</small></span></div><div><PersonSimple size={18} /><span><strong>Circulation</strong><small>{circulationEvidence.shortestExitPaths.length} paths · {circulationEvidence.peakCongestionIndex} peak</small></span></div><div><Eye size={18} /><span><strong>Sightlines</strong><small>{sightlineEvidence.sampledSeatIds.length} rays · {sightlineEvidence.blockedSampleIds.length} blocked</small></span></div><button type="button" onClick={() => setAnalysisOpen(false)} aria-label="Close analysis"><X size={18} /></button></div>}
         </section>
       </main>
-      {historyOpen && (
-        <aside className="history-drawer" aria-label="Plan history">
-          <div className="history-heading"><div><span className="eyebrow">Plan control</span><strong>v{plannerState.plan.version}</strong></div><button type="button" onClick={() => { setHistoryOpen(false); setComparisonOpen(false); }} aria-label="Close plan history"><X size={18} /></button></div>
-          <div className="history-tabs" role="tablist" aria-label="Plan control views">
-            <button type="button" role="tab" className={historyTab === "versions" ? "active" : ""} onClick={() => setHistoryTab("versions")}><ClockCounterClockwise size={15} /> Versions</button>
-            <button type="button" role="tab" className={historyTab === "ledger" ? "active" : ""} onClick={() => setHistoryTab("ledger")}><ListBullets size={15} /> Ledger</button>
-            <button type="button" role="tab" className={historyTab === "branches" ? "active" : ""} onClick={() => setHistoryTab("branches")}><GitBranch size={15} /> Branches</button>
-            <button type="button" role="tab" className={historyTab === "locks" ? "active" : ""} onClick={() => setHistoryTab("locks")}><MapPin size={15} /> Locks</button>
-          </div>
+      <Sheet open={historyOpen} onOpenChange={(open) => { setHistoryOpen(open); if (!open) setComparisonOpen(false); }} modal={false}>
+        <SheetContent className="history-drawer" side="right" showOverlay={false} showCloseButton={false} aria-label="Plan history">
+          <div className="history-heading"><div><span className="eyebrow">Plan control</span><SheetTitle asChild><strong>v{plannerState.plan.version}</strong></SheetTitle></div><button type="button" onClick={() => { setHistoryOpen(false); setComparisonOpen(false); }} aria-label="Close plan history"><X size={18} /></button></div>
+          <Tabs className="history-tabs-shell" value={historyTab} onValueChange={setHistoryTab}>
+          <TabsList className="history-tabs" aria-label="Plan control views">
+            <TabsTrigger value="versions"><ClockCounterClockwise size={15} /> Versions</TabsTrigger>
+            <TabsTrigger value="ledger"><ListBullets size={15} /> Ledger</TabsTrigger>
+            <TabsTrigger value="branches"><GitBranch size={15} /> Branches</TabsTrigger>
+            <TabsTrigger value="locks"><MapPin size={15} /> Locks</TabsTrigger>
+          </TabsList>
 
           {historyTab === "versions" && <div className="history-list">{versionEvents.map((entry) => {
             const version = entry.details.toVersion ?? entry.details.version ?? plannerState.plan.version;
@@ -996,8 +999,9 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           </div>}
 
           {historyTab === "locks" && <div className="lock-panel"><form className="lock-form" onSubmit={handleAddLock}><select aria-label="Lock object" value={lockObjectId} onChange={(event) => setLockObjectId(event.target.value)}>{plannerState.plan.objects.map((object) => <option key={object.id} value={object.id}>{object.label}</option>)}</select><select aria-label="Lock type" value={lockType} onChange={(event) => setLockType(event.target.value)}>{["position", "rotation", "dimension", "deletion", "role"].map((type) => <option key={type}>{type}</option>)}</select><input aria-label="Lock reason code" value={lockReason} onChange={(event) => setLockReason(event.target.value)} required /><button type="submit">Add lock</button></form><div className="lock-list">{activeLocks.map((lock) => <div className={`lock-row is-${lock.source}`} key={lock.id}><span><strong>{lock.label}</strong><small>{lock.objectId}</small></span><b>{lock.type.toUpperCase()}</b><em>{lock.source === "project" ? "PROJECT" : "TEMPLATE"}</em>{lock.source === "project" && <button type="button" onClick={() => handleReleaseLock(lock.id)}>Release</button>}</div>)}</div></div>}
-        </aside>
-      )}
+          </Tabs>
+        </SheetContent>
+      </Sheet>
       {commentsOpen && <Suspense fallback={<div className="panel-loading is-side" role="status">COMMENTS</div>}><LazyCommentsPanel state={plannerState} selectedCommentId={selectedCommentId} onAdd={handleAddComment} onEdit={handleEditComment} onStatus={handleCommentStatus} onClose={() => setCommentsOpen(false)} /></Suspense>}
       {simulationOpen && <Suspense fallback={<div className="panel-loading is-side" role="status">SIM</div>}><LazyScenarioPanel branches={branches} runs={plannerState.scenarioRuns} onClose={() => { setSimulationOpen(false); setSimulationOverlay(null); }} onRun={handleRunScenario} onCompare={(leftRunId, rightRunId) => planner.execute({ type: "compare_simulations", leftRunId, rightRunId })} onExport={handleExportSimulation} onOverlayChange={setSimulationOverlay} onPreviewOption={handlePreviewQueueOption} /></Suspense>}
       {comparisonOpen && branchComparison && <aside className="branch-comparison" aria-label="Proposal Branch comparison">
