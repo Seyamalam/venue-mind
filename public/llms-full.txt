@@ -7333,6 +7333,7 @@ JSON Schemas are generated from the runtime contract source during every product
 - [Comment](https://venue-mind-jet.vercel.app/schemas/comment.schema.json)
 - [Scenario definition](https://venue-mind-jet.vercel.app/schemas/scenario-definition.schema.json)
 - [Simulation result](https://venue-mind-jet.vercel.app/schemas/simulation-result.schema.json)
+- [Plan export](https://venue-mind-jet.vercel.app/schemas/plan-export.schema.json)
 - [Spatial geometry](https://venue-mind-jet.vercel.app/schemas/spatial-geometry.schema.json)
 - [Spatial evidence](https://venue-mind-jet.vercel.app/schemas/spatial-evidence.schema.json)
 - [Venue Constraint](https://venue-mind-jet.vercel.app/schemas/venue-constraint.schema.json)
