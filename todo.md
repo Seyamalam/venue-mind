@@ -1029,6 +1029,26 @@ Completion gate:
 
 - [ ] The golden loop and exports pass the supported-browser matrix with documented WebMCP capability differences.
 
+## 10.5 Next.js and shadcn frontend platform
+
+- [x] Pin the current stable Next.js 16, React 19, Tailwind CSS 4, and shadcn toolchain.
+- [x] Establish App Router ownership for Studio, Projects, Settings, Shared Review, and every generated docs page.
+- [x] Add route metadata, loading, error, not-found, typed dynamic params, and static docs params.
+- [x] Keep browser persistence, collaboration, and WebMCP behind client-only route boundaries.
+- [x] Preserve the Vite/Sites compatibility package while Next.js becomes the primary Vercel frontend.
+- [x] Add source-owned shadcn primitives and map the selected Design 2 palette into semantic tokens.
+- [ ] Replace manual internal navigation with Next Link and router APIs.
+- [ ] Move docs content and navigation into Server Components; retain only search, copy, and keyboard behavior on the client.
+- [ ] Migrate product controls, menus, popovers, sheets, tabs, forms, confirmations, and feedback to VenueMind compositions over shadcn primitives.
+- [ ] Replace browser prompts with accessible dialogs and confirmation flows.
+- [ ] Split the Studio runtime by heavy editor, simulations, comments, history, and sharing surfaces.
+- [ ] Remove the obsolete Vite SPA entry after the Sites compatibility boundary has a supported Next.js handoff.
+- [ ] Verify route-specific bundles, WebMCP cleanup, persistence recovery, collaboration teardown, accessibility, and visual parity.
+
+Completion gate:
+
+- [ ] Next.js is the production frontend, public/docs routes exclude the Studio runtime, all product routes preserve Design 2 without narrative UI copy, and the complete local verification gate passes.
+
 ---
 
 # Milestone 11 — Testing and delivery system

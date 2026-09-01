@@ -7,7 +7,13 @@ const EVENT_OPTIONS = Object.freeze([
   ["approval_completed", "APPROVE"],
   ["conflict_detected", "CONFLICT"],
 ]);
-const json = async (response) => { const body = await response.json(); if (!response.ok) throw Object.assign(new Error(body.error ?? "REQUEST_FAILED"), { code: body.code }); return body; };
+const json = async (response) => {
+  if (!(response.headers.get("content-type") ?? "").includes("application/json")) throw Object.assign(new Error("API_UNAVAILABLE"), { code: "API_UNAVAILABLE" });
+  const body = await response.json();
+  if (!response.ok) throw Object.assign(new Error(body.error ?? "REQUEST_FAILED"), { code: body.code });
+  return body;
+};
+const optionalJson = async (response, fallback) => (response.headers.get("content-type") ?? "").includes("application/json") ? json(response) : fallback;
 const headers = (organizationId, extra = {}) => ({ "x-venuemind-organization-id": organizationId, accept: "application/json", ...extra });
 
 export function SharingControls({ projectId, organizationId, proposalId, canManage = false }) {
@@ -25,8 +31,8 @@ export function SharingControls({ projectId, organizationId, proposalId, canMana
   const loadLinks = async () => setLinks((await json(await fetch(`/api/projects/${encodeURIComponent(projectId)}/share-links`, { credentials: "same-origin", headers: headers(organizationId) }))).links);
   const loadNotifications = async () => {
     const [items, prefs] = await Promise.all([
-      json(await fetch("/api/notifications", { credentials: "same-origin", headers: headers(organizationId) })),
-      json(await fetch("/api/notification-preferences", { credentials: "same-origin", headers: headers(organizationId) })),
+      optionalJson(await fetch("/api/notifications", { credentials: "same-origin", headers: headers(organizationId) }), { notifications: [] }),
+      optionalJson(await fetch("/api/notification-preferences", { credentials: "same-origin", headers: headers(organizationId) }), { inAppEnabled: true, emailEnabled: false, eventTypes: [] }),
     ]);
     setNotifications(items.notifications); setPreferences(prefs);
   };
