@@ -132,6 +132,26 @@ _Avoid_: Template sync, automatic update
 A deterministic notice that Project demand for an Inventory Item Template exceeds its available count.
 _Avoid_: Stock error, estimate
 
+**Operational Resource Snapshot**:
+A checksum-bound, source-versioned read model of live inventory, AV, power, catering, and staffing supply for one exact Project, Plan Version, Plan fingerprint, and event window. It is evidence, never accepted Plan truth.
+_Avoid_: Inventory Template update, accepted allocation, provider cache
+
+**Resource Binding**:
+A versioned Project Object Instance reference to one VenueMind stable Resource ID, resource kind, and quantity. Provider resource IDs never become Resource IDs.
+_Avoid_: Template Binding, external asset ID, booking
+
+**Operational Resource Conflict**:
+Deterministic evidence that an accepted Resource Binding is unavailable, double-booked, insufficient, or incompatible for the trusted event window.
+_Avoid_: Proposal Conflict, Validation warning, provider error
+
+**Resource Substitution Option**:
+A non-applied compatible Resource Binding candidate tied to one exact Operational Resource Snapshot and Conflict. It becomes a Proposal only after an explicit preview request.
+_Avoid_: Automatic replacement, accepted Resource Binding
+
+**Staff Reference**:
+An Organization- or Project-scoped opaque reference resolved by trusted server context for the minimum necessary assignment workflow. Raw provider person IDs and contact data do not cross the adapter normalization boundary.
+_Avoid_: User ID, staff name, email, provider person ID
+
 **Recovery Window**:
 The seven-day period after typed-confirmation deletion during which a Project remains restorable with its full snapshot and Plan history.
 _Avoid_: Trash file, undo toast

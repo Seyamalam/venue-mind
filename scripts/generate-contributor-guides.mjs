@@ -12,6 +12,7 @@ const guideSources = [
   ["docs/realtime-collaboration.md", "realtime-collaboration.md", "Real-time collaboration"],
   ["docs/sharing-and-notifications.md", "sharing-and-notifications.md", "Sharing and notifications"],
   ["docs/registration-and-ticketing.md", "registration-and-ticketing.md", "Registration and ticketing"],
+  ["docs/operational-resources.md", "operational-resources.md", "Operational resource adapters"],
   ["docs/database-operations.md", "database-operations.md", "Database operations"],
   ["docs/schema-migrations.md", "schema-migrations.md", "Schema migrations"],
   ["docs/development.md", "development.md", "Local development"],

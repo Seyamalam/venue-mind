@@ -12,6 +12,7 @@ const requiredGuides = [
   "docs/persistence-and-recovery.md",
   "docs/database-operations.md",
   "docs/registration-and-ticketing.md",
+  "docs/operational-resources.md",
   "docs/schema-migrations.md",
   "docs/development.md",
   "docs/testing.md",

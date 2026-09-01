@@ -1615,6 +1615,15 @@ Remote authority, browser recovery, import safety, soft deletion, normalization,
 
 - [Registration guide](https://venue-mind-jet.vercel.app/guides/registration-and-ticketing.md)
 
+## Operational resources
+
+- Operational Resource Snapshots reconcile live inventory, AV, power, catering, and staffing supply against one exact accepted Plan and trusted event window.
+- Unavailable, double-booked, insufficient, or incompatible bindings produce deterministic conflicts and non-applied compatible options.
+- Only an explicitly selected option becomes a reviewable Resource Binding Proposal; accepted Plan truth remains unchanged until human Approval.
+
+- [Operational resource guide](https://venue-mind-jet.vercel.app/guides/operational-resources.md)
+- [Operational snapshot ADR](https://venue-mind-jet.vercel.app/guides/adr/0025-operational-resource-snapshots-are-not-plan-truth.md)
+
 ## Recovery workflow
 
 - [Offline recovery tutorial](https://venue-mind-jet.vercel.app/docs/tutorial-offline-recovery)
@@ -7269,6 +7278,7 @@ npm run check:generated
 - [Real-time collaboration](https://venue-mind-jet.vercel.app/guides/realtime-collaboration.md)
 - [Sharing and notifications](https://venue-mind-jet.vercel.app/guides/sharing-and-notifications.md)
 - [Registration and ticketing](https://venue-mind-jet.vercel.app/guides/registration-and-ticketing.md)
+- [Operational resources](https://venue-mind-jet.vercel.app/guides/operational-resources.md)
 - [Release checklist](https://venue-mind-jet.vercel.app/guides/release-checklist.md)
 - [Failure recovery runbook](https://venue-mind-jet.vercel.app/guides/runbooks/failure-recovery.md)
 - [Security reporting policy](https://venue-mind-jet.vercel.app/guides/security.md)
@@ -7283,6 +7293,7 @@ npm run check:generated
 - [Ledger integrity and replay](https://venue-mind-jet.vercel.app/guides/adr/0020-hash-chained-ledger-and-replay.md)
 - [Sites identity and tenancy](https://venue-mind-jet.vercel.app/guides/adr/0021-sites-identity-and-server-owned-tenancy.md)
 - [Hashed bearer sharing](https://venue-mind-jet.vercel.app/guides/adr/0024-hashed-bearer-sharing.md)
+- [Operational Resource Snapshots](https://venue-mind-jet.vercel.app/guides/adr/0025-operational-resource-snapshots-are-not-plan-truth.md)
 
 ---
 
