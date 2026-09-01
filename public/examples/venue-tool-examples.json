@@ -159,6 +159,26 @@
   "venue.export_simulation": {
     "runId": "simulation-example"
   },
+  "venue.inspect_live_occupancy": {},
+  "venue.ingest_occupancy_signal": {
+    "sourceId": "door-a",
+    "sourceType": "manual-counter",
+    "sourceVersion": "counter-v12",
+    "kind": "zone-occupancy",
+    "observedAt": "2026-09-12T14:30:00.000Z",
+    "confidence": "high",
+    "readings": [
+      {
+        "scopeId": "venue",
+        "count": 412
+      }
+    ],
+    "idempotencyKey": "example-occupancy-001"
+  },
+  "venue.refresh_live_occupancy": {
+    "idempotencyKey": "example-occupancy-refresh-001"
+  },
+  "venue.export_live_occupancy": {},
   "venue.export_audit_package": {},
   "venue.export_plan": {
     "format": "json"

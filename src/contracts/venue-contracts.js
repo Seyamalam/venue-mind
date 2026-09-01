@@ -1045,6 +1045,60 @@ export const planExportSchema = {
   additionalProperties: false,
 };
 
+export const aggregateOccupancySignalSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/aggregate-occupancy-signal.schema.json",
+  title: "VenueMind Aggregate Occupancy Signal",
+  type: "object",
+  required: ["sourceId", "sourceType", "sourceVersion", "kind", "observedAt", "confidence", "readings"],
+  properties: {
+    sourceId: { type: "string", minLength: 1, maxLength: 160 },
+    sourceType: { enum: ["registration", "sensor", "manual-counter"] },
+    sourceVersion: { type: "string", minLength: 1, maxLength: 160 },
+    kind: { enum: ["check-in", "zone-occupancy"] },
+    observedAt: { type: "string", format: "date-time" },
+    confidence: { enum: ["low", "medium", "high"] },
+    readings: { type: "array", minItems: 1, maxItems: 100, items: { type: "object", required: ["scopeId", "count"], properties: { scopeId: { type: "string", minLength: 1, maxLength: 160 }, count: { type: "integer", minimum: 0, maximum: 1000000 } }, additionalProperties: false } },
+  },
+  additionalProperties: false,
+};
+
+const occupancyAlertSchema = {
+  type: "object",
+  required: ["id", "key", "code", "severity", "status", "sourceIds", "actual", "threshold", "unit", "openedAt"],
+  properties: { id: { type: "string" }, key: { type: "string" }, code: { enum: ["STALE_SOURCE", "CONFLICTING_FEEDS", "THRESHOLD_WARNING", "CAPACITY_EXCEEDED"] }, severity: { enum: ["warning", "critical"] }, status: { enum: ["open", "acknowledged"] }, scopeId: { type: ["string", "null"] }, sourceIds: { type: "array", items: { type: "string" }, uniqueItems: true }, actual: { type: "number" }, threshold: { type: "number" }, unit: { enum: ["seconds", "persons"] }, openedAt: { type: "string", format: "date-time" }, acknowledgedAt: { type: "string", format: "date-time" }, acknowledgedBy: { type: "string" }, reasonCode: { type: "string" } },
+  additionalProperties: false,
+};
+
+export const liveOccupancyProjectionSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/live-occupancy-projection.schema.json",
+  title: "VenueMind Live Occupancy Projection",
+  type: "object",
+  required: ["monitorId", "runbookVersionId", "evaluatedAt", "overallStatus", "sources", "scopes", "alerts", "privacy"],
+  properties: {
+    monitorId: { type: "string" }, runbookVersionId: { type: "string" }, evaluatedAt: { type: "string", format: "date-time" }, overallStatus: { enum: ["unavailable", "nominal", "warning", "exceeded", "conflicting", "stale"] },
+    sources: { type: "array", items: { type: "object", required: ["sourceId", "sourceType", "sourceVersion", "kind", "observedAt", "confidence", "ageSeconds", "status"], properties: { sourceId: { type: "string" }, sourceType: { enum: ["registration", "sensor", "manual-counter"] }, sourceVersion: { type: "string" }, kind: { enum: ["check-in", "zone-occupancy"] }, observedAt: { type: "string", format: "date-time" }, confidence: { enum: ["low", "medium", "high"] }, ageSeconds: { type: "number", minimum: 0 }, status: { enum: ["fresh", "aging", "stale"] } }, additionalProperties: false } },
+    scopes: { type: "array", items: { type: "object", required: ["scopeId", "kind", "label", "target", "capacity", "status", "count", "utilization", "confidence", "sourceIds", "freshness", "expectedPeak", "simulationDelta"], properties: { scopeId: { type: "string" }, kind: { enum: ["check-in", "venue", "zone"] }, label: { type: "string" }, target: { type: "integer", minimum: 0 }, capacity: { type: "integer", minimum: 1 }, status: { enum: ["unavailable", "nominal", "warning", "exceeded", "conflicting", "stale"] }, count: { type: ["integer", "null"], minimum: 0 }, utilization: { type: ["number", "null"], minimum: 0 }, confidence: { enum: ["low", "medium", "high"] }, sourceIds: { type: "array", items: { type: "string" }, uniqueItems: true }, freshness: { enum: ["missing", "fresh", "aging", "stale"] }, expectedPeak: { type: ["integer", "null"], minimum: 0 }, simulationDelta: { type: ["integer", "null"] } }, additionalProperties: false } },
+    alerts: { type: "array", items: { type: "object" } },
+    privacy: { type: "object", required: ["mode", "personRecordsStored", "individualEventsStored"], properties: { mode: { const: "aggregate-only" }, personRecordsStored: { const: false }, individualEventsStored: { const: false } }, additionalProperties: false },
+  },
+  additionalProperties: false,
+};
+
+export const liveOccupancyMonitorSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/live-occupancy-monitor.schema.json",
+  title: "VenueMind Live Occupancy Monitor",
+  type: "object",
+  required: ["schemaVersion", "id", "projectId", "runbookVersionId", "source", "baseline", "policy", "feeds", "observations", "activeAlerts", "receipts", "ledger", "revision", "createdAt", "updatedAt"],
+  properties: { schemaVersion: { const: 1 }, id: { type: "string" }, projectId: { type: "string" }, runbookVersionId: { type: "string" }, source: { type: "object" }, baseline: { type: "object" }, policy: { type: "object" }, feeds: { type: "array", items: aggregateOccupancySignalSchema }, observations: { type: "array", items: { type: "object" } }, activeAlerts: { type: "array", items: occupancyAlertSchema }, receipts: { type: "array", items: { type: "object" } }, ledger: { type: "array", items: { type: "object" } }, revision: { type: "integer", minimum: 0 }, createdAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" } },
+  additionalProperties: false,
+};
+
+const liveOccupancyResultSchema = { type: "object", required: ["monitor", "projection"], properties: { monitor: liveOccupancyMonitorSchema, projection: liveOccupancyProjectionSchema, receipt: { type: "object" }, duplicate: { type: "boolean" } }, additionalProperties: false };
+const liveOccupancyExportSchema = { type: "object", required: ["filename", "mimeType", "content"], properties: { filename: { type: "string", minLength: 1 }, mimeType: { const: "application/json" }, content: { type: "string" } }, additionalProperties: false };
+
 const projectSummarySchema = {
   type: "object",
   required: ["id", "name", "activePlanId", "planVersion", "active"],
@@ -1521,6 +1575,10 @@ const outputSchemaForTool = (name) => ({
   "venue.get_change_log": activityLedgerSchema,
   "venue.export_plan": planExportSchema,
   "venue.export_audit_package": planExportSchema,
+  "venue.inspect_live_occupancy": liveOccupancyResultSchema,
+  "venue.ingest_occupancy_signal": liveOccupancyResultSchema,
+  "venue.refresh_live_occupancy": liveOccupancyResultSchema,
+  "venue.export_live_occupancy": liveOccupancyExportSchema,
 }[name] ?? {});
 
 export const venueToolContracts = Object.freeze(baseVenueToolContracts.map((contract) => Object.freeze({

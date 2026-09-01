@@ -834,16 +834,16 @@ Completion gate:
 
 ## 8.2 Live occupancy
 
-- [ ] Ingest aggregate check-in and zone occupancy signals.
-- [ ] Display source freshness and confidence.
-- [ ] Compare live occupancy with approved capacity and simulation assumptions.
-- [ ] Trigger structured warnings for thresholds and stale data.
-- [ ] Preserve privacy by defaulting to aggregate data.
-- [ ] Record threshold events in the incident ledger.
+- [x] Ingest aggregate check-in and zone occupancy signals.
+- [x] Display source freshness and confidence.
+- [x] Compare live occupancy with approved capacity and simulation assumptions.
+- [x] Trigger structured warnings for thresholds and stale data.
+- [x] Preserve privacy by defaulting to aggregate data.
+- [x] Record threshold events in the incident ledger.
 
 Completion gate:
 
-- [ ] Stale, conflicting, and over-threshold occupancy feeds produce distinct, auditable operational states.
+- [x] Stale, conflicting, and over-threshold occupancy feeds produce distinct, auditable operational states.
 
 ## 8.3 Issues and incidents
 

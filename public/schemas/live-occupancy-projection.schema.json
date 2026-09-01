@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/live-occupancy-projection.schema.json",
+  "title": "VenueMind Live Occupancy Projection",
+  "type": "object",
+  "required": [
+    "monitorId",
+    "runbookVersionId",
+    "evaluatedAt",
+    "overallStatus",
+    "sources",
+    "scopes",
+    "alerts",
+    "privacy"
+  ],
+  "properties": {
+    "monitorId": {
+      "type": "string"
+    },
+    "runbookVersionId": {
+      "type": "string"
+    },
+    "evaluatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "overallStatus": {
+      "enum": [
+        "unavailable",
+        "nominal",
+        "warning",
+        "exceeded",
+        "conflicting",
+        "stale"
+      ]
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "sourceId",
+          "sourceType",
+          "sourceVersion",
+          "kind",
+          "observedAt",
+          "confidence",
+          "ageSeconds",
+          "status"
+        ],
+        "properties": {
+          "sourceId": {
+            "type": "string"
+          },
+          "sourceType": {
+            "enum": [
+              "registration",
+              "sensor",
+              "manual-counter"
+            ]
+          },
+          "sourceVersion": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "check-in",
+              "zone-occupancy"
+            ]
+          },
+          "observedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "confidence": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "ageSeconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "status": {
+            "enum": [
+              "fresh",
+              "aging",
+              "stale"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "scopeId",
+          "kind",
+          "label",
+          "target",
+          "capacity",
+          "status",
+          "count",
+          "utilization",
+          "confidence",
+          "sourceIds",
+          "freshness",
+          "expectedPeak",
+          "simulationDelta"
+        ],
+        "properties": {
+          "scopeId": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "check-in",
+              "venue",
+              "zone"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "target": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "enum": [
+              "unavailable",
+              "nominal",
+              "warning",
+              "exceeded",
+              "conflicting",
+              "stale"
+            ]
+          },
+          "count": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "utilization": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "confidence": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "sourceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "freshness": {
+            "enum": [
+              "missing",
+              "fresh",
+              "aging",
+              "stale"
+            ]
+          },
+          "expectedPeak": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "simulationDelta": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "alerts": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "required": [
+        "mode",
+        "personRecordsStored",
+        "individualEventsStored"
+      ],
+      "properties": {
+        "mode": {
+          "const": "aggregate-only"
+        },
+        "personRecordsStored": {
+          "const": false
+        },
+        "individualEventsStored": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -12,6 +12,7 @@
     "venue:propose",
     "venue:comment",
     "venue:simulate",
+    "venue:operate",
     "venue:export"
   ],
   "permissions": [
@@ -27,6 +28,8 @@
     "comment.write",
     "simulation.read",
     "simulation.run",
+    "occupancy.read",
+    "occupancy.write",
     "export.plan",
     "export.audit",
     "audit.read",
@@ -40,7 +43,8 @@
       "plan.read",
       "proposal.read",
       "comment.read",
-      "simulation.read"
+      "simulation.read",
+      "occupancy.read"
     ],
     "planner": [
       "project.read",
@@ -48,10 +52,12 @@
       "proposal.read",
       "comment.read",
       "simulation.read",
+      "occupancy.read",
       "proposal.create",
       "proposal.manage",
       "comment.write",
       "simulation.run",
+      "occupancy.write",
       "export.plan"
     ],
     "reviewer": [
@@ -60,6 +66,7 @@
       "proposal.read",
       "comment.read",
       "simulation.read",
+      "occupancy.read",
       "proposal.review",
       "comment.write",
       "export.audit",
@@ -71,6 +78,7 @@
       "proposal.read",
       "comment.read",
       "simulation.read",
+      "occupancy.read",
       "proposal.review",
       "comment.write",
       "export.audit",
@@ -84,10 +92,12 @@
       "proposal.read",
       "comment.read",
       "simulation.read",
+      "occupancy.read",
       "proposal.create",
       "proposal.manage",
       "comment.write",
       "simulation.run",
+      "occupancy.write",
       "export.plan",
       "proposal.review",
       "export.audit",
@@ -111,6 +121,8 @@
       "comment.write",
       "simulation.read",
       "simulation.run",
+      "occupancy.read",
+      "occupancy.write",
       "export.plan",
       "export.audit",
       "audit.read",
@@ -126,6 +138,7 @@
       "proposal.read",
       "comment.read",
       "simulation.read",
+      "occupancy.read",
       "audit.read"
     ],
     "venue:propose": [
@@ -139,6 +152,10 @@
     "venue:simulate": [
       "simulation.read",
       "simulation.run"
+    ],
+    "venue:operate": [
+      "occupancy.read",
+      "occupancy.write"
     ],
     "venue:export": [
       "export.plan",

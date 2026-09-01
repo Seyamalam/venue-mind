@@ -13,7 +13,7 @@ import { createProjectSession } from "./project-session.js";
 export { createFileProjectRepository, createMemoryProjectRepository } from "./project-repository.js";
 export { createProjectSession } from "./project-session.js";
 
-export const MCP_SERVER_VERSION = "0.4.0";
+export const MCP_SERVER_VERSION = "0.5.0";
 export const MCP_COMPATIBILITY = Object.freeze({
   minimumProtocolRevision: "2025-03-26",
   preferredProtocolRevision: "2026-07-28",

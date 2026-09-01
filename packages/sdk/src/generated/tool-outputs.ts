@@ -130,6 +130,35 @@ export interface VenueMindToolOutputMap {
   "venue.run_scenario": unknown;
   "venue.compare_simulations": unknown;
   "venue.export_simulation": unknown;
+  "venue.inspect_live_occupancy": {
+    monitor: VenueMindLiveOccupancyMonitor;
+    projection: VenueMindLiveOccupancyProjection;
+    receipt?: {
+      [k: string]: unknown;
+    };
+    duplicate?: boolean;
+  };
+  "venue.ingest_occupancy_signal": {
+    monitor: VenueMindLiveOccupancyMonitor;
+    projection: VenueMindLiveOccupancyProjection;
+    receipt?: {
+      [k: string]: unknown;
+    };
+    duplicate?: boolean;
+  };
+  "venue.refresh_live_occupancy": {
+    monitor: VenueMindLiveOccupancyMonitor;
+    projection: VenueMindLiveOccupancyProjection;
+    receipt?: {
+      [k: string]: unknown;
+    };
+    duplicate?: boolean;
+  };
+  "venue.export_live_occupancy": {
+    filename: string;
+    mimeType: "application/json";
+    content: string;
+  };
   "venue.export_audit_package": VenueMindPlanExport;
   "venue.export_plan": VenueMindPlanExport;
 }
@@ -664,6 +693,111 @@ export interface VenueMindSpatialEvidence {
       [k: string]: unknown;
     }[];
     [k: string]: unknown;
+  };
+}
+export interface VenueMindLiveOccupancyMonitor {
+  schemaVersion: 1;
+  id: string;
+  projectId: string;
+  runbookVersionId: string;
+  source: {
+    [k: string]: unknown;
+  };
+  baseline: {
+    [k: string]: unknown;
+  };
+  policy: {
+    [k: string]: unknown;
+  };
+  feeds: VenueMindAggregateOccupancySignal[];
+  observations: {
+    [k: string]: unknown;
+  }[];
+  activeAlerts: {
+    id: string;
+    key: string;
+    code: "STALE_SOURCE" | "CONFLICTING_FEEDS" | "THRESHOLD_WARNING" | "CAPACITY_EXCEEDED";
+    severity: "warning" | "critical";
+    status: "open" | "acknowledged";
+    scopeId?: string | null;
+    sourceIds: string[];
+    actual: number;
+    threshold: number;
+    unit: "seconds" | "persons";
+    openedAt: string;
+    acknowledgedAt?: string;
+    acknowledgedBy?: string;
+    reasonCode?: string;
+  }[];
+  receipts: {
+    [k: string]: unknown;
+  }[];
+  ledger: {
+    [k: string]: unknown;
+  }[];
+  revision: number;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface VenueMindAggregateOccupancySignal {
+  sourceId: string;
+  sourceType: "registration" | "sensor" | "manual-counter";
+  sourceVersion: string;
+  kind: "check-in" | "zone-occupancy";
+  observedAt: string;
+  confidence: "low" | "medium" | "high";
+  /**
+   * @minItems 1
+   * @maxItems 100
+   */
+  readings: [
+    {
+      scopeId: string;
+      count: number;
+    },
+    ...{
+      scopeId: string;
+      count: number;
+    }[]
+  ];
+}
+export interface VenueMindLiveOccupancyProjection {
+  monitorId: string;
+  runbookVersionId: string;
+  evaluatedAt: string;
+  overallStatus: "unavailable" | "nominal" | "warning" | "exceeded" | "conflicting" | "stale";
+  sources: {
+    sourceId: string;
+    sourceType: "registration" | "sensor" | "manual-counter";
+    sourceVersion: string;
+    kind: "check-in" | "zone-occupancy";
+    observedAt: string;
+    confidence: "low" | "medium" | "high";
+    ageSeconds: number;
+    status: "fresh" | "aging" | "stale";
+  }[];
+  scopes: {
+    scopeId: string;
+    kind: "check-in" | "venue" | "zone";
+    label: string;
+    target: number;
+    capacity: number;
+    status: "unavailable" | "nominal" | "warning" | "exceeded" | "conflicting" | "stale";
+    count: number | null;
+    utilization: number | null;
+    confidence: "low" | "medium" | "high";
+    sourceIds: string[];
+    freshness: "missing" | "fresh" | "aging" | "stale";
+    expectedPeak: number | null;
+    simulationDelta: number | null;
+  }[];
+  alerts: {
+    [k: string]: unknown;
+  }[];
+  privacy: {
+    mode: "aggregate-only";
+    personRecordsStored: false;
+    individualEventsStored: false;
   };
 }
 export interface VenueMindPlanExport {

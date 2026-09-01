@@ -49,6 +49,7 @@
               "venue:propose",
               "venue:comment",
               "venue:simulate",
+              "venue:operate",
               "venue:export"
             ]
           }

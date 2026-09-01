@@ -10,7 +10,7 @@ export const clientExamplesPage = {
   eyebrow: "Executable integrations",
   summary: "Validated WebMCP, MCP, Codex, Claude Desktop, Cursor, JSON-RPC, retry, failure, and export examples.",
   audience: ["developers", "agent integrators"],
-  compatibility: ["Tool contract 1.2.0", "MCP server 0.4.0"],
+  compatibility: ["Tool contract 1.3.0", "MCP server 0.5.0"],
   sections: [
     {
       id: "webmcp",

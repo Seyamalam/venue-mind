@@ -249,9 +249,9 @@ const toolsByScope = groupBy(toolReferencePages, (page) => page.reference.name &
 const commandsByPermission = groupBy(commandReferencePages, (page) => page.reference.permission);
 
 const toolIndexPage = {
-  slug: "reference-tools", group: "Reference", title: "Tool reference", eyebrow: "39 shared tools",
+  slug: "reference-tools", group: "Reference", title: "Tool reference", eyebrow: "43 shared tools",
   summary: "One generated page per WebMCP and standalone MCP tool, sourced from the runtime contract registry.",
-  audience: ["developers", "agent integrators"], compatibility: ["Tool contract 1.2.0", "WebMCP + MCP"], navigation: pageMetadata("tools"),
+  audience: ["developers", "agent integrators"], compatibility: ["Tool contract 1.3.0", "WebMCP + MCP"], navigation: pageMetadata("tools"),
   sections: Object.entries(toolsByScope).map(([scope, pages]) => ({ id: slugToken(scope), title: scope, blocks: [links(...pages.map((page) => ({ label: page.title, href: `/docs/${page.slug}` })))] })),
 };
 
@@ -265,7 +265,7 @@ const commandIndexPage = {
 const errorPage = {
   slug: "reference-errors", group: "Reference", title: "Error catalog", eyebrow: `${Object.keys(errorCatalog).length} stable codes`,
   summary: "Every stable VenueMind error code, user-safe message, and actionable remediation path.",
-  audience: ["developers", "operators", "agents"], compatibility: ["Stable error envelope", "Tool contract 1.2.0"],
+  audience: ["developers", "operators", "agents"], compatibility: ["Stable error envelope", "Tool contract 1.3.0"],
   sections: [{ id: "catalog", title: "Published errors", blocks: [table(errorColumns, Object.values(errorCatalog))] }, { id: "envelope", title: "Error envelope", blocks: [code(JSON.stringify({ error: { code: "PLAN_VERSION_CONFLICT", message: errorCatalog.PLAN_VERSION_CONFLICT.message, remediation: errorCatalog.PLAN_VERSION_CONFLICT.remediation, details: { expectedVersion: "3.3", receivedVersion: "3.2" } } }, null, 2), "json"), links({ label: "Venue error schema", href: "/schemas/venue-error.schema.json" })] }],
 };
 

@@ -464,6 +464,48 @@ export interface VenueMindToolInputMap {
   "venue.export_simulation": {
     runId: string;
   };
+  "venue.inspect_live_occupancy": {};
+  "venue.ingest_occupancy_signal": {
+    sourceId: string;
+    sourceType: "registration" | "sensor" | "manual-counter";
+    sourceVersion: string;
+    kind: "check-in" | "zone-occupancy";
+    observedAt: string;
+    confidence: "low" | "medium" | "high";
+    /**
+     * @minItems 1
+     * @maxItems 100
+     */
+    readings: [
+      {
+        scopeId: string;
+        count: number;
+      },
+      ...{
+        scopeId: string;
+        count: number;
+      }[]
+    ];
+    /**
+     * Unique retry key for this semantic command.
+     */
+    idempotencyKey: string;
+    /**
+     * Optional caller correlation identifier.
+     */
+    correlationId?: string;
+  };
+  "venue.refresh_live_occupancy": {
+    /**
+     * Unique retry key for this semantic command.
+     */
+    idempotencyKey: string;
+    /**
+     * Optional caller correlation identifier.
+     */
+    correlationId?: string;
+  };
+  "venue.export_live_occupancy": {};
   "venue.export_audit_package": {};
   "venue.export_plan": {
     format?:

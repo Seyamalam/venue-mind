@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/live-occupancy-monitor.schema.json",
+  "title": "VenueMind Live Occupancy Monitor",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "projectId",
+    "runbookVersionId",
+    "source",
+    "baseline",
+    "policy",
+    "feeds",
+    "observations",
+    "activeAlerts",
+    "receipts",
+    "ledger",
+    "revision",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string"
+    },
+    "projectId": {
+      "type": "string"
+    },
+    "runbookVersionId": {
+      "type": "string"
+    },
+    "source": {
+      "type": "object"
+    },
+    "baseline": {
+      "type": "object"
+    },
+    "policy": {
+      "type": "object"
+    },
+    "feeds": {
+      "type": "array",
+      "items": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://venuemind.dev/schemas/aggregate-occupancy-signal.schema.json",
+        "title": "VenueMind Aggregate Occupancy Signal",
+        "type": "object",
+        "required": [
+          "sourceId",
+          "sourceType",
+          "sourceVersion",
+          "kind",
+          "observedAt",
+          "confidence",
+          "readings"
+        ],
+        "properties": {
+          "sourceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "sourceType": {
+            "enum": [
+              "registration",
+              "sensor",
+              "manual-counter"
+            ]
+          },
+          "sourceVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "kind": {
+            "enum": [
+              "check-in",
+              "zone-occupancy"
+            ]
+          },
+          "observedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "confidence": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "readings": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "required": [
+                "scopeId",
+                "count"
+              ],
+              "properties": {
+                "scopeId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "activeAlerts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "key",
+          "code",
+          "severity",
+          "status",
+          "sourceIds",
+          "actual",
+          "threshold",
+          "unit",
+          "openedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "code": {
+            "enum": [
+              "STALE_SOURCE",
+              "CONFLICTING_FEEDS",
+              "THRESHOLD_WARNING",
+              "CAPACITY_EXCEEDED"
+            ]
+          },
+          "severity": {
+            "enum": [
+              "warning",
+              "critical"
+            ]
+          },
+          "status": {
+            "enum": [
+              "open",
+              "acknowledged"
+            ]
+          },
+          "scopeId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "actual": {
+            "type": "number"
+          },
+          "threshold": {
+            "type": "number"
+          },
+          "unit": {
+            "enum": [
+              "seconds",
+              "persons"
+            ]
+          },
+          "openedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "acknowledgedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "acknowledgedBy": {
+            "type": "string"
+          },
+          "reasonCode": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "receipts": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "ledger": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

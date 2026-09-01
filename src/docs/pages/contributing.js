@@ -7,7 +7,7 @@ export const contributingPage = {
   eyebrow: "Contributor map",
   summary: "Runtime boundaries, extension paths, migrations, testing layers, release checks, recovery, and architecture decisions.",
   audience: ["developers", "maintainers", "security reviewers"],
-  compatibility: ["Project schema 10", "Tool contract 1.2.0"],
+  compatibility: ["Project schema 10", "Tool contract 1.3.0"],
   sections: [
     {
       id: "architecture",

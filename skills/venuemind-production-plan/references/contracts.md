@@ -1,6 +1,6 @@
 # Generated contracts
 
-Target tool contract: `1.2.0`.
+Target tool contract: `1.3.0`.
 
 - Tools, examples, and errors: `/venue-tools.json`, `/examples/venue-tool-examples.json`, `/tool-error-catalog.json`
 - Geometry and evidence: `/schemas/spatial-geometry.schema.json`, `/schemas/spatial-evidence.schema.json`

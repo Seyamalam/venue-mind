@@ -34,6 +34,7 @@
           "venue:propose",
           "venue:comment",
           "venue:simulate",
+          "venue:operate",
           "venue:export"
         ]
       },
@@ -55,6 +56,8 @@
           "comment.write",
           "simulation.read",
           "simulation.run",
+          "occupancy.read",
+          "occupancy.write",
           "export.plan",
           "export.audit",
           "audit.read",

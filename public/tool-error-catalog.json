@@ -1368,6 +1368,254 @@
       "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
     }
   ],
+  "venue.inspect_live_occupancy": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "OCCUPANCY_MONITOR_NOT_FOUND",
+      "message": "Live Occupancy Monitor is unavailable.",
+      "remediation": "Create the monitor from the active Event Day Runbook before inspecting or changing occupancy."
+    },
+    {
+      "code": "OCCUPANCY_TOOL_UNAVAILABLE",
+      "message": "Live Occupancy tool Adapter is unavailable.",
+      "remediation": "Open VenueMind Studio or connect an MCP Project session with Live Occupancy operations enabled."
+    },
+    {
+      "code": "OCCUPANCY_REVISION_CONFLICT",
+      "message": "Live Occupancy monitor revision conflict.",
+      "remediation": "Refresh the monitor and retry only if the aggregate transition is still required."
+    },
+    {
+      "code": "OCCUPANCY_SIGNAL_INVALID",
+      "message": "Aggregate Occupancy Signal is invalid.",
+      "remediation": "Send one bounded aggregate-only signal for the check-in total, venue, or a stable Occupancy Zone."
+    },
+    {
+      "code": "OCCUPANCY_PRIVACY_REJECTED",
+      "message": "Occupancy input contains prohibited person-level data.",
+      "remediation": "Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion."
+    }
+  ],
+  "venue.ingest_occupancy_signal": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    },
+    {
+      "code": "OCCUPANCY_MONITOR_NOT_FOUND",
+      "message": "Live Occupancy Monitor is unavailable.",
+      "remediation": "Create the monitor from the active Event Day Runbook before inspecting or changing occupancy."
+    },
+    {
+      "code": "OCCUPANCY_TOOL_UNAVAILABLE",
+      "message": "Live Occupancy tool Adapter is unavailable.",
+      "remediation": "Open VenueMind Studio or connect an MCP Project session with Live Occupancy operations enabled."
+    },
+    {
+      "code": "OCCUPANCY_REVISION_CONFLICT",
+      "message": "Live Occupancy monitor revision conflict.",
+      "remediation": "Refresh the monitor and retry only if the aggregate transition is still required."
+    },
+    {
+      "code": "OCCUPANCY_SIGNAL_INVALID",
+      "message": "Aggregate Occupancy Signal is invalid.",
+      "remediation": "Send one bounded aggregate-only signal for the check-in total, venue, or a stable Occupancy Zone."
+    },
+    {
+      "code": "OCCUPANCY_PRIVACY_REJECTED",
+      "message": "Occupancy input contains prohibited person-level data.",
+      "remediation": "Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion."
+    }
+  ],
+  "venue.refresh_live_occupancy": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    },
+    {
+      "code": "OCCUPANCY_MONITOR_NOT_FOUND",
+      "message": "Live Occupancy Monitor is unavailable.",
+      "remediation": "Create the monitor from the active Event Day Runbook before inspecting or changing occupancy."
+    },
+    {
+      "code": "OCCUPANCY_TOOL_UNAVAILABLE",
+      "message": "Live Occupancy tool Adapter is unavailable.",
+      "remediation": "Open VenueMind Studio or connect an MCP Project session with Live Occupancy operations enabled."
+    },
+    {
+      "code": "OCCUPANCY_REVISION_CONFLICT",
+      "message": "Live Occupancy monitor revision conflict.",
+      "remediation": "Refresh the monitor and retry only if the aggregate transition is still required."
+    },
+    {
+      "code": "OCCUPANCY_SIGNAL_INVALID",
+      "message": "Aggregate Occupancy Signal is invalid.",
+      "remediation": "Send one bounded aggregate-only signal for the check-in total, venue, or a stable Occupancy Zone."
+    },
+    {
+      "code": "OCCUPANCY_PRIVACY_REJECTED",
+      "message": "Occupancy input contains prohibited person-level data.",
+      "remediation": "Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion."
+    }
+  ],
+  "venue.export_live_occupancy": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "OCCUPANCY_MONITOR_NOT_FOUND",
+      "message": "Live Occupancy Monitor is unavailable.",
+      "remediation": "Create the monitor from the active Event Day Runbook before inspecting or changing occupancy."
+    },
+    {
+      "code": "OCCUPANCY_TOOL_UNAVAILABLE",
+      "message": "Live Occupancy tool Adapter is unavailable.",
+      "remediation": "Open VenueMind Studio or connect an MCP Project session with Live Occupancy operations enabled."
+    },
+    {
+      "code": "OCCUPANCY_REVISION_CONFLICT",
+      "message": "Live Occupancy monitor revision conflict.",
+      "remediation": "Refresh the monitor and retry only if the aggregate transition is still required."
+    },
+    {
+      "code": "OCCUPANCY_SIGNAL_INVALID",
+      "message": "Aggregate Occupancy Signal is invalid.",
+      "remediation": "Send one bounded aggregate-only signal for the check-in total, venue, or a stable Occupancy Zone."
+    },
+    {
+      "code": "OCCUPANCY_PRIVACY_REJECTED",
+      "message": "Occupancy input contains prohibited person-level data.",
+      "remediation": "Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion."
+    }
+  ],
   "venue.export_audit_package": [
     {
       "code": "TOOL_SCOPE_REQUIRED",
