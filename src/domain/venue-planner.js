@@ -459,7 +459,7 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
     for (const item of evidence) {
       const latest = operationalResourceFreshnessVerifier({ projectId: projectId ?? state.projectId ?? null, proposalId: proposal.id, planVersion: state.plan.version, snapshotId: item.sourceId, snapshotChecksum: item.sourceChecksum });
       if (latest && typeof latest.then === "function") throw venueError("OPERATIONAL_RESOURCE_FRESHNESS_REQUIRED", { proposalId: proposal.id, reason: "synchronous-verifier-required" });
-      const current = latest === true || (latest?.snapshotId === item.sourceId && latest?.snapshotChecksum === item.sourceChecksum);
+      const current = latest?.snapshotId === item.sourceId && latest?.snapshotChecksum === item.sourceChecksum;
       if (!current) throw venueError("OPERATIONAL_RESOURCE_STALE", { proposalId: proposal.id, snapshotId: item.sourceId });
     }
     return clone(evidence);

@@ -4,13 +4,13 @@ VenueMind reconciles live inventory, AV and power, catering, and staffing supply
 
 ## Trusted Project boundary
 
-Provider input supplies source-system resource, booking, circuit, station, role, shift, and assignment records. The Project ID, Plan Version, Plan fingerprint, event window, current Project Object Instances, Template and Resource Bindings, role and shift mappings, current-Project reservation references, and newly allocated VenueMind stable IDs come only from the repository-derived trusted adapter context.
+Provider input supplies source-system resource, booking, circuit, station, role, shift, and assignment records. The Project ID, Plan Version, canonical Activity Ledger Plan fingerprint (`plan-xxxxxxxx`), event window, current Project Object Instances, Template and Resource Bindings, role and shift mappings, current-Project reservation references, and newly allocated VenueMind stable IDs come only from the repository-derived trusted adapter context. Version 1 snapshots created before canonical fingerprint adoption retain their exact 64-character SHA-256 Plan checksum and remain verifiable and previewable; newly produced trusted contexts use the canonical Activity Ledger fingerprint.
 
 The normalized input participates in invocation identity, idempotency, processed-result storage, and semantic result validation. Attempts to provide Project or Plan authority in the provider payload fail as unknown fields. External resource IDs remain separate from Project Object Instance, Template, Resource, role, shift, and Staff Reference IDs.
 
 ## Snapshot and conflict model
 
-Collections are exact, bounded, code-point sorted, and checksum-bound. Source checksums are computed from normalized provider evidence, so order-only permutations of bookings, connectors, skills, assignments, and top-level collections keep the same invocation identity. Booking windows use canonical UTC timestamps and half-open overlap semantics: a booking overlaps when its start is before the event end and the event start is before its end. Bookings ending exactly when the event starts, or starting exactly when it ends, do not conflict.
+Collections are exact, bounded, code-point sorted, and checksum-bound. Source checksums are computed from normalized provider evidence, so order-only permutations of bookings, connectors, skills, assignments, and top-level collections keep the same invocation identity. Staffing status and bookings remain attached to the exact personnel, role, and shift assignment so an unavailable assignment cannot poison an unrelated available assignment for the same opaque Staff Reference. Booking windows use canonical UTC timestamps and half-open overlap semantics: a booking overlaps when its start is before the event end and the event start is before its end. Bookings ending exactly when the event starts, or starting exactly when it ends, do not conflict.
 
 The reconciler derives demand from the trusted accepted Plan and reports Operational Resource Conflicts with one of four reasons:
 

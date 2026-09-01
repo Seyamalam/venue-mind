@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { fingerprintPlan } from "../src/domain/activity-ledger.js";
 import { summitForwardPlan } from "../src/domain/summit-forward.js";
 import { createVenuePlanner } from "../src/domain/venue-planner.js";
 import { sha256Checksum } from "../src/integrations/contracts.js";
@@ -34,7 +35,7 @@ const createPlanAndContext = async () => {
     project: {
       projectId: "project-resource-test",
       planVersion: plan.version,
-      planFingerprint: await sha256Checksum(plan),
+      planFingerprint: fingerprintPlan(plan),
       eventWindow: { startAt: "2026-09-12T10:00:00.000Z", endAt: "2026-09-12T12:00:00.000Z" },
       currentReservationRef: "reservation-current",
     },
@@ -86,6 +87,25 @@ test("operational aggregate imports inventory, AV, power, catering, and privacy-
   assert.doesNotMatch(serialized, /person-001|person-002/);
   assert.doesNotMatch(serialized, /externalPersonId/);
   assert.match(result.output.checksum, /^[0-9a-f]{64}$/);
+});
+
+test("staffing availability remains scoped to the exact personnel role and shift assignment", async () => {
+  const source = structuredClone(fixture);
+  source.staffing.assignments[0].bookings = [];
+  source.staffing.roles.push({ externalId: "usher", sourceVersion: "77", availableHeadcount: 4, skills: ["guest-support"] });
+  source.staffing.shifts.push({ externalId: "night-shift", sourceVersion: "77", startAt: "2026-09-12T18:00:00.000Z", endAt: "2026-09-12T22:00:00.000Z" });
+  source.staffing.assignments.push({ externalPersonId: "person-001", sourceVersion: "77", roleExternalId: "usher", shiftExternalId: "night-shift", status: "unavailable", bookings: [] });
+  const { context } = await createPlanAndContext();
+  context.roleMappings.push({ externalId: "usher", roleId: "role-usher" });
+  context.shiftMappings.push({ externalId: "night-shift", shiftId: "shift-night" });
+
+  const snapshot = (await execute(source, context)).output;
+  assert.equal(snapshot.conflicts.some((item) => item.demandId === "demand-security"), false);
+  const staff = snapshot.resources.find((item) => item.resourceId === "resource-staff-001");
+  assert.deepEqual(staff.capability.assignments.map((item) => [item.roleId, item.shiftId, item.status]), [
+    ["role-security", "shift-event", "available"],
+    ["role-usher", "shift-night", "unavailable"],
+  ]);
 });
 
 test("unavailable and double-booked resources create exact conflicts without silently selecting an option", async () => {
@@ -192,6 +212,40 @@ test("explicit compatible selection creates a canonical same-object staging Prop
   assert.deepEqual(plan, before);
 });
 
+test("persisted v1 SHA-256 Plan evidence remains valid during canonical fingerprint migration", async () => {
+  const { plan, context } = await createPlanAndContext();
+  context.project.planFingerprint = await sha256Checksum(plan);
+  const snapshot = (await execute(fixture, context)).output;
+  const conflict = snapshot.conflicts.find((item) => item.demandId === "demand-projector");
+  const batch = await createOperationalSubstitutionStagingBatch({ snapshot, conflictId: conflict.id, optionId: conflict.substitutionOptionIds[0], acceptedPlan: plan, proposalRevision: 2, resolveLatestSnapshot: async () => snapshot });
+  assert.equal(batch.proposal.status, "review");
+  assert.equal(batch.proposal.changes[0].spatialEffects[0].values.resourceBinding.resourceId, "resource-projector-backup");
+});
+
+test("substitution preview preserves the accepted binding family and quantity", async () => {
+  const { plan, context } = await createPlanAndContext();
+  const object = plan.objects.find((item) => item.id === "obj-projector");
+
+  object.resourceBinding.kind = "inventory";
+  context.project.planFingerprint = fingerprintPlan(plan);
+  context.demands.find((item) => item.demandId === "demand-projector").baseObjectChecksum = await sha256Checksum(object);
+  const kindSnapshot = (await execute(fixture, context)).output;
+  const kindConflict = kindSnapshot.conflicts.find((item) => item.demandId === "demand-projector");
+  await assert.rejects(() => createOperationalSubstitutionStagingBatch({ snapshot: kindSnapshot, conflictId: kindConflict.id, optionId: kindConflict.substitutionOptionIds[0], acceptedPlan: plan, proposalRevision: 2, resolveLatestSnapshot: async () => kindSnapshot }), (error) => error.code === "ADAPTER_SUBSTITUTION_STALE");
+
+  const { plan: quantityPlan, context: quantityContext } = await createPlanAndContext();
+  const quantityObject = quantityPlan.objects.find((item) => item.id === "obj-projector");
+  const quantityDemand = quantityContext.demands.find((item) => item.demandId === "demand-projector");
+  quantityDemand.quantity = 2;
+  quantityDemand.baseObjectChecksum = await sha256Checksum(quantityObject);
+  quantityContext.project.planFingerprint = fingerprintPlan(quantityPlan);
+  const quantitySource = structuredClone(fixture);
+  quantitySource.avEquipment.find((item) => item.externalId === "projector-backup").total = 2;
+  const quantitySnapshot = (await execute(quantitySource, quantityContext)).output;
+  const quantityConflict = quantitySnapshot.conflicts.find((item) => item.demandId === "demand-projector");
+  await assert.rejects(() => createOperationalSubstitutionStagingBatch({ snapshot: quantitySnapshot, conflictId: quantityConflict.id, optionId: quantityConflict.substitutionOptionIds[0], acceptedPlan: quantityPlan, proposalRevision: 2, resolveLatestSnapshot: async () => quantitySnapshot }), (error) => error.code === "ADAPTER_SUBSTITUTION_STALE");
+});
+
 test("trusted mappings enforce exact fields and separate external IDs from VenueMind IDs", async () => {
   const { context } = await createPlanAndContext();
   context.resourceMappings[0].binding.untrusted = true;
@@ -253,7 +307,7 @@ test("an unavailable approved projector reaches validated human Approval and an 
   const { context } = await createPlanAndContext();
   const projector = accepted.plan.objects.find((object) => object.id === "obj-projector-center");
   context.project.planVersion = accepted.plan.version;
-  context.project.planFingerprint = await sha256Checksum(accepted.plan);
+  context.project.planFingerprint = fingerprintPlan(accepted.plan);
   context.demands = [{
     demandId: "demand-projector",
     family: "av",
@@ -276,6 +330,14 @@ test("an unavailable approved projector reaches validated human Approval and an 
   unverifiedPlanner.execute({ type: "validate_layout" });
   const unverifiedProposal = unverifiedPlanner.getSnapshot().proposal;
   assert.throws(() => unverifiedPlanner.execute({ type: "approve_proposal", proposalId: unverifiedProposal.id, baseVersion: unverifiedProposal.baseVersion, actor: "human", idempotencyKey: "approval-without-resource-freshness" }), (error) => error.code === "OPERATIONAL_RESOURCE_FRESHNESS_REQUIRED");
+
+  const booleanVerifiedPlanner = createVenuePlanner(seeded, { projectId: "project-resource-test", operationalResourceFreshnessVerifier: () => true });
+  const booleanBaseline = booleanVerifiedPlanner.getSnapshot().proposal;
+  booleanVerifiedPlanner.execute({ type: "approve_proposal", proposalId: booleanBaseline.id, baseVersion: booleanBaseline.baseVersion, actor: "human", idempotencyKey: "accept-boolean-resource-baseline" });
+  await loadAdapterProposalForReview(booleanVerifiedPlanner, batch);
+  booleanVerifiedPlanner.execute({ type: "validate_layout" });
+  const booleanProposal = booleanVerifiedPlanner.getSnapshot().proposal;
+  assert.throws(() => booleanVerifiedPlanner.execute({ type: "approve_proposal", proposalId: booleanProposal.id, baseVersion: booleanProposal.baseVersion, actor: "human", idempotencyKey: "reject-unbound-boolean-freshness" }), (error) => error.code === "OPERATIONAL_RESOURCE_STALE");
 
   await loadAdapterProposalForReview(planner, batch);
   assert.equal(planner.getSnapshot().plan.objects.find((object) => object.id === projector.id).resourceBinding.resourceId, "resource-projector-primary");
