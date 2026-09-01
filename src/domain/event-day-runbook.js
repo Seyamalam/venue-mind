@@ -180,7 +180,7 @@ export function createEventDayRunbook({ projectId, plan, brief = plan?.brief, va
     source,
     baseline,
     definitionFingerprint,
-    status: "draft",
+    status: "active",
     phases,
     tasks,
     transitions: [],
@@ -229,6 +229,7 @@ const transitionInput = (command) => ({
 
 export function transitionRunbookTask(runbook, command, { committedAt = new Date().toISOString() } = {}) {
   if (!command?.idempotencyKey) throw venueError("IDEMPOTENCY_KEY_REQUIRED", { commandType: "transition_runbook_task" });
+  if (runbook.status !== "active") throw venueError("RUNBOOK_TRANSITION_INVALID", { runbookVersionId: runbook.versionId, runbookStatus: runbook.status, reason: "runbook-not-active" });
   if (command.runbookVersionId !== runbook.versionId) failDefinition("runbook-version-mismatch", { runbookVersionId: command.runbookVersionId });
   const input = transitionInput(command);
   const inputFingerprint = stableFingerprint("runbook-command", input);
