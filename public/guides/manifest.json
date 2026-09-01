@@ -56,6 +56,21 @@
       "title": "Operational resource adapters"
     },
     {
+      "sourcePath": "docs/sdk.md",
+      "publicPath": "/guides/sdk.md",
+      "title": "TypeScript SDK"
+    },
+    {
+      "sourcePath": "docs/adapter-authoring.md",
+      "publicPath": "/guides/adapter-authoring.md",
+      "title": "Adapter authoring"
+    },
+    {
+      "sourcePath": "docs/compatibility-and-deprecation.md",
+      "publicPath": "/guides/compatibility-and-deprecation.md",
+      "title": "SDK compatibility and deprecation"
+    },
+    {
       "sourcePath": "docs/database-operations.md",
       "publicPath": "/guides/database-operations.md",
       "title": "Database operations"
@@ -209,6 +224,11 @@
       "sourcePath": "docs/adr/0025-operational-resource-snapshots-are-not-plan-truth.md",
       "publicPath": "/guides/adr/0025-operational-resource-snapshots-are-not-plan-truth.md",
       "title": "Architecture decision 0025"
+    },
+    {
+      "sourcePath": "docs/adr/0026-public-sdk-follows-canonical-tool-and-adapter-contracts.md",
+      "publicPath": "/guides/adr/0026-public-sdk-follows-canonical-tool-and-adapter-contracts.md",
+      "title": "Architecture decision 0026"
     }
   ]
 }

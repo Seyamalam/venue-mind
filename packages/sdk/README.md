@@ -20,6 +20,7 @@ npm install @venuemind/sdk
 | `@venuemind/sdk/adapter` | Adapter definitions, runtime helpers, cursors, retries, idempotency, pagination, and webhook utilities |
 | `@venuemind/sdk/testkit` | In-memory stores, deterministic clocks, contract fixtures, and adapter assertions |
 | `@venuemind/sdk/sandbox` | Local test server and sandbox Project fixtures |
+| `@venuemind/sdk/schemas/*` | Canonical JSON Schema artifacts |
 
 Import through these entry points. Files below `dist/` and repository-relative `src/` paths are implementation details.
 
@@ -36,7 +37,7 @@ const client = createVenueMindClient({
   },
 });
 
-await client.projects.open({ projectId: "project-summit-forward" });
+await client.projects.open("project-summit-forward");
 const plan = await client.plans.inspect();
 const proposal = await client.proposals.preview({
   goal: "Protect the west accessible route",

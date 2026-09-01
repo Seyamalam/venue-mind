@@ -1626,6 +1626,17 @@ Remote authority, browser recovery, import safety, soft deletion, normalization,
 - [Operational resource guide](https://venue-mind-jet.vercel.app/guides/operational-resources.md)
 - [Operational snapshot ADR](https://venue-mind-jet.vercel.app/guides/adr/0025-operational-resource-snapshots-are-not-plan-truth.md)
 
+## TypeScript SDK
+
+- @venuemind/sdk publishes canonical schema-derived types and a typed client over the same venue.* tool seam used by WebMCP and MCP.
+- Adapter helpers preserve one runtime-owned idempotency and retry layer, bounded pagination, raw-byte webhook verification, and review-only planning imports.
+- The client intentionally exposes no Approval operation and no whole-snapshot write shortcut.
+
+- [SDK guide](https://venue-mind-jet.vercel.app/guides/sdk.md)
+- [Adapter authoring](https://venue-mind-jet.vercel.app/guides/adapter-authoring.md)
+- [Generated SDK API](https://venue-mind-jet.vercel.app/sdk-api.json)
+- [Packed SDK example](https://venue-mind-jet.vercel.app/examples/client/sdk-adapter/src/index.ts)
+
 ## Recovery workflow
 
 - [Offline recovery tutorial](https://venue-mind-jet.vercel.app/docs/tutorial-offline-recovery)
@@ -1688,6 +1699,7 @@ Current public versions, comparison rules, migration guarantees, and the policy 
 | Activity Ledger | 1 | Hash-chain verification is required on load, replay, and export. |
 | Tool contracts | 1.2.0 | Shared by WebMCP, standalone MCP, schemas, examples, and skills. |
 | MCP server | 0.4.0 | Preferred protocol 2026-07-28; minimum 2025-03-26. |
+| TypeScript SDK | 0.1.0 | ESM-only on Node.js 22+; SDK SemVer remains independent of tool, adapter, and Project schema versions. |
 | Agent skills | 1.1.0 | Targets tool contract 1.2.0. |
 | Interchange Package | 1 | Create-only import with checksum, migration, geometry, ledger, and replay preflight. |
 
@@ -7275,6 +7287,9 @@ npm run check:generated
 
 ## Migrations, release, and recovery
 
+- [TypeScript SDK](https://venue-mind-jet.vercel.app/guides/sdk.md)
+- [Adapter authoring](https://venue-mind-jet.vercel.app/guides/adapter-authoring.md)
+- [SDK API reference](https://venue-mind-jet.vercel.app/sdk-api.json)
 - [Schema migration guide](https://venue-mind-jet.vercel.app/guides/schema-migrations.md)
 - [Database operations](https://venue-mind-jet.vercel.app/guides/database-operations.md)
 - [Real-time collaboration](https://venue-mind-jet.vercel.app/guides/realtime-collaboration.md)
@@ -7296,6 +7311,7 @@ npm run check:generated
 - [Sites identity and tenancy](https://venue-mind-jet.vercel.app/guides/adr/0021-sites-identity-and-server-owned-tenancy.md)
 - [Hashed bearer sharing](https://venue-mind-jet.vercel.app/guides/adr/0024-hashed-bearer-sharing.md)
 - [Operational Resource Snapshots](https://venue-mind-jet.vercel.app/guides/adr/0025-operational-resource-snapshots-are-not-plan-truth.md)
+- [Public SDK boundary](https://venue-mind-jet.vercel.app/guides/adr/0026-public-sdk-follows-canonical-tool-and-adapter-contracts.md)
 
 ---
 

@@ -1,0 +1,12 @@
+{
+  "name": "venuemind-sdk-adapter-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@venuemind/sdk": "0.1.0"
+  }
+}

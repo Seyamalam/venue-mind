@@ -54,6 +54,22 @@
     {
       "path": "typescript/supervised-workflow.ts",
       "validation": "compiled-and-executed-mcp"
+    },
+    {
+      "path": "sdk-adapter/src/index.ts",
+      "validation": "packed-sdk-contract-suite"
+    },
+    {
+      "path": "sdk-adapter/test/contract.test.mjs",
+      "validation": "packed-sdk-contract-suite"
+    },
+    {
+      "path": "sdk-adapter/package.json",
+      "validation": "packed-sdk-contract-suite"
+    },
+    {
+      "path": "sdk-adapter/tsconfig.json",
+      "validation": "packed-sdk-contract-suite"
     }
   ],
   "sourceVersions": {
