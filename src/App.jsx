@@ -34,8 +34,13 @@ import { createCollaborationClient } from "./collaboration/collaboration-client.
 import { SharingControls } from "./SharingControls.jsx";
 import { browserNavigate, navigateInternalLink } from "./navigation.js";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
+import { Button } from "../components/ui/button";
+import { Checkbox } from "../components/ui/checkbox";
+import { Input } from "../components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "../components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "../components/ui/sheet";
+import { Textarea } from "../components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "../components/ui/toggle-group";
 import "./styles.css";
 
@@ -116,7 +121,14 @@ function BriefItem({ icon: Icon, children }) {
 }
 
 function HeaderButton({ children, className = "", onClick, ariaLabel, ...props }) {
-  return <button type="button" className={`header-button ${className}`} onClick={onClick} aria-label={ariaLabel} {...props}>{children}</button>;
+  return <Button type="button" className={`header-button ${className}`} onClick={onClick} aria-label={ariaLabel} {...props}>{children}</Button>;
+}
+
+function AppSelect({ label, value, onValueChange, options, className = "" }) {
+  return <Select key={`${label}:${options.map((option) => option.value).join("|")}`} value={value} onValueChange={onValueChange}>
+    <SelectTrigger className={className} aria-label={label} data-current-value={value}><span className="select-current-value">{options.find((option) => option.value === value)?.label}</span></SelectTrigger>
+    <SelectContent className="studio-select-content" position="popper" align="start" sideOffset={4}>{options.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent>
+  </Select>;
 }
 
 const formatComparisonMetric = (metric, value, signed = false) => {
@@ -781,11 +793,11 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           <span className="brand-name">VenueMind</span>
         </div>
         <div className="event-heading">
-          <button type="button" className="event-name" onClick={() => navigate("/projects")}>{plannerState.plan.event.name} <CaretDown size={15} weight="bold" /></button>
+          <Button type="button" className="event-name" onClick={() => navigate("/projects")}>{plannerState.plan.event.name} <CaretDown size={15} weight="bold" /></Button>
           <span>{eventDate}</span><i aria-hidden="true" /><span>{plannerState.plan.venue.name}</span>
         </div>
         <nav className="top-actions" aria-label="Plan actions">
-          <select className="organization-select" aria-label="Organization" value={organizationId} onChange={(event) => accountStore?.selectOrganization(event.target.value)}>{account?.organizations.map((organization) => <option value={organization.id} key={organization.id}>{organization.name}</option>)}</select>
+          <AppSelect className="organization-select" label="Organization" value={organizationId} onValueChange={(value) => accountStore?.selectOrganization(value)} options={(account?.organizations ?? []).map((organization) => ({ value: organization.id, label: organization.name }))} />
           <a className="organization-settings-link" href="/settings/organization" onClick={(event) => navigateInternalLink(event, navigate, "/settings/organization")} aria-label="Organization settings">{account?.user?.displayName?.slice(0, 2).toUpperCase() || "ID"}</a>
           <SharingControls projectId={projectId} organizationId={organizationId} proposalId={plannerState.proposal.id} canManage={canManageSharing} />
           <Popover open={collaborationOpen} onOpenChange={setCollaborationOpen}>
@@ -813,8 +825,8 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           <HeaderButton className={`edit-button ${editorOpen ? "is-active" : ""}`} ariaLabel="Toggle plan editor" onClick={() => setEditorOpen((open) => !open)}>{editorOpen ? "REVIEW" : "EDIT"}</HeaderButton>
           <HeaderButton className={`comments-button ${commentsOpen ? "is-active" : ""}`} ariaLabel="Open comments" onPointerEnter={loadCommentsPanel} onFocus={loadCommentsPanel} onClick={() => { setCommentsMounted(true); setSimulationOpen(false); setCommentsOpen((open) => !open); }}><ChatCircle size={17} /> {plannerState.comments.filter((comment) => comment.status === "open").length}</HeaderButton>
           <HeaderButton className={`simulation-button ${simulationOpen ? "is-active" : ""}`} ariaLabel="Open simulations" onPointerEnter={loadScenarioPanel} onFocus={loadScenarioPanel} onClick={() => { setSimulationMounted(true); setCommentsOpen(false); setSimulationOpen((open) => !open); }}>SIM {plannerState.scenarioRuns.filter((run) => run.status === "completed").length}</HeaderButton>
-          <button className="icon-button" type="button" onClick={handleUndo} aria-label="Undo"><ArrowCounterClockwise size={22} /></button>
-          <button className="icon-button" type="button" onClick={handleRedo} aria-label="Redo"><ArrowCounterClockwise size={22} className="redo-icon" /></button>
+          <Button className="icon-button" variant="ghost" size="icon" type="button" onClick={handleUndo} aria-label="Undo"><ArrowCounterClockwise size={22} /></Button>
+          <Button className="icon-button" variant="ghost" size="icon" type="button" onClick={handleRedo} aria-label="Redo"><ArrowCounterClockwise size={22} className="redo-icon" /></Button>
           <DropdownMenu open={exportOpen} onOpenChange={setExportOpen}>
             <div className="export-control">
               <DropdownMenuTrigger asChild><HeaderButton className={`export-button ${exportOpen ? "is-active" : ""}`} ariaLabel="Export plan"><DownloadSimple size={19} /> Export <CaretDown size={14} /></HeaderButton></DropdownMenuTrigger>
@@ -830,20 +842,20 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
         <b>SYNC CONFLICT</b>
         <span>R{syncConflict.localRevision ?? "—"} ↔ R{syncConflict.remoteRevision}</span>
         <span>{syncConflict.overlappingFields.map((field) => field.toUpperCase()).join(" · ")}</span>
-        {syncConflict.resolutions.includes("recover-proposal-branch") && <button type="button" onClick={handleRecoverProposalBranch}><GitBranch size={13} /> BRANCH</button>}
-        <button type="button" onClick={handleUseRemoteRecord}>REMOTE</button>
+        {syncConflict.resolutions.includes("recover-proposal-branch") && <Button type="button" onClick={handleRecoverProposalBranch}><GitBranch size={13} /> BRANCH</Button>}
+        <Button type="button" onClick={handleUseRemoteRecord}>REMOTE</Button>
       </div>}
       {legacyBriefMigration && <div className="sync-conflict-strip" role="alert" aria-label="Legacy Event Brief attestation required">
         <b>LEGACY BRIEF</b>
         <span>R{legacyBriefMigration.projectRevision}</span>
         <span>{legacyBriefMigration.briefFingerprint.toUpperCase()}</span>
-        <button type="button" onClick={() => setLegacyBriefReviewOpen(true)}>REVIEW</button>
+        <Button type="button" onClick={() => setLegacyBriefReviewOpen(true)}>REVIEW</Button>
       </div>}
 
       <main className="workspace">
         <aside className="brief-panel">
           <section className="brief-section">
-            <div className="eyebrow-row"><span className="eyebrow">Event brief</span><button type="button" className="text-button" onClick={openBriefEditor}>Edit</button></div>
+            <div className="eyebrow-row"><span className="eyebrow">Event brief</span><Button type="button" variant="ghost" size="xs" className="text-button" onClick={openBriefEditor}>Edit</Button></div>
             <h1>{plannerState.plan.event.program}</h1>
             <p className="attendee-count">{brief.attendeeTarget} attendees · {brief.occupancyMode}</p>
             <div className="brief-summary"><span>{brief.summary.satisfied}/{brief.summary.total} covered</span><span>{brief.summary.unresolved} open</span>{brief.summary.ambiguous > 0 && <span>{brief.summary.ambiguous} ambiguous</span>}</div>
@@ -865,9 +877,9 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
             <p className="proposal-count">{proposalState === "approved" ? `${changes.length} changes · applied` : `${changes.length} changes · ${validation.unresolvedIssues} conflicts`}</p>
             <div className="change-list" role="list" aria-label="Proposed changes">
               {changes.map((change) => (
-                <button type="button" role="listitem" key={change.id} className={`change-row ${selectedChange === change.number ? "is-active" : ""}`} onClick={() => setSelectedChange(change.number)}>
+                <Button type="button" variant="ghost" role="listitem" key={change.id} className={`change-row ${selectedChange === change.number ? "is-active" : ""}`} onClick={() => setSelectedChange(change.number)}>
                   <span className="change-number">{change.number}</span><span>{change.title}</span>
-                </button>
+                </Button>
               ))}
             </div>
             {activeChange && <div className="change-detail">
@@ -877,41 +889,36 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
 
             {activeConflictState.conflicts.length > 0 && <div className="conflict-panel" aria-label="Proposal conflicts">
               <div className="conflict-heading"><strong>CONFLICTS</strong><span>{activeConflictState.conflicts.length} CFT</span></div>
-              {activeConflictState.conflicts.map((conflict) => <div className="conflict-row" key={conflict.id}><span><strong>{conflict.type.toUpperCase()}</strong><small>{conflict.objectIds.length ? conflict.objectIds.join(" · ") : `${conflict.baseVersion} → ${conflict.currentVersion}`}</small></span><div>{conflict.resolutionOptions.includes("rebase") && <button type="button" onClick={() => handleRebaseBranch(plannerState.activeBranchId)}>REBASE</button>}{conflict.resolutionOptions.some((option) => ["keep-plan", "drop-change"].includes(option)) && <button type="button" onClick={() => handleConflictChoice(conflict, "keep-plan")}>KEEP PLAN</button>}{conflict.resolutionOptions.includes("keep-proposal") && <button type="button" onClick={() => handleConflictChoice(conflict, "keep-proposal")}>KEEP PROPOSAL</button>}{conflict.resolutionOptions.some((option) => ["manual-resolution", "revise-proposal"].includes(option)) && <button type="button" onClick={() => handleConflictChoice(conflict, "manual-resolution")}>MANUAL</button>}</div></div>)}
+              {activeConflictState.conflicts.map((conflict) => <div className="conflict-row" key={conflict.id}><span><strong>{conflict.type.toUpperCase()}</strong><small>{conflict.objectIds.length ? conflict.objectIds.join(" · ") : `${conflict.baseVersion} → ${conflict.currentVersion}`}</small></span><div>{conflict.resolutionOptions.includes("rebase") && <Button type="button" onClick={() => handleRebaseBranch(plannerState.activeBranchId)}>REBASE</Button>}{conflict.resolutionOptions.some((option) => ["keep-plan", "drop-change"].includes(option)) && <Button type="button" onClick={() => handleConflictChoice(conflict, "keep-plan")}>KEEP PLAN</Button>}{conflict.resolutionOptions.includes("keep-proposal") && <Button type="button" onClick={() => handleConflictChoice(conflict, "keep-proposal")}>KEEP PROPOSAL</Button>}{conflict.resolutionOptions.some((option) => ["manual-resolution", "revise-proposal"].includes(option)) && <Button type="button" onClick={() => handleConflictChoice(conflict, "manual-resolution")}>MANUAL</Button>}</div></div>)}
             </div>}
 
             {warningChecks.length > 0 && <div className="waiver-panel" aria-label="Warning Waivers">
               <div className="waiver-heading"><strong>Warnings</strong><span>{validation.waivedWarnings} WAIVED · {validation.unwaivedWarnings} OPEN</span></div>
               {warningChecks.map((check) => <div className={`waiver-row ${check.waiver ? "is-waived" : ""}`} key={check.constraintId}>
                 <span><strong>{check.label}</strong><small>{check.actual} / {check.threshold} {check.unit}</small></span>
-                {check.waiver ? <b>WAIVED</b> : <button type="button" onClick={() => handleWarningWaiver(check.constraintId)}>Waive</button>}
+                {check.waiver ? <b>WAIVED</b> : <Button type="button" onClick={() => handleWarningWaiver(check.constraintId)}>Waive</Button>}
               </div>)}
-              {openWarningChecks.length > 0 && <select aria-label="Waiver reason" value={waiverReason} onChange={(event) => setWaiverReason(event.target.value)}>
-                <option value="operational-acceptance">Operational acceptance</option>
-                <option value="temporary-condition">Temporary condition</option>
-                <option value="equivalent-control">Equivalent control</option>
-                <option value="owner-approved-deviation">Owner-approved deviation</option>
-              </select>}
+              {openWarningChecks.length > 0 && <AppSelect label="Waiver reason" value={waiverReason} onValueChange={setWaiverReason} options={[{ value: "operational-acceptance", label: "Operational acceptance" }, { value: "temporary-condition", label: "Temporary condition" }, { value: "equivalent-control", label: "Equivalent control" }, { value: "owner-approved-deviation", label: "Owner-approved deviation" }]} />}
             </div>}
 
             {adjustmentOpen && (
               <form className="adjustment-form" onSubmit={handleAdjustmentSubmit}>
                 <label htmlFor="adjustment">Adjustment</label>
-                <textarea id="adjustment" value={adjustment} onChange={(event) => setAdjustment(event.target.value)} placeholder="ADJUSTMENT" autoFocus />
-                <div className="form-actions"><button type="button" onClick={() => setAdjustmentOpen(false)}>Cancel</button><button type="submit">Send</button></div>
+                <Textarea id="adjustment" value={adjustment} onChange={(event) => setAdjustment(event.target.value)} placeholder="ADJUSTMENT" autoFocus />
+                <div className="form-actions"><Button type="button" variant="secondary" onClick={() => setAdjustmentOpen(false)}>Cancel</Button><Button type="submit">Send</Button></div>
               </form>
             )}
 
             {validation.emergencyReviewRequired && <div className="emergency-review-panel" aria-label="Emergency Review">
               <div><strong>EMERGENCY REVIEW</strong><span>{validation.emergencyChangedObjectIds.length} OBJ</span></div>
-              <input aria-label="Emergency reviewer ID" placeholder="REVIEWER ID" value={emergencyReviewerId} onChange={(event) => setEmergencyReviewerId(event.target.value)} />
-              <select aria-label="Emergency reviewer role" value={emergencyReviewerRole} onChange={(event) => setEmergencyReviewerRole(event.target.value)}><option value="safety-officer">SAFETY OFFICER</option><option value="venue-administrator">VENUE ADMIN</option></select>
-              <label><input type="checkbox" checked={emergencyAssumptionsAccepted} onChange={(event) => setEmergencyAssumptionsAccepted(event.target.checked)} /> ASSUMPTIONS</label>
+              <Input aria-label="Emergency reviewer ID" placeholder="REVIEWER ID" value={emergencyReviewerId} onChange={(event) => setEmergencyReviewerId(event.target.value)} />
+              <AppSelect label="Emergency reviewer role" value={emergencyReviewerRole} onValueChange={setEmergencyReviewerRole} options={[{ value: "safety-officer", label: "SAFETY OFFICER" }, { value: "venue-administrator", label: "VENUE ADMIN" }]} />
+              <label><Checkbox checked={emergencyAssumptionsAccepted} onCheckedChange={(checked) => setEmergencyAssumptionsAccepted(checked === true)} aria-label="Emergency assumptions accepted" /> ASSUMPTIONS</label>
             </div>}
 
             <div className="decision-actions">
-              <button className={`primary-action ${proposalState === "approved" ? "is-approved" : ""}`} type="button" onClick={handleApprove} disabled={proposalState === "approved" || changes.length === 0 || validation.status !== "pass" || validation.unwaivedWarnings > 0 || (validation.emergencyReviewRequired && (!emergencyReviewerId.trim() || !emergencyAssumptionsAccepted))}><Check size={20} weight="bold" />{changes.length === 0 ? "0 changes" : proposalState === "approved" ? "Proposal approved" : validation.status !== "pass" ? `${validation.blockingIssues} blocked` : validation.unwaivedWarnings > 0 ? `${validation.unwaivedWarnings} waiver required` : validation.emergencyReviewRequired && (!emergencyReviewerId.trim() || !emergencyAssumptionsAccepted) ? "Review required" : "Approve proposal"}</button>
-              <button className="secondary-action" type="button" onClick={() => setAdjustmentOpen((open) => !open)}><ChatCircle size={20} /> Request adjustment</button>
+              <Button className={`primary-action ${proposalState === "approved" ? "is-approved" : ""}`} type="button" onClick={handleApprove} disabled={proposalState === "approved" || changes.length === 0 || validation.status !== "pass" || validation.unwaivedWarnings > 0 || (validation.emergencyReviewRequired && (!emergencyReviewerId.trim() || !emergencyAssumptionsAccepted))}><Check size={20} weight="bold" />{changes.length === 0 ? "0 changes" : proposalState === "approved" ? "Proposal approved" : validation.status !== "pass" ? `${validation.blockingIssues} blocked` : validation.unwaivedWarnings > 0 ? `${validation.unwaivedWarnings} waiver required` : validation.emergencyReviewRequired && (!emergencyReviewerId.trim() || !emergencyAssumptionsAccepted) ? "Review required" : "Approve proposal"}</Button>
+              <Button className="secondary-action" type="button" variant="secondary" onClick={() => setAdjustmentOpen((open) => !open)}><ChatCircle size={20} /> Request adjustment</Button>
             </div>
           </section>
         </aside>
@@ -947,13 +954,13 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
             {!editorOpen && <div className="proposal-overlays" aria-label="Agent proposal changes">
               {changes.map((change) => {
                 const conflict = lockConflicts.find((item) => item.changeId === change.id);
-                return <button key={change.id} className={`proposal-shape shape-${["one", "two", "three", "four"][change.number - 1]} ${selectedChange === change.number ? "selected" : ""} ${conflict ? "is-lock-conflict" : ""}`} onClick={() => setSelectedChange(change.number)} aria-label={`Select change ${change.number}${conflict ? `, ${conflict.lockType} Lock conflict` : ""}`}><span>{change.number}</span>{conflict && <b>LOCK · {conflict.lockType.toUpperCase()} · {conflict.source === "project" ? "PROJECT" : "TEMPLATE"}</b>}</button>;
+                return <Button key={change.id} className={`proposal-shape shape-${["one", "two", "three", "four"][change.number - 1]} ${selectedChange === change.number ? "selected" : ""} ${conflict ? "is-lock-conflict" : ""}`} onClick={() => setSelectedChange(change.number)} aria-label={`Select change ${change.number}${conflict ? `, ${conflict.lockType} Lock conflict` : ""}`}><span>{change.number}</span>{conflict && <b>LOCK · {conflict.lockType.toUpperCase()} · {conflict.source === "project" ? "PROJECT" : "TEMPLATE"}</b>}</Button>;
               })}
               {activeChange && <div className={`canvas-callout callout-${selectedChange}`}>
                 <span className="callout-kicker">Change {activeChange.number}</span><strong>{activeChange.shortTitle}</strong>
                 {lockConflicts.filter((item) => item.changeId === activeChange.id).map((conflict) => <span className="callout-lock" key={conflict.id}>{conflict.lockType.toUpperCase()} · {conflict.source === "project" ? "PROJECT" : "TEMPLATE"} · {conflict.objectId}</span>)}
                 <div className="callout-metrics">{activeChange.metrics.map(([label, value]) => <span key={label}><small>{label}</small><b>{value}</b></span>)}</div>
-                <button type="button" onClick={handleRevertChange}><ArrowCounterClockwise size={16} /> Revert</button>
+                <Button type="button" variant="ghost" onClick={handleRevertChange}><ArrowCounterClockwise size={16} /> Revert</Button>
               </div>}
             </div>}
             <div className="canvas-legend"><span><i className="legend-before" /> Before (v{plannerState.proposal.baseVersion})</span><span><i className="legend-proposed" /> Proposed (v{proposedVersion})</span><span><i className="legend-door" /> Door</span><span><i className="legend-clearance" /> Clearance</span><span><i className="legend-egress" /> Egress</span><span><i className="legend-restricted" /> Restricted</span><span><i className="legend-route" /> Route graph</span>{simulationOverlay && <span><i className="legend-density" /> Density</span>}{analysisOpen && <span><i className="legend-ray" /> Sightline rays</span>}</div>
@@ -972,10 +979,10 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
               <span className="bar-label">Outcomes</span>
               <div className="outcome-row"><div className="outcome"><Check size={18} weight="bold" /><span><strong>Accessible route</strong><small>{accessEvidence.minimumClearWidthM} m · {accessEvidence.reachableDestinationIds.length} destinations</small></span></div><div className="outcome"><Check size={18} weight="bold" /><span><strong>Sightline coverage</strong><small>{sightlineEvidence.sampledSeatIds.length - sightlineEvidence.blockedSampleIds.length}/{sightlineEvidence.sampledSeatIds.length} clear · {sightlineEvidence.maximumViewingDistanceM} m</small></span></div></div>
             </div>
-            <button className="analysis-button" type="button" onClick={() => setAnalysisOpen((open) => !open)}>{analysisOpen ? "Hide analysis" : "View analysis"}</button>
+            <Button className="analysis-button" variant="ghost" type="button" onClick={() => setAnalysisOpen((open) => !open)}>{analysisOpen ? "Hide analysis" : "View analysis"}</Button>
           </div>
 
-          {analysisOpen && <div className="analysis-drawer"><div><Wheelchair size={18} /><span><strong>Route graph</strong><small>{accessEvidence.minimumClearWidthM} m · {accessEvidence.graphFingerprint}</small></span></div><div><UsersThree size={18} /><span><strong>Accessible seats</strong><small>{accessEvidence.accessibleSeatSampleIds.length} samples · {accessEvidence.blockedAccessibleSeatSampleIds.length} blocked</small></span></div><div><MapPin size={18} /><span><strong>Door clearance</strong><small>{accessEvidence.doorClearanceZones.length} zones · {accessEvidence.obstructedDoorObjectIds.length} blocked</small></span></div><div><UsersThree size={18} /><span><strong>Occupancy</strong><small>{capacityEvidence.placedCapacity} placed · {capacityEvidence.operationalLoad}/{capacityEvidence.venueMaximum} load</small></span></div><div><PersonSimple size={18} /><span><strong>Circulation</strong><small>{circulationEvidence.shortestExitPaths.length} paths · {circulationEvidence.peakCongestionIndex} peak</small></span></div><div><Eye size={18} /><span><strong>Sightlines</strong><small>{sightlineEvidence.sampledSeatIds.length} rays · {sightlineEvidence.blockedSampleIds.length} blocked</small></span></div><button type="button" onClick={() => setAnalysisOpen(false)} aria-label="Close analysis"><X size={18} /></button></div>}
+          {analysisOpen && <div className="analysis-drawer"><div><Wheelchair size={18} /><span><strong>Route graph</strong><small>{accessEvidence.minimumClearWidthM} m · {accessEvidence.graphFingerprint}</small></span></div><div><UsersThree size={18} /><span><strong>Accessible seats</strong><small>{accessEvidence.accessibleSeatSampleIds.length} samples · {accessEvidence.blockedAccessibleSeatSampleIds.length} blocked</small></span></div><div><MapPin size={18} /><span><strong>Door clearance</strong><small>{accessEvidence.doorClearanceZones.length} zones · {accessEvidence.obstructedDoorObjectIds.length} blocked</small></span></div><div><UsersThree size={18} /><span><strong>Occupancy</strong><small>{capacityEvidence.placedCapacity} placed · {capacityEvidence.operationalLoad}/{capacityEvidence.venueMaximum} load</small></span></div><div><PersonSimple size={18} /><span><strong>Circulation</strong><small>{circulationEvidence.shortestExitPaths.length} paths · {circulationEvidence.peakCongestionIndex} peak</small></span></div><div><Eye size={18} /><span><strong>Sightlines</strong><small>{sightlineEvidence.sampledSeatIds.length} rays · {sightlineEvidence.blockedSampleIds.length} blocked</small></span></div><Button variant="ghost" size="icon-sm" type="button" onClick={() => setAnalysisOpen(false)} aria-label="Close analysis"><X size={18} /></Button></div>}
         </section>
       </main>
       {historyMounted && <Suspense fallback={historyOpen ? <div className="panel-loading is-side" role="status">HISTORY</div> : null}><LazyHistoryPanel
@@ -1015,18 +1022,18 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
       {simulationMounted && <Suspense fallback={simulationOpen ? <div className="panel-loading is-side" role="status">SIM</div> : null}><LazyScenarioPanel open={simulationOpen} branches={branches} runs={plannerState.scenarioRuns} onClose={() => { setSimulationOpen(false); setSimulationOverlay(null); }} onRun={handleRunScenario} onCompare={(leftRunId, rightRunId) => planner.execute({ type: "compare_simulations", leftRunId, rightRunId })} onExport={handleExportSimulation} onOverlayChange={setSimulationOverlay} onPreviewOption={handlePreviewQueueOption} /></Suspense>}
       <Sheet open={comparisonOpen && Boolean(branchComparison)} onOpenChange={(open) => { if (!open) setComparisonOpen(false); }}>
       {branchComparison && <SheetContent className="branch-comparison !h-auto !gap-0 !p-0 sm:!max-w-none" side="left" showOverlay={false} showCloseButton={false} aria-label="Proposal Branch comparison">
-        <div className="branch-comparison-heading"><div><SheetTitle asChild><span className="eyebrow">BRANCH COMPARE</span></SheetTitle><strong>{branchComparison.comparisonId}</strong><SheetDescription className="sr-only">Proposal Branch metrics, constraints, spatial deltas, and decision controls</SheetDescription></div><button type="button" onClick={() => setComparisonOpen(false)} aria-label="Close branch comparison"><X size={18} /></button></div>
+        <div className="branch-comparison-heading"><div><SheetTitle asChild><span className="eyebrow">BRANCH COMPARE</span></SheetTitle><strong>{branchComparison.comparisonId}</strong><SheetDescription className="sr-only">Proposal Branch metrics, constraints, spatial deltas, and decision controls</SheetDescription></div><Button variant="ghost" size="icon-sm" type="button" onClick={() => setComparisonOpen(false)} aria-label="Close branch comparison"><X size={18} /></Button></div>
         <div className="branch-comparison-columns"><div><small>A · {branchComparison.left.strategy}</small><strong>{branchComparison.left.name}</strong><span className={`branch-status is-${branchComparison.left.validationStatus}`}>{branchComparison.left.validationStatus.toUpperCase()} · {branchComparison.left.changedItems} CHG</span><em>{branchComparison.left.notes || "—"}</em><code>{branchComparison.left.geometryFingerprint}</code></div><div><small>B · {branchComparison.right.strategy}</small><strong>{branchComparison.right.name}</strong><span className={`branch-status is-${branchComparison.right.validationStatus}`}>{branchComparison.right.validationStatus.toUpperCase()} · {branchComparison.right.changedItems} CHG</span><em>{branchComparison.right.notes || "—"}</em><code>{branchComparison.right.geometryFingerprint}</code></div></div>
         {comparisonView && <div className="comparison-overlay"><div className="comparison-overlay-key"><span className="is-plan">PLAN</span><span className="is-left">A</span><span className="is-right">B</span></div><svg viewBox={comparisonView.viewBox} aria-label="Accepted Plan and Proposal Branch overlay"><polygon className="comparison-room" points={comparisonView.boundaryPoints} />{branchComparison.overlay.acceptedObjects.map((object) => <ComparisonShape key={`plan-${object.id}`} object={object} maxY={comparisonView.maxY} className="is-plan" />)}{branchComparison.overlay.leftObjects.filter((object) => comparisonView.leftChangedIds.has(object.id)).map((object) => <ComparisonShape key={`left-${object.id}`} object={object} maxY={comparisonView.maxY} className="is-left" />)}{branchComparison.overlay.rightObjects.filter((object) => comparisonView.rightChangedIds.has(object.id)).map((object) => <ComparisonShape key={`right-${object.id}`} object={object} maxY={comparisonView.maxY} className="is-right" />)}</svg></div>}
         <div className="branch-comparison-section"><span className="eyebrow">Metrics</span><div className="comparison-metric-table">{branchComparison.metricDeltas.map((metric) => <div className="comparison-metric-row" key={metric.metric}><strong>{metric.label}</strong><span>{formatComparisonMetric(metric, metric.left)}</span><span>{formatComparisonMetric(metric, metric.right)}</span><b className={metric.delta === 0 ? "is-neutral" : ""}>{formatComparisonMetric(metric, metric.delta, true)}</b></div>)}</div></div>
         <div className="branch-comparison-section"><span className="eyebrow">Constraints</span><div className="comparison-constraint-table">{branchComparison.constraintDeltas.map((constraint) => <div className="comparison-constraint-row" key={constraint.constraintId}><strong>{constraint.label}</strong><span className={`is-${constraint.leftStatus}`}>{constraint.leftStatus.toUpperCase()}</span><span className={`is-${constraint.rightStatus}`}>{constraint.rightStatus.toUpperCase()}</span><b className={`is-${constraint.outcome}`}>{constraint.outcome.toUpperCase()}</b></div>)}</div></div>
         <div className="branch-comparison-section"><span className="eyebrow">Spatial deltas</span><div className="comparison-object-groups">{[["Moved", branchComparison.objectDeltas.movedObjectIds], ["Rotated", branchComparison.objectDeltas.rotatedObjectIds], ["Resized", branchComparison.objectDeltas.resizedObjectIds], ["Added", branchComparison.objectDeltas.addedObjectIds], ["Removed", branchComparison.objectDeltas.removedObjectIds], ["Metadata", branchComparison.objectDeltas.metadataObjectIds]].map(([label, ids]) => <div key={label}><strong>{label}</strong><b>{ids.length}</b><small>{ids.join(" · ") || "—"}</small></div>)}</div></div>
-        <div className="comparison-decision"><input aria-label="Decision note" placeholder="DECISION NOTE" value={decisionNote} onChange={(event) => setDecisionNote(event.target.value)} /><button type="button" onClick={() => handleBranchDecision(branchComparison.left.branchId, branchComparison.right.branchId)}>CHOOSE A</button><button type="button" onClick={() => handleBranchDecision(branchComparison.right.branchId, branchComparison.left.branchId)}>CHOOSE B</button></div>
+        <div className="comparison-decision"><Input aria-label="Decision note" placeholder="DECISION NOTE" value={decisionNote} onChange={(event) => setDecisionNote(event.target.value)} /><Button type="button" onClick={() => handleBranchDecision(branchComparison.left.branchId, branchComparison.right.branchId)}>CHOOSE A</Button><Button type="button" onClick={() => handleBranchDecision(branchComparison.right.branchId, branchComparison.left.branchId)}>CHOOSE B</Button></div>
       </SheetContent>}
       </Sheet>
       <Sheet open={Boolean(legacyBriefMigration && legacyBriefReviewOpen)} onOpenChange={(open) => { if (!open) setLegacyBriefReviewOpen(false); }}>
       {legacyBriefMigration && <SheetContent className="brief-editor legacy-brief-review !h-auto !gap-0 !p-0 sm:!max-w-none" side="left" showOverlay={false} showCloseButton={false} aria-label="Legacy Event Brief review">
-        <div className="brief-editor-heading"><div><SheetTitle asChild><span className="eyebrow">LEGACY BRIEF</span></SheetTitle><strong>{legacyBriefMigration.briefFingerprint}</strong><SheetDescription className="sr-only">Legacy Event Brief requirements and adoption controls</SheetDescription></div><button type="button" onClick={() => setLegacyBriefReviewOpen(false)} aria-label="Close legacy Event Brief review"><X size={18} /></button></div>
+        <div className="brief-editor-heading"><div><SheetTitle asChild><span className="eyebrow">LEGACY BRIEF</span></SheetTitle><strong>{legacyBriefMigration.briefFingerprint}</strong><SheetDescription className="sr-only">Legacy Event Brief requirements and adoption controls</SheetDescription></div><Button variant="ghost" size="icon-sm" type="button" onClick={() => setLegacyBriefReviewOpen(false)} aria-label="Close legacy Event Brief review"><X size={18} /></Button></div>
         <div className="brief-fields">
           <label><span>Event</span><b>{legacyBriefMigration.brief.eventName}</b></label>
           <label><span>Date</span><b>{legacyBriefMigration.brief.date ?? "—"}</b></label>
@@ -1040,33 +1047,33 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           <span className="requirement-label"><small>{requirement.category}</small><b>{requirement.label}</b></span>
           <b>{requirement.priority.toUpperCase()}</b><b>{requirement.status.toUpperCase()}</b><span className={`requirement-link ${requirement.constraintIds.length > 0 ? "is-linked" : ""}`}>{requirement.constraintIds.length} C</span>
         </div>)}</div>
-        <div className="brief-editor-actions"><button type="button" onClick={() => setLegacyBriefReviewOpen(false)}>CLOSE</button><button type="button" className="legacy-adopt-button" onClick={handleLegacyBriefAttestation}>ADOPT</button></div>
+        <div className="brief-editor-actions"><Button type="button" variant="outline" onClick={() => setLegacyBriefReviewOpen(false)}>CLOSE</Button><Button type="button" className="legacy-adopt-button" onClick={handleLegacyBriefAttestation}>ADOPT</Button></div>
       </SheetContent>}
       </Sheet>
       <Sheet open={briefOpen && Boolean(briefDraft)} onOpenChange={(open) => { if (!open) setBriefOpen(false); }}>
       {briefDraft && (
         <SheetContent className="brief-editor !h-auto !gap-0 !p-0 sm:!max-w-none" side="left" showOverlay={false} showCloseButton={false} aria-label="Event Brief editor">
           <form onSubmit={handleBriefSave}>
-            <div className="brief-editor-heading"><div><SheetTitle asChild><span className="eyebrow">EVENT BRIEF</span></SheetTitle><strong>{briefDraft.id}</strong><SheetDescription className="sr-only">Event requirements and constraint coverage editor</SheetDescription></div><button type="button" onClick={() => setBriefOpen(false)} aria-label="Close Event Brief"><X size={18} /></button></div>
+            <div className="brief-editor-heading"><div><SheetTitle asChild><span className="eyebrow">EVENT BRIEF</span></SheetTitle><strong>{briefDraft.id}</strong><SheetDescription className="sr-only">Event requirements and constraint coverage editor</SheetDescription></div><Button variant="ghost" size="icon-sm" type="button" onClick={() => setBriefOpen(false)} aria-label="Close Event Brief"><X size={18} /></Button></div>
             <div className="brief-fields">
-              <label><span>Event</span><input value={briefDraft.eventName} onChange={(event) => updateBriefField("eventName", event.target.value)} required /></label>
-              <label><span>Date</span><input type="date" value={briefDraft.date ?? ""} onChange={(event) => updateBriefField("date", event.target.value || null)} /></label>
-              <label><span>Timezone</span><input value={briefDraft.timezone} onChange={(event) => updateBriefField("timezone", event.target.value)} required /></label>
-              <label><span>Attendance</span><input type="number" min="0" step="1" value={briefDraft.attendeeTarget} onChange={(event) => updateBriefField("attendeeTarget", Number(event.target.value))} required /></label>
-              <label><span>Occupancy</span><select value={briefDraft.occupancyMode} onChange={(event) => updateBriefField("occupancyMode", event.target.value)}>{["theater", "classroom", "banquet", "standing", "mixed", "custom"].map((mode) => <option key={mode}>{mode}</option>)}</select></label>
+              <label><span>Event</span><Input value={briefDraft.eventName} onChange={(event) => updateBriefField("eventName", event.target.value)} required /></label>
+              <label><span>Date</span><Input type="date" value={briefDraft.date ?? ""} onChange={(event) => updateBriefField("date", event.target.value || null)} /></label>
+              <label><span>Timezone</span><Input value={briefDraft.timezone} onChange={(event) => updateBriefField("timezone", event.target.value)} required /></label>
+              <label><span>Attendance</span><Input type="number" min="0" step="1" value={briefDraft.attendeeTarget} onChange={(event) => updateBriefField("attendeeTarget", Number(event.target.value))} required /></label>
+              <div className="brief-field"><span>Occupancy</span><AppSelect label="Occupancy" value={briefDraft.occupancyMode} onValueChange={(value) => updateBriefField("occupancyMode", value)} options={["theater", "classroom", "banquet", "standing", "mixed", "custom"].map((mode) => ({ value: mode, label: mode }))} /></div>
             </div>
-            <div className="requirement-editor-heading"><span className="eyebrow">Requirements</span><div><small>{brief.summary.unresolved} open</small><select aria-label="Requirement filter" value={briefFilter} onChange={(event) => setBriefFilter(event.target.value)}><option value="all">all</option><option value="unresolved">unresolved</option><option value="ambiguous">ambiguous</option></select></div></div>
+            <div className="requirement-editor-heading"><span className="eyebrow">Requirements</span><div><small>{brief.summary.unresolved} open</small><AppSelect label="Requirement filter" value={briefFilter} onValueChange={setBriefFilter} options={[{ value: "all", label: "all" }, { value: "unresolved", label: "unresolved" }, { value: "ambiguous", label: "ambiguous" }]} /></div></div>
             <div className="requirement-editor-list">{briefDraft.requirements.filter((requirement) => {
               if (briefFilter === "ambiguous") return brief.ambiguities.some((item) => item.requirementId === requirement.id);
               if (briefFilter === "unresolved") return ["blocked", "warning", "unmeasured"].includes(brief.coverage.find((item) => item.requirementId === requirement.id)?.status);
               return true;
             }).map((requirement) => <div className="requirement-editor-row" key={requirement.id}>
-              <label className="requirement-label"><span>{requirement.category}</span><input value={requirement.label} onChange={(event) => updateRequirement(requirement.id, "label", event.target.value)} required /></label>
-              <select aria-label={`${requirement.label} priority`} value={requirement.priority} onChange={(event) => updateRequirement(requirement.id, "priority", event.target.value)}>{["critical", "high", "medium", "low"].map((priority) => <option key={priority}>{priority}</option>)}</select>
-              <select aria-label={`${requirement.label} status`} value={requirement.status} onChange={(event) => updateRequirement(requirement.id, "status", event.target.value)}>{["open", "confirmed", "satisfied", "waived"].map((status) => <option key={status}>{status}</option>)}</select>
+              <label className="requirement-label"><span>{requirement.category}</span><Input value={requirement.label} onChange={(event) => updateRequirement(requirement.id, "label", event.target.value)} required /></label>
+              <AppSelect label={`${requirement.label} priority`} value={requirement.priority} onValueChange={(value) => updateRequirement(requirement.id, "priority", value)} options={["critical", "high", "medium", "low"].map((priority) => ({ value: priority, label: priority }))} />
+              <AppSelect label={`${requirement.label} status`} value={requirement.status} onValueChange={(value) => updateRequirement(requirement.id, "status", value)} options={["open", "confirmed", "satisfied", "waived"].map((status) => ({ value: status, label: status }))} />
               <span className={`requirement-link ${requirement.constraintIds.length > 0 ? "is-linked" : ""}`}>{requirement.constraintIds.length} C</span>
             </div>)}</div>
-            <div className="brief-editor-actions"><button type="button" onClick={() => setBriefOpen(false)}>Cancel</button><button type="submit">Save brief</button></div>
+            <div className="brief-editor-actions"><Button type="button" variant="outline" onClick={() => setBriefOpen(false)}>Cancel</Button><Button type="submit">Save brief</Button></div>
           </form>
         </SheetContent>
       )}
