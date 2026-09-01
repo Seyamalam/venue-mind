@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import {
@@ -10,9 +9,22 @@ import {
   Copy,
   LinkSimple,
   MagnifyingGlass,
-  X,
 } from "@phosphor-icons/react";
-import { nextSearchSelection, searchDocs } from "@/src/docs/search.js";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Command,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { searchDocs } from "@/src/docs/search.js";
 
 type SearchEntry = {
   id: string;
@@ -29,21 +41,16 @@ type SearchPayload = {
   entries: SearchEntry[];
 };
 
-function SearchDialog({ onClose }: { onClose: () => void }) {
+export function DocsSearch() {
   const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState(-1);
   const [index, setIndex] = useState<SearchEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
   const results = useMemo(() => searchDocs(index ?? [], query) as SearchEntry[], [index, query]);
-  const activeSelection = selected >= 0 && selected < results.length ? selected : results.length ? 0 : -1;
 
   useEffect(() => {
-    window.requestAnimationFrame(() => inputRef.current?.focus());
-  }, []);
-
-  useEffect(() => {
+    if (!open || index || failed) return;
     const controller = new AbortController();
     fetch("/docs-search.json", { signal: controller.signal })
       .then((response) => {
@@ -58,80 +65,7 @@ function SearchDialog({ onClose }: { onClose: () => void }) {
         setFailed(true);
       });
     return () => controller.abort();
-  }, []);
-
-  const selectResult = (result?: SearchEntry) => {
-    if (!result) return;
-    onClose();
-    router.push(result.href as Route);
-  };
-
-  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      onClose();
-      return;
-    }
-    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-      event.preventDefault();
-      setSelected(() => nextSearchSelection(activeSelection, event.key, results.length));
-    }
-    if (event.key === "Enter" && activeSelection >= 0) {
-      event.preventDefault();
-      selectResult(results[activeSelection]);
-    }
-  };
-
-  return createPortal(
-    <div className="docs-search-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <section className="docs-search-dialog" role="dialog" aria-modal="true" aria-label="Search VenueMind documentation">
-        <div className="docs-search-input">
-          <MagnifyingGlass size={18} />
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(event) => {
-              const nextQuery = event.target.value;
-              setQuery(nextQuery);
-              setSelected(searchDocs(index ?? [], nextQuery).length ? 0 : -1);
-            }}
-            onKeyDown={onKeyDown}
-            placeholder="Search tools, concepts, workflows…"
-            aria-label="Search documentation"
-            aria-controls="docs-search-results"
-            aria-activedescendant={activeSelection >= 0 ? `docs-search-result-${activeSelection}` : undefined}
-          />
-          <button type="button" onClick={onClose} aria-label="Close search"><X size={17} /></button>
-        </div>
-        <div id="docs-search-results" className="docs-search-results" role="listbox" aria-label="Documentation search results">
-          {!query && !index && !failed && <div className="docs-search-empty">Loading documentation index</div>}
-          {!query && failed && <div className="docs-search-empty">Search index unavailable</div>}
-          {!query && index && <div className="docs-search-empty"><span>Search all pages and headings</span><kbd>↑↓</kbd><span>navigate</span><kbd>↵</kbd><span>open</span></div>}
-          {query && index && !results.length && <div className="docs-search-empty">No matching documentation</div>}
-          {results.map((result, indexValue) => (
-            <button
-              id={`docs-search-result-${indexValue}`}
-              key={result.id}
-              type="button"
-              role="option"
-              aria-selected={activeSelection === indexValue}
-              className={activeSelection === indexValue ? "selected" : ""}
-              onMouseEnter={() => setSelected(indexValue)}
-              onClick={() => selectResult(result)}
-            >
-              <span><strong>{result.sectionTitle}</strong><small>{result.pageTitle}</small></span>
-              <ArrowRight size={15} />
-            </button>
-          ))}
-        </div>
-      </section>
-    </div>,
-    document.body,
-  );
-}
-
-export function DocsSearch() {
-  const [open, setOpen] = useState(false);
+  }, [failed, index, open]);
 
   useEffect(() => {
     const openFromKeyboard = (event: KeyboardEvent) => {
@@ -139,6 +73,8 @@ export function DocsSearch() {
       const isTyping = target instanceof HTMLElement && (target.matches("input, textarea, select") || target.isContentEditable);
       if ((event.key === "/" && !isTyping) || ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k")) {
         event.preventDefault();
+        setQuery("");
+        setFailed(false);
         setOpen(true);
       }
     };
@@ -146,13 +82,60 @@ export function DocsSearch() {
     return () => window.removeEventListener("keydown", openFromKeyboard);
   }, []);
 
+  const updateOpen = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setQuery("");
+      setFailed(false);
+    }
+    setOpen(nextOpen);
+  };
+
+  const selectResult = (result?: SearchEntry) => {
+    if (!result) return;
+    setOpen(false);
+    router.push(result.href as Route);
+  };
+
   return (
-    <div className="docs-search-controller">
-      <button type="button" className="docs-search-trigger" onClick={() => setOpen(true)} aria-label="Search documentation">
+    <Dialog open={open} onOpenChange={updateOpen}>
+      <DialogTrigger asChild>
+        <button type="button" className="docs-search-trigger" aria-label="Search documentation">
         <MagnifyingGlass size={15} /><span>Search docs</span><kbd>⌘ K</kbd>
-      </button>
-      {open && <SearchDialog onClose={() => setOpen(false)} />}
-    </div>
+        </button>
+      </DialogTrigger>
+      <DialogContent className="docs-search-dialog" showCloseButton>
+        <DialogHeader className="sr-only">
+          <DialogTitle>Search VenueMind documentation</DialogTitle>
+          <DialogDescription>Search tools, concepts, and workflows.</DialogDescription>
+        </DialogHeader>
+        <Command className="docs-search-command" shouldFilter={false} loop>
+          <CommandInput
+            className="docs-search-input"
+            value={query}
+            onValueChange={setQuery}
+            placeholder="Search tools, concepts, workflows…"
+            aria-label="Search documentation"
+          />
+          <CommandList id="docs-search-results" className="docs-search-results" aria-label="Documentation search results">
+            {!query && !index && !failed && <div className="docs-search-empty">Loading documentation index</div>}
+            {!query && failed && <div className="docs-search-empty">Search index unavailable</div>}
+            {!query && index && <div className="docs-search-empty"><span>Search all pages and headings</span><kbd>↑↓</kbd><span>navigate</span><kbd>↵</kbd><span>open</span></div>}
+            {query && index && !results.length && <div className="docs-search-empty">No matching documentation</div>}
+            {results.map((result) => (
+              <CommandItem
+                key={result.id}
+                value={result.id}
+                className="docs-search-result"
+                onSelect={() => selectResult(result)}
+              >
+                <span><strong>{result.sectionTitle}</strong><small>{result.pageTitle}</small></span>
+                <ArrowRight size={15} />
+              </CommandItem>
+            ))}
+          </CommandList>
+        </Command>
+      </DialogContent>
+    </Dialog>
   );
 }
 

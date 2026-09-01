@@ -112,3 +112,17 @@ test("generated public metadata contains every canonical docs route", async () =
   for (const page of docsPages) assert.match(sitemap, new RegExp(`${page.canonicalPath.replaceAll("/", "\\/")}<`));
   assert.match(robots, /Sitemap: https:\/\/venue-mind-jet\.vercel\.app\/sitemap\.xml/);
 });
+
+test("Next docs keep content on the server and isolate search in shadcn primitives", async () => {
+  const pageSource = await readFile(new URL("../app/docs/[[...slug]]/page.tsx", import.meta.url), "utf8");
+  const searchSource = await readFile(new URL("../components/docs/docs-interactions.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(pageSource, /DocsApp|DocsRoute|ssr:\s*false/);
+  assert.match(searchSource, /from "@\/components\/ui\/dialog"/);
+  assert.match(searchSource, /from "@\/components\/ui\/command"/);
+  for (const primitive of ["DialogTrigger", "DialogContent", "CommandInput", "CommandList", "CommandItem"]) {
+    assert.match(searchSource, new RegExp(`<${primitive}\\b`));
+  }
+  assert.match(searchSource, /fetch\("\/docs-search\.json"/);
+  assert.match(searchSource, /shouldFilter=\{false\}/);
+  assert.match(searchSource, /\bloop\b/);
+});
