@@ -22,9 +22,9 @@ A versioned spatial-planning system where agents inspect, propose, validate, and
 
 ## Start here
 
-- [Quickstart](/docs/quickstart)
-- [Core concepts](/docs/concepts)
-- [Tool reference](/docs/webmcp)
+- [Quickstart](https://venue-mind-jet.vercel.app/docs/quickstart)
+- [Core concepts](https://venue-mind-jet.vercel.app/docs/concepts)
+- [Tool reference](https://venue-mind-jet.vercel.app/docs/webmcp)
 
 ---
 
@@ -260,7 +260,7 @@ npm run dev -- --host 0.0.0.0 --port 4173
 
 ## Next workflow
 
-- [Run the supervised planning loop](/docs/tutorial-supervised-loop)
+- [Run the supervised planning loop](https://venue-mind-jet.vercel.app/docs/tutorial-supervised-loop)
 
 ## Verify the workflow
 
@@ -612,7 +612,7 @@ Other stdio hosts use the same command, arguments, and explicit writable data di
 
 ## Other clients
 
-- [MCP client configurations](/docs/mcp#desktop-hosts)
+- [MCP client configurations](https://venue-mind-jet.vercel.app/docs/mcp#desktop-hosts)
 
 ## Verify the workflow
 
@@ -855,7 +855,7 @@ The active VenueMind page exposes compact tools backed by the same command inter
 
 Each native browser tool has one canonical reference page shared with the standalone MCP surface.
 
-- [Browse all tool contracts](/docs/reference-tools)
+- [Browse all tool contracts](https://venue-mind-jet.vercel.app/docs/reference-tools)
 
 ---
 
@@ -1012,8 +1012,8 @@ npm run build:skills
 cp -R /absolute/path/to/venue-mind/dist/skills/venuemind-* /absolute/path/to/codex-skills/
 ```
 
-- [Skill package manifest](/skills-manifest.json)
-- [Evaluation metrics](/skill-evaluation-metrics.json)
+- [Skill package manifest](https://venue-mind-jet.vercel.app/skills-manifest.json)
+- [Evaluation metrics](https://venue-mind-jet.vercel.app/skill-evaluation-metrics.json)
 
 ## Evaluation suite
 
@@ -1044,8 +1044,8 @@ if (result.isError) throw new Error(result.structuredContent.error.code);
 
 ```
 
-- [Executable browser harness](/examples/client/webmcp/browser-invocation.mjs)
-- [WebMCP tutorial](/docs/tutorial-webmcp)
+- [Executable browser harness](https://venue-mind-jet.vercel.app/examples/client/webmcp/browser-invocation.mjs)
+- [WebMCP tutorial](https://venue-mind-jet.vercel.app/docs/tutorial-webmcp)
 
 ## Generic stdio client
 
@@ -1068,8 +1068,8 @@ if (result.isError) throw new Error(result.structuredContent.error.code);
 - The host launches one local server process per stdio session.
 - Standard output is protocol-only; structured diagnostics use standard error.
 
-- [Generic configuration](/examples/client/config/generic-stdio.json)
-- [Executable TypeScript client](/examples/client/typescript/supervised-workflow.ts)
+- [Generic configuration](https://venue-mind-jet.vercel.app/examples/client/config/generic-stdio.json)
+- [Executable TypeScript client](https://venue-mind-jet.vercel.app/examples/client/typescript/supervised-workflow.ts)
 - [Official MCP TypeScript client guide](https://ts.sdk.modelcontextprotocol.io/v2/clients/connect)
 
 ## Codex
@@ -1091,7 +1091,7 @@ env = { VENUEMIND_DATA_DIR = "<WRITABLE_DATA_DIR>", VENUEMIND_ORGANIZATION_ID = 
 Use VenueMind to inspect Project project-summit-forward, prepare one access-first Proposal, validate it, report stable Change and Constraint IDs, export JSON, and stop for human Approval in the Studio.
 ```
 
-- [Codex TOML](/examples/client/config/codex.toml)
+- [Codex TOML](https://venue-mind-jet.vercel.app/examples/client/config/codex.toml)
 
 ## Claude Desktop
 
@@ -1121,7 +1121,7 @@ Use VenueMind to inspect Project project-summit-forward, prepare one access-firs
 Open project-summit-forward in VenueMind. Inspect accepted truth, preview a revision that protects the west accessible route, validate it, explain every non-pass result, and stop for human Approval.
 ```
 
-- [Claude Desktop configuration](/examples/client/config/claude-desktop.json)
+- [Claude Desktop configuration](https://venue-mind-jet.vercel.app/examples/client/config/claude-desktop.json)
 - [Anthropic MCP documentation](https://docs.anthropic.com/en/docs/mcp)
 
 ## Cursor
@@ -1152,7 +1152,7 @@ Open project-summit-forward in VenueMind. Inspect accepted truth, preview a revi
 Using the VenueMind MCP tools, audit the current Plan, create a separate circulation-first Proposal Branch, validate it, compare it with the active Branch, and leave the decision to a human reviewer.
 ```
 
-- [Cursor Project configuration](/examples/client/config/cursor-project.json)
+- [Cursor Project configuration](https://venue-mind-jet.vercel.app/examples/client/config/cursor-project.json)
 - [Cursor MCP documentation](https://docs.cursor.com/context/model-context-protocol)
 
 ## Retry and failure workflows
@@ -1162,16 +1162,16 @@ Using the VenueMind MCP tools, audit the current Plan, create a separate circula
 - Validation failure — use affected stable IDs and remediation evidence; create another Proposal revision and validate again.
 - Export — export only the currently evaluated Plan or Proposal and retain its version, Validation ID, and evidence fingerprints.
 
-- [Retry sequence](/examples/client/raw/retry-sequence.json)
-- [Stale-base error](/examples/client/raw/stale-base.error.json)
-- [Validation failure](/examples/client/raw/validation-failure.response.json)
-- [Text export response](/examples/client/raw/export-text.response.json)
+- [Retry sequence](https://venue-mind-jet.vercel.app/examples/client/raw/retry-sequence.json)
+- [Stale-base error](https://venue-mind-jet.vercel.app/examples/client/raw/stale-base.error.json)
+- [Validation failure](https://venue-mind-jet.vercel.app/examples/client/raw/validation-failure.response.json)
+- [Text export response](https://venue-mind-jet.vercel.app/examples/client/raw/export-text.response.json)
 
 ## Raw request and response fixtures
 
-- [Preview request](/examples/client/raw/preview-revision.request.json)
-- [Preview response](/examples/client/raw/preview-revision.response.json)
-- [Example manifest](/examples/client/manifest.json)
+- [Preview request](https://venue-mind-jet.vercel.app/examples/client/raw/preview-revision.request.json)
+- [Preview response](https://venue-mind-jet.vercel.app/examples/client/raw/preview-revision.response.json)
+- [Example manifest](https://venue-mind-jet.vercel.app/examples/client/manifest.json)
 
 Generation uses the production planner, error catalog, export implementation, and shared tool contracts. CI compiles and executes both code examples and contract-validates every configuration and fixture.
 
@@ -1183,57 +1183,57 @@ One generated page per WebMCP and standalone MCP tool, sourced from the runtime 
 
 ## venue:read
 
-- [venue.list_projects](/docs/reference-tool-venue-list-projects)
-- [venue.open_project](/docs/reference-tool-venue-open-project)
-- [venue.inspect_templates](/docs/reference-tool-venue-inspect-templates)
-- [venue.get_project_brief](/docs/reference-tool-venue-get-project-brief)
-- [venue.list_constraints](/docs/reference-tool-venue-list-constraints)
-- [venue.inspect_layout](/docs/reference-tool-venue-inspect-layout)
-- [venue.get_object](/docs/reference-tool-venue-get-object)
-- [venue.search_objects](/docs/reference-tool-venue-search-objects)
-- [venue.measure_objects](/docs/reference-tool-venue-measure-objects)
-- [venue.validate_layout](/docs/reference-tool-venue-validate-layout)
-- [venue.get_validation_evidence](/docs/reference-tool-venue-get-validation-evidence)
-- [venue.list_proposal_branches](/docs/reference-tool-venue-list-proposal-branches)
-- [venue.compare_proposal_branches](/docs/reference-tool-venue-compare-proposal-branches)
-- [venue.detect_proposal_conflicts](/docs/reference-tool-venue-detect-proposal-conflicts)
-- [venue.list_comments](/docs/reference-tool-venue-list-comments)
-- [venue.get_change_log](/docs/reference-tool-venue-get-change-log)
-- [venue.replay_history](/docs/reference-tool-venue-replay-history)
-- [venue.list_scenarios](/docs/reference-tool-venue-list-scenarios)
-- [venue.list_scenario_runs](/docs/reference-tool-venue-list-scenario-runs)
+- [venue.list_projects](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-list-projects)
+- [venue.open_project](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-open-project)
+- [venue.inspect_templates](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-inspect-templates)
+- [venue.get_project_brief](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-get-project-brief)
+- [venue.list_constraints](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-list-constraints)
+- [venue.inspect_layout](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-inspect-layout)
+- [venue.get_object](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-get-object)
+- [venue.search_objects](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-search-objects)
+- [venue.measure_objects](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-measure-objects)
+- [venue.validate_layout](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-validate-layout)
+- [venue.get_validation_evidence](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-get-validation-evidence)
+- [venue.list_proposal_branches](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-list-proposal-branches)
+- [venue.compare_proposal_branches](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-compare-proposal-branches)
+- [venue.detect_proposal_conflicts](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-detect-proposal-conflicts)
+- [venue.list_comments](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-list-comments)
+- [venue.get_change_log](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-get-change-log)
+- [venue.replay_history](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-replay-history)
+- [venue.list_scenarios](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-list-scenarios)
+- [venue.list_scenario_runs](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-list-scenario-runs)
 
 ## venue:propose
 
-- [venue.preview_revision](/docs/reference-tool-venue-preview-revision)
-- [venue.preview_template_update](/docs/reference-tool-venue-preview-template-update)
-- [venue.apply_edit](/docs/reference-tool-venue-apply-edit)
-- [venue.create_proposal_branch](/docs/reference-tool-venue-create-proposal-branch)
-- [venue.switch_proposal_branch](/docs/reference-tool-venue-switch-proposal-branch)
-- [venue.update_proposal_branch](/docs/reference-tool-venue-update-proposal-branch)
-- [venue.duplicate_proposal_branch](/docs/reference-tool-venue-duplicate-proposal-branch)
-- [venue.archive_proposal_branch](/docs/reference-tool-venue-archive-proposal-branch)
-- [venue.restore_proposal_branch](/docs/reference-tool-venue-restore-proposal-branch)
-- [venue.rebase_proposal](/docs/reference-tool-venue-rebase-proposal)
-- [venue.request_adjustment](/docs/reference-tool-venue-request-adjustment)
+- [venue.preview_revision](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-preview-revision)
+- [venue.preview_template_update](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-preview-template-update)
+- [venue.apply_edit](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-apply-edit)
+- [venue.create_proposal_branch](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-create-proposal-branch)
+- [venue.switch_proposal_branch](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-switch-proposal-branch)
+- [venue.update_proposal_branch](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-update-proposal-branch)
+- [venue.duplicate_proposal_branch](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-duplicate-proposal-branch)
+- [venue.archive_proposal_branch](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-archive-proposal-branch)
+- [venue.restore_proposal_branch](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-restore-proposal-branch)
+- [venue.rebase_proposal](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-rebase-proposal)
+- [venue.request_adjustment](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-request-adjustment)
 
 ## venue:comment
 
-- [venue.add_comment](/docs/reference-tool-venue-add-comment)
-- [venue.edit_comment](/docs/reference-tool-venue-edit-comment)
-- [venue.set_comment_status](/docs/reference-tool-venue-set-comment-status)
+- [venue.add_comment](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-add-comment)
+- [venue.edit_comment](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-edit-comment)
+- [venue.set_comment_status](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-set-comment-status)
 
 ## venue:simulate
 
-- [venue.get_scenario_result](/docs/reference-tool-venue-get-scenario-result)
-- [venue.run_scenario](/docs/reference-tool-venue-run-scenario)
-- [venue.compare_simulations](/docs/reference-tool-venue-compare-simulations)
+- [venue.get_scenario_result](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-get-scenario-result)
+- [venue.run_scenario](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-run-scenario)
+- [venue.compare_simulations](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-compare-simulations)
 
 ## venue:export
 
-- [venue.export_simulation](/docs/reference-tool-venue-export-simulation)
-- [venue.export_audit_package](/docs/reference-tool-venue-export-audit-package)
-- [venue.export_plan](/docs/reference-tool-venue-export-plan)
+- [venue.export_simulation](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-simulation)
+- [venue.export_audit_package](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-audit-package)
+- [venue.export_plan](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-plan)
 
 ---
 
@@ -1243,101 +1243,101 @@ One generated page per shared planner command, including internal human and pers
 
 ## plan.read
 
-- [inspect_templates](/docs/reference-command-inspect-templates)
-- [measure_objects](/docs/reference-command-measure-objects)
-- [inspect_layout](/docs/reference-command-inspect-layout)
-- [get_project_brief](/docs/reference-command-get-project-brief)
-- [list_constraints](/docs/reference-command-list-constraints)
-- [get_validation_evidence](/docs/reference-command-get-validation-evidence)
-- [get_object](/docs/reference-command-get-object)
-- [search_objects](/docs/reference-command-search-objects)
-- [validate_layout](/docs/reference-command-validate-layout)
+- [inspect_templates](https://venue-mind-jet.vercel.app/docs/reference-command-inspect-templates)
+- [measure_objects](https://venue-mind-jet.vercel.app/docs/reference-command-measure-objects)
+- [inspect_layout](https://venue-mind-jet.vercel.app/docs/reference-command-inspect-layout)
+- [get_project_brief](https://venue-mind-jet.vercel.app/docs/reference-command-get-project-brief)
+- [list_constraints](https://venue-mind-jet.vercel.app/docs/reference-command-list-constraints)
+- [get_validation_evidence](https://venue-mind-jet.vercel.app/docs/reference-command-get-validation-evidence)
+- [get_object](https://venue-mind-jet.vercel.app/docs/reference-command-get-object)
+- [search_objects](https://venue-mind-jet.vercel.app/docs/reference-command-search-objects)
+- [validate_layout](https://venue-mind-jet.vercel.app/docs/reference-command-validate-layout)
 
 ## proposal.read
 
-- [list_branches](/docs/reference-command-list-branches)
-- [compare_branches](/docs/reference-command-compare-branches)
-- [detect_conflicts](/docs/reference-command-detect-conflicts)
+- [list_branches](https://venue-mind-jet.vercel.app/docs/reference-command-list-branches)
+- [compare_branches](https://venue-mind-jet.vercel.app/docs/reference-command-compare-branches)
+- [detect_conflicts](https://venue-mind-jet.vercel.app/docs/reference-command-detect-conflicts)
 
 ## audit.read
 
-- [get_change_log](/docs/reference-command-get-change-log)
-- [replay_history](/docs/reference-command-replay-history)
+- [get_change_log](https://venue-mind-jet.vercel.app/docs/reference-command-get-change-log)
+- [replay_history](https://venue-mind-jet.vercel.app/docs/reference-command-replay-history)
 
 ## simulation.read
 
-- [list_scenarios](/docs/reference-command-list-scenarios)
-- [list_scenario_runs](/docs/reference-command-list-scenario-runs)
-- [get_scenario_result](/docs/reference-command-get-scenario-result)
-- [compare_simulations](/docs/reference-command-compare-simulations)
+- [list_scenarios](https://venue-mind-jet.vercel.app/docs/reference-command-list-scenarios)
+- [list_scenario_runs](https://venue-mind-jet.vercel.app/docs/reference-command-list-scenario-runs)
+- [get_scenario_result](https://venue-mind-jet.vercel.app/docs/reference-command-get-scenario-result)
+- [compare_simulations](https://venue-mind-jet.vercel.app/docs/reference-command-compare-simulations)
 
 ## simulation.run
 
-- [run_scenario](/docs/reference-command-run-scenario)
+- [run_scenario](https://venue-mind-jet.vercel.app/docs/reference-command-run-scenario)
 
 ## export.plan
 
-- [export_simulation](/docs/reference-command-export-simulation)
-- [export_plan](/docs/reference-command-export-plan)
+- [export_simulation](https://venue-mind-jet.vercel.app/docs/reference-command-export-simulation)
+- [export_plan](https://venue-mind-jet.vercel.app/docs/reference-command-export-plan)
 
 ## proposal.create
 
-- [preview_revision](/docs/reference-command-preview-revision)
-- [preview_template_update](/docs/reference-command-preview-template-update)
-- [create_branch](/docs/reference-command-create-branch)
-- [duplicate_branch](/docs/reference-command-duplicate-branch)
+- [preview_revision](https://venue-mind-jet.vercel.app/docs/reference-command-preview-revision)
+- [preview_template_update](https://venue-mind-jet.vercel.app/docs/reference-command-preview-template-update)
+- [create_branch](https://venue-mind-jet.vercel.app/docs/reference-command-create-branch)
+- [duplicate_branch](https://venue-mind-jet.vercel.app/docs/reference-command-duplicate-branch)
 
 ## proposal.manage
 
-- [apply_edit](/docs/reference-command-apply-edit)
-- [recover_unsynchronized_branch](/docs/reference-command-recover-unsynchronized-branch)
-- [switch_branch](/docs/reference-command-switch-branch)
-- [update_branch_metadata](/docs/reference-command-update-branch-metadata)
-- [archive_branch](/docs/reference-command-archive-branch)
-- [restore_branch](/docs/reference-command-restore-branch)
-- [request_adjustment](/docs/reference-command-request-adjustment)
-- [revert_change](/docs/reference-command-revert-change)
-- [rebase_proposal](/docs/reference-command-rebase-proposal)
-- [update_event_brief](/docs/reference-command-update-event-brief)
+- [apply_edit](https://venue-mind-jet.vercel.app/docs/reference-command-apply-edit)
+- [recover_unsynchronized_branch](https://venue-mind-jet.vercel.app/docs/reference-command-recover-unsynchronized-branch)
+- [switch_branch](https://venue-mind-jet.vercel.app/docs/reference-command-switch-branch)
+- [update_branch_metadata](https://venue-mind-jet.vercel.app/docs/reference-command-update-branch-metadata)
+- [archive_branch](https://venue-mind-jet.vercel.app/docs/reference-command-archive-branch)
+- [restore_branch](https://venue-mind-jet.vercel.app/docs/reference-command-restore-branch)
+- [request_adjustment](https://venue-mind-jet.vercel.app/docs/reference-command-request-adjustment)
+- [revert_change](https://venue-mind-jet.vercel.app/docs/reference-command-revert-change)
+- [rebase_proposal](https://venue-mind-jet.vercel.app/docs/reference-command-rebase-proposal)
+- [update_event_brief](https://venue-mind-jet.vercel.app/docs/reference-command-update-event-brief)
 
 ## project.manage
 
-- [record_share_link_created](/docs/reference-command-record-share-link-created)
-- [record_share_link_revoked](/docs/reference-command-record-share-link-revoked)
-- [restore_snapshot](/docs/reference-command-restore-snapshot)
+- [record_share_link_created](https://venue-mind-jet.vercel.app/docs/reference-command-record-share-link-created)
+- [record_share_link_revoked](https://venue-mind-jet.vercel.app/docs/reference-command-record-share-link-revoked)
+- [restore_snapshot](https://venue-mind-jet.vercel.app/docs/reference-command-restore-snapshot)
 
 ## proposal.review
 
-- [record_branch_decision](/docs/reference-command-record-branch-decision)
-- [resolve_conflict](/docs/reference-command-resolve-conflict)
+- [record_branch_decision](https://venue-mind-jet.vercel.app/docs/reference-command-record-branch-decision)
+- [resolve_conflict](https://venue-mind-jet.vercel.app/docs/reference-command-resolve-conflict)
 
 ## comment.read
 
-- [list_comments](/docs/reference-command-list-comments)
+- [list_comments](https://venue-mind-jet.vercel.app/docs/reference-command-list-comments)
 
 ## comment.write
 
-- [add_comment](/docs/reference-command-add-comment)
-- [edit_comment](/docs/reference-command-edit-comment)
-- [set_comment_status](/docs/reference-command-set-comment-status)
+- [add_comment](https://venue-mind-jet.vercel.app/docs/reference-command-add-comment)
+- [edit_comment](https://venue-mind-jet.vercel.app/docs/reference-command-edit-comment)
+- [set_comment_status](https://venue-mind-jet.vercel.app/docs/reference-command-set-comment-status)
 
 ## approval.waive
 
-- [waive_warning](/docs/reference-command-waive-warning)
+- [waive_warning](https://venue-mind-jet.vercel.app/docs/reference-command-waive-warning)
 
 ## lock.manage
 
-- [set_object_lock](/docs/reference-command-set-object-lock)
-- [release_object_lock](/docs/reference-command-release-object-lock)
+- [set_object_lock](https://venue-mind-jet.vercel.app/docs/reference-command-set-object-lock)
+- [release_object_lock](https://venue-mind-jet.vercel.app/docs/reference-command-release-object-lock)
 
 ## approval.approve
 
-- [approve_proposal](/docs/reference-command-approve-proposal)
+- [approve_proposal](https://venue-mind-jet.vercel.app/docs/reference-command-approve-proposal)
 
 ## plan.update
 
-- [undo](/docs/reference-command-undo)
-- [redo](/docs/reference-command-redo)
+- [undo](https://venue-mind-jet.vercel.app/docs/reference-command-undo)
+- [redo](https://venue-mind-jet.vercel.app/docs/reference-command-redo)
 
 ---
 
@@ -1424,7 +1424,7 @@ Every stable VenueMind error code, user-safe message, and actionable remediation
 }
 ```
 
-- [Venue error schema](/schemas/venue-error.schema.json)
+- [Venue error schema](https://venue-mind-jet.vercel.app/schemas/venue-error.schema.json)
 
 ---
 
@@ -1462,9 +1462,9 @@ All deterministic Constraint evaluators, operational categories, evidence famili
 
 ## Schemas
 
-- [Constraint schema](/schemas/venue-constraint.schema.json)
-- [Validation result schema](/schemas/validation-result.schema.json)
-- [Spatial evidence schema](/schemas/spatial-evidence.schema.json)
+- [Constraint schema](https://venue-mind-jet.vercel.app/schemas/venue-constraint.schema.json)
+- [Validation result schema](https://venue-mind-jet.vercel.app/schemas/validation-result.schema.json)
+- [Spatial evidence schema](https://venue-mind-jet.vercel.app/schemas/spatial-evidence.schema.json)
 
 ---
 
@@ -1521,8 +1521,8 @@ The complete event vocabulary for human, agent, system, planning, review, simula
 - Replay applies accepted Plan transitions and compares the reconstructed fingerprint with stored current truth.
 - A failed chain or Lock-protected replay is blocking.
 
-- [Activity Ledger schema](/schemas/activity-ledger.schema.json)
-- [Audit tutorial](/docs/tutorial-audit-plan)
+- [Activity Ledger schema](https://venue-mind-jet.vercel.app/schemas/activity-ledger.schema.json)
+- [Audit tutorial](https://venue-mind-jet.vercel.app/docs/tutorial-audit-plan)
 
 ---
 
@@ -1556,9 +1556,9 @@ Branch, rebase, conflict, Approval, adjustment, undo, redo, and replay behavior 
 
 ## Related contracts
 
-- [Proposal conflicts](/schemas/proposal-conflicts.schema.json)
-- [Proposal comparison](/schemas/proposal-comparison.schema.json)
-- [Command receipt](/schemas/command-receipt.schema.json)
+- [Proposal conflicts](https://venue-mind-jet.vercel.app/schemas/proposal-conflicts.schema.json)
+- [Proposal comparison](https://venue-mind-jet.vercel.app/schemas/proposal-comparison.schema.json)
+- [Command receipt](https://venue-mind-jet.vercel.app/schemas/command-receipt.schema.json)
 
 ---
 
@@ -1586,7 +1586,7 @@ Remote authority, browser recovery, import safety, soft deletion, normalization,
 - A stale write returns PROJECT_REVISION_CONFLICT with current record and revision data; it never falls back to a successful LOCAL state.
 - Independent fields reconcile through one bounded three-way retry. Overlapping layout state becomes a human-controlled Recovery Branch or yields to REMOTE.
 
-- [Concurrency guide](/guides/optimistic-concurrency.md)
+- [Concurrency guide](https://venue-mind-jet.vercel.app/guides/optimistic-concurrency.md)
 
 ## Real-time collaboration
 
@@ -1594,7 +1594,7 @@ Remote authority, browser recovery, import safety, soft deletion, normalization,
 - SSE resumes from a durable per-Project cursor and streams Comment, ledger, Proposal, Approval, and record events.
 - A missing cursor link emits sync.reset and reloads authoritative Project state through ordinary revision conflict rules.
 
-- [Collaboration guide](/guides/realtime-collaboration.md)
+- [Collaboration guide](https://venue-mind-jet.vercel.app/guides/realtime-collaboration.md)
 
 ## Sharing and notifications
 
@@ -1602,13 +1602,13 @@ Remote authority, browser recovery, import safety, soft deletion, normalization,
 - Bearer tokens are returned once and persisted only as hashes; durable pending lifecycle states reconcile ledger transitions and fail closed.
 - Creation-time preferences control in-app visibility; leased email outbox rows are delivered only after injected-provider success.
 
-- [Sharing guide](/guides/sharing-and-notifications.md)
+- [Sharing guide](https://venue-mind-jet.vercel.app/guides/sharing-and-notifications.md)
 
 ## Recovery workflow
 
-- [Offline recovery tutorial](/docs/tutorial-offline-recovery)
-- [Interchange tutorial](/docs/tutorial-import-export)
-- [Project record schema](/schemas/project-record.schema.json)
+- [Offline recovery tutorial](https://venue-mind-jet.vercel.app/docs/tutorial-offline-recovery)
+- [Interchange tutorial](https://venue-mind-jet.vercel.app/docs/tutorial-import-export)
+- [Project record schema](https://venue-mind-jet.vercel.app/schemas/project-record.schema.json)
 
 ---
 
@@ -1644,9 +1644,9 @@ Human Roles, Agent Grant scopes, service-boundary permissions, and Approval auth
 - Approval, Warning Waivers, Project Locks, and conflict decisions remain human-only.
 - Denied planner commands append sanitized authorization.denied evidence without retaining protected input payloads.
 
-- [Published authorization policy](/authorization-policy.json)
-- [Agent Grant schema](/schemas/agent-grant.schema.json)
-- [Authentication and tenancy](/guides/authentication-and-tenancy.md)
+- [Published authorization policy](https://venue-mind-jet.vercel.app/authorization-policy.json)
+- [Agent Grant schema](https://venue-mind-jet.vercel.app/schemas/agent-grant.schema.json)
+- [Authentication and tenancy](https://venue-mind-jet.vercel.app/guides/authentication-and-tenancy.md)
 
 ---
 
@@ -1734,9 +1734,9 @@ Bounded Project summaries visible to the current Project-scoped grant.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -1790,9 +1790,9 @@ Selects one durable Project for subsequent tool calls.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -1845,9 +1845,9 @@ Versioned reusable venue, room, and inventory definitions.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -1909,9 +1909,9 @@ The active Event Brief and exact requirement-to-evidence coverage.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -1961,9 +1961,9 @@ Filtered canonical Constraint records.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2043,9 +2043,9 @@ The bounded accepted Plan and visible Proposal inspection used to start every pl
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2104,9 +2104,9 @@ One accepted or Proposal candidate object with geometry and metadata.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2174,9 +2174,9 @@ A bounded object search result.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2239,9 +2239,9 @@ A non-destructive Proposal revision; accepted Plan truth is unchanged.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2310,9 +2310,9 @@ A reviewable Room Template update Proposal.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2384,9 +2384,9 @@ One Proposal-safe editing operation.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2443,9 +2443,9 @@ Read-only centre and distance measurements in canonical metres.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2518,9 +2518,9 @@ Deterministic Validation for one exact immutable input fingerprint.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2592,9 +2592,9 @@ A bounded evidence view of one Validation result.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2644,9 +2644,9 @@ Proposal Branch summaries and current revision state.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2710,9 +2710,9 @@ Deterministic spatial and operational comparison of two Branches.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2777,9 +2777,9 @@ A new independent Proposal Branch.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2839,9 +2839,9 @@ Activates one existing Branch without changing accepted Plan truth.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2904,9 +2904,9 @@ Updated human-readable Branch metadata.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -2973,9 +2973,9 @@ A new Branch with explicit source lineage.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3035,9 +3035,9 @@ Archived Branch state and safe active fallback.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3095,9 +3095,9 @@ Restored Branch state.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3159,9 +3159,9 @@ Current stale-base, dependency, Lock, overlap, and Constraint conflicts.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3222,9 +3222,9 @@ Rebased Proposal lineage against current accepted truth.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3283,9 +3283,9 @@ A revised Proposal created from a bounded adjustment instruction.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3340,9 +3340,9 @@ Filtered immutable-subject comments.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3415,9 +3415,9 @@ Created collaboration record without planning mutation.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3482,9 +3482,9 @@ New immutable edit-history entry for one Comment.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3546,9 +3546,9 @@ Resolved or reopened Comment state.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3598,9 +3598,9 @@ Ordered hash-chained Activity Ledger entries.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3656,9 +3656,9 @@ Replay verification from accepted transitions to current Plan truth.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3706,9 +3706,9 @@ Versioned Scenario definitions.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3758,9 +3758,9 @@ Simulation Run summaries, progress, and terminal status.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3833,9 +3833,9 @@ One Simulation Result bound to exact Scenario and geometry fingerprints.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3914,9 +3914,9 @@ A deterministic-seed Simulation Run; it never becomes Constraint Validation.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -3976,9 +3976,9 @@ Comparison of compatible completed Simulation Runs.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4034,9 +4034,9 @@ Portable simulation parameters, fingerprints, and results.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4090,9 +4090,9 @@ Portable geometry, Validation, ledger, receipts, reviews, and replay evidence.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4148,9 +4148,9 @@ Read-only plan export in the requested supported format.
 
 ## Surfaces
 
-- [WebMCP runtime](/docs/webmcp#runtime)
-- [Standalone MCP](/docs/mcp#surfaces)
-- [Complete error catalog](/docs/reference-errors)
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4199,7 +4199,7 @@ Versioned reusable venue, room, and inventory definitions.
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4251,7 +4251,7 @@ Read-only centre and distance measurements in canonical metres.
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4327,7 +4327,7 @@ The bounded accepted Plan and visible Proposal inspection used to start every pl
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4385,7 +4385,7 @@ The active Event Brief and exact requirement-to-evidence coverage.
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4432,7 +4432,7 @@ Filtered canonical Constraint records.
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4495,7 +4495,7 @@ A bounded evidence view of one Validation result.
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4548,7 +4548,7 @@ One accepted or Proposal candidate object with geometry and metadata.
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4607,7 +4607,7 @@ A bounded object search result.
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4676,7 +4676,7 @@ Deterministic Validation for one exact immutable input fingerprint.
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4723,7 +4723,7 @@ Proposal Branch summaries and current revision state.
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 | BRANCH_NOT_FOUND | Proposal Branch not found. | List Proposal Branches and retry with an existing stable Branch ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4784,7 +4784,7 @@ Deterministic spatial and operational comparison of two Branches.
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 | BRANCH_NOT_FOUND | Proposal Branch not found. | List Proposal Branches and retry with an existing stable Branch ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4830,7 +4830,7 @@ Ordered hash-chained Activity Ledger entries.
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4882,7 +4882,7 @@ Replay verification from accepted transitions to current Plan truth.
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4927,7 +4927,7 @@ Versioned Scenario definitions.
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 | SCENARIO_RUN_NOT_FOUND | Scenario Run not found. | List Scenario Runs and retry with an existing stable Run ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -4974,7 +4974,7 @@ Simulation Run summaries, progress, and terminal status.
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 | SCENARIO_RUN_NOT_FOUND | Scenario Run not found. | List Scenario Runs and retry with an existing stable Run ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5042,7 +5042,7 @@ One Simulation Result bound to exact Scenario and geometry fingerprints.
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 | SCENARIO_RUN_NOT_FOUND | Scenario Run not found. | List Scenario Runs and retry with an existing stable Run ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5119,7 +5119,7 @@ A deterministic-seed Simulation Run; it never becomes Constraint Validation.
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 | SCENARIO_RUN_NOT_FOUND | Scenario Run not found. | List Scenario Runs and retry with an existing stable Run ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5176,7 +5176,7 @@ Comparison of compatible completed Simulation Runs.
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 | SCENARIO_RUN_NOT_FOUND | Scenario Run not found. | List Scenario Runs and retry with an existing stable Run ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5229,7 +5229,7 @@ Portable simulation parameters, fingerprints, and results.
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 | SCENARIO_RUN_NOT_FOUND | Scenario Run not found. | List Scenario Runs and retry with an existing stable Run ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5288,7 +5288,7 @@ Current stale-base, dependency, Lock, overlap, and Constraint conflicts.
 | CONFLICT_NOT_FOUND | Proposal conflict not found. | Detect current Proposal conflicts and retry with a stable conflict ID. |
 | CONFLICT_RESOLUTION_INVALID | Conflict resolution is not valid for this conflict. | Choose one of the conflict's published resolution options. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5350,7 +5350,7 @@ A non-destructive Proposal revision; accepted Plan truth is unchanged.
 | IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5419,7 +5419,7 @@ A reviewable Room Template update Proposal.
 | IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5484,7 +5484,7 @@ One Proposal-safe editing operation.
 | IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5549,7 +5549,7 @@ A new independent Proposal Branch.
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 | BRANCH_NOT_FOUND | Proposal Branch not found. | List Proposal Branches and retry with an existing stable Branch ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5610,7 +5610,7 @@ Planner command result and retry-safe receipt where applicable.
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 | BRANCH_NOT_FOUND | Proposal Branch not found. | List Proposal Branches and retry with an existing stable Branch ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5672,7 +5672,7 @@ Planner command result and retry-safe receipt where applicable.
 | IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5730,7 +5730,7 @@ Planner command result and retry-safe receipt where applicable.
 | IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5791,7 +5791,7 @@ Activates one existing Branch without changing accepted Plan truth.
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 | BRANCH_NOT_FOUND | Proposal Branch not found. | List Proposal Branches and retry with an existing stable Branch ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5854,7 +5854,7 @@ Updated human-readable Branch metadata.
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 | BRANCH_NOT_FOUND | Proposal Branch not found. | List Proposal Branches and retry with an existing stable Branch ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5921,7 +5921,7 @@ A new Branch with explicit source lineage.
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 | BRANCH_NOT_FOUND | Proposal Branch not found. | List Proposal Branches and retry with an existing stable Branch ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -5982,7 +5982,7 @@ Archived Branch state and safe active fallback.
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 | BRANCH_NOT_FOUND | Proposal Branch not found. | List Proposal Branches and retry with an existing stable Branch ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6041,7 +6041,7 @@ Restored Branch state.
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 | BRANCH_NOT_FOUND | Proposal Branch not found. | List Proposal Branches and retry with an existing stable Branch ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6110,7 +6110,7 @@ Auditable human branch decision checkpoint.
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 | BRANCH_NOT_FOUND | Proposal Branch not found. | List Proposal Branches and retry with an existing stable Branch ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6158,7 +6158,7 @@ Filtered immutable-subject comments.
 | COMMENT_NOT_FOUND | Comment not found. | List comments and retry with an existing stable Comment ID. |
 | COMMENT_INVALID | Comment metadata is invalid. | Provide a non-empty comment body, supported status, and published fields. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6227,7 +6227,7 @@ Created collaboration record without planning mutation.
 | COMMENT_NOT_FOUND | Comment not found. | List comments and retry with an existing stable Comment ID. |
 | COMMENT_INVALID | Comment metadata is invalid. | Provide a non-empty comment body, supported status, and published fields. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6293,7 +6293,7 @@ New immutable edit-history entry for one Comment.
 | COMMENT_NOT_FOUND | Comment not found. | List comments and retry with an existing stable Comment ID. |
 | COMMENT_INVALID | Comment metadata is invalid. | Provide a non-empty comment body, supported status, and published fields. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6356,7 +6356,7 @@ Resolved or reopened Comment state.
 | COMMENT_NOT_FOUND | Comment not found. | List comments and retry with an existing stable Comment ID. |
 | COMMENT_INVALID | Comment metadata is invalid. | Provide a non-empty comment body, supported status, and published fields. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6415,7 +6415,7 @@ A revised Proposal created from a bounded adjustment instruction.
 | IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6474,7 +6474,7 @@ Proposal revision with one Change removed.
 | IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6541,7 +6541,7 @@ Human-authored warning disposition bound to one Validation input.
 | WARNING_NOT_WAIVABLE | Constraint does not have a waivable warning. | Validate again and select an open warning Constraint. |
 | WAIVER_REASON_INVALID | Warning Waiver requires a supported reason code. | Choose one reason code from the Warning Waiver contract. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6610,7 +6610,7 @@ Human-authored temporary Project Lock.
 | LOCK_CONFLICT | Proposal Change conflicts with an active Lock. | Remove the locked property mutation or have a human release the applicable Project Lock. |
 | LOCK_NOT_FOUND | Project Lock not found. | Inspect Project Locks and retry with an active stable Lock ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6673,7 +6673,7 @@ Released Project Lock record.
 | LOCK_CONFLICT | Proposal Change conflicts with an active Lock. | Remove the locked property mutation or have a human release the applicable Project Lock. |
 | LOCK_NOT_FOUND | Project Lock not found. | Inspect Project Locks and retry with an active stable Lock ID. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6743,7 +6743,7 @@ Human Approval creating the next immutable Plan Version.
 | WARNING_WAIVER_REQUIRED | Proposal has warnings that require a human Warning Waiver. | Have a human record a reason-coded waiver for every open warning. |
 | EMERGENCY_REVIEW_REQUIRED | Emergency Plan Change requires an authorized human Emergency Review. | Supply a reviewer ID, authorized reviewer role, and explicit assumption acceptance in VenueMind Studio. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6802,7 +6802,7 @@ Undo result for Proposal editing or accepted Plan history.
 | IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6861,7 +6861,7 @@ Redo result for Proposal editing or accepted Plan history.
 | IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -6924,7 +6924,7 @@ Rebased Proposal lineage against current accepted truth.
 | CONFLICT_NOT_FOUND | Proposal conflict not found. | Detect current Proposal conflicts and retry with a stable conflict ID. |
 | CONFLICT_RESOLUTION_INVALID | Conflict resolution is not valid for this conflict. | Choose one of the conflict's published resolution options. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -7000,7 +7000,7 @@ Human conflict decision followed by deterministic Validation.
 | CONFLICT_NOT_FOUND | Proposal conflict not found. | Detect current Proposal conflicts and retry with a stable conflict ID. |
 | CONFLICT_RESOLUTION_INVALID | Conflict resolution is not valid for this conflict. | Choose one of the conflict's published resolution options. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -7069,7 +7069,7 @@ Updated Event Brief and invalidated dependent Proposal evidence.
 | IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -7117,7 +7117,7 @@ Restored normalized planner state after integrity checks.
 | SNAPSHOT_INVALID | Invalid VenueMind snapshot. | Restore a schema-compatible snapshot containing a Plan, Proposal, and Activity Ledger. |
 | LEDGER_INTEGRITY_FAILED | Activity Ledger integrity failed. | Restore an untampered snapshot or recover the last verified Project record. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -7168,7 +7168,7 @@ Portable geometry, Validation, ledger, receipts, reviews, and replay evidence.
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 
-- [Complete error catalog](/docs/reference-errors)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 
 ---
 
@@ -7180,10 +7180,10 @@ Runtime boundaries, extension paths, migrations, testing layers, release checks,
 
 Studio, WebMCP, and MCP converge on one planner command boundary. Shared contracts generate every public agent surface; deterministic Validation, authorization, ledger integrity, persistence, and exports remain separate deep modules.
 
-- [Architecture overview and diagrams](/guides/architecture.md)
-- [Persistence and recovery diagram](/guides/persistence-and-recovery.md)
-- [Optimistic concurrency](/guides/optimistic-concurrency.md)
-- [Database operations](/guides/database-operations.md)
+- [Architecture overview and diagrams](https://venue-mind-jet.vercel.app/guides/architecture.md)
+- [Persistence and recovery diagram](https://venue-mind-jet.vercel.app/guides/persistence-and-recovery.md)
+- [Optimistic concurrency](https://venue-mind-jet.vercel.app/guides/optimistic-concurrency.md)
+- [Database operations](https://venue-mind-jet.vercel.app/guides/database-operations.md)
 
 ## First contributor change
 
@@ -7202,9 +7202,9 @@ npm run build
 npm run check:generated
 ```
 
-- [Contributor entry point](/guides/contributing.md)
-- [Local development](/guides/development.md)
-- [Testing by layer](/guides/testing.md)
+- [Contributor entry point](https://venue-mind-jet.vercel.app/guides/contributing.md)
+- [Local development](https://venue-mind-jet.vercel.app/guides/development.md)
+- [Testing by layer](https://venue-mind-jet.vercel.app/guides/testing.md)
 
 ## Extend commands and Constraints
 
@@ -7213,30 +7213,30 @@ npm run check:generated
 - Constraints enter the versioned evaluator registry and return deterministic stable-ID evidence.
 - Contract tests bind runtime required fields, errors, outputs, docs, examples, WebMCP, and MCP.
 
-- [Add a command or Constraint](/guides/architecture.md)
-- [Shared runtime contracts ADR](/guides/adr/0018-shared-runtime-contracts.md)
-- [Constraint registry ADR](/guides/adr/0019-versioned-constraint-registry.md)
+- [Add a command or Constraint](https://venue-mind-jet.vercel.app/guides/architecture.md)
+- [Shared runtime contracts ADR](https://venue-mind-jet.vercel.app/guides/adr/0018-shared-runtime-contracts.md)
+- [Constraint registry ADR](https://venue-mind-jet.vercel.app/guides/adr/0019-versioned-constraint-registry.md)
 
 ## Migrations, release, and recovery
 
-- [Schema migration guide](/guides/schema-migrations.md)
-- [Database operations](/guides/database-operations.md)
-- [Real-time collaboration](/guides/realtime-collaboration.md)
-- [Sharing and notifications](/guides/sharing-and-notifications.md)
-- [Release checklist](/guides/release-checklist.md)
-- [Failure recovery runbook](/guides/runbooks/failure-recovery.md)
-- [Security reporting policy](/guides/security.md)
-- [Published guide manifest](/guides/manifest.json)
+- [Schema migration guide](https://venue-mind-jet.vercel.app/guides/schema-migrations.md)
+- [Database operations](https://venue-mind-jet.vercel.app/guides/database-operations.md)
+- [Real-time collaboration](https://venue-mind-jet.vercel.app/guides/realtime-collaboration.md)
+- [Sharing and notifications](https://venue-mind-jet.vercel.app/guides/sharing-and-notifications.md)
+- [Release checklist](https://venue-mind-jet.vercel.app/guides/release-checklist.md)
+- [Failure recovery runbook](https://venue-mind-jet.vercel.app/guides/runbooks/failure-recovery.md)
+- [Security reporting policy](https://venue-mind-jet.vercel.app/guides/security.md)
+- [Published guide manifest](https://venue-mind-jet.vercel.app/guides/manifest.json)
 
 ## Architecture decisions
 
-- [Canonical spatial frame](/guides/adr/0003-canonical-spatial-frame.md)
-- [Human Roles and Agent Grants](/guides/adr/0017-human-roles-and-agent-grants.md)
-- [Shared runtime contracts](/guides/adr/0018-shared-runtime-contracts.md)
-- [Constraint registry](/guides/adr/0019-versioned-constraint-registry.md)
-- [Ledger integrity and replay](/guides/adr/0020-hash-chained-ledger-and-replay.md)
-- [Sites identity and tenancy](/guides/adr/0021-sites-identity-and-server-owned-tenancy.md)
-- [Hashed bearer sharing](/guides/adr/0024-hashed-bearer-sharing.md)
+- [Canonical spatial frame](https://venue-mind-jet.vercel.app/guides/adr/0003-canonical-spatial-frame.md)
+- [Human Roles and Agent Grants](https://venue-mind-jet.vercel.app/guides/adr/0017-human-roles-and-agent-grants.md)
+- [Shared runtime contracts](https://venue-mind-jet.vercel.app/guides/adr/0018-shared-runtime-contracts.md)
+- [Constraint registry](https://venue-mind-jet.vercel.app/guides/adr/0019-versioned-constraint-registry.md)
+- [Ledger integrity and replay](https://venue-mind-jet.vercel.app/guides/adr/0020-hash-chained-ledger-and-replay.md)
+- [Sites identity and tenancy](https://venue-mind-jet.vercel.app/guides/adr/0021-sites-identity-and-server-owned-tenancy.md)
+- [Hashed bearer sharing](https://venue-mind-jet.vercel.app/guides/adr/0024-hashed-bearer-sharing.md)
 
 ---
 
@@ -7246,32 +7246,32 @@ JSON Schemas are generated from the runtime contract source during every product
 
 ## Published schemas
 
-- [Venue command](/schemas/venue-command.schema.json)
-- [Agent Grant](/schemas/agent-grant.schema.json)
-- [Authorization policy](/schemas/authorization-policy.schema.json)
-- [Venue Template catalog](/schemas/venue-template-catalog.schema.json)
-- [Template catalog example](/examples/venue-template-catalog.json)
-- [Event Brief](/schemas/event-brief.schema.json)
-- [Comment anchor](/schemas/comment-anchor.schema.json)
-- [Comment](/schemas/comment.schema.json)
-- [Scenario definition](/schemas/scenario-definition.schema.json)
-- [Simulation result](/schemas/simulation-result.schema.json)
-- [Spatial geometry](/schemas/spatial-geometry.schema.json)
-- [Spatial evidence](/schemas/spatial-evidence.schema.json)
-- [Venue Constraint](/schemas/venue-constraint.schema.json)
-- [Warning Waiver](/schemas/warning-waiver.schema.json)
-- [Object Lock](/schemas/object-lock.schema.json)
-- [Venue error](/schemas/venue-error.schema.json)
-- [Error catalog](/error-catalog.json)
-- [Validation result](/schemas/validation-result.schema.json)
-- [Command receipt](/schemas/command-receipt.schema.json)
-- [Activity Ledger](/schemas/activity-ledger.schema.json)
-- [Proposal conflicts](/schemas/proposal-conflicts.schema.json)
-- [Proposal comparison](/schemas/proposal-comparison.schema.json)
-- [Planner snapshot](/schemas/planner-snapshot.schema.json)
-- [Project record](/schemas/project-record.schema.json)
-- [Interchange Package](/schemas/venue-project-package.schema.json)
-- [Interchange example](/examples/venuemind-project-package.json)
+- [Venue command](https://venue-mind-jet.vercel.app/schemas/venue-command.schema.json)
+- [Agent Grant](https://venue-mind-jet.vercel.app/schemas/agent-grant.schema.json)
+- [Authorization policy](https://venue-mind-jet.vercel.app/schemas/authorization-policy.schema.json)
+- [Venue Template catalog](https://venue-mind-jet.vercel.app/schemas/venue-template-catalog.schema.json)
+- [Template catalog example](https://venue-mind-jet.vercel.app/examples/venue-template-catalog.json)
+- [Event Brief](https://venue-mind-jet.vercel.app/schemas/event-brief.schema.json)
+- [Comment anchor](https://venue-mind-jet.vercel.app/schemas/comment-anchor.schema.json)
+- [Comment](https://venue-mind-jet.vercel.app/schemas/comment.schema.json)
+- [Scenario definition](https://venue-mind-jet.vercel.app/schemas/scenario-definition.schema.json)
+- [Simulation result](https://venue-mind-jet.vercel.app/schemas/simulation-result.schema.json)
+- [Spatial geometry](https://venue-mind-jet.vercel.app/schemas/spatial-geometry.schema.json)
+- [Spatial evidence](https://venue-mind-jet.vercel.app/schemas/spatial-evidence.schema.json)
+- [Venue Constraint](https://venue-mind-jet.vercel.app/schemas/venue-constraint.schema.json)
+- [Warning Waiver](https://venue-mind-jet.vercel.app/schemas/warning-waiver.schema.json)
+- [Object Lock](https://venue-mind-jet.vercel.app/schemas/object-lock.schema.json)
+- [Venue error](https://venue-mind-jet.vercel.app/schemas/venue-error.schema.json)
+- [Error catalog](https://venue-mind-jet.vercel.app/error-catalog.json)
+- [Validation result](https://venue-mind-jet.vercel.app/schemas/validation-result.schema.json)
+- [Command receipt](https://venue-mind-jet.vercel.app/schemas/command-receipt.schema.json)
+- [Activity Ledger](https://venue-mind-jet.vercel.app/schemas/activity-ledger.schema.json)
+- [Proposal conflicts](https://venue-mind-jet.vercel.app/schemas/proposal-conflicts.schema.json)
+- [Proposal comparison](https://venue-mind-jet.vercel.app/schemas/proposal-comparison.schema.json)
+- [Planner snapshot](https://venue-mind-jet.vercel.app/schemas/planner-snapshot.schema.json)
+- [Project record](https://venue-mind-jet.vercel.app/schemas/project-record.schema.json)
+- [Interchange Package](https://venue-mind-jet.vercel.app/schemas/venue-project-package.schema.json)
+- [Interchange example](https://venue-mind-jet.vercel.app/examples/venuemind-project-package.json)
 
 ## Authorization policy
 
@@ -7282,25 +7282,25 @@ Human Roles and Agent Grants are separate authority sources. Policy Decisions ar
 - Approval, Warning Waivers, Lock management, and conflict decisions remain human-only.
 - Approval requires an approver, venue administrator, or organization administrator role in addition to passing Validation.
 
-- [Published policy](/authorization-policy.json)
-- [Agent Grant schema](/schemas/agent-grant.schema.json)
-- [Authentication and tenancy](/guides/authentication-and-tenancy.md)
-- [Authorization policy schema](/schemas/authorization-policy.schema.json)
+- [Published policy](https://venue-mind-jet.vercel.app/authorization-policy.json)
+- [Agent Grant schema](https://venue-mind-jet.vercel.app/schemas/agent-grant.schema.json)
+- [Authentication and tenancy](https://venue-mind-jet.vercel.app/guides/authentication-and-tenancy.md)
+- [Authorization policy schema](https://venue-mind-jet.vercel.app/schemas/authorization-policy.schema.json)
 
 ## Generated tool manifest
 
-- [Tool manifest schema](/schemas/venue-tool-manifest.schema.json)
-- [Tool manifest](/venue-tools.json)
-- [Reference manifest](/reference-manifest.json)
-- [Tool examples](/examples/venue-tool-examples.json)
-- [Tool error catalog](/tool-error-catalog.json)
+- [Tool manifest schema](https://venue-mind-jet.vercel.app/schemas/venue-tool-manifest.schema.json)
+- [Tool manifest](https://venue-mind-jet.vercel.app/venue-tools.json)
+- [Reference manifest](https://venue-mind-jet.vercel.app/reference-manifest.json)
+- [Tool examples](https://venue-mind-jet.vercel.app/examples/venue-tool-examples.json)
+- [Tool error catalog](https://venue-mind-jet.vercel.app/tool-error-catalog.json)
 
 ## Stable errors
 
 Planner and MCP failures use one error envelope with a stable code, readable message, remediation, and structured details. Unknown internal failures use VENUE_INTERNAL_ERROR without exposing implementation data.
 
-- [Error catalog](/error-catalog.json)
-- [Venue error schema](/schemas/venue-error.schema.json)
+- [Error catalog](https://venue-mind-jet.vercel.app/error-catalog.json)
+- [Venue error schema](https://venue-mind-jet.vercel.app/schemas/venue-error.schema.json)
 
 ## Interchange safety
 
@@ -7316,12 +7316,12 @@ VenueMind JSON is the only authoritative import format. DXF and PDF files remain
 
 ## Agent discovery
 
-- [llms.txt](/llms.txt)
-- [llms-full.txt](/llms-full.txt)
+- [llms.txt](https://venue-mind-jet.vercel.app/llms.txt)
+- [llms-full.txt](https://venue-mind-jet.vercel.app/llms-full.txt)
 
 ## Compatibility
 
-- [Compatibility and deprecation policy](/docs/reference-compatibility)
+- [Compatibility and deprecation policy](https://venue-mind-jet.vercel.app/docs/reference-compatibility)
 
 ---
 

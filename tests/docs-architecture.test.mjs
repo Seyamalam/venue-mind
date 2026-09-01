@@ -107,5 +107,5 @@ test("generated public metadata contains every canonical docs route", async () =
   assert.equal(manifest.schemaVersion, 1);
   assert.deepEqual(manifest.pages.map((page) => page.canonicalPath), docsPages.map((page) => page.canonicalPath));
   for (const page of docsPages) assert.match(sitemap, new RegExp(`${page.canonicalPath.replaceAll("/", "\\/")}<`));
-  assert.match(robots, /Sitemap: http:\/\/localhost:4173\/sitemap\.xml/);
+  assert.match(robots, /Sitemap: https:\/\/venue-mind-jet\.vercel\.app\/sitemap\.xml/);
 });

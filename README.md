@@ -2,6 +2,8 @@
 
 VenueMind is an agent-native venue operations workspace. A human or agent can inspect a versioned venue layout, propose non-destructive changes, validate safety and operational constraints, request human approval, commit an auditable Plan Version, and export the result.
 
+[Open the live product](https://venue-mind-jet.vercel.app) · [Read the documentation](https://venue-mind-jet.vercel.app/docs)
+
 ## Why WebMCP
 
 Venue planning is a shared human-and-agent workflow, not a chat prompt. VenueMind registers versioned tools with `document.modelContext.registerTool(...)` so agents can operate the same command bus as the UI while stable IDs, scopes, idempotency, validation, and human-only Approval remain enforced.
