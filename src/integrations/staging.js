@@ -63,6 +63,7 @@ const proposalChange = (change, index) => {
       sourceVersion: change.external.sourceVersion,
       externalId: change.external.externalId,
       sourceChecksum: change.external.checksum,
+      ...(change.baseChecksum ? { baseChecksum: change.baseChecksum } : {}),
     },
   });
 };
@@ -268,6 +269,16 @@ export async function loadAdapterProposalForReview(planner, batch) {
   }
   if (snapshot.plan.version !== batch.proposal.baseVersion) fail("ADAPTER_BASE_PLAN_VERSION_CONFLICT", "Adapter Proposal base Version is stale", { expected: snapshot.plan.version, actual: batch.proposal.baseVersion });
   if (batch.proposal.revision !== snapshot.proposal.revision + 1) fail("ADAPTER_PROPOSAL_REVISION_CONFLICT", "Adapter Proposal revision must follow the current Proposal revision", { expected: snapshot.proposal.revision + 1, actual: batch.proposal.revision });
+  for (const change of batch.proposal.changes) {
+    const expectedChecksum = change.effects?.baseChecksum;
+    if (expectedChecksum === undefined) continue;
+    const operation = change.effects?.adapterOperation;
+    if (!["update", "delete"].includes(operation)) fail("ADAPTER_BASE_OBJECT_CONFLICT", "Adapter base object checksum is valid only for update or delete Changes", { changeId: change.id, operation: operation ?? null });
+    const objectId = change.targetObjectIds?.[0] ?? null;
+    const acceptedObject = snapshot.plan.objects.find((object) => object.id === objectId);
+    const actualChecksum = acceptedObject ? await sha256Checksum(acceptedObject) : null;
+    if (!acceptedObject || actualChecksum !== expectedChecksum) fail("ADAPTER_BASE_OBJECT_CONFLICT", "Adapter Change no longer matches the accepted base object", { changeId: change.id, objectId, expectedChecksum, actualChecksum });
+  }
   const activeBranch = snapshot.branches.find((branch) => branch.id === snapshot.activeBranchId);
   if (!activeBranch) fail("ADAPTER_ACTIVE_BRANCH_MISSING", "The active Proposal Branch is unavailable");
   const revisions = [...(activeBranch.revisions ?? [])];

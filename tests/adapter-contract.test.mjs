@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { fingerprintPlan } from "../src/domain/activity-ledger.js";
 import { createEmptyVenuePlan } from "../src/domain/empty-project.js";
+import { summitForwardPlan } from "../src/domain/summit-forward.js";
 import { createVenuePlanner } from "../src/domain/venue-planner.js";
 import { AdapterContractError, createSyncCursor, defineAdapter, normalizeAdapterChange, sha256Checksum } from "../src/integrations/contracts.js";
 import { roomInventoryAdapter } from "../src/integrations/adapters/room-inventory-adapter.js";
@@ -75,6 +76,38 @@ test("an imported canonical Proposal enters the planner review and Approval path
   assert.equal(approval.status, "approved");
   assert.equal(planner.getSnapshot().plan.objects.some((object) => object.id === "obj-import-chair-001"), true);
   assert.equal(planner.getSnapshot().ledger.at(-1).type, "proposal.approved");
+});
+
+test("adapter review rejects a stale base object checksum without changing accepted Plan or Proposal state", async () => {
+  const planner = createVenuePlanner(summitForwardPlan);
+  const before = planner.getSnapshot();
+  const acceptedObject = before.plan.objects.find((object) => object.id === "obj-av-desk");
+  const actualChecksum = await sha256Checksum(acceptedObject);
+  const input = {
+    sourceSystem: "room-inventory-prod",
+    sourceVersion: "inventory-43",
+    basePlanVersion: before.plan.version,
+    proposalRevision: before.proposal.revision + 1,
+    mappings: { "vendor-av-desk": acceptedObject.id },
+    baseChecksums: { "vendor-av-desk": "0".repeat(64) },
+    records: [{
+      externalId: "vendor-av-desk",
+      sourceVersion: "43",
+      kind: acceptedObject.kind,
+      label: acceptedObject.label,
+      capacity: acceptedObject.capacity ?? null,
+      footprint: structuredClone(acceptedObject.footprint),
+    }],
+  };
+  const result = await createAdapterRuntime({ clock }).execute(roomInventoryAdapter, "import", input, authorization);
+
+  assert.equal(result.output.proposal.changes[0].effects.baseChecksum, "0".repeat(64));
+  await assert.rejects(() => loadAdapterProposalForReview(planner, result.output), (error) => error.code === "ADAPTER_BASE_OBJECT_CONFLICT"
+    && error.details.objectId === acceptedObject.id
+    && error.details.expectedChecksum === "0".repeat(64)
+    && error.details.actualChecksum === actualChecksum);
+  assert.equal(fingerprintPlan(planner.getSnapshot().plan), fingerprintPlan(before.plan));
+  assert.deepEqual(planner.getSnapshot().proposal, before.proposal);
 });
 
 test("repeating an identical import is duplicate-safe and stores one staging result", async () => {

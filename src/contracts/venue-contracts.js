@@ -306,6 +306,18 @@ const templateRefSchema = {
   additionalProperties: false,
 };
 
+const resourceBindingSchema = {
+  type: "object",
+  required: ["schemaVersion", "resourceId", "kind", "quantity"],
+  properties: {
+    schemaVersion: { const: 1 },
+    resourceId: { type: "string", pattern: "^resource-[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    kind: { enum: ["inventory", "av", "power", "catering", "staffing"] },
+    quantity: { type: "integer", minimum: 1 },
+  },
+  additionalProperties: false,
+};
+
 export const venueTemplateCatalogSchema = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://venuemind.dev/schemas/venue-template-catalog.schema.json",
@@ -1536,6 +1548,7 @@ export const plannerSnapshotSchema = {
               catering: cateringMetadataSchema,
               emergency: emergencyMetadataSchema,
               templateRef: templateRefSchema,
+              resourceBinding: resourceBindingSchema,
               templateOverrides: { type: "array", uniqueItems: true, items: { type: "string", minLength: 1 } },
               inventoryCount: { type: "integer", minimum: 1 },
             },
