@@ -14,7 +14,7 @@ When implementing from a selected generated mock, treat that image as the source
 - Product UI uses terse operational labels and values only; do not add narrative marketing or explanatory copy to product chrome. Documentation prose is exempt.
 - The frontend target is the latest stable Next.js App Router with Tailwind CSS 4 and source-owned shadcn/ui primitives. Preserve the selected Design 2 rather than adopting stock shadcn styling.
 
-Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts/prepare-sites-build.mjs`, and `tests/sites-worker.test.mjs` intact so the same local prototype can be handed to Sites. Before a Sites handoff, run `npm run build` and `npm run test:sites`; the build must leave `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`.
+Build product UI in the Next.js App Router and reusable client components in `src/`. Vercel is the sole frontend host. Cloudflare runs only the API Worker and D1; never add a second frontend build, SPA fallback, alternate hosting package, or compatibility entry point.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

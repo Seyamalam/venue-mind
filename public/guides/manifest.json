@@ -201,8 +201,8 @@
       "title": "Architecture decision 0020"
     },
     {
-      "sourcePath": "docs/adr/0021-sites-identity-and-server-owned-tenancy.md",
-      "publicPath": "/guides/adr/0021-sites-identity-and-server-owned-tenancy.md",
+      "sourcePath": "docs/adr/0021-server-owned-tenancy.md",
+      "publicPath": "/guides/adr/0021-server-owned-tenancy.md",
       "title": "Architecture decision 0021"
     },
     {

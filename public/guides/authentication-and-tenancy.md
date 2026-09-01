@@ -1,10 +1,10 @@
 # Authentication and tenancy
 
-VenueMind separates authentication from authorization. The initial identity Adapter trusts the OpenAI Sites dispatcher headers `oai-authenticated-user-id` and `oai-authenticated-user-email`; `oai-authenticated-user-full-name` is decoded only when its encoding header is `percent-encoded-utf-8`. Application code never treats a caller-supplied user, actor, Role, or Organization field as authority.
+VenueMind separates authentication from authorization. The public demo provisions one opaque identity per browser in the Cloudflare API Worker and persists only a generated invalid-domain email address. Application code never treats a caller-supplied user, actor, Role, or Organization field as authority.
 
 ## Request boundary
 
-1. `worker/authentication.ts` converts trusted hosting headers into an authenticated identity.
+1. The API Worker resolves an existing Session or provisions an isolated demo identity from its `HttpOnly` identity cookie.
 2. `worker/account-repository.ts` resolves or provisions the VenueMind User and a bounded User Session.
 3. The server resolves active Organization Membership and Roles.
 4. The Project repository receives the server-resolved Organization ID for every list, get, and put.
@@ -18,7 +18,7 @@ The production Worker returns `401` without authenticated identity or an active 
 - Sessions expire after 12 hours by default and can never exceed seven days.
 - Revocation is persisted server-side and clears the browser cookie.
 - Same-origin checks reject cross-origin mutations.
-- A revoked Session cannot be replayed. A later trusted Sites identity may start a new Session unless the User account is deleted.
+- A revoked Session cannot be replayed. The browser identity may start a new Session unless the User account is deleted.
 
 ## Organizations and Roles
 
@@ -35,9 +35,9 @@ Approval and other planning authority still flow through `src/domain/authorizati
 - Account export includes only the User's Organizations, Memberships, relevant account audit events, and Projects reachable through active Memberships.
 - MCP structured logs contain the bound Organization ID and never accept it from a tool input.
 
-## Replacement boundary
+## Managed-auth boundary
 
-Replace `IdentityProvider.authenticate(request)` to move away from Sites identity. Preserve the normalized identity contract (`provider`, stable `subject`, verified `email`, optional `displayName`), session repository, Organization authorization, and all tenant-isolation tests. Do not move Membership or Role decisions into an identity-provider claim without a new ADR and migration.
+Replace the anonymous demo identity with a verified provider before private production data is accepted. Preserve the normalized identity contract (`provider`, stable `subject`, verified `email`, optional `displayName`), session repository, Organization authorization, and all tenant-isolation tests. Do not move Membership or Role decisions into an identity-provider claim without a new ADR and migration.
 
 ## Completion evidence
 

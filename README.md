@@ -37,7 +37,7 @@ npm install
 npm run dev
 ```
 
-Open the URL printed by Vite. Use ChatGPT's in-app browser, or Chrome with WebMCP testing enabled, to inspect and invoke the registered tools.
+Open the URL printed by Next.js. Use ChatGPT's in-app browser, or Chrome with WebMCP testing enabled, to inspect and invoke the registered tools.
 
 ## Verify
 
@@ -54,7 +54,7 @@ npm run check:generated
 - `src/domain/` — canonical venue model, planning, validation, replay, and exports
 - `src/webmcp/` — browser tool registration and shared adapter
 - `src/contracts/` — versioned tool and schema contracts
-- `worker/` and `db/` — hosted API, persistence, migrations, sharing, and delivery
+- `worker/` and `db/` — Cloudflare API Worker, D1 persistence, migrations, sharing, and delivery
 - `mcp/` — standalone MCP server
 - `skills/` — packaged agent skills and evaluations
 - `docs/` and `public/` — contributor and public documentation

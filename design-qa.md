@@ -36,6 +36,6 @@ No actionable P0, P1, or P2 mismatch remained after the combined reference/imple
 ## Verification
 
 - `npm run build`: passed.
-- `npm run test:sites`: 4/4 passed.
+- `npm run test:worker`: API-only Worker verification passed.
 
 final result: passed

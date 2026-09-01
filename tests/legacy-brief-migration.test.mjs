@@ -44,7 +44,7 @@ const harness = (roles = ["organization-administrator"]) => {
       },
     }),
   });
-  const env = { ASSETS: { fetch: async () => new Response("missing", { status: 404 }) }, DB: {} };
+  const env = { DB: {} };
   const request = (path, init = {}) => worker.fetch(new Request(`https://example.test${path}`, { ...init, headers: { "x-venuemind-organization-id": "org-test", ...(init.headers ?? {}) } }), env);
   return { records, request };
 };

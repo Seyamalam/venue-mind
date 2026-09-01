@@ -135,7 +135,7 @@ async function harness() {
     method,
     headers: { accept: "application/json", ...(identity ? { "x-test-identity": identity } : {}), ...(organizationId ? { "x-venuemind-organization-id": organizationId } : {}), ...(body ? { "content-type": "application/json" } : {}) },
     ...(body ? { body: JSON.stringify(body) } : {}),
-  }), { ASSETS: { fetch: async () => new Response("missing", { status: 404 }) }, DB: db });
+  }), { DB: db });
   return { db, request };
 }
 

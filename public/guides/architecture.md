@@ -6,7 +6,7 @@ VenueMind is one domain runtime with three callers: Studio UI, native WebMCP, an
 
 ```mermaid
 flowchart LR
-  IDP[Sites identity Adapter] --> ACCOUNTS[Users / Organizations / Sessions]
+  IDP[Browser demo identity] --> ACCOUNTS[Users / Organizations / Sessions]
   ACCOUNTS --> API[Organization-scoped Project API]
   SHARE[Hashed Share Links / pending operations] --> API
   API --> NOTIFY[Notification store / leased email outbox]

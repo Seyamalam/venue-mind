@@ -41,7 +41,7 @@ const createHarness = () => {
   };
   const collaboration = createMemoryCollaborationRepository({ clock: () => NOW });
   const worker = createWorker({ secureCookies: false, clock: () => NOW, identityProvider: { authenticate: (request) => { const subject = request.headers.get("x-test-user"); return subject ? { provider: "test", subject, email: `${subject}@example.test`, displayName: subject.toUpperCase() } : null; } }, createAccountRepository: () => accounts, createProjectRepository: () => projects, createCollaborationRepository: () => collaboration });
-  const env = { ASSETS: { fetch: async () => new Response("missing", { status: 404 }) }, DB: {} };
+  const env = { DB: {} };
   const login = async (subject) => {
     const response = await worker.fetch(new Request("https://example.test/api/session", { headers: { "x-test-user": subject } }), env);
     return { cookie: response.headers.get("set-cookie").split(";", 1)[0], user: (await response.json()).user };

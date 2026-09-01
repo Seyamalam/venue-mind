@@ -1,16 +1,9 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "venue-mind",
+  "name": "venue-mind-api",
   "main": "dist/server/index.js",
   "compatibility_date": "2026-09-01",
-  "assets": {
-    "directory": "./dist/client",
-    "binding": "ASSETS",
-    "run_worker_first": [
-      "/api/*"
-    ],
-    "not_found_handling": "single-page-application"
-  },
+  "compatibility_flags": ["nodejs_compat"],
   "d1_databases": [
     {
       "binding": "DB",
@@ -20,7 +13,8 @@
     }
   ],
   "vars": {
-    "VENUEMIND_AUTH_MODE": "anonymous-demo"
+    "VENUEMIND_AUTH_MODE": "anonymous-demo",
+    "VENUEMIND_APP_ORIGINS": "https://venue-mind-jet.vercel.app"
   },
   "observability": {
     "enabled": true,

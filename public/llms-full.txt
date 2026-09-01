@@ -7320,7 +7320,7 @@ npm run check:generated
 - [Shared runtime contracts](https://venue-mind-jet.vercel.app/guides/adr/0018-shared-runtime-contracts.md)
 - [Constraint registry](https://venue-mind-jet.vercel.app/guides/adr/0019-versioned-constraint-registry.md)
 - [Ledger integrity and replay](https://venue-mind-jet.vercel.app/guides/adr/0020-hash-chained-ledger-and-replay.md)
-- [Sites identity and tenancy](https://venue-mind-jet.vercel.app/guides/adr/0021-sites-identity-and-server-owned-tenancy.md)
+- [Server-owned tenancy](https://venue-mind-jet.vercel.app/guides/adr/0021-server-owned-tenancy.md)
 - [Hashed bearer sharing](https://venue-mind-jet.vercel.app/guides/adr/0024-hashed-bearer-sharing.md)
 - [Operational Resource Snapshots](https://venue-mind-jet.vercel.app/guides/adr/0025-operational-resource-snapshots-are-not-plan-truth.md)
 - [Public SDK boundary](https://venue-mind-jet.vercel.app/guides/adr/0026-public-sdk-follows-canonical-tool-and-adapter-contracts.md)

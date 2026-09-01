@@ -63,7 +63,7 @@ test("required architecture decisions use the complete ADR structure", async () 
     "docs/adr/0018-shared-runtime-contracts.md",
     "docs/adr/0019-versioned-constraint-registry.md",
     "docs/adr/0020-hash-chained-ledger-and-replay.md",
-    "docs/adr/0021-sites-identity-and-server-owned-tenancy.md",
+    "docs/adr/0021-server-owned-tenancy.md",
   ];
   for (const adr of adrs) {
     const content = await read(adr);

@@ -61,7 +61,7 @@ The following foundation exists and should be protected by regression tests:
 - [x] `venuemind-plan` and `venuemind-audit` agent skills.
 - [x] Multi-route documentation site.
 - [x] Generated `/llms.txt` and `/llms-full.txt`.
-- [x] Sites-compatible production worker bundle.
+- [x] API-only production Worker bundle with D1.
 - [x] Automated domain, persistence, worker, MCP, and agent-doc tests.
 
 ---
@@ -1036,7 +1036,7 @@ Completion gate:
 - [x] Establish App Router ownership for Studio, Projects, Settings, Shared Review, and every generated docs page.
 - [x] Add route metadata, loading, error, not-found, typed dynamic params, and static docs params.
 - [x] Keep browser persistence, collaboration, and WebMCP behind client-only route boundaries.
-- [x] Preserve the Vite/Sites compatibility package while Next.js becomes the primary Vercel frontend.
+- [x] Make Vercel the sole frontend host and keep Cloudflare limited to the API Worker and D1.
 - [x] Add source-owned shadcn primitives and map the selected Design 2 palette into semantic tokens.
 - [x] Replace manual internal navigation with Next Link and router APIs.
 - [x] Move docs content and navigation into Server Components; retain only search, copy, and keyboard behavior on the client.
@@ -1044,7 +1044,7 @@ Completion gate:
 - [x] Replace browser prompts with accessible dialogs and confirmation flows.
 - [x] Split the heavy editor, simulations, and comments surfaces behind interaction-driven client chunks.
 - [x] Split history and sharing surfaces from the initial Studio runtime with interaction preloads and persistent close transitions.
-- [ ] Remove the obsolete Vite SPA entry after the Sites compatibility boundary has a supported Next.js handoff.
+- [x] Remove the obsolete compatibility SPA entry, dependencies, alternate-host packaging, and static Worker fallback.
 - [ ] Verify route-specific bundles, WebMCP cleanup, persistence recovery, collaboration teardown, accessibility, and visual parity.
 
 Completion gate:
@@ -1111,7 +1111,7 @@ Completion gate:
 
 ## 12.1 Hosting
 
-- [ ] Create a production Sites project only when deployment is explicitly authorized.
+- [x] Keep Vercel as the only frontend deployment and Cloudflare as the API and D1 boundary.
 - [ ] Bind the production D1 database.
 - [ ] Configure production environment values and secrets.
 - [ ] Configure custom domain and HTTPS.
@@ -1239,7 +1239,7 @@ Use the narrow suites during development:
 ```bash
 npm run test:domain
 npm run test:mcp
-npm run test:sites
+npm run test:worker
 ```
 
 Before marking a milestone complete, also verify the live routes:

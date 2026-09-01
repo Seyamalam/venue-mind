@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createMemoryAccountRepository, createSitesIdentityProvider, createWorker } from "../dist/server/index.js";
+import { createMemoryAccountRepository, createWorker } from "../dist/server/index.js";
 import { createProjectStore } from "../src/persistence/project-store.js";
 import { createAgentGrant, createAgentPrincipal } from "../src/domain/authorization.js";
 import { createVenuePlanner } from "../src/domain/venue-planner.js";
@@ -34,7 +34,7 @@ const identityProvider = { authenticate: (request) => {
   return identity ? { provider: "test", subject: identity, email: `${identity}@example.test`, displayName: identity.toUpperCase() } : null;
 } };
 const worker = createWorker({ identityProvider, secureCookies: false, createAccountRepository: () => accounts, createProjectRepository: () => projectRepository });
-const env = { ASSETS: { fetch: async () => new Response("missing", { status: 404 }) }, DB: {} };
+const env = { DB: {} };
 const request = (path, { identity, organizationId, method = "GET", body, headers = {} } = {}) => worker.fetch(new Request(`https://example.test${path}`, {
   method,
   headers: { accept: "application/json", ...(identity ? { "x-test-identity": identity } : {}), ...(organizationId ? { "x-venuemind-organization-id": organizationId } : {}), ...(body ? { "content-type": "application/json" } : {}), ...headers },
@@ -43,11 +43,7 @@ const request = (path, { identity, organizationId, method = "GET", body, headers
 
 const projectRecord = (id, name) => ({ id, name, activePlanId: "plan-summit-forward-2026", schemaVersion: 10, snapshot: { plan: { id: "plan-summit-forward-2026", version: "3.2" }, proposal: {}, ledger: [] }, createdAt: NOW, updatedAt: NOW });
 
-test("Sites identity normalization and lifecycle clocks are bounded", async () => {
-  const provider = createSitesIdentityProvider();
-  const identity = await provider.authenticate(new Request("https://example.test", { headers: { "oai-authenticated-user-id": "subject-1", "oai-authenticated-user-email": "USER@EXAMPLE.TEST", "oai-authenticated-user-full-name": "Venue%20Admin", "oai-authenticated-user-full-name-encoding": "percent-encoded-utf-8" } }));
-  assert.deepEqual(identity, { provider: "openai-sites", subject: "subject-1", email: "user@example.test", displayName: "Venue Admin" });
-  assert.equal(await provider.authenticate(new Request("https://example.test", { headers: { "oai-authenticated-user-id": "subject-1" } })), null);
+test("session and invitation lifecycle clocks are bounded", async () => {
   const session = createUserSession({ id: "session-1", userId: "user-1", createdAt: NOW, expiresAt: "2026-08-28T11:00:00.000Z" });
   assert.equal(sessionStatus(session, later), "active");
   assert.equal(sessionStatus(session, "2026-08-28T11:00:00.000Z"), "expired");

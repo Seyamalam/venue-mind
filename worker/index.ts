@@ -1,5 +1,7 @@
+/// <reference path="../worker-configuration.d.ts" />
+
 import { createD1AccountRepository, isOrganizationAdministrator } from "./account-repository.ts";
-import { createSitesIdentityProvider, type IdentityProvider } from "./authentication.ts";
+import { createStaticIdentityProvider, type IdentityProvider } from "./authentication.ts";
 import { createD1ProjectRepository, ProjectRevisionConflict, type ProjectRecord } from "./project-repository.ts";
 import { parseProjectEtag, projectEtag } from "../src/domain/project-concurrency.js";
 import { collaborationEventPayload, projectCollaborationEventTypes } from "../src/domain/collaboration-events.js";
@@ -16,7 +18,7 @@ import { createD1RunbookRepository, RunbookClientSequenceConflict, RunbookIdempo
 import { browserCommandToPersistenceInput, browserRunbookToPersistenceInput, repositoryRunbookToBrowserSnapshot } from "./runbook-http.ts";
 
 export { createD1AccountRepository, createMemoryAccountRepository } from "./account-repository.ts";
-export { createSitesIdentityProvider, createStaticIdentityProvider } from "./authentication.ts";
+export { createStaticIdentityProvider } from "./authentication.ts";
 export { applyDatabaseMigrations, inspectDatabaseIntegrity, planDatabaseMigrations } from "./database-migrations.ts";
 export { createD1CollaborationRepository, createMemoryCollaborationRepository } from "./collaboration-repository.ts";
 export { createD1SharingRepository, createMemorySharingRepository } from "./sharing-repository.ts";
@@ -29,7 +31,7 @@ type CollaborationRepository = ReturnType<typeof createD1CollaborationRepository
 type SharingRepository = ReturnType<typeof createD1SharingRepository>;
 type RunbookRepository = ReturnType<typeof createD1RunbookRepository>;
 type EmailDelivery = { send: (message: { idempotencyKey: string; to: string; bodyCode: string; refs: Record<string, string | number> }) => Promise<{ delivered: boolean; providerMessageId?: string }> };
-type WorkerEnv = { ASSETS: { fetch: (request: Request) => Promise<Response> }; DB: unknown; EMAIL_DELIVERY?: EmailDelivery; VENUEMIND_AUTH_MODE?: string };
+type WorkerEnv = CloudflareEnv & { EMAIL_DELIVERY?: EmailDelivery };
 type WorkerOptions = {
   createProjectRepository?: (db: unknown) => ProjectRepository;
   createAccountRepository?: (db: unknown) => AccountRepository;
@@ -69,11 +71,15 @@ const readBody = async <T>(request: Request): Promise<T> => {
   if (new TextEncoder().encode(text).byteLength > 2_000_000) throw new Error("PAYLOAD_TOO_LARGE");
   return JSON.parse(text) as T;
 };
-const safeMutationOrigin = (request: Request) => {
+const safeMutationOrigin = (request: Request, env: WorkerEnv) => {
   if (["GET", "HEAD", "OPTIONS"].includes(request.method)) return true;
   const origin = request.headers.get("origin");
   if (!origin) return true;
-  try { return new URL(origin).origin === new URL(request.url).origin; } catch { return false; }
+  try {
+    const normalized = new URL(origin).origin;
+    if (normalized === new URL(request.url).origin) return true;
+    return (env.VENUEMIND_APP_ORIGINS ?? "").split(",").map((value) => value.trim()).filter(Boolean).includes(normalized);
+  } catch { return false; }
 };
 const retainedProposals = (snapshot: { proposal?: { id?: string }; branches?: Array<{ proposal?: { id?: string }; revisions?: Array<{ id?: string }> }> }) => {
   const proposals = [snapshot.proposal, ...(snapshot.branches ?? []).flatMap((branch) => [branch.proposal, ...(branch.revisions ?? [])])].filter((proposal): proposal is { id?: string } => Boolean(proposal));
@@ -87,7 +93,7 @@ export function createWorker(options: WorkerOptions = {}) {
   const collaborationRepositoryFactory = options.createCollaborationRepository ?? (options.createProjectRepository ? (() => memoryCollaboration as never) : ((db) => createD1CollaborationRepository(db as never)));
   const memorySharing = createMemorySharingRepository();
   const sharingRepositoryFactory = options.createSharingRepository ?? (options.createProjectRepository ? (() => memorySharing as never) : ((db) => createD1SharingRepository(db as never)));
-  const identityProvider = options.identityProvider ?? createSitesIdentityProvider();
+  const identityProvider = options.identityProvider ?? createStaticIdentityProvider(null);
   const secureCookies = options.secureCookies ?? true;
   const clock = options.clock ?? (() => new Date().toISOString());
   const runbookRepositoryFactory = options.createRunbookRepository ?? ((db) => createD1RunbookRepository(db as never, { clock }));
@@ -145,6 +151,7 @@ export function createWorker(options: WorkerOptions = {}) {
   return {
     async fetch(request: Request, env: WorkerEnv) {
       const url = new URL(request.url);
+      if (url.pathname === "/api/health" && request.method === "GET") return json({ status: "ok", service: "venue-mind-api" });
       const publicShareMatch = url.pathname.match(/^\/api\/share\/([0-9a-f]{64})$/);
       if (publicShareMatch && request.method === "GET") {
         const sharing = sharingRepositoryFactory(env.DB);
@@ -164,17 +171,9 @@ export function createWorker(options: WorkerOptions = {}) {
         if (link.scope === "reviewer" && !proposal) return apiError(404, "SHARE_LINK_UNAVAILABLE", "Share link unavailable");
         return json({ shareLinkId: link.id, scope: link.scope, expiresAt: link.expiresAt, project: { id: record.id, name: record.name, revision: record.revision }, plan: snapshot.plan, ...(proposal ? { proposal } : {}) }, { headers: { "referrer-policy": "no-referrer", "x-content-type-options": "nosniff" } });
       }
-      if (!url.pathname.startsWith("/api/")) {
-        const response = await env.ASSETS.fetch(request);
-        const acceptsHtml = request.headers.get("accept")?.includes("text/html");
-        if (response.status !== 404 || !acceptsHtml || !["GET", "HEAD"].includes(request.method)) return response;
-        const indexUrl = new URL(request.url);
-        indexUrl.pathname = "/index.html";
-        indexUrl.search = "";
-        return env.ASSETS.fetch(new Request(indexUrl, request));
-      }
+      if (!url.pathname.startsWith("/api/")) return apiError(404, "API_ROUTE_REQUIRED", "This service exposes VenueMind API routes only");
 
-      if (!safeMutationOrigin(request)) return apiError(403, "ORIGIN_DENIED", "Cross-origin mutation denied");
+      if (!safeMutationOrigin(request, env)) return apiError(403, "ORIGIN_DENIED", "Cross-origin mutation denied");
       const accounts = accountRepositoryFactory(env.DB);
       let sessionId = cookieValue(request, SESSION_COOKIE);
       let account = sessionId ? await accounts.resolveSession(decodeURIComponent(sessionId)) : null;

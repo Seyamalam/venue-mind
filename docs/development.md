@@ -43,4 +43,4 @@ npm test
 npm run build
 ```
 
-The build must leave `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`. Resolve failures at their source and regenerate; generated output is evidence, not an editing surface.
+`npm run build` verifies the Vercel Next.js application. `npm run build:worker` verifies the API-only Cloudflare Worker. Resolve failures at their source and regenerate; generated output is evidence, not an editing surface.

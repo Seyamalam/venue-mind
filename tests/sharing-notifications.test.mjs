@@ -23,7 +23,7 @@ function harness({ rolesBySubject = {}, emailDelivery = null } = {}) {
   };
   const sharing = createMemorySharingRepository({ recipients: [{ organizationId: organization.id, userId: "user-reviewer", email: "reviewer@example.test", inAppEnabled: true, emailEnabled: false }] });
   const worker = createWorker({ secureCookies: false, clock: () => NOW, emailDelivery, identityProvider: { authenticate: (request) => { const subject = request.headers.get("x-test-user"); return subject ? { provider: "test", subject, email: `${subject}@example.test`, displayName: subject.toUpperCase() } : null; } }, createAccountRepository: () => accounts, createProjectRepository: () => projects, createCollaborationRepository: () => createMemoryCollaborationRepository(), createSharingRepository: () => sharing });
-  const env = { ASSETS: { fetch: async () => new Response("missing", { status: 404 }) }, DB: {} };
+  const env = { DB: {} };
   const login = async (subject) => { const response = await worker.fetch(new Request("https://example.test/api/session", { headers: { "x-test-user": subject } }), env); return { cookie: response.headers.get("set-cookie").split(";", 1)[0], ...(await response.json()) }; };
   const request = (path, session = null, { method = "GET", body, headers = {} } = {}) => worker.fetch(new Request(`https://example.test${path}`, { method, headers: { ...(session ? { cookie: session.cookie, "x-venuemind-organization-id": organization.id } : {}), ...(body ? { "content-type": "application/json" } : {}), ...headers }, ...(body ? { body: JSON.stringify(body) } : {}) }), env);
   return { login, request, sharing, worker, env, failProjectUpdates(count) { updateFailures = count; } };
