@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   ArrowCounterClockwise,
   CaretDown,
@@ -31,9 +31,7 @@ import { createProjectStore } from "./persistence/project-store.js";
 import { registerVenueTools } from "./webmcp/register-venue-tools.js";
 import { VENUE_TOOL_AUTHORIZATION_SCOPES, VENUE_TOOL_CONTRACT_VERSION, venueToolContracts } from "./contracts/venue-contracts.js";
 import { exportProjectPackage } from "./interchange/venue-package.js";
-import { PlanEditor } from "./PlanEditor.jsx";
-import { AnnotationPins, CommentsPanel } from "./CommentsPanel.jsx";
-import { ScenarioPanel } from "./ScenarioPanel.jsx";
+import { AnnotationPins } from "./AnnotationPins.jsx";
 import { createCollaborationClient } from "./collaboration/collaboration-client.js";
 import { SharingControls } from "./SharingControls.jsx";
 import { browserNavigate, navigateInternalLink } from "./navigation.js";
@@ -50,6 +48,10 @@ const briefIcons = {
   security: MapPin,
   emergency: Clock,
 };
+
+const LazyPlanEditor = lazy(() => import("./PlanEditor.jsx").then((module) => ({ default: module.PlanEditor })));
+const LazyCommentsPanel = lazy(() => import("./CommentsPanel.jsx").then((module) => ({ default: module.CommentsPanel })));
+const LazyScenarioPanel = lazy(() => import("./ScenarioPanel.jsx").then((module) => ({ default: module.ScenarioPanel })));
 
 const studioSessionId = `studio-session-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 const commandMetadata = (type) => {
@@ -933,7 +935,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
             {simulationOverlay && <div className="density-status"><b>DENSITY</b><span>{Math.floor(simulationOverlay.frame.second / 60)}:{String(Math.round(simulationOverlay.frame.second % 60)).padStart(2, "0")}</span><i>{simulationOverlay.frame.peakDensityPersonsPerM2} P/M²</i></div>}
             {!editorOpen && <svg className="annotation-overlay" viewBox="0 0 30 20" aria-label="Coordinate comments"><AnnotationPins comments={plannerState.comments} planVersion={plannerState.plan.version} maxY={20} selectedCommentId={selectedCommentId} onSelect={handleSelectComment} /></svg>}
 
-            {editorOpen && <PlanEditor plan={plannerState.plan} proposal={plannerState.proposal} validation={validation} comments={plannerState.comments} selectedCommentId={selectedCommentId} onSelectComment={handleSelectComment} onEdit={handleEdit} onMeasure={handleMeasure} layoutPresets={[{ id: "layout-conference-400", label: "CONF 400", roomBoundary: summitForwardPlan.spatial.roomBoundary, objects: summitForwardPlan.objects }]} />}
+            {editorOpen && <Suspense fallback={<div className="panel-loading" role="status">EDITOR</div>}><LazyPlanEditor plan={plannerState.plan} proposal={plannerState.proposal} validation={validation} comments={plannerState.comments} selectedCommentId={selectedCommentId} onSelectComment={handleSelectComment} onEdit={handleEdit} onMeasure={handleMeasure} layoutPresets={[{ id: "layout-conference-400", label: "CONF 400", roomBoundary: summitForwardPlan.spatial.roomBoundary, objects: summitForwardPlan.objects }]} /></Suspense>}
 
             {!editorOpen && <div className="proposal-overlays" aria-label="Agent proposal changes">
               {changes.map((change) => {
@@ -996,8 +998,8 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           {historyTab === "locks" && <div className="lock-panel"><form className="lock-form" onSubmit={handleAddLock}><select aria-label="Lock object" value={lockObjectId} onChange={(event) => setLockObjectId(event.target.value)}>{plannerState.plan.objects.map((object) => <option key={object.id} value={object.id}>{object.label}</option>)}</select><select aria-label="Lock type" value={lockType} onChange={(event) => setLockType(event.target.value)}>{["position", "rotation", "dimension", "deletion", "role"].map((type) => <option key={type}>{type}</option>)}</select><input aria-label="Lock reason code" value={lockReason} onChange={(event) => setLockReason(event.target.value)} required /><button type="submit">Add lock</button></form><div className="lock-list">{activeLocks.map((lock) => <div className={`lock-row is-${lock.source}`} key={lock.id}><span><strong>{lock.label}</strong><small>{lock.objectId}</small></span><b>{lock.type.toUpperCase()}</b><em>{lock.source === "project" ? "PROJECT" : "TEMPLATE"}</em>{lock.source === "project" && <button type="button" onClick={() => handleReleaseLock(lock.id)}>Release</button>}</div>)}</div></div>}
         </aside>
       )}
-      {commentsOpen && <CommentsPanel state={plannerState} selectedCommentId={selectedCommentId} onAdd={handleAddComment} onEdit={handleEditComment} onStatus={handleCommentStatus} onClose={() => setCommentsOpen(false)} />}
-      {simulationOpen && <ScenarioPanel branches={branches} runs={plannerState.scenarioRuns} onClose={() => { setSimulationOpen(false); setSimulationOverlay(null); }} onRun={handleRunScenario} onCompare={(leftRunId, rightRunId) => planner.execute({ type: "compare_simulations", leftRunId, rightRunId })} onExport={handleExportSimulation} onOverlayChange={setSimulationOverlay} onPreviewOption={handlePreviewQueueOption} />}
+      {commentsOpen && <Suspense fallback={<div className="panel-loading is-side" role="status">COMMENTS</div>}><LazyCommentsPanel state={plannerState} selectedCommentId={selectedCommentId} onAdd={handleAddComment} onEdit={handleEditComment} onStatus={handleCommentStatus} onClose={() => setCommentsOpen(false)} /></Suspense>}
+      {simulationOpen && <Suspense fallback={<div className="panel-loading is-side" role="status">SIM</div>}><LazyScenarioPanel branches={branches} runs={plannerState.scenarioRuns} onClose={() => { setSimulationOpen(false); setSimulationOverlay(null); }} onRun={handleRunScenario} onCompare={(leftRunId, rightRunId) => planner.execute({ type: "compare_simulations", leftRunId, rightRunId })} onExport={handleExportSimulation} onOverlayChange={setSimulationOverlay} onPreviewOption={handlePreviewQueueOption} /></Suspense>}
       {comparisonOpen && branchComparison && <aside className="branch-comparison" aria-label="Proposal Branch comparison">
         <div className="branch-comparison-heading"><div><span className="eyebrow">Branch comparison</span><strong>{branchComparison.comparisonId}</strong></div><button type="button" onClick={() => setComparisonOpen(false)} aria-label="Close branch comparison"><X size={18} /></button></div>
         <div className="branch-comparison-columns"><div><small>A · {branchComparison.left.strategy}</small><strong>{branchComparison.left.name}</strong><span className={`branch-status is-${branchComparison.left.validationStatus}`}>{branchComparison.left.validationStatus.toUpperCase()} · {branchComparison.left.changedItems} CHG</span><em>{branchComparison.left.notes || "—"}</em><code>{branchComparison.left.geometryFingerprint}</code></div><div><small>B · {branchComparison.right.strategy}</small><strong>{branchComparison.right.name}</strong><span className={`branch-status is-${branchComparison.right.validationStatus}`}>{branchComparison.right.validationStatus.toUpperCase()} · {branchComparison.right.changedItems} CHG</span><em>{branchComparison.right.notes || "—"}</em><code>{branchComparison.right.geometryFingerprint}</code></div></div>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { materializeSpatialPlan } from "./domain/spatial-analysis.js";
 import { venueTemplateCatalog } from "./domain/venue-templates.js";
-import { AnnotationPins } from "./CommentsPanel.jsx";
+import { AnnotationPins } from "./AnnotationPins.jsx";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const layers = ["architecture", "furniture", "access", "production", "catering", "safety", "annotations"];

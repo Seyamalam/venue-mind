@@ -143,6 +143,7 @@ button { color: inherit; }
 .redo-icon { transform: scaleX(-1); }
 
 .workspace { display: grid; grid-template-columns: 316px minmax(0, 1fr); height: calc(100vh - 78px); min-height: 680px; }
+.panel-loading { position: absolute; inset: 0; z-index: 8; display: grid; place-items: center; background: rgba(250,249,246,.78); color: #777873; font-size: 9px; font-weight: 800; letter-spacing: .12em; backdrop-filter: blur(3px); }.panel-loading.is-side { position: fixed; inset: 88px 16px 16px auto; width: 370px; border: 1px solid #d9d6ce; border-radius: 12px; }
 .brief-panel { background: #f9f8f5; border-right: 1px solid var(--hairline); min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
 .brief-section, .agent-section { padding: 28px 22px 20px; }
 .agent-section { border-top: 1px solid var(--hairline); padding-top: 25px; display: flex; flex-direction: column; flex: 1; }
