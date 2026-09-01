@@ -323,6 +323,15 @@ export function normalizePlanGeometry(plan, fallbackPlan = null) {
       if (!object.rigging || !Number.isFinite(object.rigging.safeWorkingLoadKg) || object.rigging.safeWorkingLoadKg <= 0) throw new Error(`Rigging point ${object.id} requires a safe working load`);
     }
     if (object.kind === "backstage_zone" && (!object.productionZone || !["crew-only", "performer-only", "mixed"].includes(object.productionZone.access))) throw new Error(`Backstage zone ${object.id} requires production access metadata`);
+    if (object.resourceBinding) {
+      const binding = object.resourceBinding;
+      const allowed = ["schemaVersion", "resourceId", "kind", "quantity"];
+      if (Object.keys(binding).some((key) => !allowed.includes(key)) || binding.schemaVersion !== 1 || !/^resource-[a-z0-9]+(?:-[a-z0-9]+)*$/.test(binding.resourceId ?? "") || !["inventory", "av", "power", "catering", "staffing"].includes(binding.kind) || !Number.isInteger(binding.quantity) || binding.quantity < 1) throw new Error(`Resource Binding ${object.id} is invalid`);
+      if (binding.kind === "av" && !object.production) throw new Error(`AV Resource Binding ${object.id} requires production metadata`);
+      if (binding.kind === "power" && object.utility?.type !== "power") throw new Error(`Power Resource Binding ${object.id} requires a power utility point`);
+      if (binding.kind === "catering" && !object.catering) throw new Error(`Catering Resource Binding ${object.id} requires catering metadata`);
+      if (binding.kind === "staffing" && object.kind !== "staff_post") throw new Error(`Staffing Resource Binding ${object.id} requires a staff post`);
+    }
     if (object.production) {
       if (!["screen", "projector", "speaker", "camera", "control-desk", "cable-route", "power-distribution", "rigged-equipment"].includes(object.production.equipmentType)) throw new Error(`Production object ${object.id} uses an unsupported equipment type`);
       if (object.production.equipmentType === "cable-route" && footprint.kind !== "line") throw new Error(`Cable route ${object.id} requires a line footprint`);

@@ -28,6 +28,7 @@ const isPolicyFailure = (error) => error.code.startsWith("ADAPTER_SECRET_")
   || error.code === "ADAPTER_SOURCE_MISMATCH"
   || error.code === "ADAPTER_ID_BOUNDARY_VIOLATION"
   || error.code === "ADAPTER_REVIEW_BYPASS"
+  || error.code === "ADAPTER_BASE_OBJECT_CONFLICT"
   || error.code === "ADAPTER_BASE_PLAN_VERSION_REQUIRED"
   || error.code === "ADAPTER_PROPOSAL_REVISION_REQUIRED"
   || error.code === "ADAPTER_STAGING_INTEGRITY_FAILED"
@@ -142,7 +143,11 @@ export function createAdapterRuntime(options = {}) {
   };
 
   const validateImportForPersistence = async (adapter, capability, output, preparedInput) => {
-    if (adapter.definition.importResultMode === "reviewable-proposal") return validateStagingForPersistence(adapter.definition, capability, output);
+    if (adapter.definition.importResultMode === "reviewable-proposal") {
+      await validateStagingForPersistence(adapter.definition, capability, output);
+      if (typeof adapter.assertImportResult === "function") await adapter.assertImportResult(output, { capability, preparedInput: clone(preparedInput) });
+      return output;
+    }
     if (adapter.definition.importResultMode === "aggregate-snapshot") return assertAggregateImportResult(adapter, output, capability, preparedInput);
     fail("ADAPTER_CONTRACT_INVALID", "Adapter importResultMode is unsupported", { adapterId: adapter.definition.id });
   };

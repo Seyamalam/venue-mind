@@ -789,16 +789,16 @@ Completion gate:
 
 ## 7.4 Inventory, AV, catering, and staffing adapters
 
-- [ ] Import venue inventory availability.
-- [ ] Import AV equipment and power metadata.
-- [ ] Import catering stations and service capacities.
-- [ ] Import staffing roles, shifts, and assigned personnel.
-- [ ] Detect unavailable or double-booked resources.
-- [ ] Create reviewable substitutions rather than silent replacements.
+- [x] Import venue inventory availability.
+- [x] Import AV equipment and power metadata.
+- [x] Import catering stations and service capacities.
+- [x] Import staffing roles, shifts, and assigned personnel.
+- [x] Detect unavailable or double-booked resources.
+- [x] Create reviewable substitutions rather than silent replacements.
 
 Completion gate:
 
-- [ ] An unavailable approved object creates a visible operational conflict and a validated replacement Proposal.
+- [x] An unavailable approved object creates a visible operational conflict and a validated replacement Proposal.
 
 ## 7.5 Public SDK
 

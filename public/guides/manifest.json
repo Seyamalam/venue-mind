@@ -51,6 +51,11 @@
       "title": "Registration and ticketing"
     },
     {
+      "sourcePath": "docs/operational-resources.md",
+      "publicPath": "/guides/operational-resources.md",
+      "title": "Operational resource adapters"
+    },
+    {
       "sourcePath": "docs/database-operations.md",
       "publicPath": "/guides/database-operations.md",
       "title": "Database operations"
@@ -199,6 +204,11 @@
       "sourcePath": "docs/adr/0024-hashed-bearer-sharing.md",
       "publicPath": "/guides/adr/0024-hashed-bearer-sharing.md",
       "title": "Architecture decision 0024"
+    },
+    {
+      "sourcePath": "docs/adr/0025-operational-resource-snapshots-are-not-plan-truth.md",
+      "publicPath": "/guides/adr/0025-operational-resource-snapshots-are-not-plan-truth.md",
+      "title": "Architecture decision 0025"
     }
   ]
 }

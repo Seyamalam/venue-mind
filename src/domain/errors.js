@@ -23,6 +23,8 @@ export const errorCatalog = Object.freeze({
   LOCK_TYPE_INVALID: define("LOCK_TYPE_INVALID", "Lock type is invalid.", "Use position, rotation, dimension, deletion, or role."),
   LOCK_NOT_FOUND: define("LOCK_NOT_FOUND", "Project Lock not found.", "Inspect Project Locks and retry with an active stable Lock ID."),
   PLAN_VERSION_CONFLICT: define("PLAN_VERSION_CONFLICT", "Plan version conflict.", "Inspect the latest Plan Version and create or rebase the Proposal before retrying."),
+  OPERATIONAL_RESOURCE_FRESHNESS_REQUIRED: define("OPERATIONAL_RESOURCE_FRESHNESS_REQUIRED", "Operational resource freshness proof is required.", "Resolve the latest trusted operational-resource snapshot for this Project before approving the Proposal."),
+  OPERATIONAL_RESOURCE_STALE: define("OPERATIONAL_RESOURCE_STALE", "Operational resource evidence is stale.", "Refresh operational resources, rebuild the substitution Proposal, and validate it again."),
   VALIDATION_FAILED: define("VALIDATION_FAILED", "Proposal validation failed.", "Resolve every hard Constraint failure and validate again."),
   WARNING_WAIVER_REQUIRED: define("WARNING_WAIVER_REQUIRED", "Proposal has warnings that require a human Warning Waiver.", "Have a human record a reason-coded waiver for every open warning."),
   EMERGENCY_REVIEW_REQUIRED: define("EMERGENCY_REVIEW_REQUIRED", "Emergency Plan Change requires an authorized human Emergency Review.", "Supply a reviewer ID, authorized reviewer role, and explicit assumption acceptance in VenueMind Studio."),

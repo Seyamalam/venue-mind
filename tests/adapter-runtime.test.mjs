@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { AdapterContractError, sha256Checksum } from "../src/integrations/contracts.js";
 import { createAdapterRuntime, createMemoryDeadLetterSink, createVenueAdapter, serializeDeadLetter } from "../src/integrations/runtime.js";
+import { createMemoryProcessedBatchStore } from "../src/integrations/processed-batch-store.js";
 import { createMemorySecretStore } from "../src/integrations/secret-store.js";
 import { roomInventoryAdapter } from "../src/integrations/adapters/room-inventory-adapter.js";
 import { createMemoryWebhookEventStore } from "../src/integrations/webhook-event-store.js";
@@ -79,6 +80,71 @@ test("rate limits use a deterministic rolling window", async () => {
   await runtime.execute(adapter, "import", stagingInput({ page: 3 }), auth);
   assert.deepEqual(waits, [1_000]);
   assert.deepEqual(runtime.inspectRateLimit(adapter), [1_000]);
+});
+
+test("reviewable Proposal validators run for fresh, duplicate, and atomic-race results", async () => {
+  const events = [];
+  const reviewableImport = {
+    ...emptyImport,
+    changes: [{
+      id: "change-reviewable-chair",
+      operation: "create",
+      venueEntityType: "project-object-instance",
+      proposedVenueObjectId: "obj-reviewable-chair",
+      external: { adapterId: "test-adapter", sourceSystem: "test-source", entityType: "inventory-record", externalId: "chair-1", sourceVersion: "1", checksum: "a".repeat(64) },
+      values: { kind: "chair", label: "Review chair", layer: "furniture", elevationM: 0, locked: false, footprint: { kind: "circle", center: { x: 1, y: 1 }, radius: 0.25 } },
+    }],
+  };
+  const memoryStore = createMemoryProcessedBatchStore();
+  const processedBatchStore = {
+    async get(key) {
+      events.push("get");
+      return memoryStore.get(key);
+    },
+    async putIfAbsent(key, value) {
+      events.push("put");
+      return memoryStore.putIfAbsent(key, value);
+    },
+  };
+  const baseAdapter = createVenueAdapter(definition(), { async import() { return reviewableImport; } });
+  const adapter = Object.freeze({
+    ...baseAdapter,
+    async assertImportResult(output, context) {
+      events.push("validate");
+      assert.equal(output.status, "awaiting-review");
+      assert.equal(output.proposal.status, "review");
+      assert.equal(context.capability, "import");
+      assert.equal(context.preparedInput.basePlanVersion, "1.0");
+    },
+  });
+  const runtime = createAdapterRuntime({ clock: () => Date.parse("2026-08-28T12:00:00.000Z"), processedBatchStore });
+
+  const first = await runtime.execute(adapter, "import", stagingInput({ page: 1 }), auth);
+  assert.equal(first.status, "succeeded");
+  assert.deepEqual(events, ["get", "validate", "put", "validate"]);
+
+  const duplicate = await runtime.execute(adapter, "import", stagingInput({ page: 1 }), auth);
+  assert.equal(duplicate.status, "duplicate");
+  assert.deepEqual(events, ["get", "validate", "put", "validate", "get", "validate"]);
+
+  const raceEvents = [];
+  const raceAdapter = Object.freeze({
+    ...baseAdapter,
+    async assertImportResult() { raceEvents.push("validate"); },
+  });
+  const raceStore = {
+    async get() {
+      raceEvents.push("get");
+      return null;
+    },
+    async putIfAbsent(_key, value) {
+      raceEvents.push("put");
+      return { inserted: false, value: structuredClone(value) };
+    },
+  };
+  const raced = await createAdapterRuntime({ clock: () => Date.parse("2026-08-28T12:00:00.000Z"), processedBatchStore: raceStore }).execute(raceAdapter, "import", stagingInput({ page: 2 }), auth);
+  assert.equal(raced.status, "duplicate");
+  assert.deepEqual(raceEvents, ["get", "validate", "put", "validate"]);
 });
 
 test("webhook delivery is idempotent and altered replay is rejected", async () => {

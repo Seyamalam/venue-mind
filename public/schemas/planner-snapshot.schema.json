@@ -1021,6 +1021,38 @@
                 },
                 "additionalProperties": false
               },
+              "resourceBinding": {
+                "type": "object",
+                "required": [
+                  "schemaVersion",
+                  "resourceId",
+                  "kind",
+                  "quantity"
+                ],
+                "properties": {
+                  "schemaVersion": {
+                    "const": 1
+                  },
+                  "resourceId": {
+                    "type": "string",
+                    "pattern": "^resource-[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  },
+                  "kind": {
+                    "enum": [
+                      "inventory",
+                      "av",
+                      "power",
+                      "catering",
+                      "staffing"
+                    ]
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "additionalProperties": false
+              },
               "templateOverrides": {
                 "type": "array",
                 "uniqueItems": true,

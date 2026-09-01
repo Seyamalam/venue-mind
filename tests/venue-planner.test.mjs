@@ -117,6 +117,17 @@ test("inspection exposes canonical real-world geometry and stable footprints", (
   });
 });
 
+test("Resource Bindings are exact, typed, and visible to inspection", () => {
+  const plan = structuredClone(summitForwardPlan);
+  plan.objects.find((object) => object.id === "obj-projector-center").resourceBinding = { schemaVersion: 1, resourceId: "resource-av-projector-primary", kind: "av", quantity: 1 };
+  const inspected = createVenuePlanner(plan).execute({ type: "inspect_layout" });
+  assert.deepEqual(inspected.spatialObjects.find((object) => object.id === "obj-projector-center").resourceBinding, { schemaVersion: 1, resourceId: "resource-av-projector-primary", kind: "av", quantity: 1 });
+
+  const invalid = structuredClone(plan);
+  invalid.objects.find((object) => object.id === "obj-projector-center").resourceBinding = { schemaVersion: 1, resourceId: "external/provider/id", kind: "av", quantity: 1 };
+  assert.throws(() => createVenuePlanner(invalid), /Resource Binding .* invalid/);
+});
+
 test("inspection exposes typed operational geometry for doors, exits, routes, and restricted zones", () => {
   const result = createPlanner().execute({ type: "inspect_layout" });
   const objects = new Map(result.spatialObjects.map((object) => [object.id, object]));

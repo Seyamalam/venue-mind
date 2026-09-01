@@ -390,7 +390,7 @@ const inspection = (state) => ({
   emergencyPlan: clone(state.plan.emergencyPlan ?? null),
   emergencyReviews: clone(state.plan.emergencyReviews ?? []),
   spatial: clone(state.plan.spatial),
-  spatialObjects: state.plan.objects.map(({ id, kind, label, layer, elevationM, footprint, locked, locks, door, exit, route, restriction, ramp, capacity, occupancy, placement, circulation, queue, staffPost, utility, rigging, productionZone, production, catering, emergency, templateRef, templateOverrides, inventoryCount }) => ({ id, kind, label, layer, elevationM, footprint: clone(footprint), locked, locks: clone([...(locks ?? []), ...state.projectLocks.filter((lock) => lock.objectId === id)]), ...(templateRef ? { templateRef: clone(templateRef), templateOverrides: clone(templateOverrides ?? []) } : {}), ...(Number.isInteger(inventoryCount) ? { inventoryCount } : {}), ...(Number.isInteger(capacity) ? { capacity } : {}), ...(occupancy ? { occupancy: clone(occupancy) } : {}), ...(placement ? { placement: clone(placement) } : {}), ...(circulation ? { circulation: clone(circulation) } : {}), ...(queue ? { queue: clone(queue) } : {}), ...(staffPost ? { staffPost: clone(staffPost) } : {}), ...(production ? { production: clone(production) } : {}), ...(catering ? { catering: clone(catering) } : {}), ...(emergency ? { emergency: clone(emergency) } : {}), operational: clone({ ...(door ? { door } : {}), ...(exit ? { exit } : {}), ...(route ? { route } : {}), ...(restriction ? { restriction } : {}), ...(ramp ? { ramp } : {}), ...(utility ? { utility } : {}), ...(rigging ? { rigging } : {}), ...(productionZone ? { productionZone } : {}) }) })),
+  spatialObjects: state.plan.objects.map(({ id, kind, label, layer, elevationM, footprint, locked, locks, door, exit, route, restriction, ramp, capacity, occupancy, placement, circulation, queue, staffPost, utility, rigging, productionZone, production, catering, emergency, templateRef, resourceBinding, templateOverrides, inventoryCount }) => ({ id, kind, label, layer, elevationM, footprint: clone(footprint), locked, locks: clone([...(locks ?? []), ...state.projectLocks.filter((lock) => lock.objectId === id)]), ...(templateRef ? { templateRef: clone(templateRef), templateOverrides: clone(templateOverrides ?? []) } : {}), ...(resourceBinding ? { resourceBinding: clone(resourceBinding) } : {}), ...(Number.isInteger(inventoryCount) ? { inventoryCount } : {}), ...(Number.isInteger(capacity) ? { capacity } : {}), ...(occupancy ? { occupancy: clone(occupancy) } : {}), ...(placement ? { placement: clone(placement) } : {}), ...(circulation ? { circulation: clone(circulation) } : {}), ...(queue ? { queue: clone(queue) } : {}), ...(staffPost ? { staffPost: clone(staffPost) } : {}), ...(production ? { production: clone(production) } : {}), ...(catering ? { catering: clone(catering) } : {}), ...(emergency ? { emergency: clone(emergency) } : {}), operational: clone({ ...(door ? { door } : {}), ...(exit ? { exit } : {}), ...(route ? { route } : {}), ...(restriction ? { restriction } : {}), ...(ramp ? { ramp } : {}), ...(utility ? { utility } : {}), ...(rigging ? { rigging } : {}), ...(productionZone ? { productionZone } : {}) }) })),
   lockedObjects: state.plan.objects.map((object) => ({ ...object, effectiveLocks: [...(object.locks ?? []), ...state.projectLocks.filter((lock) => lock.objectId === object.id)].filter((lock) => lock.active) })).filter((object) => object.effectiveLocks.length).map(({ id, kind, label, effectiveLocks }) => ({ id, kind, label, locks: clone(effectiveLocks) })),
   projectLocks: clone(state.projectLocks),
   comments: clone(state.comments),
@@ -434,7 +434,7 @@ const formatExport = (state) => {
   ].join("\n");
 };
 
-export function createVenuePlanner(initialPlan, { authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, projectId = null, approvalPolicy, adapterPlanningBindings = {}, legacyBriefProof = null } = {}) {
+export function createVenuePlanner(initialPlan, { authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, projectId = null, approvalPolicy, adapterPlanningBindings = {}, legacyBriefProof = null, operationalResourceFreshnessVerifier = null } = {}) {
   const durableInitialPlan = Object.keys(adapterPlanningBindings).length && initialPlan?.brief?.planningEffectBindings === undefined
     ? { ...clone(initialPlan), brief: { ...clone(initialPlan.brief), planningEffectBindings: clone(adapterPlanningBindings) } }
     : initialPlan;
@@ -449,6 +449,21 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
   let transaction = null;
   const scenarioRunner = createScenarioRunner();
   const pendingScenarioCommands = new Map();
+
+  const verifyOperationalResourceFreshness = (proposal) => {
+    const evidence = proposal.changes
+      .map((change) => change.effects?.adapterEvidence)
+      .filter((item) => item?.kind === "operational-resource-substitution");
+    if (evidence.length === 0) return [];
+    if (typeof operationalResourceFreshnessVerifier !== "function") throw venueError("OPERATIONAL_RESOURCE_FRESHNESS_REQUIRED", { proposalId: proposal.id, sourceIds: evidence.map((item) => item.sourceId) });
+    for (const item of evidence) {
+      const latest = operationalResourceFreshnessVerifier({ projectId: projectId ?? state.projectId ?? null, proposalId: proposal.id, planVersion: state.plan.version, snapshotId: item.sourceId, snapshotChecksum: item.sourceChecksum });
+      if (latest && typeof latest.then === "function") throw venueError("OPERATIONAL_RESOURCE_FRESHNESS_REQUIRED", { proposalId: proposal.id, reason: "synchronous-verifier-required" });
+      const current = latest === true || (latest?.snapshotId === item.sourceId && latest?.snapshotChecksum === item.sourceChecksum);
+      if (!current) throw venueError("OPERATIONAL_RESOURCE_STALE", { proposalId: proposal.id, snapshotId: item.sourceId });
+    }
+    return clone(evidence);
+  };
 
   const simulationBasisFingerprint = (value) => stableFingerprint("simulation-basis", {
     planVersion: value.plan.version,
@@ -1152,6 +1167,7 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
       if (command.proposalId !== state.proposal.id) throw venueError("PROPOSAL_MISMATCH", { expectedProposalId: state.proposal.id, receivedProposalId: command.proposalId ?? null });
       if (!Array.isArray(state.proposal.changes) || state.proposal.changes.length === 0) throw venueError("PROPOSAL_EMPTY", { proposalId: state.proposal.id });
       if (command.baseVersion !== state.plan.version || state.proposal.baseVersion !== state.plan.version) throw venueError("PLAN_VERSION_CONFLICT", { expectedVersion: state.plan.version, receivedVersion: command.baseVersion ?? null, proposalBaseVersion: state.proposal.baseVersion });
+      const operationalResourceEvidence = verifyOperationalResourceFreshness(state.proposal);
       assertNoLockConflicts(state.plan, state.proposal.changes, state.projectLocks);
       const validation = validateVenueState(state);
       if (validation.status !== "pass") throw venueError("VALIDATION_FAILED", { validationId: validation.validationId, blockingIssues: validation.blockingIssues });
@@ -1194,7 +1210,7 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
         plan,
         brief,
         editHistory: { undo: [], redo: [] },
-        ledger: appendLedger(state, "proposal.approved", command.actor ?? "human", { proposalId: state.proposal.id, branchId: state.activeBranchId, changeIds: state.proposal.changes.map((change) => change.id), validationId: validation.validationId, fromVersion: state.plan.version, toVersion: plan.version, ...(emergencyReview ? { emergencyReview: clone({ ...emergencyReview, acceptedPlanVersion: plan.version }) } : {}), acceptedPlan: clone(plan), planFingerprint: fingerprintPlan(plan), acceptedBrief: clone(brief), briefFingerprint: fingerprintEventBrief(brief) }),
+        ledger: appendLedger(state, "proposal.approved", command.actor ?? "human", { proposalId: state.proposal.id, branchId: state.activeBranchId, changeIds: state.proposal.changes.map((change) => change.id), validationId: validation.validationId, fromVersion: state.plan.version, toVersion: plan.version, ...(operationalResourceEvidence.length ? { operationalResourceEvidence } : {}), ...(emergencyReview ? { emergencyReview: clone({ ...emergencyReview, acceptedPlanVersion: plan.version }) } : {}), acceptedPlan: clone(plan), planFingerprint: fingerprintPlan(plan), acceptedBrief: clone(brief), briefFingerprint: fingerprintEventBrief(brief) }),
       });
       return { planId: plan.id, planVersion: plan.version, proposalId: state.proposal.id, status: "approved", validation };
     }

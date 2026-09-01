@@ -38,14 +38,14 @@ export const contributingPage = {
       id: "operations",
       title: "Migrations, release, and recovery",
       blocks: [
-        links({ label: "Schema migration guide", href: "/guides/schema-migrations.md" }, { label: "Database operations", href: "/guides/database-operations.md" }, { label: "Real-time collaboration", href: "/guides/realtime-collaboration.md" }, { label: "Sharing and notifications", href: "/guides/sharing-and-notifications.md" }, { label: "Registration and ticketing", href: "/guides/registration-and-ticketing.md" }, { label: "Release checklist", href: "/guides/release-checklist.md" }, { label: "Failure recovery runbook", href: "/guides/runbooks/failure-recovery.md" }, { label: "Security reporting policy", href: "/guides/security.md" }, { label: "Published guide manifest", href: "/guides/manifest.json" }),
+        links({ label: "Schema migration guide", href: "/guides/schema-migrations.md" }, { label: "Database operations", href: "/guides/database-operations.md" }, { label: "Real-time collaboration", href: "/guides/realtime-collaboration.md" }, { label: "Sharing and notifications", href: "/guides/sharing-and-notifications.md" }, { label: "Registration and ticketing", href: "/guides/registration-and-ticketing.md" }, { label: "Operational resources", href: "/guides/operational-resources.md" }, { label: "Release checklist", href: "/guides/release-checklist.md" }, { label: "Failure recovery runbook", href: "/guides/runbooks/failure-recovery.md" }, { label: "Security reporting policy", href: "/guides/security.md" }, { label: "Published guide manifest", href: "/guides/manifest.json" }),
       ],
     },
     {
       id: "decisions",
       title: "Architecture decisions",
       blocks: [
-        links({ label: "Canonical spatial frame", href: "/guides/adr/0003-canonical-spatial-frame.md" }, { label: "Human Roles and Agent Grants", href: "/guides/adr/0017-human-roles-and-agent-grants.md" }, { label: "Shared runtime contracts", href: "/guides/adr/0018-shared-runtime-contracts.md" }, { label: "Constraint registry", href: "/guides/adr/0019-versioned-constraint-registry.md" }, { label: "Ledger integrity and replay", href: "/guides/adr/0020-hash-chained-ledger-and-replay.md" }, { label: "Sites identity and tenancy", href: "/guides/adr/0021-sites-identity-and-server-owned-tenancy.md" }, { label: "Hashed bearer sharing", href: "/guides/adr/0024-hashed-bearer-sharing.md" }),
+        links({ label: "Canonical spatial frame", href: "/guides/adr/0003-canonical-spatial-frame.md" }, { label: "Human Roles and Agent Grants", href: "/guides/adr/0017-human-roles-and-agent-grants.md" }, { label: "Shared runtime contracts", href: "/guides/adr/0018-shared-runtime-contracts.md" }, { label: "Constraint registry", href: "/guides/adr/0019-versioned-constraint-registry.md" }, { label: "Ledger integrity and replay", href: "/guides/adr/0020-hash-chained-ledger-and-replay.md" }, { label: "Sites identity and tenancy", href: "/guides/adr/0021-sites-identity-and-server-owned-tenancy.md" }, { label: "Hashed bearer sharing", href: "/guides/adr/0024-hashed-bearer-sharing.md" }, { label: "Operational Resource Snapshots", href: "/guides/adr/0025-operational-resource-snapshots-are-not-plan-truth.md" }),
       ],
     },
   ],

@@ -1,6 +1,7 @@
 import { stableFingerprint } from "../domain/activity-ledger.js";
 import { normalizePlanningEffect } from "../domain/planning-effects.js";
 import { assertCanonicalUtcTimestamp } from "../domain/timestamps.js";
+import { isNonContactLabel } from "./privacy.js";
 
 export const ADAPTER_CONTRACT_VERSION = 1;
 export const ADAPTER_CAPABILITIES = Object.freeze(["import", "export", "synchronize", "webhook"]);
@@ -133,7 +134,7 @@ export function normalizeExternalReference(input, definition) {
 
 export function normalizeAdapterChange(input, definition) {
   assertPlainObject(input, "Adapter change");
-  assertExactKeys(input, ["id", "operation", "venueEntityType", "venueObjectId", "proposedVenueObjectId", "external", "values", "planningEffects", "baseChecksum"], "Adapter change");
+  assertExactKeys(input, ["id", "operation", "venueEntityType", "venueObjectId", "proposedVenueObjectId", "external", "values", "planningEffects", "baseChecksum", "evidence"], "Adapter change");
   assertString(input.id, "Adapter change ID");
   if (!CHANGE_OPERATION_SET.has(input.operation)) fail("ADAPTER_CONTRACT_INVALID", "Adapter change operation is invalid", { operation: input.operation });
   if (!VENUE_ENTITY_TYPE_SET.has(input.venueEntityType)) fail("ADAPTER_ENTITY_TYPE_INVALID", "Adapter change must use an explicit VenueMind entity type", { venueEntityType: input.venueEntityType });
@@ -150,6 +151,16 @@ export function normalizeAdapterChange(input, definition) {
   const venueStableId = input.operation === "create" ? input.proposedVenueObjectId : input.venueObjectId;
   if (venueStableId === external.externalId) fail("ADAPTER_ID_BOUNDARY_VIOLATION", "External IDs and VenueMind stable IDs must not be conflated", { venueObjectId: venueStableId, externalId: external.externalId });
   if (input.baseChecksum !== undefined && !SHA256.test(input.baseChecksum)) fail("ADAPTER_CHECKSUM_INVALID", "baseChecksum must be a lowercase SHA-256 digest");
+  if (input.evidence !== undefined) {
+    assertPlainObject(input.evidence, "Adapter change evidence");
+    assertExactKeys(input.evidence, ["kind", "sourceId", "sourceChecksum", "references"], "Adapter change evidence");
+    assertString(input.evidence.kind, "Adapter change evidence kind");
+    assertString(input.evidence.sourceId, "Adapter change evidence sourceId");
+    if (!isNonContactLabel(input.evidence.kind) || !isNonContactLabel(input.evidence.sourceId)) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Adapter change evidence labels must not contain contact data");
+    if (!SHA256.test(input.evidence.sourceChecksum ?? "")) fail("ADAPTER_CHECKSUM_INVALID", "Adapter change evidence sourceChecksum must be a lowercase SHA-256 digest");
+    if (!Array.isArray(input.evidence.references) || input.evidence.references.length > 20 || input.evidence.references.some((item) => typeof item !== "string" || !item) || new Set(input.evidence.references).size !== input.evidence.references.length) fail("ADAPTER_CONTRACT_INVALID", "Adapter change evidence references must be unique bounded strings");
+    if (input.evidence.references.some((item) => !isNonContactLabel(item))) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Adapter change evidence labels must not contain contact data");
+  }
   if (input.venueEntityType === "project-object-instance" && input.operation !== "delete") assertPlainObject(input.values, "Adapter change values");
   if (input.venueEntityType === "event-brief-requirement" && input.values !== undefined) fail("ADAPTER_CONTRACT_INVALID", "Requirement changes use typed planningEffects instead of values");
   const planningEffects = (input.planningEffects ?? []).map(normalizePlanningEffect);

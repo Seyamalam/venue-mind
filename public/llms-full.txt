@@ -1371,6 +1371,8 @@ Every stable VenueMind error code, user-safe message, and actionable remediation
 | LOCK_TYPE_INVALID | Lock type is invalid. | Use position, rotation, dimension, deletion, or role. |
 | LOCK_NOT_FOUND | Project Lock not found. | Inspect Project Locks and retry with an active stable Lock ID. |
 | PLAN_VERSION_CONFLICT | Plan version conflict. | Inspect the latest Plan Version and create or rebase the Proposal before retrying. |
+| OPERATIONAL_RESOURCE_FRESHNESS_REQUIRED | Operational resource freshness proof is required. | Resolve the latest trusted operational-resource snapshot for this Project before approving the Proposal. |
+| OPERATIONAL_RESOURCE_STALE | Operational resource evidence is stale. | Refresh operational resources, rebuild the substitution Proposal, and validate it again. |
 | VALIDATION_FAILED | Proposal validation failed. | Resolve every hard Constraint failure and validate again. |
 | WARNING_WAIVER_REQUIRED | Proposal has warnings that require a human Warning Waiver. | Have a human record a reason-coded waiver for every open warning. |
 | EMERGENCY_REVIEW_REQUIRED | Emergency Plan Change requires an authorized human Emergency Review. | Supply a reviewer ID, authorized reviewer role, and explicit assumption acceptance in VenueMind Studio. |
@@ -1614,6 +1616,15 @@ Remote authority, browser recovery, import safety, soft deletion, normalization,
 - Ticket Occupancy Reconciliation compares provider aggregates with repository-derived Project and Plan requirements without creating planning effects.
 
 - [Registration guide](https://venue-mind-jet.vercel.app/guides/registration-and-ticketing.md)
+
+## Operational resources
+
+- Operational Resource Snapshots reconcile live inventory, AV, power, catering, and staffing supply against one exact accepted Plan and trusted event window.
+- Unavailable, double-booked, insufficient, or incompatible bindings produce deterministic conflicts and non-applied compatible options.
+- Only an explicitly selected option becomes a reviewable Resource Binding Proposal; accepted Plan truth remains unchanged until human Approval.
+
+- [Operational resource guide](https://venue-mind-jet.vercel.app/guides/operational-resources.md)
+- [Operational snapshot ADR](https://venue-mind-jet.vercel.app/guides/adr/0025-operational-resource-snapshots-are-not-plan-truth.md)
 
 ## Recovery workflow
 
@@ -7269,6 +7280,7 @@ npm run check:generated
 - [Real-time collaboration](https://venue-mind-jet.vercel.app/guides/realtime-collaboration.md)
 - [Sharing and notifications](https://venue-mind-jet.vercel.app/guides/sharing-and-notifications.md)
 - [Registration and ticketing](https://venue-mind-jet.vercel.app/guides/registration-and-ticketing.md)
+- [Operational resources](https://venue-mind-jet.vercel.app/guides/operational-resources.md)
 - [Release checklist](https://venue-mind-jet.vercel.app/guides/release-checklist.md)
 - [Failure recovery runbook](https://venue-mind-jet.vercel.app/guides/runbooks/failure-recovery.md)
 - [Security reporting policy](https://venue-mind-jet.vercel.app/guides/security.md)
@@ -7283,6 +7295,7 @@ npm run check:generated
 - [Ledger integrity and replay](https://venue-mind-jet.vercel.app/guides/adr/0020-hash-chained-ledger-and-replay.md)
 - [Sites identity and tenancy](https://venue-mind-jet.vercel.app/guides/adr/0021-sites-identity-and-server-owned-tenancy.md)
 - [Hashed bearer sharing](https://venue-mind-jet.vercel.app/guides/adr/0024-hashed-bearer-sharing.md)
+- [Operational Resource Snapshots](https://venue-mind-jet.vercel.app/guides/adr/0025-operational-resource-snapshots-are-not-plan-truth.md)
 
 ---
 
