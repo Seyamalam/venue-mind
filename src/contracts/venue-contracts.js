@@ -1130,9 +1130,9 @@ export const operationalIncidentSchema = {
   $id: "https://venuemind.dev/schemas/operational-incident.schema.json",
   title: "VenueMind Operational Incident",
   type: "object",
-  required: ["id", "registerId", "revision", "severity", "category", "summaryCode", "status", "acknowledgement", "escalation", "location", "owner", "relatedRefs", "attachments", "handoffs", "emergencyActions", "timestamps"],
+  required: ["schemaVersion", "id", "revision", "severity", "category", "summaryCode", "status", "acknowledgement", "escalation", "location", "owner", "relatedRefs", "attachments", "handoffs", "emergencyActions", "timestamps"],
   properties: {
-    id: { type: "string", minLength: 1 }, registerId: { type: "string", minLength: 1 }, revision: { type: "integer", minimum: 1 }, severity: incidentSeveritySchema, category: incidentCategorySchema, summaryCode: { type: "string", minLength: 1, maxLength: 80, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }, status: { enum: ["open", "mitigating", "resolved", "closed"] }, acknowledgement: { type: "object" }, escalation: { type: "object" }, location: incidentLocationContextSchema, owner: { type: ["object", "null"] }, relatedRefs: { type: "array", items: { type: "object" }, maxItems: 20 }, attachments: { type: "array", items: { type: "object" }, maxItems: 8 }, handoffs: { type: "array", items: { type: "object" } }, emergencyActions: { type: "array", items: { type: "object" } }, timestamps: { type: "object" },
+    schemaVersion: { const: 1 }, id: { type: "string", minLength: 1 }, revision: { type: "integer", minimum: 1 }, severity: incidentSeveritySchema, category: incidentCategorySchema, summaryCode: { type: "string", minLength: 2, maxLength: 64, pattern: "^[A-Z][A-Z0-9_]{1,63}$" }, status: { enum: ["open", "mitigating", "resolved", "closed"] }, acknowledgement: { type: "object" }, escalation: { type: "object" }, location: incidentLocationContextSchema, owner: { type: ["object", "null"] }, relatedRefs: { type: "array", items: { type: "object" }, maxItems: 50 }, attachments: { type: "array", items: { type: "object" }, maxItems: 8 }, handoffs: { type: "array", items: { type: "object" } }, emergencyActions: { type: "array", items: { type: "object" } }, timestamps: { type: "object" },
   },
   additionalProperties: false,
 };
@@ -1142,8 +1142,8 @@ export const incidentRegisterSchema = {
   $id: "https://venuemind.dev/schemas/incident-register.schema.json",
   title: "VenueMind Incident Register",
   type: "object",
-  required: ["schemaVersion", "id", "projectId", "runbookVersionId", "source", "baselineFingerprint", "incidents", "transitions", "receipts", "ledger", "revision", "createdAt", "updatedAt"],
-  properties: { schemaVersion: { const: 1 }, id: { type: "string" }, projectId: { type: "string" }, runbookVersionId: { type: "string" }, source: { type: "object" }, baselineFingerprint: { type: "string", minLength: 1 }, incidents: { type: "array", items: operationalIncidentSchema }, transitions: { type: "array", items: { type: "object" } }, receipts: { type: "array", items: { type: "object" } }, ledger: { type: "array", items: { type: "object" } }, revision: { type: "integer", minimum: 0 }, createdAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" } },
+  required: ["schemaVersion", "id", "projectId", "runbookVersionId", "source", "baseline", "incidents", "transitions", "receipts", "ledger", "revision", "createdAt", "createdBy", "updatedAt"],
+  properties: { schemaVersion: { const: 1 }, id: { type: "string" }, projectId: { type: "string" }, runbookVersionId: { type: "string" }, source: { type: "object" }, baseline: { type: "object", required: ["fingerprint"], properties: { fingerprint: { type: "string", minLength: 1 } }, additionalProperties: true }, incidents: { type: "array", items: operationalIncidentSchema }, transitions: { type: "array", items: { type: "object" } }, receipts: { type: "array", items: { type: "object" } }, ledger: { type: "array", items: { type: "object" } }, revision: { type: "integer", minimum: 0 }, createdAt: { type: "string", format: "date-time" }, createdBy: { type: "string", minLength: 1 }, updatedAt: { type: "string", format: "date-time" } },
   additionalProperties: false,
 };
 
@@ -1551,7 +1551,7 @@ const baseVenueToolContracts = [
       properties: {
         severity: incidentSeveritySchema,
         category: incidentCategorySchema,
-        summaryCode: { type: "string", minLength: 1, maxLength: 80, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        summaryCode: { type: "string", minLength: 2, maxLength: 64, pattern: "^[A-Z][A-Z0-9_]{1,63}$" },
         location: incidentLocationInputSchema,
         relatedRefs: { type: "array", maxItems: 20, items: { type: "object", required: ["kind", "id"], properties: { kind: { enum: ["occupancy-alert", "runbook-task", "plan-object"] }, id: { type: "string", minLength: 1, maxLength: 160 } }, additionalProperties: false } },
         ...mutationMetadataProperties,
@@ -1633,7 +1633,7 @@ const exampleInputForTool = (name) => ({
   "venue.refresh_live_occupancy": { idempotencyKey: "example-occupancy-refresh-001" },
   "venue.export_live_occupancy": {},
   "venue.inspect_incidents": { status: "open", limit: 25 },
-  "venue.report_incident": { severity: "high", category: "crowd-capacity", summaryCode: "east-entry-congestion", location: { kind: "plan-object", planObjectId: "obj-entry-east" }, relatedRefs: [{ kind: "occupancy-alert", id: "occupancy-alert-east-entry" }], idempotencyKey: "example-incident-report-001" },
+  "venue.report_incident": { severity: "high", category: "crowd-capacity", summaryCode: "EAST_ENTRY_CONGESTION", location: { kind: "plan-object", planObjectId: "obj-entry-east" }, relatedRefs: [{ kind: "occupancy-alert", id: "occupancy-alert-east-entry" }], idempotencyKey: "example-incident-report-001" },
   "venue.export_incident_record": { incidentId: "incident-example-001" },
   "venue.export_plan": { format: "json" },
 }[name] ?? {});

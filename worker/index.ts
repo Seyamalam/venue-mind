@@ -16,6 +16,10 @@ import { createD1RunbookRepository, RunbookClientSequenceConflict, RunbookIdempo
 import { browserCommandToPersistenceInput, browserRunbookToPersistenceInput, repositoryRunbookToBrowserSnapshot } from "./runbook-http.ts";
 import { createD1OccupancyRepository, OccupancyMonitorConflict } from "./occupancy-repository.ts";
 import { acknowledgeOccupancyAlert, createLiveOccupancyMonitor, evaluateLiveOccupancy, exportLiveOccupancyAudit, ingestOccupancySignal, refreshLiveOccupancy } from "../src/domain/live-occupancy.js";
+import { createIncidentCommandBus } from "../src/domain/incident-command-bus.js";
+import { createD1IncidentRepository, IncidentRegisterConflict } from "./incident-repository.ts";
+import { createIncidentAttachmentService, IncidentAttachmentError } from "./incident-attachments.ts";
+import { venueError } from "../src/domain/errors.js";
 
 export { createD1AccountRepository, createMemoryAccountRepository } from "./account-repository.ts";
 export { createStaticIdentityProvider } from "./authentication.ts";
@@ -25,6 +29,8 @@ export { createD1SharingRepository, createMemorySharingRepository } from "./shar
 export { drainNotificationEmail } from "./email-delivery.ts";
 export { createD1RunbookRepository } from "./runbook-repository.ts";
 export { createD1OccupancyRepository } from "./occupancy-repository.ts";
+export { createD1IncidentRepository } from "./incident-repository.ts";
+export { createIncidentAttachmentService } from "./incident-attachments.ts";
 
 type ProjectRepository = ReturnType<typeof createD1ProjectRepository>;
 type AccountRepository = ReturnType<typeof createD1AccountRepository>;
@@ -32,8 +38,10 @@ type CollaborationRepository = ReturnType<typeof createD1CollaborationRepository
 type SharingRepository = ReturnType<typeof createD1SharingRepository>;
 type RunbookRepository = ReturnType<typeof createD1RunbookRepository>;
 type OccupancyRepository = ReturnType<typeof createD1OccupancyRepository>;
+type IncidentRepository = ReturnType<typeof createD1IncidentRepository>;
+type IncidentAttachmentService = ReturnType<typeof createIncidentAttachmentService>;
 type EmailDelivery = { send: (message: { idempotencyKey: string; to: string; bodyCode: string; refs: Record<string, string | number> }) => Promise<{ delivered: boolean; providerMessageId?: string }> };
-type WorkerEnv = CloudflareEnv & { EMAIL_DELIVERY?: EmailDelivery };
+type WorkerEnv = CloudflareEnv & { EMAIL_DELIVERY?: EmailDelivery; INCIDENT_EVIDENCE: R2Bucket };
 type WorkerOptions = {
   createProjectRepository?: (db: unknown) => ProjectRepository;
   createAccountRepository?: (db: unknown) => AccountRepository;
@@ -41,6 +49,8 @@ type WorkerOptions = {
   createSharingRepository?: (db: unknown) => SharingRepository;
   createRunbookRepository?: (db: unknown) => RunbookRepository;
   createOccupancyRepository?: (db: unknown) => OccupancyRepository;
+  createIncidentRepository?: (db: unknown) => IncidentRepository;
+  createIncidentAttachmentService?: (bucket: R2Bucket) => IncidentAttachmentService;
   identityProvider?: IdentityProvider;
   emailDelivery?: EmailDelivery;
   secureCookies?: boolean;
@@ -101,6 +111,8 @@ export function createWorker(options: WorkerOptions = {}) {
   const clock = options.clock ?? (() => new Date().toISOString());
   const runbookRepositoryFactory = options.createRunbookRepository ?? ((db) => createD1RunbookRepository(db as never, { clock }));
   const occupancyRepositoryFactory = options.createOccupancyRepository ?? ((db) => createD1OccupancyRepository(db as never));
+  const incidentRepositoryFactory = options.createIncidentRepository ?? ((db) => createD1IncidentRepository(db as never));
+  const incidentAttachmentServiceFactory = options.createIncidentAttachmentService ?? ((bucket) => createIncidentAttachmentService({ bucket, clock }));
 
   const appendShareLedger = async (env: WorkerEnv, organizationId: string, actorUserId: string, sessionId: string, record: ProjectRecord, command: Record<string, unknown>) => {
     const projects = projectRepositoryFactory(env.DB);
@@ -289,6 +301,7 @@ export function createWorker(options: WorkerOptions = {}) {
       const sharing = sharingRepositoryFactory(env.DB);
       const runbooks = runbookRepositoryFactory(env.DB);
       const occupancy = occupancyRepositoryFactory(env.DB);
+      const incidents = incidentRepositoryFactory(env.DB);
       const notifyOrganization = async (eventType: string, record: ProjectRecord, refs: Record<string, string | number>, excludeUserId: string | null = account.user.id) => {
         const recipients = await sharing.notificationRecipients(organization.id, eventType, excludeUserId);
         for (const recipient of recipients) {
@@ -298,6 +311,9 @@ export function createWorker(options: WorkerOptions = {}) {
       };
       const canWriteRunbooks = ["planner", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
       const canWriteOccupancy = canWriteRunbooks;
+      const canWriteIncidents = canWriteRunbooks;
+      const canExportIncidents = ["reviewer", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
+      const canActOnEmergency = ["venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
       const runbookCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks$/);
       const runbookItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)$/);
       const runbookSyncMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)\/transitions:sync$/);
@@ -454,6 +470,139 @@ export function createWorker(options: WorkerOptions = {}) {
         const monitorId = decodeURIComponent(occupancyItemMatch[2]);
         const monitor = await occupancy.get(organization.id, projectId, monitorId);
         return monitor ? respond({ monitor, projection: evaluateLiveOccupancy(monitor, { at: clock() }) }) : apiError(404, "OCCUPANCY_MONITOR_NOT_FOUND", "Live Occupancy monitor not found");
+      }
+      const incidentCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers$/);
+      const incidentCommandMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/commands:sync$/);
+      const incidentNestedExportMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/incidents\/([^/]+)\/export$/);
+      const incidentExportMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/export$/);
+      const incidentAttachmentMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/incidents\/([^/]+)\/attachments$/);
+      const incidentAttachmentItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/incidents\/([^/]+)\/attachments\/([^/]+)$/);
+      const incidentItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)$/);
+      if (incidentCollectionMatch && request.method === "POST") {
+        if (!canWriteIncidents) return apiError(403, "INCIDENT_WRITE_DENIED", "Incident write role required");
+        const projectId = decodeURIComponent(incidentCollectionMatch[1]);
+        if (!await projects.get(organization.id, projectId)) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let body: { runbookVersionId?: string };
+        try { body = await readBody(request); }
+        catch (cause) { return apiError(cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400, "INCIDENT_BASELINE_INVALID", "Incident Register payload is invalid"); }
+        if (typeof body.runbookVersionId !== "string" || !body.runbookVersionId.trim()) return apiError(400, "INCIDENT_BASELINE_INVALID", "Runbook Version ID is required");
+        const storedRunbook = await runbooks.getRunbook(organization.id, projectId, body.runbookVersionId);
+        if (!storedRunbook) return apiError(404, "RUNBOOK_NOT_FOUND", "Runbook not found");
+        try {
+          const existing = await incidents.getByRunbook(organization.id, projectId, body.runbookVersionId);
+          const bus = createIncidentCommandBus();
+          const result = bus.execute({ type: "create_incident_register", projectId, runbook: repositoryRunbookToBrowserSnapshot(storedRunbook), createdAt: clock(), createdBy: account.user.id, actorType: "human" });
+          const saved = await incidents.create(organization.id, projectId, result.register as never);
+          return respond({ status: existing ? "already-applied" : "created", register: saved }, { status: existing ? 200 : 201 });
+        } catch (cause) {
+          const error = cause as { code?: string; message?: string; details?: unknown };
+          if (cause instanceof IncidentRegisterConflict) return apiError(409, error.code, error.message ?? "Incident Register conflicts with stored state", error.details);
+          if (error.code?.startsWith("INCIDENT_")) return apiError(400, error.code, error.message ?? "Incident Register baseline is invalid", error.details);
+          throw cause;
+        }
+      }
+      if (incidentCommandMatch && request.method === "POST") {
+        if (!canWriteIncidents) return apiError(403, "INCIDENT_WRITE_DENIED", "Incident write role required");
+        const projectId = decodeURIComponent(incidentCommandMatch[1]);
+        const registerId = decodeURIComponent(incidentCommandMatch[2]);
+        if (!await projects.get(organization.id, projectId)) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let body: { commands?: unknown[] };
+        try { body = await readBody(request); }
+        catch (cause) { return apiError(cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400, "INCIDENT_SYNC_INVALID", "Incident sync payload is invalid"); }
+        if (!Array.isArray(body.commands) || body.commands.length > 100) return apiError(400, "INCIDENT_SYNC_INVALID", "Incident sync commands are invalid");
+        let current = await incidents.get(organization.id, projectId, registerId);
+        if (!current) return apiError(404, "INCIDENT_REGISTER_NOT_FOUND", "Incident Register not found");
+        const acknowledgements: Array<Record<string, unknown>> = [];
+        for (const candidate of body.commands) {
+          const command = candidate && typeof candidate === "object" && !Array.isArray(candidate) ? candidate as Record<string, unknown> : {};
+          const identity = { idempotencyKey: typeof command.idempotencyKey === "string" ? command.idempotencyKey : null, operationId: typeof command.operationId === "string" ? command.operationId : null };
+          try {
+            if (command.type === "attach_incident_evidence") throw venueError("INCIDENT_ATTACHMENT_INVALID", { reason: "multipart-upload-required" });
+            if (command.type === "record_incident_emergency_action" && !canActOnEmergency) throw venueError("AUTHORIZATION_DENIED", { permission: "incident.emergency-act" });
+            const committedAt = clock();
+            const bus = createIncidentCommandBus({ initialRegister: current });
+            const result = bus.execute({ ...command, actorType: "human", actorId: account.user.id, source: "studio", sessionId: account.session.id, committedAt });
+            if (!result.duplicate) await incidents.put(organization.id, projectId, result.register as never, current.revision);
+            current = result.register;
+            acknowledgements.push({ ...identity, status: result.duplicate ? "already-applied" : "applied", receipt: result.receipt });
+          } catch (cause) {
+            const error = cause as { code?: string; message?: string; details?: unknown };
+            if (cause instanceof IncidentRegisterConflict || ["IDEMPOTENCY_KEY_CONFLICT", "INCIDENT_REVISION_CONFLICT"].includes(error.code ?? "")) {
+              acknowledgements.push({ ...identity, status: "conflict", code: error.code ?? "INCIDENT_REGISTER_REVISION_CONFLICT", details: error.details });
+              continue;
+            }
+            if (["AUTHORIZATION_DENIED", "IDEMPOTENCY_KEY_REQUIRED", "COMMAND_UNSUPPORTED"].includes(error.code ?? "") || error.code?.startsWith("INCIDENT_")) {
+              acknowledgements.push({ ...identity, status: "rejected", code: error.code ?? "INCIDENT_COMMAND_INVALID", details: error.details, message: error.message });
+              continue;
+            }
+            throw cause;
+          }
+        }
+        return respond({ acknowledgements, register: current });
+      }
+      if (incidentAttachmentMatch && request.method === "POST") {
+        if (!canWriteIncidents) return apiError(403, "INCIDENT_ATTACHMENT_DENIED", "Incident attachment role required");
+        const projectId = decodeURIComponent(incidentAttachmentMatch[1]);
+        const registerId = decodeURIComponent(incidentAttachmentMatch[2]);
+        const incidentId = decodeURIComponent(incidentAttachmentMatch[3]);
+        const current = await incidents.get(organization.id, projectId, registerId);
+        const incident = current?.incidents?.find((candidate: { id?: string }) => candidate.id === incidentId);
+        if (!current || !incident) return apiError(404, !current ? "INCIDENT_REGISTER_NOT_FOUND" : "INCIDENT_NOT_FOUND", !current ? "Incident Register not found" : "Incident not found");
+        let uploaded: Awaited<ReturnType<IncidentAttachmentService["upload"]>> | null = null;
+        try {
+          const form = await request.formData();
+          const file = form.get("file");
+          if (!(file instanceof File)) throw new IncidentAttachmentError("INCIDENT_ATTACHMENT_INVALID", "Attachment file is required");
+          const service = incidentAttachmentServiceFactory(env.INCIDENT_EVIDENCE);
+          uploaded = await service.upload({ incidentId, filename: file.name, mimeType: file.type, content: file, existingAttachments: incident.attachments });
+          const bus = createIncidentCommandBus({ initialRegister: current });
+          const result = bus.execute({ type: "attach_incident_evidence", incidentId, expectedIncidentRevision: incident.revision, attachment: { id: uploaded.id, kind: uploaded.mimeType === "application/pdf" ? "document" : "photo", status: "available", contentType: uploaded.mimeType, byteLength: uploaded.byteLength, sha256: uploaded.sha256, uploadedBy: account.user.id, uploadedAt: uploaded.createdAt }, idempotencyKey: `attach-${uploaded.id}`, operationId: `attach-${uploaded.id}`, actorType: "human", actorId: account.user.id, source: "studio", sessionId: account.session.id, committedAt: clock() });
+          await incidents.put(organization.id, projectId, result.register as never, current.revision);
+          return respond({ status: "attached", register: result.register, incident: result.incident, attachment: result.incident.attachments.at(-1) }, { status: 201 });
+        } catch (cause) {
+          if (uploaded) await env.INCIDENT_EVIDENCE.delete(`private/${uploaded.id}`);
+          const error = cause as { code?: string; message?: string; details?: unknown };
+          if (cause instanceof IncidentRegisterConflict) return apiError(409, error.code, error.message ?? "Incident Register revision conflict", error.details);
+          if (cause instanceof IncidentAttachmentError || error.code?.startsWith("INCIDENT_ATTACHMENT")) return apiError(400, error.code ?? "INCIDENT_ATTACHMENT_INVALID", error.message ?? "Incident attachment is invalid", error.details);
+          throw cause;
+        }
+      }
+      if (incidentAttachmentItemMatch && request.method === "GET") {
+        const projectId = decodeURIComponent(incidentAttachmentItemMatch[1]);
+        const registerId = decodeURIComponent(incidentAttachmentItemMatch[2]);
+        const incidentId = decodeURIComponent(incidentAttachmentItemMatch[3]);
+        const attachmentId = decodeURIComponent(incidentAttachmentItemMatch[4]);
+        const current = await incidents.get(organization.id, projectId, registerId);
+        const incident = current?.incidents?.find((candidate: { id?: string }) => candidate.id === incidentId);
+        const attachment = incident?.attachments?.find((candidate: { id?: string }) => candidate.id === attachmentId);
+        if (!current || !incident || !attachment) return apiError(404, "INCIDENT_ATTACHMENT_NOT_FOUND", "Incident attachment not found");
+        const extension = attachment.contentType === "application/pdf" ? "pdf" : attachment.contentType === "image/png" ? "png" : attachment.contentType === "image/webp" ? "webp" : "jpg";
+        try { return await incidentAttachmentServiceFactory(env.INCIDENT_EVIDENCE).download({ ...attachment, incidentId, filename: `${attachment.id}.${extension}`, mimeType: attachment.contentType, createdAt: attachment.uploadedAt } as never); }
+        catch (cause) {
+          const error = cause as { code?: string; message?: string; details?: unknown };
+          return apiError(error.code === "INCIDENT_ATTACHMENT_NOT_FOUND" ? 404 : 409, error.code ?? "INCIDENT_ATTACHMENT_UNAVAILABLE", error.message ?? "Incident attachment unavailable", error.details);
+        }
+      }
+      if ((incidentNestedExportMatch || incidentExportMatch) && request.method === "GET") {
+        if (!canExportIncidents) return apiError(403, "INCIDENT_EXPORT_DENIED", "Incident export role required");
+        const match = incidentNestedExportMatch ?? incidentExportMatch!;
+        const projectId = decodeURIComponent(match[1]);
+        const registerId = decodeURIComponent(match[2]);
+        const incidentId = incidentNestedExportMatch ? decodeURIComponent(match[3]) : url.searchParams.get("incidentId")?.trim();
+        if (!incidentId) return apiError(400, "INCIDENT_INVALID", "Incident ID is required");
+        const current = await incidents.get(organization.id, projectId, registerId);
+        if (!current) return apiError(404, "INCIDENT_REGISTER_NOT_FOUND", "Incident Register not found");
+        try { return respond({ artifact: createIncidentCommandBus({ initialRegister: current }).execute({ type: "export_incident_record", incidentId, exportedAt: clock() }) }); }
+        catch (cause) {
+          const error = cause as { code?: string; message?: string; details?: unknown };
+          return apiError(error.code === "INCIDENT_NOT_FOUND" ? 404 : 409, error.code ?? "INCIDENT_EXPORT_FAILED", error.message ?? "Incident export failed", error.details);
+        }
+      }
+      if (incidentItemMatch && request.method === "GET") {
+        const projectId = decodeURIComponent(incidentItemMatch[1]);
+        const registerId = decodeURIComponent(incidentItemMatch[2]);
+        const register = await incidents.get(organization.id, projectId, registerId);
+        return register ? respond({ register }) : apiError(404, "INCIDENT_REGISTER_NOT_FOUND", "Incident Register not found");
       }
       if (url.pathname === "/api/notifications" && request.method === "GET") return respond({ notifications: await sharing.listNotifications(account.user.id, organization.id) });
       if (url.pathname === "/api/notification-preferences" && request.method === "GET") return respond(await sharing.preferences(account.user.id));

@@ -162,6 +162,16 @@ test("authorized humans classify, own, acknowledge, escalate, relocate, hand off
   assert.equal(artifact.ledger.length, 12);
 });
 
+test("Incident evidence accepts private-storage metadata for documents and enforces the five MiB boundary", () => {
+  let register = createIncidentRegister({ projectId: "project-summit-forward", runbook: makeRunbook(), createdAt: "2026-09-12T09:00:00.000Z", createdBy: "user-ops" });
+  ({ register } = reportIncident(register, report(), { committedAt: "2026-09-12T09:05:00.000Z" }));
+  const base = { incidentId: "incident-east-exit", idempotencyKey: "attachment-pdf", expectedIncidentRevision: 1, actorType: "human", actorId: "user-ops", source: "studio", sessionId: "session-event-day" };
+  const attachment = { id: "incident-evidence-pdf", kind: "document", status: "available", contentType: "application/pdf", byteLength: 5 * 1024 * 1024, sha256: "b".repeat(64), uploadedBy: "user-ops", uploadedAt: "2026-09-12T09:05:30.000Z" };
+  const result = attachIncidentEvidence(register, { ...base, attachment }, { committedAt: "2026-09-12T09:06:00.000Z" });
+  assert.equal(result.incident.attachments[0].kind, "document");
+  assert.throws(() => attachIncidentEvidence(register, { ...base, idempotencyKey: "attachment-too-large", attachment: { ...attachment, byteLength: 5 * 1024 * 1024 + 1 } }, { committedAt: "2026-09-12T09:06:00.000Z" }), (error) => error.code === "INCIDENT_ATTACHMENT_INVALID");
+});
+
 test("agents cannot exercise human Incident authority", () => {
   let register = createIncidentRegister({ projectId: "project-summit-forward", runbook: makeRunbook(), createdAt: "2026-09-12T09:00:00.000Z", createdBy: "user-ops" });
   ({ register } = reportIncident(register, report({ actorType: "agent", actorId: "agent-ops", source: "webmcp" }), { committedAt: "2026-09-12T09:05:00.000Z" }));
