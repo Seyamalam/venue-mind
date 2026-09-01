@@ -165,6 +165,33 @@ test("staffing capability preserves exact role and shift pairs", () => {
   assert.equal(resourceSatisfiesDemand(resource, { family: "staffing", requirements: { roleId: "role-security", shiftId: "shift-day" } }), true);
 });
 
+test("an unavailable staffing assignment is isolated and classified by its exact role and shift", async () => {
+  const staffRef = "staff-ref-11111111111111111111111111111111";
+  const resourceId = "resource-staff-a";
+  const input = prepared({
+    resources: [{ resourceId, family: "staffing", status: "available", total: 1, unavailable: 0, bookings: [], capability: { assignments: [
+      { roleId: "role-security", shiftId: "shift-event", status: "available", bookings: [] },
+      { roleId: "role-usher", shiftId: "shift-event", status: "unavailable", bookings: [] },
+    ] }, source: { entityType: "staff-assignment", sourceVersion: "77", checksum: "a".repeat(64) } }],
+    staffing: {
+      roles: [
+        { roleId: "role-security", availableHeadcount: 1, skills: [], sourceChecksum: "b".repeat(64) },
+        { roleId: "role-usher", availableHeadcount: 1, skills: [], sourceChecksum: "c".repeat(64) },
+      ],
+      shifts: [{ shiftId: "shift-event", ...EVENT, sourceChecksum: "d".repeat(64) }],
+      assignments: [
+        { assignmentId: "staff-assignment-security", staffRef, roleId: "role-security", shiftId: "shift-event", resourceId, sourceChecksum: "e".repeat(64) },
+        { assignmentId: "staff-assignment-usher", staffRef, roleId: "role-usher", shiftId: "shift-event", resourceId, sourceChecksum: "f".repeat(64) },
+      ],
+    },
+    demands: [{ demandId: "demand-usher", family: "staffing", resourceId, quantity: 1, targetObjectIds: ["obj-post-usher"], requirements: { roleId: "role-usher", shiftId: "shift-event" }, baseObjectChecksum: "1".repeat(64) }],
+  });
+
+  const result = await reconcileOperationalResources(input);
+  assert.equal(result.conflicts[0].reason, "unavailable");
+  assert.equal(result.conflicts[0].availableQuantity, 0);
+});
+
 test("staffing reconciliation reserves aggregate role headcount", async () => {
   const staffSource = (checksum) => ({ entityType: "staff-assignment", sourceVersion: "77", checksum });
   const staffResource = (resourceId, checksum) => ({ resourceId, family: "staffing", status: "available", total: 1, unavailable: 0, bookings: [], capability: { assignments: [{ roleId: "role-security", shiftId: "shift-event" }] }, source: staffSource(checksum) });

@@ -243,7 +243,7 @@ const availabilityFor = (resource, project, demand = null) => {
   const otherBookings = bookings.filter((booking) => booking.reservationRef !== project.currentReservationRef && bookingOverlaps(booking, project.eventWindow));
   const booked = otherBookings.reduce((sum, booking) => sum + booking.quantity, 0);
   const healthy = status === "unavailable" ? 0 : Math.max(0, resource.total - resource.unavailable);
-  return { healthy, booked, available: Math.max(0, healthy - booked), bookingRefs: otherBookings.map((item) => item.bookingRef).sort(compare) };
+  return { status, healthy, booked, available: Math.max(0, healthy - booked), bookingRefs: otherBookings.map((item) => item.bookingRef).sort(compare) };
 };
 
 const sameTemplate = (left, right) => left.templateId === right.templateId && left.version === right.version;
@@ -268,7 +268,7 @@ const staffingSatisfiesProject = (resource, demand, input) => {
 
 const conflictReason = (resource, demand, availability) => {
   if (availability.available >= demand.quantity) return null;
-  if (resource.status === "unavailable" || resource.unavailable >= resource.total) return "unavailable";
+  if (availability.status === "unavailable" || resource.unavailable >= resource.total) return "unavailable";
   if (availability.booked > 0 && availability.healthy >= demand.quantity) return "double-booked";
   return "capacity-shortfall";
 };
