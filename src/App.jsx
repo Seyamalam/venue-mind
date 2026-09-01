@@ -35,6 +35,7 @@ import { SharingControls } from "./SharingControls.jsx";
 import { browserNavigate, navigateInternalLink } from "./navigation.js";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "../components/ui/sheet";
 import { ToggleGroup, ToggleGroupItem } from "../components/ui/toggle-group";
 import "./styles.css";
 
@@ -1012,17 +1013,20 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
       /></Suspense>}
       {commentsMounted && <Suspense fallback={commentsOpen ? <div className="panel-loading is-side" role="status">COMMENTS</div> : null}><LazyCommentsPanel open={commentsOpen} state={plannerState} selectedCommentId={selectedCommentId} onAdd={handleAddComment} onEdit={handleEditComment} onStatus={handleCommentStatus} onClose={() => setCommentsOpen(false)} /></Suspense>}
       {simulationMounted && <Suspense fallback={simulationOpen ? <div className="panel-loading is-side" role="status">SIM</div> : null}><LazyScenarioPanel open={simulationOpen} branches={branches} runs={plannerState.scenarioRuns} onClose={() => { setSimulationOpen(false); setSimulationOverlay(null); }} onRun={handleRunScenario} onCompare={(leftRunId, rightRunId) => planner.execute({ type: "compare_simulations", leftRunId, rightRunId })} onExport={handleExportSimulation} onOverlayChange={setSimulationOverlay} onPreviewOption={handlePreviewQueueOption} /></Suspense>}
-      {comparisonOpen && branchComparison && <aside className="branch-comparison" aria-label="Proposal Branch comparison">
-        <div className="branch-comparison-heading"><div><span className="eyebrow">Branch comparison</span><strong>{branchComparison.comparisonId}</strong></div><button type="button" onClick={() => setComparisonOpen(false)} aria-label="Close branch comparison"><X size={18} /></button></div>
+      <Sheet open={comparisonOpen && Boolean(branchComparison)} onOpenChange={(open) => { if (!open) setComparisonOpen(false); }}>
+      {branchComparison && <SheetContent className="branch-comparison !h-auto !gap-0 !p-0 sm:!max-w-none" side="left" showOverlay={false} showCloseButton={false} aria-label="Proposal Branch comparison">
+        <div className="branch-comparison-heading"><div><SheetTitle asChild><span className="eyebrow">BRANCH COMPARE</span></SheetTitle><strong>{branchComparison.comparisonId}</strong><SheetDescription className="sr-only">Proposal Branch metrics, constraints, spatial deltas, and decision controls</SheetDescription></div><button type="button" onClick={() => setComparisonOpen(false)} aria-label="Close branch comparison"><X size={18} /></button></div>
         <div className="branch-comparison-columns"><div><small>A · {branchComparison.left.strategy}</small><strong>{branchComparison.left.name}</strong><span className={`branch-status is-${branchComparison.left.validationStatus}`}>{branchComparison.left.validationStatus.toUpperCase()} · {branchComparison.left.changedItems} CHG</span><em>{branchComparison.left.notes || "—"}</em><code>{branchComparison.left.geometryFingerprint}</code></div><div><small>B · {branchComparison.right.strategy}</small><strong>{branchComparison.right.name}</strong><span className={`branch-status is-${branchComparison.right.validationStatus}`}>{branchComparison.right.validationStatus.toUpperCase()} · {branchComparison.right.changedItems} CHG</span><em>{branchComparison.right.notes || "—"}</em><code>{branchComparison.right.geometryFingerprint}</code></div></div>
         {comparisonView && <div className="comparison-overlay"><div className="comparison-overlay-key"><span className="is-plan">PLAN</span><span className="is-left">A</span><span className="is-right">B</span></div><svg viewBox={comparisonView.viewBox} aria-label="Accepted Plan and Proposal Branch overlay"><polygon className="comparison-room" points={comparisonView.boundaryPoints} />{branchComparison.overlay.acceptedObjects.map((object) => <ComparisonShape key={`plan-${object.id}`} object={object} maxY={comparisonView.maxY} className="is-plan" />)}{branchComparison.overlay.leftObjects.filter((object) => comparisonView.leftChangedIds.has(object.id)).map((object) => <ComparisonShape key={`left-${object.id}`} object={object} maxY={comparisonView.maxY} className="is-left" />)}{branchComparison.overlay.rightObjects.filter((object) => comparisonView.rightChangedIds.has(object.id)).map((object) => <ComparisonShape key={`right-${object.id}`} object={object} maxY={comparisonView.maxY} className="is-right" />)}</svg></div>}
         <div className="branch-comparison-section"><span className="eyebrow">Metrics</span><div className="comparison-metric-table">{branchComparison.metricDeltas.map((metric) => <div className="comparison-metric-row" key={metric.metric}><strong>{metric.label}</strong><span>{formatComparisonMetric(metric, metric.left)}</span><span>{formatComparisonMetric(metric, metric.right)}</span><b className={metric.delta === 0 ? "is-neutral" : ""}>{formatComparisonMetric(metric, metric.delta, true)}</b></div>)}</div></div>
         <div className="branch-comparison-section"><span className="eyebrow">Constraints</span><div className="comparison-constraint-table">{branchComparison.constraintDeltas.map((constraint) => <div className="comparison-constraint-row" key={constraint.constraintId}><strong>{constraint.label}</strong><span className={`is-${constraint.leftStatus}`}>{constraint.leftStatus.toUpperCase()}</span><span className={`is-${constraint.rightStatus}`}>{constraint.rightStatus.toUpperCase()}</span><b className={`is-${constraint.outcome}`}>{constraint.outcome.toUpperCase()}</b></div>)}</div></div>
         <div className="branch-comparison-section"><span className="eyebrow">Spatial deltas</span><div className="comparison-object-groups">{[["Moved", branchComparison.objectDeltas.movedObjectIds], ["Rotated", branchComparison.objectDeltas.rotatedObjectIds], ["Resized", branchComparison.objectDeltas.resizedObjectIds], ["Added", branchComparison.objectDeltas.addedObjectIds], ["Removed", branchComparison.objectDeltas.removedObjectIds], ["Metadata", branchComparison.objectDeltas.metadataObjectIds]].map(([label, ids]) => <div key={label}><strong>{label}</strong><b>{ids.length}</b><small>{ids.join(" · ") || "—"}</small></div>)}</div></div>
         <div className="comparison-decision"><input aria-label="Decision note" placeholder="DECISION NOTE" value={decisionNote} onChange={(event) => setDecisionNote(event.target.value)} /><button type="button" onClick={() => handleBranchDecision(branchComparison.left.branchId, branchComparison.right.branchId)}>CHOOSE A</button><button type="button" onClick={() => handleBranchDecision(branchComparison.right.branchId, branchComparison.left.branchId)}>CHOOSE B</button></div>
-      </aside>}
-      {legacyBriefMigration && legacyBriefReviewOpen && <aside className="brief-editor legacy-brief-review" aria-label="Legacy Event Brief review">
-        <div className="brief-editor-heading"><div><span className="eyebrow">Legacy brief</span><strong>{legacyBriefMigration.briefFingerprint}</strong></div><button type="button" onClick={() => setLegacyBriefReviewOpen(false)} aria-label="Close legacy Event Brief review"><X size={18} /></button></div>
+      </SheetContent>}
+      </Sheet>
+      <Sheet open={Boolean(legacyBriefMigration && legacyBriefReviewOpen)} onOpenChange={(open) => { if (!open) setLegacyBriefReviewOpen(false); }}>
+      {legacyBriefMigration && <SheetContent className="brief-editor legacy-brief-review !h-auto !gap-0 !p-0 sm:!max-w-none" side="left" showOverlay={false} showCloseButton={false} aria-label="Legacy Event Brief review">
+        <div className="brief-editor-heading"><div><SheetTitle asChild><span className="eyebrow">LEGACY BRIEF</span></SheetTitle><strong>{legacyBriefMigration.briefFingerprint}</strong><SheetDescription className="sr-only">Legacy Event Brief requirements and adoption controls</SheetDescription></div><button type="button" onClick={() => setLegacyBriefReviewOpen(false)} aria-label="Close legacy Event Brief review"><X size={18} /></button></div>
         <div className="brief-fields">
           <label><span>Event</span><b>{legacyBriefMigration.brief.eventName}</b></label>
           <label><span>Date</span><b>{legacyBriefMigration.brief.date ?? "—"}</b></label>
@@ -1037,11 +1041,13 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           <b>{requirement.priority.toUpperCase()}</b><b>{requirement.status.toUpperCase()}</b><span className={`requirement-link ${requirement.constraintIds.length > 0 ? "is-linked" : ""}`}>{requirement.constraintIds.length} C</span>
         </div>)}</div>
         <div className="brief-editor-actions"><button type="button" onClick={() => setLegacyBriefReviewOpen(false)}>CLOSE</button><button type="button" className="legacy-adopt-button" onClick={handleLegacyBriefAttestation}>ADOPT</button></div>
-      </aside>}
-      {briefOpen && briefDraft && (
-        <aside className="brief-editor" aria-label="Event Brief editor">
+      </SheetContent>}
+      </Sheet>
+      <Sheet open={briefOpen && Boolean(briefDraft)} onOpenChange={(open) => { if (!open) setBriefOpen(false); }}>
+      {briefDraft && (
+        <SheetContent className="brief-editor !h-auto !gap-0 !p-0 sm:!max-w-none" side="left" showOverlay={false} showCloseButton={false} aria-label="Event Brief editor">
           <form onSubmit={handleBriefSave}>
-            <div className="brief-editor-heading"><div><span className="eyebrow">Event brief</span><strong>{briefDraft.id}</strong></div><button type="button" onClick={() => setBriefOpen(false)} aria-label="Close Event Brief"><X size={18} /></button></div>
+            <div className="brief-editor-heading"><div><SheetTitle asChild><span className="eyebrow">EVENT BRIEF</span></SheetTitle><strong>{briefDraft.id}</strong><SheetDescription className="sr-only">Event requirements and constraint coverage editor</SheetDescription></div><button type="button" onClick={() => setBriefOpen(false)} aria-label="Close Event Brief"><X size={18} /></button></div>
             <div className="brief-fields">
               <label><span>Event</span><input value={briefDraft.eventName} onChange={(event) => updateBriefField("eventName", event.target.value)} required /></label>
               <label><span>Date</span><input type="date" value={briefDraft.date ?? ""} onChange={(event) => updateBriefField("date", event.target.value || null)} /></label>
@@ -1062,8 +1068,9 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
             </div>)}</div>
             <div className="brief-editor-actions"><button type="button" onClick={() => setBriefOpen(false)}>Cancel</button><button type="submit">Save brief</button></div>
           </form>
-        </aside>
+        </SheetContent>
       )}
+      </Sheet>
       {toast && <div className="toast" role="status"><CircleNotch size={18} weight="bold" />{toast}</div>}
     </div>
   );

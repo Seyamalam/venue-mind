@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "../components/ui/sheet";
 import { createProjectStore } from "./persistence/project-store.js";
 import { browserNavigate, navigateInternalLink } from "./navigation.js";
 import "./project-dashboard.css";
@@ -240,15 +241,17 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
           </section>
         )}
       </main>
-      {importPreview && <aside className="import-preview" aria-label="Import Preview">
-        <div className="import-preview-heading"><div><span className="projects-kicker">Import preview</span><strong>{importPreview.packageId}</strong></div><button type="button" onClick={() => setImportPreview(null)} aria-label="Close Import Preview"><X size={19} /></button></div>
-        <div className="import-preview-status"><CheckCircle size={24} weight="fill" /><div><strong>{importPreview.idConflict ? "ID CONFLICT" : "READY"}</strong><small>{importPreview.integrity.checksum.toUpperCase()} · {importPreview.integrity.ledger.toUpperCase()} · {importPreview.integrity.replay.toUpperCase()}</small></div></div>
-        <div className="import-preview-project"><span>PROJECT</span><strong>{importPreview.summary.projectName}</strong><code>{importPreview.summary.projectId}</code></div>
-        <div className="import-preview-grid"><div><small>PLAN</small><strong>v{importPreview.summary.planVersion}</strong></div><div><small>OBJECTS</small><strong>{importPreview.summary.objects}</strong></div><div><small>CONSTRAINTS</small><strong>{importPreview.summary.constraints}</strong></div><div><small>BRANCHES</small><strong>{importPreview.summary.branches}</strong></div><div><small>LEDGER</small><strong>{importPreview.summary.ledgerEntries}</strong></div><div><small>VALIDATION</small><strong>{importPreview.summary.validationStatus.toUpperCase()}</strong></div></div>
-        <div className="import-migration"><span>MIGRATION</span><strong>v{importPreview.migration.fromSchemaVersion} → v{importPreview.migration.toSchemaVersion}</strong><small>{importPreview.migration.actions.join(" · ") || "NONE"}</small></div>
-        <div className="import-preview-integrity"><code>{importPreview.integrity.planFingerprint}</code><code>{importPreview.integrity.ledgerHeadHash}</code></div>
-        <button className="import-commit" type="button" disabled={importPreview.idConflict || importing} onClick={commitImport}>{importing ? <CircleNotch className="spin" size={17} /> : <UploadSimple size={17} />}IMPORT PROJECT</button>
-      </aside>}
+      <Sheet open={Boolean(importPreview)} onOpenChange={(open) => { if (!open && !importing) setImportPreview(null); }}>
+        {importPreview && <SheetContent className="import-preview !h-auto !gap-0 !p-0 sm:!max-w-none" side="right" showOverlay={false} showCloseButton={false} aria-label="Import Preview">
+          <div className="import-preview-heading"><div><span className="projects-kicker">IMPORT</span><SheetTitle asChild><strong>{importPreview.packageId}</strong></SheetTitle><SheetDescription className="sr-only">Project package validation and import controls</SheetDescription></div><Button variant="ghost" size="icon" type="button" onClick={() => setImportPreview(null)} disabled={importing} aria-label="Close Import Preview"><X size={19} /></Button></div>
+          <div className="import-preview-status"><CheckCircle size={24} weight="fill" /><div><strong>{importPreview.idConflict ? "ID CONFLICT" : "READY"}</strong><small>{importPreview.integrity.checksum.toUpperCase()} · {importPreview.integrity.ledger.toUpperCase()} · {importPreview.integrity.replay.toUpperCase()}</small></div></div>
+          <div className="import-preview-project"><span>PROJECT</span><strong>{importPreview.summary.projectName}</strong><code>{importPreview.summary.projectId}</code></div>
+          <div className="import-preview-grid"><div><small>PLAN</small><strong>v{importPreview.summary.planVersion}</strong></div><div><small>OBJECTS</small><strong>{importPreview.summary.objects}</strong></div><div><small>CONSTRAINTS</small><strong>{importPreview.summary.constraints}</strong></div><div><small>BRANCHES</small><strong>{importPreview.summary.branches}</strong></div><div><small>LEDGER</small><strong>{importPreview.summary.ledgerEntries}</strong></div><div><small>VALIDATION</small><strong>{importPreview.summary.validationStatus.toUpperCase()}</strong></div></div>
+          <div className="import-migration"><span>MIGRATION</span><strong>v{importPreview.migration.fromSchemaVersion} → v{importPreview.migration.toSchemaVersion}</strong><small>{importPreview.migration.actions.join(" · ") || "NONE"}</small></div>
+          <div className="import-preview-integrity"><code>{importPreview.integrity.planFingerprint}</code><code>{importPreview.integrity.ledgerHeadHash}</code></div>
+          <Button className="import-commit" type="button" disabled={importPreview.idConflict || importing} onClick={commitImport}>{importing ? <CircleNotch className="spin" size={17} /> : <UploadSimple size={17} />}IMPORT PROJECT</Button>
+        </SheetContent>}
+      </Sheet>
       <Dialog open={Boolean(renameTarget)} onOpenChange={(open) => { if (!open) closeRename(); }}>
         <DialogContent className="project-dialog" showCloseButton={false}>
           <form className="project-dialog-form" onSubmit={renameProject}>
