@@ -11,6 +11,7 @@ flowchart LR
   SHARE[Hashed Share Links / pending operations] --> API
   API --> NOTIFY[Notification store / leased email outbox]
   UI[Studio UI] --> BUS[VenuePlanner.execute]
+  UI --> RUNBUS[Runbook command bus]
   WEB[Native WebMCP] --> SERVICE[Venue tool service]
   MCP[stdio MCP server] --> SERVICE
   EXT[External venue systems] --> ADAPTERS[Adapter runtime]
@@ -24,6 +25,8 @@ flowchart LR
   BUS --> LEDGER[Activity Ledger]
   BUS --> EXPORTS[Exports and interchange]
   BUS --> PROJECTS[Project repository]
+  RUNBUS --> RUNLEDGER[Runbook Ledger]
+  RUNBUS --> RUNSTORE[Runbook repository / IndexedDB outbox]
   PROJECTS --> API
   PROJECTS --> LOCAL[Organization-scoped browser recovery cache]
 ```
@@ -45,6 +48,9 @@ flowchart LR
 | Browser registration and bounded results | `src/webmcp/` |
 | Standalone MCP resources, prompts, progress, and stdio | `packages/mcp-server/src/` |
 | Browser Project persistence and recovery | `src/persistence/project-store.js` |
+| Event Day Runbook domain, command bus, and anchored ledger | `src/domain/event-day-runbook.js` and `src/domain/runbook-command-bus.js` |
+| Browser Runbook cache and offline outbox | `src/persistence/runbook-store.js` |
+| Runbook audit exports | `src/interchange/runbook-exports.js` |
 | Organization-scoped Worker API and Project repository | `worker/index.ts` and `worker/project-repository.ts` |
 | Share Links, pending-operation reconciliation, Notification Preferences, notifications, and leased email outbox | `src/domain/sharing.js` and `worker/sharing-repository.ts` |
 | Numbered database migrations, integrity, backup, and restore | `db/migrations/`, `worker/database-migrations.ts`, and `scripts/database-maintenance.mjs` |
@@ -90,6 +96,7 @@ sequenceDiagram
 ## Deep boundaries
 
 - `VenuePlanner.execute` is the only planning mutation boundary.
+- The Runbook command bus is a separate operational mutation boundary bound immutably to accepted Plan evidence; it never writes the Project planning snapshot.
 - `createVenueToolService` is the common authorization and dispatch boundary for WebMCP and MCP.
 - `venueToolContracts` is the public agent contract registry; agent-only behavior does not live in registration adapters.
 - `evaluators` in the Constraint engine is the deterministic evidence registry.
