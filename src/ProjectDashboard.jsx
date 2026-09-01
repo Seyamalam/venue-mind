@@ -174,7 +174,7 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
   return (
     <div className="projects-shell">
       <header className="projects-header">
-        <a className="projects-brand" href="/" onClick={(event) => navigateInternalLink(event, navigate, "/")}><img src="/assets/venuemind-mark.png" alt="" /><strong>VenueMind</strong></a>
+        <a className="projects-brand" href="/" onClick={(event) => navigateInternalLink(event, navigate, "/")}><img src="/assets/venuemind-mark.webp" alt="" /><strong>VenueMind</strong></a>
         <nav><select aria-label="Organization" value={organizationId} onChange={(event) => accountStore?.selectOrganization(event.target.value)}>{account?.organizations.map((organization) => <option value={organization.id} key={organization.id}>{organization.name}</option>)}</select><a href="/docs" onClick={(event) => navigateInternalLink(event, navigate, "/docs")}>Docs</a><span>{source}</span><a className="account-chip" href="/settings/organization" onClick={(event) => navigateInternalLink(event, navigate, "/settings/organization")}>{account?.user?.displayName?.slice(0, 2).toUpperCase() || "ID"}</a></nav>
       </header>
 

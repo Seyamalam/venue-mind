@@ -90,7 +90,7 @@ export function DocsPage({ page, pages }: { page: DocsPageData; pages: DocsPageD
   return (
     <div className="docs-shell">
       <header className="docs-header">
-        <Link href={"/docs" as Route} className="docs-brand"><Image src="/assets/venuemind-mark.png" alt="" width={32} height={32} /><strong>VenueMind</strong><span>Docs</span></Link>
+        <Link href={"/docs" as Route} className="docs-brand"><Image src="/assets/venuemind-mark.webp" alt="" width={32} height={32} /><strong>VenueMind</strong><span>Docs</span></Link>
         <DocsSearch />
         <nav aria-label="Utility"><Link href="/">Open Studio</Link><a href="/llms.txt">llms.txt</a><a href="/schemas/venue-command.schema.json">Schemas</a></nav>
       </header>

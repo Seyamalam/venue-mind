@@ -164,7 +164,7 @@ export function DocsApp() {
   return (
     <div className="docs-shell">
       <header className="docs-header">
-        <DocsLink href="/docs" className="docs-brand"><img src="/assets/venuemind-mark.png" alt="" /><strong>VenueMind</strong><span>Docs</span></DocsLink>
+        <DocsLink href="/docs" className="docs-brand"><img src="/assets/venuemind-mark.webp" alt="" /><strong>VenueMind</strong><span>Docs</span></DocsLink>
         <button type="button" className="docs-search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search documentation"><MagnifyingGlass size={15} /><span>Search docs</span><kbd>⌘ K</kbd></button>
         <nav aria-label="Utility"><a href="/">Open Studio</a><a href="/llms.txt">llms.txt</a><a href="/schemas/venue-command.schema.json">Schemas</a></nav>
       </header>

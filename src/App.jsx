@@ -770,7 +770,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
 
       <header className="topbar">
         <div className="brand-block">
-          <span className="brand-mark" aria-hidden="true"><img src="/assets/venuemind-mark.png" alt="" /></span>
+          <span className="brand-mark" aria-hidden="true"><img src="/assets/venuemind-mark.webp" alt="" /></span>
           <span className="brand-name">VenueMind</span>
         </div>
         <div className="event-heading">
@@ -911,7 +911,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
 
         <section className="canvas-column" aria-label="Venue plan workspace">
           <div className={`plan-canvas mode-${viewMode} state-${proposalState} ${editorOpen ? "is-editing" : ""}`}>
-            {projectId === "project-summit-forward" ? <img className="floorplan-image" src="/assets/venue-floorplan.png" alt="Top-down floor plan of Harborview Convention Center" /> : <div className="empty-plan-surface"><strong>24 × 16 m</strong><span>0 OBJ</span></div>}
+            {projectId === "project-summit-forward" ? <img className="floorplan-image" src="/assets/venue-floorplan.webp" alt="Top-down floor plan of Harborview Convention Center" /> : <div className="empty-plan-surface"><strong>24 × 16 m</strong><span>0 OBJ</span></div>}
             {objectIds.has("obj-stage-west") && <div className="canvas-lock lock-stage"><MapPin size={17} weight="fill" /><span><strong>Locked</strong> Stage position</span></div>}
             {objectIds.has("obj-fire-exit-east") && <div className="canvas-lock lock-exit"><MapPin size={17} weight="fill" /><span><strong>Locked</strong> Fire exit</span></div>}
             {objectIds.has("obj-column-southwest") && <div className="canvas-lock lock-column"><MapPin size={17} weight="fill" /><span><strong>Locked</strong> Column</span></div>}
