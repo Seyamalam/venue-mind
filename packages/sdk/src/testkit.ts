@@ -15,7 +15,7 @@ export interface AtomicMemoryStore<Value = unknown> {
 }
 
 export interface MemorySecretStore {
-  read(reference: string): Promise<string | null>;
+  get(reference: string): Promise<string>;
 }
 
 export interface MemoryDeadLetterSink {

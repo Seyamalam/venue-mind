@@ -8,6 +8,7 @@ import { VENUE_TOOL_CONTRACT_VERSION, venueToolContracts } from "../src/contract
 const root = path.resolve(new URL("../", import.meta.url).pathname);
 const schemaDirectory = path.join(root, "public/schemas");
 const outputDirectory = path.join(root, "packages/sdk/src/generated");
+const sdkPackage = JSON.parse(await readFile(path.join(root, "packages/sdk/package.json"), "utf8"));
 const schemas = [
   ["project-record", "VenueMindProjectRecord"],
   ["planner-snapshot", "VenueMindPlannerSnapshot"],
@@ -65,3 +66,34 @@ export { VENUE_TOOL_CONTRACT_VERSION, VENUE_TOOL_NAMES } from "./tool-metadata.j
 export type { VenueToolName } from "./tool-metadata.js";
 `;
 await writeFile(path.join(outputDirectory, "index.ts"), index);
+
+const apiReference = {
+  schemaVersion: 1,
+  package: sdkPackage.name,
+  sdkVersion: sdkPackage.version,
+  runtime: { module: "ESM", node: ">=22" },
+  contractVersion: VENUE_TOOL_CONTRACT_VERSION,
+  entryPoints: Object.keys(sdkPackage.exports),
+  client: {
+    transport: "VenueMindTransport.callTool(name, input, options)",
+    methods: [
+      { method: "projects.list", tool: "venue.list_projects" },
+      { method: "projects.open", tool: "venue.open_project" },
+      { method: "plans.inspect", tool: "venue.inspect_layout" },
+      { method: "proposals.preview", tool: "venue.preview_revision" },
+      { method: "validations.run", tool: "venue.validate_layout" },
+      { method: "ledger.list", tool: "venue.get_change_log" },
+      { method: "exports.plan", tool: "venue.export_plan" },
+      { method: "exports.audit", tool: "venue.export_audit_package" },
+    ],
+    approval: "intentionally-absent",
+  },
+  adapter: {
+    lifecycle: ["defineAdapter", "createVenueAdapter", "createAdapterRuntime"],
+    helpers: ["collectAdapterPages", "adapterHttpError", "normalizeRetryAfter", "verifyWebhookHmac", "createSyncCursor", "verifySyncCursor", "sha256Checksum"],
+  },
+  testSurfaces: ["assertAdapterConformance", "createAdapterSandboxServer"],
+};
+await mkdir(path.join(root, "docs/reference"), { recursive: true });
+await writeFile(path.join(root, "docs/reference/sdk-api.json"), `${JSON.stringify(apiReference, null, 2)}\n`);
+await writeFile(path.join(root, "public/sdk-api.json"), `${JSON.stringify(apiReference, null, 2)}\n`);

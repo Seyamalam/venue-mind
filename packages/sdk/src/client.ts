@@ -11,6 +11,7 @@ import type {
   VenueToolName,
   VenueToolOutput,
 } from "./types.js";
+export type { VenueMindTransport, VenueToolCallOptions } from "./types.js";
 
 export interface VenueMindClient {
   readonly projects: {

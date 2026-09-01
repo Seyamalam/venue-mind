@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "package": "@venuemind/sdk",
+  "sdkVersion": "0.1.0",
+  "runtime": {
+    "module": "ESM",
+    "node": ">=22"
+  },
+  "contractVersion": "1.2.0",
+  "entryPoints": [
+    ".",
+    "./types",
+    "./client",
+    "./adapter",
+    "./testkit",
+    "./sandbox",
+    "./schemas/*"
+  ],
+  "client": {
+    "transport": "VenueMindTransport.callTool(name, input, options)",
+    "methods": [
+      {
+        "method": "projects.list",
+        "tool": "venue.list_projects"
+      },
+      {
+        "method": "projects.open",
+        "tool": "venue.open_project"
+      },
+      {
+        "method": "plans.inspect",
+        "tool": "venue.inspect_layout"
+      },
+      {
+        "method": "proposals.preview",
+        "tool": "venue.preview_revision"
+      },
+      {
+        "method": "validations.run",
+        "tool": "venue.validate_layout"
+      },
+      {
+        "method": "ledger.list",
+        "tool": "venue.get_change_log"
+      },
+      {
+        "method": "exports.plan",
+        "tool": "venue.export_plan"
+      },
+      {
+        "method": "exports.audit",
+        "tool": "venue.export_audit_package"
+      }
+    ],
+    "approval": "intentionally-absent"
+  },
+  "adapter": {
+    "lifecycle": [
+      "defineAdapter",
+      "createVenueAdapter",
+      "createAdapterRuntime"
+    ],
+    "helpers": [
+      "collectAdapterPages",
+      "adapterHttpError",
+      "normalizeRetryAfter",
+      "verifyWebhookHmac",
+      "createSyncCursor",
+      "verifySyncCursor",
+      "sha256Checksum"
+    ]
+  },
+  "testSurfaces": [
+    "assertAdapterConformance",
+    "createAdapterSandboxServer"
+  ]
+}

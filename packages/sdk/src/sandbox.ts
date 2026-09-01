@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
 import { createAdapterRuntime, type AdapterAuthorization, type VenueAdapter } from "./adapter.js";
+import { createMemorySecretStore } from "./testkit.js";
 
 const JSON_MEDIA_TYPE = "application/json; charset=utf-8";
 
@@ -53,6 +54,9 @@ export async function createAdapterSandboxServer({
   if (!Number.isInteger(port) || port < 0 || port > 65_535) throw new TypeError("Adapter sandbox port must be an integer from 0 to 65535");
   if (!Number.isInteger(maximumBodyBytes) || maximumBodyBytes < 1 || maximumBodyBytes > 10_485_760) throw new TypeError("Adapter sandbox maximumBodyBytes must be between 1 and 10485760");
   const runtime = createAdapterRuntime(runtimeOptions);
+  const sandboxAuthorization = authorization.secretStore
+    ? authorization
+    : { ...authorization, secretStore: createMemorySecretStore() };
   const server = createServer(async (request, response) => {
     try {
       const url = new URL(request.url ?? "/", `http://${host}`);
@@ -63,8 +67,8 @@ export async function createAdapterSandboxServer({
         if (!["import", "export", "synchronize", "webhook"].includes(capability)) return sendJson(response, 404, { error: { code: "SANDBOX_ROUTE_NOT_FOUND" } });
         const input = await readJson(request, maximumBodyBytes);
         const result = capability === "webhook"
-          ? await runtime.acceptWebhook(adapter, input, authorization)
-          : await runtime.execute(adapter, capability as "import" | "export" | "synchronize", input, authorization);
+          ? await runtime.acceptWebhook(adapter, input, sandboxAuthorization)
+          : await runtime.execute(adapter, capability as "import" | "export" | "synchronize", input, sandboxAuthorization);
         return sendJson(response, 200, result);
       }
       return sendJson(response, 404, { error: { code: "SANDBOX_ROUTE_NOT_FOUND" } });
