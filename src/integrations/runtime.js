@@ -201,7 +201,9 @@ export function createAdapterRuntime(options = {}) {
             const completedAt = new Date(clock()).toISOString();
             const expected = { invocationId, inputChecksum, completedAt, output };
             const stored = await processedBatchStore.putIfAbsent(processedBatchKey, expected);
-            await validateStoredProcessedBatch(adapter, capability, stored.value, expected, preparedInput, true);
+            if (!stored || typeof stored !== "object" || Array.isArray(stored) || typeof stored.inserted !== "boolean" || !Object.hasOwn(stored, "value")) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store returned an invalid insert result");
+            const validationExpected = stored.inserted ? expected : { invocationId, inputChecksum };
+            await validateStoredProcessedBatch(adapter, capability, stored.value, validationExpected, preparedInput, stored.inserted);
             if (!stored.inserted) return { status: "duplicate", invocationId, attempts, duplicateOf: stored.value.completedAt, output: clone(stored.value.output) };
             return { status: "succeeded", invocationId, attempts, output: clone(stored.value.output) };
           }
