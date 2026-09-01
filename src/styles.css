@@ -73,7 +73,7 @@ button { color: inherit; }
 .collaboration-control { position: relative; }
 .share-control, .notification-control { position: relative; }
 .compact-control { min-width: 44px; padding-inline: 10px; font-size: 9px; font-weight: 800; }
-.share-popover, .notification-popover { position: absolute; z-index: 52; top: calc(100% + 8px); right: 0; width: 300px; border: 1px solid #d7d3ca; border-radius: 8px; background: #fbfaf7; box-shadow: 0 15px 42px rgba(33,31,26,.16); padding: 7px; }
+.share-popover, .notification-popover { z-index: 52; width: 300px; border: 1px solid #d7d3ca; border-radius: 8px; background: #fbfaf7; box-shadow: 0 15px 42px rgba(33,31,26,.16); padding: 7px; }
 .share-popover > header, .notification-popover > header { min-height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 4px 5px; color: #74756f; font-size: 7px; letter-spacing: .08em; }
 .share-popover > header button { width: 22px; height: 22px; display: grid; place-items: center; border: 0; background: transparent; cursor: pointer; }
 .share-create { display: grid; grid-template-columns: 1fr 54px 62px; gap: 4px; }
