@@ -21,6 +21,7 @@ const sharingTables = ["project_share_links", "notification_preferences", "notif
 const sharingDeliveryColumns = ["lifecycle_state", "creation_ledgered_at", "revocation_ledgered_at", "operation_attempts", "last_operation_error"];
 const runbookTables = ["event_day_runbooks", "event_day_runbook_tasks", "event_day_runbook_transitions", "event_day_runbook_ledger", "event_day_runbook_receipts"];
 const occupancyTables = ["live_occupancy_monitors"];
+const incidentTables = ["event_day_incident_registers"];
 
 async function legacyBaseline(db: D1Database) {
   const { results: tableRows } = await db.prepare("SELECT name FROM sqlite_schema WHERE type = 'table'").all<{ name: string }>();
@@ -50,9 +51,12 @@ async function legacyBaseline(db: D1Database) {
   if (!hasRunbooks && runbookTables.some((table) => tables.has(table))) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   const hasOccupancy = occupancyTables.every((table) => tables.has(table));
   if (!hasOccupancy && occupancyTables.some((table) => tables.has(table))) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  const hasIncidents = incidentTables.every((table) => tables.has(table));
+  if (!hasIncidents && incidentTables.some((table) => tables.has(table))) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  if (hasIncidents && !hasOccupancy) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasOccupancy && !hasRunbooks) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasRunbooks && !hasSharingDelivery) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
-  return hasOccupancy ? 9 : hasRunbooks ? 8 : hasSharingDelivery ? 7 : hasSharing ? 6 : hasCollaboration ? 5 : hasConcurrency ? 4 : hasTenancy ? 3 : hasLifecycle ? 2 : 1;
+  return hasIncidents ? 10 : hasOccupancy ? 9 : hasRunbooks ? 8 : hasSharingDelivery ? 7 : hasSharing ? 6 : hasCollaboration ? 5 : hasConcurrency ? 4 : hasTenancy ? 3 : hasLifecycle ? 2 : 1;
 }
 
 export async function planDatabaseMigrations(db: D1Database, { clock = () => new Date().toISOString() } = {}) {
@@ -137,6 +141,14 @@ export async function inspectDatabaseIntegrity(db: D1Database) {
     ["revoked-share-without-revocation-ledger", "SELECT COUNT(*) AS count FROM project_share_links WHERE lifecycle_state='revoked' AND revocation_ledgered_at IS NULL"],
     ["pending-revocation-without-actor", "SELECT COUNT(*) AS count FROM project_share_links WHERE lifecycle_state='pending-revoke' AND (revoked_at IS NULL OR revoked_by IS NULL)"],
     ["email-outbox-inconsistent-delivery", "SELECT COUNT(*) AS count FROM notification_email_outbox WHERE delivered_at IS NOT NULL AND (failure_code IS NOT NULL OR lease_token IS NOT NULL)"],
+  ]) {
+    const { results } = await db.prepare(sql).all<{ count: number }>();
+    checks.push({ id, count: Number(results[0]?.count ?? 0), status: Number(results[0]?.count ?? 0) === 0 ? "pass" : "fail" });
+  }
+  for (const [id, sql] of [
+    ["incident-register-without-project", "SELECT COUNT(*) AS count FROM event_day_incident_registers i LEFT JOIN projects p ON p.id = i.project_id WHERE p.id IS NULL"],
+    ["incident-register-organization-mismatch", "SELECT COUNT(*) AS count FROM event_day_incident_registers i JOIN projects p ON p.id = i.project_id WHERE p.organization_id != i.organization_id"],
+    ["incident-register-runbook-scope-mismatch", "SELECT COUNT(*) AS count FROM event_day_incident_registers i LEFT JOIN event_day_runbooks r ON r.id = i.runbook_id AND r.organization_id = i.organization_id AND r.project_id = i.project_id WHERE r.id IS NULL"],
   ]) {
     const { results } = await db.prepare(sql).all<{ count: number }>();
     checks.push({ id, count: Number(results[0]?.count ?? 0), status: Number(results[0]?.count ?? 0) === 0 ? "pass" : "fail" });

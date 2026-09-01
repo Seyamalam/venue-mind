@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "databaseSchemaVersion": 9,
+  "databaseSchemaVersion": 10,
   "migrations": [
     {
       "version": 1,
@@ -90,6 +90,16 @@
       "requiresProjectExport": false,
       "source": "/db/migrations/0009_live_occupancy.sql",
       "wrangler": "/db/wrangler/0009_live_occupancy.sql",
+      "statementCount": 3
+    },
+    {
+      "version": 10,
+      "name": "event_day_incident_registers",
+      "checksum": "7bf6326a405b1ff07cdddba95ecc4cdd55f42d5218a834d4e8378414f688be8a",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0010_event_day_incident_registers.sql",
+      "wrangler": "/db/wrangler/0010_event_day_incident_registers.sql",
       "statementCount": 3
     }
   ]

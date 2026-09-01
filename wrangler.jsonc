@@ -12,6 +12,12 @@
       "migrations_dir": "db/wrangler"
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "INCIDENT_EVIDENCE",
+      "bucket_name": "venue-mind-incident-evidence"
+    }
+  ],
   "vars": {
     "VENUEMIND_AUTH_MODE": "anonymous-demo",
     "VENUEMIND_APP_ORIGINS": "https://venue-mind-jet.vercel.app"
