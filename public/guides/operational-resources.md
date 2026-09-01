@@ -19,7 +19,7 @@ The reconciler derives demand from the trusted accepted Plan and reports Operati
 - `capacity-shortfall`
 - `incompatible-metadata`
 
-Conflict and substitution option IDs are deterministic digests of canonical evidence. Capacity is reserved across the complete demand set: one finite unit cannot satisfy two direct demands or appear as a replacement for multiple conflicts. Staffing compatibility uses exact role-and-shift assignment pairs, role headcount, and a shift window that covers the Project event window. A resource assigned to the current Project is excluded only through a one-to-one trusted reservation mapping. Provider-supplied project identity cannot suppress another booking.
+Conflict and substitution option IDs are deterministic digests of canonical evidence. Capacity is reserved across the complete demand set: one finite unit cannot satisfy two direct demands or appear as a replacement for multiple conflicts. Direct demand is reserved before replacement capacity, including a direct shortfall. The minimal translator assigns at most one currently viable alternative per conflict, ordering conflicts by candidate scarcity and quantity so one conflict cannot hoard every backup. Staffing compatibility uses exact role-and-shift assignment pairs, role headcount, and a shift window that covers the Project event window. A resource assigned to the current Project is excluded only through a one-to-one trusted reservation mapping. Provider-supplied project identity cannot suppress another booking.
 
 ## Explicit substitution boundary
 
@@ -31,7 +31,7 @@ The translator creates a canonical Adapter Staging Batch whose Proposal changes 
 
 ## Personnel privacy
 
-Staffing imports retain only role, shift, assignment, booking, and opaque Staff Reference evidence required for operations. Staff References must use the server-owned `staff-ref-*` namespace; human-readable aliases are rejected. Raw provider person IDs are resolved through trusted context and removed before invocation hashing, storage, dead letters, results, Proposals, the Activity Ledger, and exports. Names, email addresses, phone numbers, free-form notes, contact-shaped evidence labels, and values obfuscated with Unicode formatting or variation controls are rejected before adapter invocation.
+Staffing imports retain only role, shift, assignment, booking, and opaque Staff Reference evidence required for operations. Staff References must use a server-owned `staff-ref-` plus 128-bit lowercase hexadecimal identifier; human-readable aliases are rejected. Raw provider person IDs are resolved through trusted context and removed before invocation hashing, storage, dead letters, results, Proposals, the Activity Ledger, and exports. Names, email addresses, phone numbers, free-form notes, contact-shaped evidence labels, and values obfuscated with Unicode formatting or variation controls are rejected before adapter invocation.
 
 ## Runtime and persistence
 

@@ -8,7 +8,7 @@ const MAX_COUNT = 1_000_000;
 const IDENTIFIER = /^[a-z0-9][a-z0-9._:-]{0,159}$/;
 const SHA256 = /^[0-9a-f]{64}$/;
 const RESOURCE_ID = /^resource-[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const STAFF_REF = /^staff-ref-[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const STAFF_REF = /^staff-ref-[0-9a-f]{32}$/;
 const FAMILIES = ["inventory", "av", "power", "catering", "staffing"];
 const clone = (value) => structuredClone(value);
 const compare = (left, right) => left < right ? -1 : left > right ? 1 : 0;
@@ -127,6 +127,11 @@ const normalizeTrustedContext = (value) => {
   const shiftMappings = records(value.shiftMappings, "Trusted operational shift mappings").map((item) => { assertExact(item, ["externalId", "shiftId"], "Trusted shift mapping"); return { externalId: identifier(item.externalId, "Trusted shift externalId"), shiftId: identifier(item.shiftId, "Trusted shiftId") }; }).sort((left, right) => compare(left.externalId, right.externalId));
   const personnelMappings = records(value.personnelMappings, "Trusted personnel mappings").map((item) => { assertExact(item, ["externalPersonId", "staffRef", "resourceId"], "Trusted personnel mapping"); return { externalPersonId: identifier(item.externalPersonId, "Trusted external personnel ID"), staffRef: identifier(item.staffRef, "Trusted staffRef"), resourceId: identifier(item.resourceId, "Trusted staff resourceId") }; }).sort((left, right) => compare(left.externalPersonId, right.externalPersonId));
   const reservationMappings = records(value.reservationMappings, "Trusted reservation mappings").map((item) => { assertExact(item, ["externalId", "reservationRef"], "Trusted reservation mapping"); return { externalId: identifier(item.externalId, "Trusted reservation externalId"), reservationRef: identifier(item.reservationRef, "Trusted reservationRef") }; }).sort((left, right) => compare(left.externalId, right.externalId));
+  const demands = clone(records(value.demands, "Trusted operational demands"));
+  const demandTargetObjectIds = demands.flatMap((demand, index) => {
+    if (!Array.isArray(demand?.targetObjectIds)) fail("ADAPTER_SOURCE_INVALID", `Trusted operational demand ${index + 1} targetObjectIds must be an array`);
+    return demand.targetObjectIds.map((item) => identifier(item, "Trusted demand targetObjectId"));
+  });
   if (new Set(resourceMappings.map((item) => `${item.family}\u0000${item.externalId}`)).size !== resourceMappings.length
     || new Set(resourceMappings.map((item) => item.resourceId)).size !== resourceMappings.length
     || new Set(roleMappings.map((item) => item.externalId)).size !== roleMappings.length
@@ -157,6 +162,7 @@ const normalizeTrustedContext = (value) => {
     ...shiftMappings.map((item) => item.shiftId),
     ...personnelMappings.flatMap((item) => [item.staffRef, item.resourceId]),
     ...reservationMappings.map((item) => item.reservationRef),
+    ...demandTargetObjectIds,
   ]);
   if ([...externalIds].some((id) => stableIds.has(id))) fail("ADAPTER_ID_BOUNDARY_VIOLATION", "External operational IDs must remain globally separate from VenueMind stable IDs");
   return {
@@ -166,7 +172,7 @@ const normalizeTrustedContext = (value) => {
     shiftMappings,
     personnelMappings,
     reservationMappings,
-    demands: clone(records(value.demands, "Trusted operational demands")),
+    demands,
   };
 };
 

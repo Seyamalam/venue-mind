@@ -7,7 +7,7 @@ const MAX_DEMANDS = 1_000;
 const MAX_COUNT = 1_000_000;
 const IDENTIFIER = /^[a-z0-9][a-z0-9._:-]{0,159}$/;
 const RESOURCE_ID = /^resource-[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const STAFF_REF = /^staff-ref-[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const STAFF_REF = /^staff-ref-[0-9a-f]{32}$/;
 const SHA256 = /^[0-9a-f]{64}$/;
 const FAMILIES = new Set(["inventory", "av", "power", "catering", "staffing"]);
 const STATUSES = new Set(["available", "unavailable"]);
@@ -261,6 +261,8 @@ export async function reconcileOperationalResources(inputValue) {
   const byId = new Map(input.resources.map((item) => [item.resourceId, item]));
   const conflicts = [];
   const substitutionOptions = [];
+  const directDemandTotals = new Map();
+  for (const demand of input.demands) directDemandTotals.set(demand.resourceId, (directDemandTotals.get(demand.resourceId) ?? 0) + demand.quantity);
   const reservedPrimary = new Map();
   const reservedRoleHeadcount = new Map();
   const conflicted = [];
@@ -284,21 +286,31 @@ export async function reconcileOperationalResources(inputValue) {
     const conflictId = await fingerprintId("resource-conflict", conflictPayload);
     conflicted.push({ demand, resource, conflictPayload, conflictId });
   }
-  const reservedOptions = new Map();
-  for (const { demand, resource, conflictPayload, conflictId } of conflicted) {
+  const optionCapacity = new Map(input.resources.map((resource) => [resource.resourceId, Math.max(0, availabilityFor(resource, input.project).available - (directDemandTotals.get(resource.resourceId) ?? 0))]));
+  const candidateSets = conflicted.map((conflict) => {
+    const { demand, resource } = conflict;
     const previewSupported = ["inventory", "av", "catering"].includes(demand.family) && demand.targetObjectIds.length === 1;
     const candidates = previewSupported ? input.resources.filter((candidate) => {
       if (candidate.resourceId === resource.resourceId || !resourceSatisfiesDemand(candidate, demand)) return false;
-      const spare = availabilityFor(candidate, input.project).available - (reservedPrimary.get(candidate.resourceId) ?? 0) - (reservedOptions.get(candidate.resourceId) ?? 0);
-      return spare >= demand.quantity;
-    }) : [];
+      return (optionCapacity.get(candidate.resourceId) ?? 0) >= demand.quantity;
+    }).sort((left, right) => compare(left.resourceId, right.resourceId)) : [];
+    return { ...conflict, candidates };
+  });
+  const assignedCandidate = new Map();
+  for (const item of [...candidateSets].sort((left, right) => left.candidates.length - right.candidates.length || right.demand.quantity - left.demand.quantity || compare(left.conflictId, right.conflictId))) {
+    const candidate = item.candidates.find((resource) => (optionCapacity.get(resource.resourceId) ?? 0) >= item.demand.quantity);
+    if (!candidate) continue;
+    assignedCandidate.set(item.conflictId, candidate);
+    optionCapacity.set(candidate.resourceId, optionCapacity.get(candidate.resourceId) - item.demand.quantity);
+  }
+  for (const { demand, conflictPayload, conflictId } of candidateSets) {
+    const candidates = assignedCandidate.has(conflictId) ? [assignedCandidate.get(conflictId)] : [];
     const optionIds = [];
     for (const candidate of candidates) {
       const optionPayload = { conflictId, demandId: demand.demandId, replacementResourceId: candidate.resourceId, targetObjectIds: demand.targetObjectIds, quantity: demand.quantity, replacementSourceChecksum: candidate.source.checksum };
       const id = await fingerprintId("resource-option", optionPayload);
       optionIds.push(id);
       substitutionOptions.push({ id, ...optionPayload, family: demand.family, requiresHumanApproval: true });
-      reservedOptions.set(candidate.resourceId, (reservedOptions.get(candidate.resourceId) ?? 0) + demand.quantity);
     }
     conflicts.push({ id: conflictId, ...conflictPayload, substitutionOptionIds: optionIds.sort(compare), severity: "error" });
   }

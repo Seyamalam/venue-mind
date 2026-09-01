@@ -49,8 +49,8 @@ const createPlanAndContext = async () => {
     roleMappings: [{ externalId: "security", roleId: "role-security" }],
     shiftMappings: [{ externalId: "event-shift", shiftId: "shift-event" }],
     personnelMappings: [
-      { externalPersonId: "person-001", staffRef: "staff-ref-opaque-001", resourceId: "resource-staff-001" },
-      { externalPersonId: "person-002", staffRef: "staff-ref-opaque-002", resourceId: "resource-staff-002" },
+      { externalPersonId: "person-001", staffRef: "staff-ref-8f3a4b5c6d7e8091a2b3c4d5e6f70819", resourceId: "resource-staff-001" },
+      { externalPersonId: "person-002", staffRef: "staff-ref-91a2b3c4d5e6f70819a2b3c4d5e6f708", resourceId: "resource-staff-002" },
     ],
     reservationMappings: [
       { externalId: "event-current", reservationRef: "reservation-current" },
@@ -212,6 +212,14 @@ test("trusted mappings enforce exact fields and separate external IDs from Venue
   const { context: personalStaffRef } = await createPlanAndContext();
   personalStaffRef.personnelMappings[0].staffRef = "alice-smith";
   await assert.rejects(() => execute(fixture, personalStaffRef), (error) => error.code === "ADAPTER_ID_BOUNDARY_VIOLATION");
+
+  const { context: readableStaffRef } = await createPlanAndContext();
+  readableStaffRef.personnelMappings[0].staffRef = "staff-ref-alice-smith";
+  await assert.rejects(() => execute(fixture, readableStaffRef), (error) => error.code === "ADAPTER_ID_BOUNDARY_VIOLATION");
+
+  const { context: objectIdCollision } = await createPlanAndContext();
+  objectIdCollision.resourceMappings[0].externalId = objectIdCollision.demands[0].targetObjectIds[0];
+  await assert.rejects(() => execute(fixture, objectIdCollision), (error) => error.code === "ADAPTER_ID_BOUNDARY_VIOLATION");
 });
 
 test("stale Plans, forged option ownership, and incompatible candidates fail closed", async () => {

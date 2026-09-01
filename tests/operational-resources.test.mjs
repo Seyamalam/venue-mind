@@ -93,6 +93,34 @@ test("aggregate reconciliation reserves finite primary and replacement capacity"
   assert.equal(result.conflicts[0].substitutionOptionIds.length + result.conflicts[1].substitutionOptionIds.length, 1);
   assert.equal(result.substitutionOptions.filter((option) => option.replacementResourceId === "resource-backup").length, 1);
 
+  const balanced = prepared();
+  balanced.resources = [
+    { ...balanced.resources[0], resourceId: "resource-primary-a" },
+    { ...balanced.resources[0], resourceId: "resource-primary-b", source: source("projector-primary-b", "e".repeat(64)) },
+    balanced.resources[1],
+    { ...balanced.resources[1], resourceId: "resource-backup-b", source: source("projector-backup-b", "f".repeat(64)) },
+  ];
+  balanced.demands = [
+    { ...balanced.demands[0], demandId: "demand-a", resourceId: "resource-primary-a", targetObjectIds: ["obj-projector-a"] },
+    { ...balanced.demands[0], demandId: "demand-b", resourceId: "resource-primary-b", targetObjectIds: ["obj-projector-b"] },
+  ];
+  const balancedResult = await reconcileOperationalResources(balanced);
+  assert.deepEqual(balancedResult.conflicts.map((conflict) => conflict.substitutionOptionIds.length), [1, 1]);
+  assert.equal(new Set(balancedResult.substitutionOptions.map((option) => option.replacementResourceId)).size, 2);
+
+  const shortfall = prepared();
+  shortfall.resources = [
+    { ...shortfall.resources[0], resourceId: "resource-short", status: "available", unavailable: 0, total: 1 },
+    { ...shortfall.resources[0], resourceId: "resource-primary-b", source: source("projector-primary-b", "e".repeat(64)) },
+    shortfall.resources[1],
+  ];
+  shortfall.demands = [
+    { ...shortfall.demands[0], demandId: "demand-short", resourceId: "resource-short", quantity: 2, targetObjectIds: ["obj-projector-short"] },
+    { ...shortfall.demands[0], demandId: "demand-b", resourceId: "resource-primary-b", targetObjectIds: ["obj-projector-b"] },
+  ];
+  const shortfallResult = await reconcileOperationalResources(shortfall);
+  assert.equal(shortfallResult.substitutionOptions.some((option) => option.replacementResourceId === "resource-short"), false);
+
   const shared = prepared();
   shared.resources[0] = { ...shared.resources[0], status: "available", unavailable: 0 };
   shared.demands = [
@@ -128,8 +156,8 @@ test("staffing reconciliation reserves aggregate role headcount", async () => {
       roles: [{ roleId: "role-security", availableHeadcount: 1, skills: [], sourceChecksum: "c".repeat(64) }],
       shifts: [{ shiftId: "shift-event", ...EVENT, sourceChecksum: "d".repeat(64) }],
       assignments: [
-        { assignmentId: "staff-assignment-a", staffRef: "staff-ref-opaque-a", roleId: "role-security", shiftId: "shift-event", resourceId: "resource-staff-a", sourceChecksum: "e".repeat(64) },
-        { assignmentId: "staff-assignment-b", staffRef: "staff-ref-opaque-b", roleId: "role-security", shiftId: "shift-event", resourceId: "resource-staff-b", sourceChecksum: "f".repeat(64) },
+        { assignmentId: "staff-assignment-a", staffRef: "staff-ref-11111111111111111111111111111111", roleId: "role-security", shiftId: "shift-event", resourceId: "resource-staff-a", sourceChecksum: "e".repeat(64) },
+        { assignmentId: "staff-assignment-b", staffRef: "staff-ref-22222222222222222222222222222222", roleId: "role-security", shiftId: "shift-event", resourceId: "resource-staff-b", sourceChecksum: "f".repeat(64) },
       ],
     },
     demands: [
