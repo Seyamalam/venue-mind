@@ -13,6 +13,173 @@
   --green: #12945d;
 }
 
+.occupancy-panel {
+  width: min(480px, calc(100vw - 32px));
+  max-width: none;
+  border-left: 1px solid rgba(132, 93, 255, .34);
+  background: color-mix(in srgb, var(--background) 96%, #6d48ff 4%);
+  box-shadow: -24px 0 70px rgba(23, 16, 49, .2);
+  color: var(--foreground);
+}
+
+.occupancy-panel-header,
+.occupancy-actions,
+.occupancy-live-state,
+.occupancy-row-head,
+.occupancy-row-meta,
+.occupancy-alert-values {
+  display: flex;
+  align-items: center;
+}
+
+.occupancy-panel-header {
+  min-height: 76px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.occupancy-panel-header > div:first-child,
+.occupancy-row-head > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.occupancy-panel-header strong,
+.occupancy-row-head small,
+.occupancy-ledger small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.occupancy-panel-header strong {
+  max-width: 205px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  font-weight: 550;
+  color: var(--muted-foreground);
+}
+
+.occupancy-header-state,
+.occupancy-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.occupancy-header-state svg,
+.occupancy-actions svg,
+.occupancy-send svg {
+  width: 14px;
+  height: 14px;
+}
+
+.occupancy-status,
+.occupancy-sync {
+  min-height: 22px;
+  border-radius: 3px;
+  font: 650 10px/1 var(--font-mono, ui-monospace, monospace);
+  letter-spacing: .055em;
+}
+
+.occupancy-sync {
+  gap: 5px;
+}
+
+.occupancy-status.is-nominal { border-color: #249f70; color: #16845b; background: rgba(36, 159, 112, .08); }
+.occupancy-status.is-warning,
+.occupancy-status.is-stale { border-color: #d59a2a; color: #9b6810; background: rgba(213, 154, 42, .09); }
+.occupancy-status.is-exceeded { border-color: #dc4d63; color: #bc263e; background: rgba(220, 77, 99, .09); }
+.occupancy-status.is-conflicting { border-color: #845dff; color: #6440d8; background: rgba(132, 93, 255, .1); }
+.occupancy-status.is-unavailable { color: var(--muted-foreground); }
+
+.occupancy-actions {
+  padding: 10px 16px;
+}
+
+.occupancy-actions button:last-child { margin-left: auto; }
+
+.occupancy-input {
+  padding: 14px 16px 16px;
+}
+
+.occupancy-field-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 10px;
+}
+
+.occupancy-field-grid [data-slot="field"] { gap: 5px; }
+.occupancy-field-grid [data-slot="field-label"] { font: 650 10px/1 var(--font-mono, ui-monospace, monospace); letter-spacing: .07em; color: var(--muted-foreground); }
+.occupancy-field-grid [data-slot="select-trigger"] { width: 100%; }
+.occupancy-field-grid > :nth-child(3) { grid-column: 1 / -1; }
+.occupancy-send { align-self: end; }
+
+.occupancy-live-state {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+
+.occupancy-metric {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-right: 1px solid var(--border);
+}
+.occupancy-metric:last-child { border-right: 0; }
+.occupancy-metric span,
+.occupancy-metric small,
+.occupancy-row-meta,
+.occupancy-alert-values { font: 600 10px/1.4 var(--font-mono, ui-monospace, monospace); color: var(--muted-foreground); }
+.occupancy-metric strong { font-size: 18px; font-variant-numeric: tabular-nums; }
+
+.occupancy-tabs { min-height: 0; flex: 1; gap: 0; }
+.occupancy-tab-list { width: 100%; justify-content: stretch; padding: 4px 12px 8px; border-bottom: 1px solid var(--border); }
+.occupancy-tab-list [data-slot="tabs-trigger"] { font: 650 10px/1 var(--font-mono, ui-monospace, monospace); letter-spacing: .045em; }
+.occupancy-scroll { flex: 1; min-height: 0; }
+.occupancy-list { display: grid; gap: 8px; padding: 12px 16px 28px; }
+
+.occupancy-scope,
+.occupancy-source,
+.occupancy-alert,
+.occupancy-ledger {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--background) 93%, #845dff 7%);
+}
+
+.occupancy-alert.is-critical { border-color: rgba(220, 77, 99, .55); }
+.occupancy-row-head { justify-content: space-between; gap: 12px; min-width: 0; }
+.occupancy-row-head strong { display: flex; align-items: center; gap: 6px; font-size: 12px; letter-spacing: .02em; }
+.occupancy-row-head strong svg { width: 14px; height: 14px; }
+.occupancy-row-head small { max-width: 260px; color: var(--muted-foreground); font: 550 10px/1.3 var(--font-mono, ui-monospace, monospace); }
+.occupancy-count { display: flex; align-items: baseline; gap: 5px; }
+.occupancy-count strong { font-size: 28px; line-height: 1; font-variant-numeric: tabular-nums; }
+.occupancy-count span { color: var(--muted-foreground); }
+.occupancy-count b { margin-left: auto; color: #6440d8; font: 650 10px/1 var(--font-mono, ui-monospace, monospace); }
+.occupancy-row-meta,
+.occupancy-alert-values { justify-content: space-between; gap: 8px; }
+.occupancy-alert > button { justify-self: end; }
+
+.occupancy-empty { min-height: 240px; border: 0; }
+.occupancy-empty [data-slot="empty-title"] { font: 650 12px/1 var(--font-mono, ui-monospace, monospace); letter-spacing: .08em; }
+
+@media (max-width: 880px) {
+  .occupancy-panel { width: min(100vw, 480px); }
+  .occupancy-header-state .occupancy-sync { display: none; }
+}
+
+@media (pointer: coarse) {
+  .occupancy-panel :is(button, input, [role="combobox"]) { min-height: 44px; }
+}
+
 * { box-sizing: border-box; }
 html, body, #root { width: 100%; min-width: 320px; min-height: 100%; margin: 0; }
 body { min-height: 100vh; background: var(--paper); -webkit-font-smoothing: antialiased; }

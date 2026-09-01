@@ -25,12 +25,16 @@ import { createEmptyVenuePlan } from "./domain/empty-project.js";
 import { createVenuePlanner, validateVenueState } from "./domain/venue-planner.js";
 import { verifyActivityLedger } from "./domain/activity-ledger.js";
 import { createRunbookCommandBus } from "./domain/runbook-command-bus.js";
+import { createOccupancyCommandBus } from "./domain/occupancy-command-bus.js";
 import { createHumanPrincipal } from "./domain/authorization.js";
 import { venueError } from "./domain/errors.js";
 import { createProjectStore } from "./persistence/project-store.js";
 import { createRunbookStore } from "./persistence/runbook-store.js";
 import { createRunbookRemote } from "./persistence/runbook-remote.js";
 import { synchronizeRunbook } from "./persistence/runbook-sync.js";
+import { createOccupancyStore } from "./persistence/occupancy-store.js";
+import { createOccupancyRemote } from "./persistence/occupancy-remote.js";
+import { synchronizeOccupancy } from "./persistence/occupancy-sync.js";
 import { registerVenueTools } from "./webmcp/register-venue-tools.js";
 import { VENUE_TOOL_AUTHORIZATION_SCOPES, VENUE_TOOL_CONTRACT_VERSION, venueToolContracts } from "./contracts/venue-contracts.js";
 import { exportProjectPackage } from "./interchange/venue-package.js";
@@ -69,6 +73,8 @@ const loadHistoryPanel = () => import("./HistoryPanel.jsx").then((module) => ({ 
 const LazyHistoryPanel = lazy(loadHistoryPanel);
 const loadRunbookPanel = () => import("./RunbookPanel.jsx").then((module) => ({ default: module.RunbookPanel }));
 const LazyRunbookPanel = lazy(loadRunbookPanel);
+const loadOccupancyPanel = () => import("./OccupancyPanel.jsx").then((module) => ({ default: module.OccupancyPanel }));
+const LazyOccupancyPanel = lazy(loadOccupancyPanel);
 
 const studioSessionId = `studio-session-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 const commandMetadata = (type) => {
@@ -178,6 +184,9 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   const projectStore = useMemo(() => createProjectStore({ organizationId }), [organizationId]);
   const runbookStore = useMemo(() => createRunbookStore(), []);
   const runbookRemote = useMemo(() => createRunbookRemote({ organizationId }), [organizationId]);
+  const occupancyStore = useMemo(() => createOccupancyStore({ organizationId, projectId }), [organizationId, projectId]);
+  const occupancyRemote = useMemo(() => createOccupancyRemote({ organizationId }), [organizationId]);
+  const occupancyBus = useMemo(() => createOccupancyCommandBus(), [projectId]);
   const plannerState = useSyncExternalStore(planner.subscribe, planner.getSnapshot, planner.getSnapshot);
   const changes = plannerState.proposal.changes;
   const proposalState = plannerState.proposal.status;
@@ -243,6 +252,11 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   const [runbookSyncState, setRunbookSyncState] = useState({ state: "online", pendingCount: 0 });
   const [runbookEvidenceDrafts, setRunbookEvidenceDrafts] = useState({});
   const [runbookHandoffs, setRunbookHandoffs] = useState([]);
+  const [occupancyOpen, setOccupancyOpen] = useState(false);
+  const [occupancyMounted, setOccupancyMounted] = useState(false);
+  const [occupancyMonitor, setOccupancyMonitor] = useState(null);
+  const [occupancyProjection, setOccupancyProjection] = useState(null);
+  const [occupancySyncState, setOccupancySyncState] = useState({ state: "offline", pendingCount: 0, lastSyncedAt: null });
   const runbookClientSequence = useRef(0);
   const runbookBus = useMemo(() => createRunbookCommandBus({ onChange: (next) => {
     setRunbook(next);
@@ -322,6 +336,28 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
     });
     return () => { active = false; };
   }, [projectId, runbookBus, runbookStore]);
+
+  useEffect(() => {
+    let active = true;
+    void occupancyStore.load().then(async ({ monitor: cached, outbox }) => {
+      if (!active || !cached) return;
+      occupancyBus.hydrate(cached);
+      setOccupancyMonitor(cached);
+      setOccupancyProjection(occupancyBus.execute({ type: "inspect_live_occupancy", evaluatedAt: new Date().toISOString() }).projection);
+      setOccupancySyncState({ state: outbox.length ? "offline" : "syncing", pendingCount: outbox.length, lastSyncedAt: cached.updatedAt });
+      try {
+        const result = await synchronizeOccupancy({ projectId, monitorId: cached.id, store: occupancyStore, remote: occupancyRemote });
+        if (!active) return;
+        occupancyBus.hydrate(result.monitor);
+        setOccupancyMonitor(result.monitor);
+        setOccupancyProjection(result.projection);
+        setOccupancySyncState(result.syncState);
+      } catch {
+        if (active) setOccupancySyncState({ state: "offline", pendingCount: (await occupancyStore.listOutbox()).length, lastSyncedAt: cached.updatedAt });
+      }
+    });
+    return () => { active = false; };
+  }, [occupancyBus, occupancyRemote, occupancyStore, projectId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -879,6 +915,141 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
     }
   };
 
+  const occupancyMetadata = (type, expectedRevision, actorType = "human", actorId = studioActorId) => {
+    const identity = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const committedAt = new Date().toISOString();
+    return {
+      operationId: `occupancy-operation-${identity}`,
+      idempotencyKey: `occupancy-${type}-${identity}`,
+      correlationId: `studio-occupancy-${identity}`,
+      expectedRevision,
+      actorType,
+      actorId,
+      source: actorType === "agent" ? "webmcp" : "studio",
+      sessionId: studioSessionId,
+      committedAt,
+    };
+  };
+
+  const applyOccupancyCommand = async (command) => {
+    const result = occupancyBus.execute(command);
+    await occupancyStore.saveMonitor(result.monitor);
+    await occupancyStore.enqueue(command);
+    setOccupancyMonitor(result.monitor);
+    setOccupancyProjection(result.projection);
+    const pendingCount = (await occupancyStore.listOutbox()).length;
+    setOccupancySyncState((current) => ({ ...current, state: "offline", pendingCount }));
+    return result;
+  };
+
+  const handleCreateOccupancy = async () => {
+    if (!runbook) {
+      notify("RUNBOOK REQUIRED");
+      return null;
+    }
+    try {
+      const result = await occupancyRemote.create(projectId, { runbookVersionId: runbook.versionId });
+      occupancyBus.hydrate(result.monitor);
+      await occupancyStore.saveMonitor(result.monitor);
+      setOccupancyMonitor(result.monitor);
+      setOccupancyProjection(result.projection);
+      setOccupancySyncState({ state: "online", pendingCount: 0, lastSyncedAt: result.monitor.updatedAt });
+      notify("OCCUPANCY ONLINE");
+      return result;
+    } catch (error) {
+      try {
+        const createdAt = new Date().toISOString();
+        const result = occupancyBus.execute({ type: "create_occupancy_monitor", projectId, runbook, plan: plannerState.plan, createdAt, createdBy: studioActorId });
+        await occupancyStore.saveMonitor(result.monitor);
+        setOccupancyMonitor(result.monitor);
+        setOccupancyProjection(result.projection);
+        setOccupancySyncState({ state: "offline", pendingCount: 0, lastSyncedAt: null });
+        notify("OCCUPANCY LOCAL");
+        return result;
+      } catch (localError) {
+        notify(localError.code ?? error.code ?? "OCCUPANCY BLOCKED");
+        return null;
+      }
+    }
+  };
+
+  const handleOccupancySignal = async ({ sourceId, sourceType, kind, confidence, readings }, actorType = "human") => {
+    if (!occupancyMonitor) return null;
+    const command = {
+      type: "ingest_occupancy_signal",
+      signal: { sourceId, sourceType, sourceVersion: "studio-v1", kind, observedAt: new Date().toISOString(), confidence, readings },
+      ...occupancyMetadata("ingest", occupancyMonitor.revision, actorType, actorType === "agent" ? "webmcp-agent" : studioActorId),
+    };
+    try {
+      const result = await applyOccupancyCommand(command);
+      notify("SIGNAL LOCAL");
+      void handleOccupancySync(result.monitor);
+      return result;
+    } catch (error) {
+      notify(error.code ?? "SIGNAL BLOCKED");
+      throw error;
+    }
+  };
+
+  const handleOccupancyRefresh = async (actorType = "human") => {
+    if (!occupancyMonitor) return null;
+    const committedAt = new Date().toISOString();
+    const command = { type: "refresh_live_occupancy", evaluatedAt: committedAt, ...occupancyMetadata("refresh", occupancyMonitor.revision, actorType, actorType === "agent" ? "webmcp-agent" : studioActorId), committedAt };
+    const result = await applyOccupancyCommand(command);
+    notify("OCCUPANCY REFRESHED");
+    void handleOccupancySync(result.monitor);
+    return result;
+  };
+
+  const handleOccupancyAcknowledge = async ({ alertId, reasonCode }) => {
+    if (!occupancyMonitor) return null;
+    const command = { type: "acknowledge_occupancy_alert", alertId, reasonCode, ...occupancyMetadata("acknowledge", occupancyMonitor.revision) };
+    try {
+      const result = await applyOccupancyCommand(command);
+      notify("ALERT ACKNOWLEDGED");
+      void handleOccupancySync(result.monitor);
+      return result;
+    } catch (error) {
+      notify(error.code ?? "ACK BLOCKED");
+      return null;
+    }
+  };
+
+  const handleOccupancySync = async (candidate = occupancyMonitor) => {
+    if (!candidate) return null;
+    const pendingCount = (await occupancyStore.listOutbox()).length;
+    setOccupancySyncState((current) => ({ ...current, state: "syncing", pendingCount }));
+    try {
+      const result = await synchronizeOccupancy({ projectId, monitorId: candidate.id, store: occupancyStore, remote: occupancyRemote });
+      occupancyBus.hydrate(result.monitor);
+      setOccupancyMonitor(result.monitor);
+      setOccupancyProjection(result.projection);
+      setOccupancySyncState(result.syncState);
+      notify(result.syncState.state === "online" ? "OCCUPANCY SYNCED" : "OCCUPANCY CONFLICT");
+      return result;
+    } catch (error) {
+      const remaining = (await occupancyStore.listOutbox()).length;
+      setOccupancySyncState({ state: "offline", pendingCount: remaining, lastSyncedAt: candidate.updatedAt });
+      notify(error.code === "OCCUPANCY_API_UNAVAILABLE" ? "OCCUPANCY LOCAL" : (error.code ?? "OCCUPANCY SYNC FAILED"));
+      return null;
+    }
+  };
+
+  const handleOccupancyExport = async () => {
+    if (!occupancyMonitor) return null;
+    try {
+      const result = occupancySyncState.state === "online"
+        ? (await occupancyRemote.export(projectId, occupancyMonitor.id)).artifact
+        : occupancyBus.execute({ type: "export_live_occupancy", exportedAt: new Date().toISOString() });
+      downloadExport(result);
+      notify("OCCUPANCY EXPORT READY");
+      return result;
+    } catch (error) {
+      notify(error.code ?? "OCCUPANCY EXPORT FAILED");
+      return null;
+    }
+  };
+
   const handleRunScenario = async (scenario, branchId) => {
     notify("SIM RUNNING");
     try {
@@ -960,12 +1131,13 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           </Popover>
           <HeaderButton className="history-button" ariaLabel="Open plan history" onPointerEnter={loadHistoryPanel} onFocus={loadHistoryPanel} onClick={() => { setHistoryMounted(true); setHistoryOpen((open) => !open); }}>Plan v{plannerState.plan.version}<span className={`save-indicator is-${persistenceStatus.toLowerCase()}`}>{persistenceStatus}</span><CaretDown size={14} /></HeaderButton>
           <HeaderButton className={`edit-button ${editorOpen ? "is-active" : ""}`} ariaLabel="Toggle plan editor" onClick={() => setEditorOpen((open) => !open)}>{editorOpen ? "REVIEW" : "EDIT"}</HeaderButton>
-          <HeaderButton className={`comments-button ${commentsOpen ? "is-active" : ""}`} ariaLabel="Open comments" onPointerEnter={loadCommentsPanel} onFocus={loadCommentsPanel} onClick={() => { setCommentsMounted(true); setSimulationOpen(false); setRunbookOpen(false); setCommentsOpen((open) => !open); }}><ChatCircle size={17} /> {plannerState.comments.filter((comment) => comment.status === "open").length}</HeaderButton>
+          <HeaderButton className={`comments-button ${commentsOpen ? "is-active" : ""}`} ariaLabel="Open comments" onPointerEnter={loadCommentsPanel} onFocus={loadCommentsPanel} onClick={() => { setCommentsMounted(true); setSimulationOpen(false); setRunbookOpen(false); setOccupancyOpen(false); setCommentsOpen((open) => !open); }}><ChatCircle size={17} /> {plannerState.comments.filter((comment) => comment.status === "open").length}</HeaderButton>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild><HeaderButton className={`simulation-button ${simulationOpen || runbookOpen ? "is-active" : ""}`} ariaLabel="Open operations" onPointerEnter={() => { loadRunbookPanel(); loadScenarioPanel(); }} onFocus={() => { loadRunbookPanel(); loadScenarioPanel(); }}>OPS <CaretDown size={14} /></HeaderButton></DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild><HeaderButton className={`simulation-button ${simulationOpen || runbookOpen || occupancyOpen ? "is-active" : ""}`} ariaLabel="Open operations" onPointerEnter={() => { loadRunbookPanel(); loadScenarioPanel(); loadOccupancyPanel(); }} onFocus={() => { loadRunbookPanel(); loadScenarioPanel(); loadOccupancyPanel(); }}>OPS <CaretDown size={14} /></HeaderButton></DropdownMenuTrigger>
             <DropdownMenuContent className="export-menu" align="end" sideOffset={8} aria-label="Operational modes">
-              <DropdownMenuItem className="export-menu-item" onPointerEnter={loadRunbookPanel} onFocus={loadRunbookPanel} onSelect={() => { setRunbookMounted(true); setRunbookOpen(true); setCommentsOpen(false); setSimulationOpen(false); }}><b>RUNBOOK</b><span>{runbook ? runbook.tasks.filter((task) => task.status !== "completed").length : 0}</span></DropdownMenuItem>
-              <DropdownMenuItem className="export-menu-item" onPointerEnter={loadScenarioPanel} onFocus={loadScenarioPanel} onSelect={() => { setSimulationMounted(true); setSimulationOpen(true); setCommentsOpen(false); setRunbookOpen(false); }}><b>SIM</b><span>{plannerState.scenarioRuns.filter((run) => run.status === "completed").length}</span></DropdownMenuItem>
+              <DropdownMenuItem className="export-menu-item" onPointerEnter={loadRunbookPanel} onFocus={loadRunbookPanel} onSelect={() => { setRunbookMounted(true); setRunbookOpen(true); setCommentsOpen(false); setSimulationOpen(false); setOccupancyOpen(false); }}><b>RUNBOOK</b><span>{runbook ? runbook.tasks.filter((task) => task.status !== "completed").length : 0}</span></DropdownMenuItem>
+              <DropdownMenuItem className="export-menu-item" onPointerEnter={loadScenarioPanel} onFocus={loadScenarioPanel} onSelect={() => { setSimulationMounted(true); setSimulationOpen(true); setCommentsOpen(false); setRunbookOpen(false); setOccupancyOpen(false); }}><b>SIM</b><span>{plannerState.scenarioRuns.filter((run) => run.status === "completed").length}</span></DropdownMenuItem>
+              <DropdownMenuItem className="export-menu-item" onPointerEnter={loadOccupancyPanel} onFocus={loadOccupancyPanel} onSelect={() => { setOccupancyMounted(true); setOccupancyOpen(true); setCommentsOpen(false); setRunbookOpen(false); setSimulationOpen(false); }}><b>OCCUPANCY</b><span>{occupancyMonitor?.activeAlerts.length ?? 0}</span></DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button className="icon-button" variant="ghost" size="icon" type="button" onClick={handleUndo} aria-label="Undo"><ArrowCounterClockwise size={22} /></Button>
@@ -1173,6 +1345,19 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
         onExportHandoff={handleExportRunbook}
         onSync={() => { void handleRunbookSync(); }}
         onResolveSyncConflict={() => notify("RUNBOOK CONFLICT")}
+      /></Suspense>}
+      {occupancyMounted && <Suspense fallback={occupancyOpen ? <div className="panel-loading is-side" role="status">OCCUPANCY</div> : null}><LazyOccupancyPanel
+        open={occupancyOpen}
+        monitor={occupancyMonitor}
+        projection={occupancyProjection}
+        syncState={occupancySyncState}
+        onClose={() => setOccupancyOpen(false)}
+        onCreate={() => { void handleCreateOccupancy(); }}
+        onIngest={(signal) => { void handleOccupancySignal(signal); }}
+        onRefresh={() => { void handleOccupancyRefresh(); }}
+        onAcknowledge={(input) => { void handleOccupancyAcknowledge(input); }}
+        onSync={() => { void handleOccupancySync(); }}
+        onExport={() => { void handleOccupancyExport(); }}
       /></Suspense>}
       <Sheet open={comparisonOpen && Boolean(branchComparison)} onOpenChange={(open) => { if (!open) setComparisonOpen(false); }}>
       {branchComparison && <SheetContent className="branch-comparison !h-auto !gap-0 !p-0 sm:!max-w-none" side="left" showOverlay={false} showCloseButton={false} aria-label="Proposal Branch comparison">
