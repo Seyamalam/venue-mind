@@ -41,7 +41,10 @@ const request = (path, { identity, organizationId, method = "GET", body, headers
   ...(body ? { body: JSON.stringify(body) } : {}),
 }), env);
 
-const projectRecord = (id, name) => ({ id, name, activePlanId: "plan-summit-forward-2026", schemaVersion: 10, snapshot: { plan: { id: "plan-summit-forward-2026", version: "3.2" }, proposal: {}, ledger: [] }, createdAt: NOW, updatedAt: NOW });
+const projectRecord = (id, name) => {
+  const snapshot = createVenuePlanner(summitForwardPlan).getSnapshot();
+  return { id, name, activePlanId: snapshot.plan.id, schemaVersion: 10, snapshot, createdAt: NOW, updatedAt: NOW };
+};
 
 test("session and invitation lifecycle clocks are bounded", async () => {
   const session = createUserSession({ id: "session-1", userId: "user-1", createdAt: NOW, expiresAt: "2026-08-28T11:00:00.000Z" });

@@ -6,16 +6,6 @@ export const LOCK_SOURCES = Object.freeze(["venue-template", "project"]);
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 
-const legacyLocks = (objectId) => LOCK_TYPES.map((type) => ({
-  id: `lock-${objectId}-${type}`,
-  objectId,
-  type,
-  source: "venue-template",
-  reasonCode: "legacy-protected",
-  authorId: "venue-template",
-  active: true,
-}));
-
 const assertLock = (value, objectId, expectedSource = null) => {
   const lock = { ...value, objectId: value?.objectId ?? objectId, active: value?.active ?? true };
   if (!lock.id || lock.objectId !== objectId || !LOCK_TYPES.includes(lock.type) || !LOCK_SOURCES.includes(lock.source)
@@ -28,7 +18,7 @@ const assertLock = (value, objectId, expectedSource = null) => {
 };
 
 export function normalizeObjectLocks(object, fallback = null) {
-  const source = object.locks ?? fallback?.locks ?? ((object.locked ?? fallback?.locked) ? legacyLocks(object.id) : []);
+  const source = object.locks ?? fallback?.locks ?? [];
   if (!Array.isArray(source)) throw venueError("LOCK_CONFLICT", { objectId: object.id, field: "locks" }, `Object ${object.id} Locks must be an array`);
   const ids = new Set();
   const locks = source.map((value) => {

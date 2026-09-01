@@ -1771,7 +1771,7 @@ export const venueProjectPackageSchema = {
           type: "object",
           required: ["application", "projectId", "projectSchemaVersion"],
           properties: {
-            application: { type: "string", minLength: 1 }, applicationVersion: { type: "string" }, projectId: { type: "string", minLength: 1 }, projectSchemaVersion: { type: "integer", minimum: 1, maximum: 10 }, external: { type: "object", additionalProperties: true },
+            application: { type: "string", minLength: 1 }, applicationVersion: { type: "string" }, projectId: { type: "string", minLength: 1 }, projectSchemaVersion: { const: 10 }, external: { type: "object", additionalProperties: true },
           },
           additionalProperties: false,
         },
@@ -1782,7 +1782,7 @@ export const venueProjectPackageSchema = {
       type: "object",
       required: ["id", "name", "activePlanId", "schemaVersion", "snapshot", "createdAt", "updatedAt"],
       properties: {
-        id: { type: "string", minLength: 1 }, name: { type: "string", minLength: 1 }, activePlanId: { type: "string", minLength: 1 }, schemaVersion: { type: "integer", minimum: 1, maximum: 10 }, snapshot: { $ref: plannerSnapshotSchema.$id }, createdAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" }, provenance: projectRecordSchema.properties.provenance,
+        id: { type: "string", minLength: 1 }, name: { type: "string", minLength: 1 }, activePlanId: { type: "string", minLength: 1 }, schemaVersion: { const: 10 }, snapshot: { $ref: plannerSnapshotSchema.$id }, createdAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" }, provenance: projectRecordSchema.properties.provenance,
       },
       additionalProperties: false,
     },

@@ -5,7 +5,8 @@ export const errorCatalog = Object.freeze({
   COMMAND_UNSUPPORTED: define("COMMAND_UNSUPPORTED", "Venue command is not supported.", "Refresh the command contract and use a published command type."),
   IDEMPOTENCY_KEY_REQUIRED: define("IDEMPOTENCY_KEY_REQUIRED", "Idempotency key is required for mutating commands.", "Retry with one stable idempotency key for this semantic action."),
   IDEMPOTENCY_KEY_CONFLICT: define("IDEMPOTENCY_KEY_CONFLICT", "Idempotency key conflict.", "Use the original command input or generate a new idempotency key."),
-  SNAPSHOT_INVALID: define("SNAPSHOT_INVALID", "Invalid VenueMind snapshot.", "Restore a schema-compatible snapshot containing a Plan, Proposal, and Activity Ledger."),
+  SNAPSHOT_INVALID: define("SNAPSHOT_INVALID", "Invalid VenueMind snapshot.", "Restore a canonical Project schema 10 snapshot containing a Plan, Proposal, and Activity Ledger."),
+  PROJECT_SCHEMA_UNSUPPORTED: define("PROJECT_SCHEMA_UNSUPPORTED", "Project schema is unsupported.", "Use a Project schema 10 record."),
   ADJUSTMENT_REQUIRED: define("ADJUSTMENT_REQUIRED", "Adjustment instruction is required.", "Provide a concise operational adjustment."),
   PROPOSAL_NOT_REVIEWABLE: define("PROPOSAL_NOT_REVIEWABLE", "Only a Proposal under review can be changed.", "Create or activate a Proposal with review status before changing it."),
   PROPOSAL_MISMATCH: define("PROPOSAL_MISMATCH", "Proposal ID does not match the active Proposal.", "Inspect the active Proposal and retry with its stable ID."),
@@ -74,7 +75,6 @@ export const errorCatalog = Object.freeze({
   OCCUPANCY_PRIVACY_REJECTED: define("OCCUPANCY_PRIVACY_REJECTED", "Occupancy input contains prohibited person-level data.", "Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion."),
   OCCUPANCY_SIGNAL_OUT_OF_ORDER: define("OCCUPANCY_SIGNAL_OUT_OF_ORDER", "Occupancy Signal is older than the accepted source state.", "Refresh the source cursor and send a newer source version and observed instant."),
   OCCUPANCY_REVISION_CONFLICT: define("OCCUPANCY_REVISION_CONFLICT", "Live Occupancy monitor revision conflict.", "Refresh the monitor and retry only if the aggregate transition is still required."),
-  LEGACY_BRIEF_ATTESTATION_REQUIRED: define("LEGACY_BRIEF_ATTESTATION_REQUIRED", "Legacy Event Brief requires trusted human attestation.", "Have an organization owner or administrator review and attest the legacy Event Brief before migration."),
   VENUE_INTERNAL_ERROR: define("VENUE_INTERNAL_ERROR", "VenueMind could not complete the operation.", "Retry once; if the error persists, inspect the server log with the correlation ID."),
 });
 

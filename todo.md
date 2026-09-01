@@ -56,7 +56,7 @@ The following foundation exists and should be protected by regression tests:
 - [x] Human-only Approval boundary across WebMCP and MCP.
 - [x] D1 Project repository and `/api/projects` API.
 - [x] Browser recovery cache and remote/local save status.
-- [x] Project schema versioning and legacy snapshot normalization.
+- [x] Project schema 10 as the sole runtime format with strict canonical restore.
 - [x] Generated JSON Schemas for commands, planner snapshots, and Project records.
 - [x] `venuemind-plan` and `venuemind-audit` agent skills.
 - [x] Multi-route documentation site.
@@ -83,7 +83,7 @@ This is the immediate next milestone. Finish every section before broadening int
 - [x] Define precision and rounding rules for geometry serialization.
 - [x] Reject self-intersecting room and zone polygons.
 - [x] Reject objects outside the room unless their type explicitly permits it.
-- [x] Add geometry migration fixtures for every supported schema version.
+- [x] Reject non-canonical geometry at the schema-10 restore boundary.
 - [x] Add deterministic geometry hashing for comparison and cache keys.
 - [x] Document the coordinate system and unit policy.
 
@@ -357,7 +357,7 @@ Completion gate:
 
 - [x] Finalize a versioned VenueMind JSON interchange format.
 - [x] Publish its JSON Schema and examples.
-- [x] Add import preview with validation and migration report.
+- [x] Add import preview with schema, integrity, validation, and conflict checks.
 - [x] Reject unknown destructive fields and malformed geometry.
 - [x] Preserve external source metadata and checksums.
 - [x] Export SVG with layers, IDs, dimensions, and accessible labels.
@@ -1067,7 +1067,7 @@ Completion gate:
 - [ ] Add accessibility tests.
 - [ ] Add visual regression tests for critical states.
 - [x] Add import/export round-trip tests.
-- [x] Add migration tests for every schema version.
+- [x] Add rejection tests for unsupported Project and template schemas.
 - [ ] Add deterministic simulation fixtures.
 - [ ] Add security fuzz tests for geometry and tool inputs.
 

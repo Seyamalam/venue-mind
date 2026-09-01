@@ -8,6 +8,10 @@ VenueMind models human-supervised spatial planning for live events. Its language
 The Organization-owned durable container for one event's accepted Plan, Proposal branches, Constraints, and Activity Ledger.
 _Avoid_: File, document
 
+**Project Schema**:
+The single canonical persisted shape accepted by the running VenueMind release. Project schema 10 is current; older Project shapes are rejected rather than upgraded inside the product runtime.
+_Avoid_: Database schema, compatibility range, import format
+
 **User**:
 A person identified by an external Identity Provider and represented by one VenueMind account across Organizations.
 _Avoid_: Member, session, actor
@@ -181,7 +185,7 @@ A versioned, checksummed representation of one complete Project used for portabl
 _Avoid_: Project file, raw snapshot
 
 **Import Preview**:
-A read-only integrity, migration, and conflict assessment of an Interchange Package before any Project is created.
+A read-only schema, checksum, geometry, stable-ID, Lock, ledger, replay, and conflict assessment of an Interchange Package before any Project is created.
 _Avoid_: Imported Project, upload result
 
 **Import Commit**:

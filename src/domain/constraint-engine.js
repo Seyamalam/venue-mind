@@ -39,7 +39,7 @@ const metricConstraint = ({ id, checkId, label, category, metric, comparator, th
   remediation,
 });
 
-export function legacyConstraintsToRegistry(legacy = {}) {
+export function createDefaultConstraintRegistry(options = {}) {
   return [
     {
       id: "constraint-protected-objects",
@@ -49,7 +49,7 @@ export function legacyConstraintsToRegistry(legacy = {}) {
       category: "protection",
       severity: "error",
       scope: { kind: "plan" },
-      parameters: { objectIds: [...(legacy.protectedObjectIds ?? [])] },
+      parameters: { objectIds: [...(options.protectedObjectIds ?? [])] },
       remediation: "Remove Changes that target protected venue objects.",
     },
     metricConstraint({
@@ -59,7 +59,7 @@ export function legacyConstraintsToRegistry(legacy = {}) {
       category: "accessibility",
       metric: "accessibleRouteWidthFt",
       comparator: "gte",
-      threshold: legacy.accessibleRouteMinWidthFt ?? 6,
+      threshold: options.accessibleRouteMinWidthFt ?? 6,
       unit: "ft",
       remediation: "Increase the minimum clear accessible route width.",
     }),
@@ -70,7 +70,7 @@ export function legacyConstraintsToRegistry(legacy = {}) {
       category: "capacity",
       metric: "attendeeCapacity",
       comparator: "gte",
-      threshold: legacy.attendeeCapacityMin ?? 0,
+      threshold: options.attendeeCapacityMin ?? 0,
       unit: "attendees",
       remediation: "Restore enough usable places to meet the attendance requirement.",
     }),
@@ -81,7 +81,7 @@ export function legacyConstraintsToRegistry(legacy = {}) {
       category: "sightlines",
       metric: "sightlineCoverage",
       comparator: "gte",
-      threshold: legacy.sightlineCoverageMin ?? 0,
+      threshold: options.sightlineCoverageMin ?? 0,
       unit: "ratio",
       remediation: "Move obstructions or focal equipment to restore sightline coverage.",
     }),
@@ -92,16 +92,16 @@ export function legacyConstraintsToRegistry(legacy = {}) {
       category: "circulation",
       metric: "peakCongestionIndex",
       comparator: "lte",
-      threshold: legacy.peakCongestionMax ?? 80,
+      threshold: options.peakCongestionMax ?? 80,
       unit: "index",
       remediation: "Increase circulation capacity or reduce demand at the bottleneck.",
     }),
   ];
 }
 
-export function normalizeConstraints(constraints, fallbackConstraints = null) {
-  const source = constraints ?? fallbackConstraints;
-  const registry = Array.isArray(source) ? source : legacyConstraintsToRegistry(source);
+export function normalizeConstraints(constraints) {
+  if (!Array.isArray(constraints)) throw venueError("CONSTRAINT_INVALID", { field: "constraints" }, "Constraints must be a current registry array");
+  const registry = constraints;
   const ids = new Set();
   return registry.map((constraint) => {
     if (!constraint?.id || !constraint?.checkId || !constraint?.evaluator) throw venueError("CONSTRAINT_INVALID", { constraintId: constraint?.id ?? null }, "Constraint requires stable IDs and an evaluator");
@@ -132,11 +132,11 @@ const evaluators = {
   maximum_metric: evaluateMetric,
   protected_objects_unchanged: (constraint, _candidateMetrics, context) => {
     const protectedIds = new Set(constraint.parameters.objectIds);
-    const legacyAffectedObjectIds = context.changes
+    const protectedTargetObjectIds = context.changes
       .flatMap((change) => change.targetObjectIds ?? [])
       .filter((id) => protectedIds.has(id));
     const lockConflicts = detectLockConflicts(context.state.plan, context.changes, context.state.projectLocks ?? []);
-    const affectedObjectIds = [...new Set([...legacyAffectedObjectIds, ...lockConflicts.map((conflict) => conflict.objectId)])].sort();
+    const affectedObjectIds = [...new Set([...protectedTargetObjectIds, ...lockConflicts.map((conflict) => conflict.objectId)])].sort();
     return {
       passes: affectedObjectIds.length === 0,
       actual: affectedObjectIds.length,

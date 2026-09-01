@@ -1,4 +1,4 @@
-import { legacyConstraintsToRegistry } from "./constraint-engine.js";
+import { createDefaultConstraintRegistry } from "./constraint-engine.js";
 
 const safeId = (value) => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "untitled";
 
@@ -43,7 +43,7 @@ export function createEmptyVenuePlan({ projectId, name = "Untitled event" }) {
       },
     },
     objects: [],
-    constraints: legacyConstraintsToRegistry({
+    constraints: createDefaultConstraintRegistry({
       accessibleRouteMinWidthFt: 6,
       attendeeCapacityMin: 0,
       sightlineCoverageMin: 0,

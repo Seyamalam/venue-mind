@@ -130,30 +130,9 @@ export const getInventoryTemplate = (id, version) => {
   return clone(template);
 };
 
-export function migrateTemplateDocument(document) {
-  const migrated = clone(document);
-  if (migrated.schemaVersion === TEMPLATE_SCHEMA_VERSION) return migrated;
-  if (migrated.schemaVersion === 0 && migrated.kind === "inventory-item-template") {
-    migrated.schemaVersion = 1;
-    migrated.availability = { total: migrated.stock ?? 0, unavailable: 0 };
-    delete migrated.stock;
-    return migrated;
-  }
-  if (migrated.schemaVersion === 0 && migrated.kind === "room-template") {
-    migrated.schemaVersion = 1;
-    migrated.boundary = migrated.boundary ?? migrated.roomBoundary;
-    migrated.objects = migrated.objects ?? migrated.infrastructure ?? [];
-    delete migrated.roomBoundary;
-    delete migrated.infrastructure;
-    return migrated;
-  }
-  if (migrated.schemaVersion === 0 && migrated.kind === "venue-template") {
-    migrated.schemaVersion = 1;
-    migrated.roomTemplateIds = migrated.roomTemplateIds ?? migrated.rooms ?? [];
-    delete migrated.rooms;
-    return migrated;
-  }
-  throw venueError("TEMPLATE_SCHEMA_UNSUPPORTED", { templateId: migrated.id ?? null, schemaVersion: migrated.schemaVersion ?? null, supportedSchemaVersion: TEMPLATE_SCHEMA_VERSION });
+export function assertCurrentTemplateDocument(document) {
+  if (document?.schemaVersion !== TEMPLATE_SCHEMA_VERSION) throw venueError("TEMPLATE_SCHEMA_UNSUPPORTED", { templateId: document?.id ?? null, schemaVersion: document?.schemaVersion ?? null, supportedSchemaVersion: TEMPLATE_SCHEMA_VERSION });
+  return clone(document);
 }
 
 export function evaluateInventoryAvailability(plan) {

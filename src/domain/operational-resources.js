@@ -180,7 +180,7 @@ export function normalizePreparedOperationalResourceInput(value) {
   assertIsoTimestamp(value.project.eventWindow.startAt, "Operational event startAt");
   assertIsoTimestamp(value.project.eventWindow.endAt, "Operational event endAt");
   if (Date.parse(value.project.eventWindow.endAt) <= Date.parse(value.project.eventWindow.startAt)) fail("ADAPTER_SOURCE_INVALID", "Operational event window must increase");
-  if (!PLAN_FINGERPRINT.test(value.project.planFingerprint ?? "") && !SHA256.test(value.project.planFingerprint ?? "")) fail("ADAPTER_CHECKSUM_INVALID", "Operational Project planFingerprint is invalid");
+  if (!PLAN_FINGERPRINT.test(value.project.planFingerprint ?? "")) fail("ADAPTER_CHECKSUM_INVALID", "Operational Project planFingerprint is invalid");
   if (!Array.isArray(value.resources) || value.resources.length > MAX_RESOURCES) fail("ADAPTER_SOURCE_INVALID", `Operational resources must contain at most ${MAX_RESOURCES} records`);
   const resources = value.resources.map(normalizeResource).sort((left, right) => compare(left.resourceId, right.resourceId));
   if (new Set(resources.map((item) => item.resourceId)).size !== resources.length) fail("ADAPTER_SOURCE_INVALID", "Operational resource IDs must be unique");

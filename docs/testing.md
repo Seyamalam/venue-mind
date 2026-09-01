@@ -4,7 +4,7 @@
 
 | Layer | Primary command | Evidence |
 | --- | --- | --- |
-| Planner and domain | `npm run test:domain` | Commands, Validation, Approval, replay, migrations |
+| Planner and domain | `npm run test:domain` | Commands, Validation, Approval, replay, and strict schema boundaries |
 | WebMCP | `node --test tests/webmcp*.test.mjs` | Registration, scopes, limits, cancellation, redaction |
 | MCP server | `npm run test:mcp` | Official client, stdio lifecycle, resources, prompts, progress |
 | Persistence and worker | `node --test tests/project-store.test.mjs tests/sites-worker.test.mjs tests/database-migrations.test.mjs tests/sharing-notifications.test.mjs` | remote authority, local recovery, sharing, notifications, API routing, database upgrade/restore |
@@ -19,7 +19,7 @@
 - Assert accepted Plan truth separately from Proposal state.
 - For mutations, assert idempotent retry and ledger/receipt evidence.
 - For Constraints, assert actual value, threshold, units, affected stable IDs, evidence fingerprint, and status.
-- For Project migrations, assert first load, second load, export/import round trip, ledger verification, and replay.
+- For Project persistence, assert schema-10-only rejection, export/import round trip, ledger verification, and replay.
 - For database migrations, assert dry run, checksum, every released fixture, integrity/orphans, backup, staged restore, Project fingerprint, ledger head, and replay.
 - For public examples, compile or execute code and schema-check configuration and raw fixtures.
 

@@ -2,11 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { summitForwardPlan } from "../src/domain/summit-forward.js";
 import { createActivityEntry, fingerprintEventBrief, fingerprintPlan, replayActivityLedger, sealActivityLedger } from "../src/domain/activity-ledger.js";
+import { normalizePlanGeometry } from "../src/domain/geometry.js";
 import { createVenuePlanner } from "../src/domain/venue-planner.js";
 
 const createPlanner = () => createVenuePlanner(summitForwardPlan);
 
 const pinAcceptedTruthForFixture = (snapshot) => {
+  snapshot.plan = normalizePlanGeometry(snapshot.plan);
   const ledger = structuredClone(snapshot.ledger);
   const index = ledger.findLastIndex((entry) => entry.details?.acceptedPlan);
   ledger[index].details.acceptedPlan = structuredClone(snapshot.plan);
@@ -161,11 +163,12 @@ test("snapshot restore rejects operational geometry with an incompatible footpri
     layer: "architecture",
     elevationM: 0,
     locked: false,
+    locks: [],
     door: { clearWidthM: 1, swing: "inward", accessible: false },
     footprint: { kind: "rectangle", center: { x: 20, y: 2 }, width: 1, depth: 1, rotationDegrees: 0 },
   });
 
-  assert.throws(() => planner.execute({ type: "restore_snapshot", snapshot }), /door.+line footprint/i);
+  assert.throws(() => planner.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "SNAPSHOT_INVALID" && /door.+line footprint/i.test(error.details.cause));
 });
 
 test("snapshot restore rejects accepted geometry changes without ledger evidence", () => {
@@ -175,7 +178,7 @@ test("snapshot restore rejects accepted geometry changes without ledger evidence
   avDesk.footprint.center.x = 21.12349;
   avDesk.footprint.rotationDegrees = 450.14;
 
-  assert.throws(() => planner.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEDGER_INTEGRITY_FAILED" && error.details.replay.status === "fail");
+  assert.throws(() => planner.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "SNAPSHOT_INVALID" && error.details.reason === "non-canonical-value");
 });
 
 test("snapshot restore rejects self-intersecting room boundaries", () => {
@@ -188,10 +191,7 @@ test("snapshot restore rejects self-intersecting room boundaries", () => {
     { x: 20, y: 0 },
   ];
 
-  assert.throws(
-    () => planner.execute({ type: "restore_snapshot", snapshot }),
-    /self-intersecting room boundary/i,
-  );
+  assert.throws(() => planner.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "SNAPSHOT_INVALID" && /self-intersecting room boundary/i.test(error.details.cause));
 });
 
 test("snapshot restore rejects object footprints outside the room boundary", () => {
@@ -199,111 +199,21 @@ test("snapshot restore rejects object footprints outside the room boundary", () 
   const snapshot = structuredClone(planner.getSnapshot());
   snapshot.plan.objects.find((object) => object.id === "obj-av-desk").footprint.center.x = 40;
 
-  assert.throws(
-    () => planner.execute({ type: "restore_snapshot", snapshot }),
-    /outside the room boundary/i,
-  );
+  assert.throws(() => planner.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "SNAPSHOT_INVALID" && /outside the room boundary/i.test(error.details.cause));
 });
 
-test("legacy snapshots inherit canonical geometry by stable object ID", () => {
-  const planner = createPlanner();
-  const legacy = structuredClone(planner.getSnapshot());
-  delete legacy.plan.spatial;
-  for (const object of legacy.plan.objects) delete object.footprint;
-
-  planner.execute({ type: "restore_snapshot", snapshot: legacy });
-
-  assert.equal(planner.getSnapshot().plan.spatial.unit, "m");
-  assert.equal(
-    planner.getSnapshot().plan.objects.find((object) => object.id === "obj-column-southwest").footprint.kind,
-    "circle",
-  );
-});
-
-test("metric-only snapshots migrate to geometry-backed evidence by stable IDs", () => {
-  const source = createPlanner();
-  const legacy = structuredClone(source.getSnapshot());
-  const evidenceObjectIds = new Set(["obj-accessible-entrance-south", "obj-restroom-accessible", "obj-seating-west", "obj-seating-east", "obj-route-main", "obj-route-stage", "obj-route-seating-west", "obj-route-seating-east", "obj-route-exit-east", "obj-door-south-access", "obj-restricted-production"]);
-  legacy.plan.objects = legacy.plan.objects.filter((object) => !evidenceObjectIds.has(object.id));
-  legacy.plan.constraints = legacy.plan.constraints.filter((constraint) => !["constraint-turning-clearance", "constraint-accessible-seating"].includes(constraint.id)).map((constraint) => {
-    if (constraint.id === "constraint-accessible-route") return { ...constraint, evaluator: "minimum_metric", parameters: { metric: "accessibleRouteWidthFt", comparator: "gte", threshold: 6, unit: "ft" } };
-    if (constraint.id === "constraint-capacity") return { ...constraint, evaluator: "minimum_metric", parameters: { metric: "attendeeCapacity", comparator: "gte", threshold: 400, unit: "attendees" } };
-    if (constraint.id === "constraint-peak-congestion") return { ...constraint, evaluator: "maximum_metric", parameters: { metric: "peakCongestionIndex", comparator: "lte", threshold: 80, unit: "index" } };
-    if (constraint.id === "constraint-sightlines") return { ...constraint, evaluator: "minimum_metric", parameters: { metric: "sightlineCoverage", comparator: "gte", threshold: 0.85, unit: "ratio" } };
-    return constraint;
-  });
-  for (const change of legacy.proposal.changes) {
-    delete change.spatialEffects;
-    delete change.targetObjectIds;
+test("snapshot restore rejects non-canonical geometry, Locks, and current collections", () => {
+  const mutations = [
+    (snapshot) => { delete snapshot.plan.spatial; },
+    (snapshot) => { delete snapshot.plan.objects[0].locks; },
+    (snapshot) => { delete snapshot.scenarios; },
+  ];
+  for (const mutate of mutations) {
+    const planner = createPlanner();
+    const snapshot = structuredClone(planner.getSnapshot());
+    mutate(snapshot);
+    assert.throws(() => planner.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "SNAPSHOT_INVALID" && error.details.requiredProjectSchemaVersion === 10);
   }
-  legacy.branches[0].proposal = structuredClone(legacy.proposal);
-
-  const restored = createPlanner();
-  restored.execute({ type: "restore_snapshot", snapshot: legacy });
-  const validation = restored.execute({ type: "validate_layout" });
-
-  assert.equal(restored.getSnapshot().plan.objects.some((object) => object.id === "obj-route-main"), true);
-  assert.equal(restored.getSnapshot().plan.constraints.find((constraint) => constraint.id === "constraint-accessible-route").evaluator, "accessible_route_graph");
-  assert.equal(restored.getSnapshot().proposal.changes.find((change) => change.id === "chg-center-aisle-width").spatialEffects.length, 5);
-  assert.equal(validation.status, "pass", JSON.stringify(validation.checks.filter((check) => check.status !== "pass")));
-  assert.match(validation.spatialEvidence.accessibility.graphFingerprint, /^graph-/);
-  assert.equal(restored.execute({ type: "get_change_log" }).at(-1).type, "schema.migrated");
-  const replay = restored.execute({ type: "replay_history" });
-  assert.equal(replay.status, "pass", JSON.stringify(replay));
-});
-
-test("schema-v6 snapshots migrate generic routes to typed operational geometry", () => {
-  const source = createPlanner();
-  const legacy = structuredClone(source.getSnapshot());
-  legacy.plan.objects = legacy.plan.objects.filter((object) => !["obj-door-south-access", "obj-restricted-production"].includes(object.id)).map((object) => {
-    const { locks: _locks, ...unlocked } = object;
-    if (unlocked.accessibility) delete unlocked.accessibility.accessibleSeatSampleIds;
-    if (object.id === "obj-fire-exit-east") {
-      const { exit, ...rest } = unlocked;
-      return rest;
-    }
-    if (["corridor", "aisle", "service_lane", "accessible_route"].includes(object.kind)) {
-      const { route, ...rest } = unlocked;
-      return { ...rest, kind: "accessible_route" };
-    }
-    return unlocked;
-  });
-  legacy.plan.constraints = legacy.plan.constraints.filter((constraint) => !["accessible_seating_sightlines", "door_clearance", "temporary_ramp"].includes(constraint.evaluator));
-
-  const restored = createPlanner();
-  restored.execute({ type: "restore_snapshot", snapshot: legacy });
-  const objects = new Map(restored.getSnapshot().plan.objects.map((object) => [object.id, object]));
-  const migrations = restored.execute({ type: "get_change_log" }).filter((entry) => entry.type === "schema.migrated");
-
-  assert.equal(objects.get("obj-door-south-access").kind, "door");
-  assert.equal(objects.get("obj-route-main").kind, "corridor");
-  assert.equal(objects.get("obj-route-seating-west").kind, "aisle");
-  assert.equal(objects.get("obj-route-stage").kind, "service_lane");
-  assert.equal(objects.get("obj-fire-exit-east").exit.emergency, true);
-  assert.equal(objects.get("obj-restricted-production").restriction.blocksPlacement, true);
-  assert.deepEqual(migrations.map((entry) => entry.details.migrationId), ["project-schema-v6-to-v7-operational-geometry", "project-schema-v7-to-v8-typed-locks", "project-schema-v8-to-v9-accessibility-infrastructure"]);
-  assert.equal(restored.execute({ type: "replay_history" }).status, "pass");
-});
-
-test("schema-v8 snapshots migrate accessible sightlines and clearance infrastructure by stable ID", () => {
-  const source = createPlanner();
-  const legacy = structuredClone(source.getSnapshot());
-  for (const object of legacy.plan.objects) {
-    if (object.accessibility) delete object.accessibility.accessibleSeatSampleIds;
-    if (object.door) delete object.door.clearance;
-  }
-  legacy.plan.constraints = legacy.plan.constraints.filter((constraint) => !["accessible_seating_sightlines", "door_clearance", "temporary_ramp"].includes(constraint.evaluator));
-
-  const restored = createPlanner();
-  restored.execute({ type: "restore_snapshot", snapshot: legacy });
-  const snapshot = restored.getSnapshot();
-  const migrations = snapshot.ledger.filter((entry) => entry.type === "schema.migrated");
-
-  assert.deepEqual(snapshot.plan.objects.find((object) => object.id === "obj-seating-east").accessibility.accessibleSeatSampleIds, ["seat-east-01", "seat-east-05"]);
-  assert.deepEqual(snapshot.plan.objects.find((object) => object.id === "obj-door-south-access").door.clearance, { side: "left", depthM: 1.5, latchSideM: 0.45 });
-  assert.deepEqual(migrations.map((entry) => entry.details.migrationId), ["project-schema-v8-to-v9-accessibility-infrastructure"]);
-  assert.equal(restored.execute({ type: "validate_layout" }).status, "pass");
-  assert.equal(restored.execute({ type: "replay_history" }).status, "pass");
 });
 
 test("preview creates a new non-destructive proposal and records the agent action", () => {
@@ -461,8 +371,8 @@ test("every planner mutation is retry-safe", () => {
     ["conflict resolution", (planner) => {
       const snapshot = structuredClone(planner.getSnapshot());
       snapshot.plan.objects.push(
-        { id: "obj-retry-solid-a", kind: "table", label: "Solid A", layer: "furniture", elevationM: 0, locked: false, placement: { collisionMode: "solid" }, footprint: { kind: "rectangle", center: { x: 5, y: 2 }, width: 1, depth: 1, rotationDegrees: 0 } },
-        { id: "obj-retry-solid-b", kind: "table", label: "Solid B", layer: "furniture", elevationM: 0, locked: false, placement: { collisionMode: "solid" }, footprint: { kind: "rectangle", center: { x: 8, y: 2 }, width: 1, depth: 1, rotationDegrees: 0 } },
+        { id: "obj-retry-solid-a", kind: "table", label: "Solid A", layer: "furniture", elevationM: 0, locked: false, locks: [], placement: { collisionMode: "solid" }, footprint: { kind: "rectangle", center: { x: 5, y: 2 }, width: 1, depth: 1, rotationDegrees: 0 } },
+        { id: "obj-retry-solid-b", kind: "table", label: "Solid B", layer: "furniture", elevationM: 0, locked: false, locks: [], placement: { collisionMode: "solid" }, footprint: { kind: "rectangle", center: { x: 8, y: 2 }, width: 1, depth: 1, rotationDegrees: 0 } },
       );
       snapshot.proposal.changes.push({ id: "chg-retry-overlap", number: 5, title: "Overlap", shortTitle: "Overlap", metrics: [], targetObjectIds: ["obj-retry-solid-a"], spatialEffects: [{ operation: "update_footprint", objectId: "obj-retry-solid-a", footprint: { center: { x: 8, y: 2 } } }], effects: {} });
       snapshot.branches[0].proposal = structuredClone(snapshot.proposal);
@@ -842,7 +752,7 @@ test("validation emits typed, ordered evidence with a deterministic input finger
   assert.match(first.candidateGeometryFingerprint, /^geom-[0-9a-f]{8}$/);
 });
 
-test("legacy constraint parameters migrate into the typed registry", () => {
+test("snapshot restore rejects non-registry Constraint payloads", () => {
   const planner = createPlanner();
   const snapshot = structuredClone(planner.getSnapshot());
   snapshot.plan.constraints = {
@@ -852,24 +762,7 @@ test("legacy constraint parameters migrate into the typed registry", () => {
     protectedObjectIds: ["obj-stage-west", "obj-fire-exit-east", "obj-column-southwest"],
   };
 
-  planner.execute({ type: "restore_snapshot", snapshot });
-
-  assert.deepEqual(planner.getSnapshot().plan.constraints.map((constraint) => constraint.id), [
-    "constraint-protected-objects",
-    "constraint-accessible-route",
-    "constraint-turning-clearance",
-    "constraint-accessible-seating",
-    "constraint-accessible-seating-sightlines",
-    "constraint-door-clearance",
-    "constraint-temporary-ramps",
-    "constraint-capacity",
-    "constraint-sightlines",
-    "constraint-production-readiness",
-    "constraint-catering-readiness",
-    "constraint-emergency-readiness",
-    "constraint-peak-congestion",
-  ]);
-  assert.equal(planner.execute({ type: "validate_layout" }).status, "pass");
+  assert.throws(() => planner.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "SNAPSHOT_INVALID");
 });
 
 test("preference warnings remain non-blocking and disabled constraints are not applicable", () => {
@@ -1236,11 +1129,12 @@ test("geometry overlap conflicts expose safe structured choices", () => {
   const planner = createPlanner();
   const snapshot = structuredClone(planner.getSnapshot());
   snapshot.plan.objects.push(
-    { id: "obj-solid-a", kind: "table", label: "Solid A", layer: "furniture", elevationM: 0, locked: false, placement: { collisionMode: "solid" }, footprint: { kind: "rectangle", center: { x: 5, y: 2 }, width: 1, depth: 1, rotationDegrees: 0 } },
-    { id: "obj-solid-b", kind: "table", label: "Solid B", layer: "furniture", elevationM: 0, locked: false, placement: { collisionMode: "solid" }, footprint: { kind: "rectangle", center: { x: 8, y: 2 }, width: 1, depth: 1, rotationDegrees: 0 } },
+    { id: "obj-solid-a", kind: "table", label: "Solid A", layer: "furniture", elevationM: 0, locked: false, locks: [], placement: { collisionMode: "solid" }, footprint: { kind: "rectangle", center: { x: 5, y: 2 }, width: 1, depth: 1, rotationDegrees: 0 } },
+    { id: "obj-solid-b", kind: "table", label: "Solid B", layer: "furniture", elevationM: 0, locked: false, locks: [], placement: { collisionMode: "solid" }, footprint: { kind: "rectangle", center: { x: 8, y: 2 }, width: 1, depth: 1, rotationDegrees: 0 } },
   );
   snapshot.proposal.changes.push({ id: "chg-solid-overlap", number: 5, title: "Move solid A", shortTitle: "Solid A moved", metrics: [], targetObjectIds: ["obj-solid-a"], spatialEffects: [{ operation: "update_footprint", objectId: "obj-solid-a", footprint: { center: { x: 8, y: 2 } } }], effects: {} });
   snapshot.branches[0].proposal = structuredClone(snapshot.proposal);
+  pinAcceptedTruthForFixture(snapshot);
   planner.execute({ type: "restore_snapshot", snapshot });
 
   const detected = planner.execute({ type: "detect_conflicts", branchId: "branch-balanced" });
@@ -1257,11 +1151,12 @@ test("manual conflict resolution transforms only the affected Change ID", () => 
   const planner = createPlanner();
   const snapshot = structuredClone(planner.getSnapshot());
   snapshot.plan.objects.push(
-    { id: "obj-manual-a", kind: "table", label: "Manual A", layer: "furniture", elevationM: 0, locked: false, placement: { collisionMode: "solid" }, footprint: { kind: "rectangle", center: { x: 5, y: 2 }, width: 1, depth: 1, rotationDegrees: 0 } },
-    { id: "obj-manual-b", kind: "table", label: "Manual B", layer: "furniture", elevationM: 0, locked: false, placement: { collisionMode: "solid" }, footprint: { kind: "rectangle", center: { x: 8, y: 2 }, width: 1, depth: 1, rotationDegrees: 0 } },
+    { id: "obj-manual-a", kind: "table", label: "Manual A", layer: "furniture", elevationM: 0, locked: false, locks: [], placement: { collisionMode: "solid" }, footprint: { kind: "rectangle", center: { x: 5, y: 2 }, width: 1, depth: 1, rotationDegrees: 0 } },
+    { id: "obj-manual-b", kind: "table", label: "Manual B", layer: "furniture", elevationM: 0, locked: false, locks: [], placement: { collisionMode: "solid" }, footprint: { kind: "rectangle", center: { x: 8, y: 2 }, width: 1, depth: 1, rotationDegrees: 0 } },
   );
   snapshot.proposal.changes.push({ id: "chg-manual-overlap", number: 5, title: "Move manual A", shortTitle: "Manual A moved", metrics: [], targetObjectIds: ["obj-manual-a"], spatialEffects: [{ operation: "update_footprint", objectId: "obj-manual-a", footprint: { center: { x: 8, y: 2 } } }], effects: {} });
   snapshot.branches[0].proposal = structuredClone(snapshot.proposal);
+  pinAcceptedTruthForFixture(snapshot);
   planner.execute({ type: "restore_snapshot", snapshot });
   const beforeIds = planner.getSnapshot().proposal.changes.map((change) => change.id);
   const overlap = planner.execute({ type: "detect_conflicts", branchId: "branch-balanced" }).conflicts.find((conflict) => conflict.type === "geometry-overlap");
@@ -1363,17 +1258,12 @@ test("planner restore rejects locked mutations and rebase blocks deleted depende
   assert.throws(() => lockedPlanner.execute({ type: "restore_snapshot", snapshot: lockedSnapshot }), (error) => error.code === "LOCK_CONFLICT" && error.details.objectIds[0] === "obj-stage-west");
 });
 
-test("legacy snapshots are normalized with a primary proposal branch", () => {
+test("snapshot restore requires an explicit primary Proposal Branch", () => {
   const planner = createPlanner();
-  const legacy = structuredClone(planner.getSnapshot());
-  delete legacy.branches;
-  delete legacy.activeBranchId;
-
-  planner.execute({ type: "restore_snapshot", snapshot: legacy });
-  const branches = planner.execute({ type: "list_branches" });
-  assert.equal(branches.length, 1);
-  assert.equal(branches[0].id, "branch-balanced");
-  assert.equal(branches[0].active, true);
+  const snapshot = structuredClone(planner.getSnapshot());
+  delete snapshot.branches;
+  delete snapshot.activeBranchId;
+  assert.throws(() => planner.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "SNAPSHOT_INVALID");
 });
 
 test("exports are read-only and include validation and ledger data", () => {

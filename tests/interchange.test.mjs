@@ -35,9 +35,7 @@ test("VenueMind Interchange Package round-trips stable IDs, geometry, Constraint
   assert.equal(preview.integrity.checksum, "pass");
   assert.equal(preview.integrity.ledger, "pass");
   assert.equal(preview.integrity.replay, "pass");
-  assert.equal(preview.migration.fromSchemaVersion, 10);
-  assert.equal(preview.migration.toSchemaVersion, 10);
-  assert.deepEqual(preview.migration.actions, []);
+  assert.equal(preview.integrity.schema, "pass");
   assert.equal(fingerprintPlan(preview.record.snapshot.plan), fingerprintPlan(record.snapshot.plan));
   assert.deepEqual(preview.record.snapshot.plan.objects.map((object) => object.id), record.snapshot.plan.objects.map((object) => object.id));
   assert.deepEqual(preview.record.snapshot.plan.constraints.map((constraint) => constraint.id), record.snapshot.plan.constraints.map((constraint) => constraint.id));
@@ -83,39 +81,16 @@ test("Import Preview rejects malformed geometry, duplicate stable IDs, and locke
   await assert.rejects(() => previewProjectImport(lockedPackage.content, { clock }), (error) => error.code === "LOCK_CONFLICT");
 });
 
-test("Import Preview migrates a v5 metric-summary Project to schema v10 with an explicit report", async () => {
-  const legacy = projectRecord();
-  legacy.schemaVersion = 5;
-  delete legacy.snapshot.scenarios;
-  delete legacy.snapshot.scenarioRuns;
-  const evidenceIds = new Set(["obj-accessible-entrance-south", "obj-restroom-accessible", "obj-seating-west", "obj-seating-east", "obj-route-main", "obj-route-stage", "obj-route-seating-west", "obj-route-seating-east", "obj-route-exit-east", "obj-door-south-access", "obj-restricted-production"]);
-  legacy.snapshot.plan.objects = legacy.snapshot.plan.objects.filter((object) => !evidenceIds.has(object.id));
-  for (const object of legacy.snapshot.plan.objects) delete object.locks;
-  for (const object of legacy.snapshot.plan.objects) {
-    if (object.accessibility) delete object.accessibility.accessibleSeatSampleIds;
-    if (object.door) delete object.door.clearance;
-  }
-  legacy.snapshot.plan.constraints = legacy.snapshot.plan.constraints.filter((constraint) => !["accessible_seating_sightlines", "door_clearance", "temporary_ramp"].includes(constraint.evaluator));
-  legacy.snapshot.plan.constraints = legacy.snapshot.plan.constraints.map((constraint) => {
-    if (constraint.id === "constraint-accessible-route") return { ...constraint, evaluator: "minimum_metric", parameters: { metric: "accessibleRouteWidthFt", comparator: "gte", threshold: 6, unit: "ft" } };
-    return constraint;
-  }).filter((constraint) => !["constraint-turning-clearance", "constraint-accessible-seating"].includes(constraint.id));
-  for (const change of legacy.snapshot.proposal.changes) {
-    delete change.targetObjectIds;
-    delete change.spatialEffects;
-  }
-  legacy.snapshot.branches[0].proposal = structuredClone(legacy.snapshot.proposal);
+test("Interchange rejects non-current Project schemas at export and import boundaries", async () => {
+  const oldRecord = projectRecord();
+  oldRecord.schemaVersion = 9;
+  await assert.rejects(() => exportProjectPackage(oldRecord, { clock }), (error) => error.code === "EXPORT_UNSUPPORTED_PROJECT_SCHEMA");
 
-  const exported = await exportProjectPackage(legacy, { clock });
-  const preview = await previewProjectImport(exported.content, { clock });
-
-  assert.equal(preview.migration.fromSchemaVersion, 5);
-  assert.equal(preview.migration.toSchemaVersion, 10);
-  assert.deepEqual(preview.migration.actions, ["project-schema-v5-to-v6-spatial-evidence", "project-schema-v6-to-v7-operational-geometry", "project-schema-v7-to-v8-typed-locks", "project-schema-v8-to-v9-accessibility-infrastructure", "project-schema-v9-to-v10-simulation-framework"]);
-  assert.equal(preview.record.schemaVersion, 10);
-  assert.equal(preview.record.snapshot.plan.objects.some((object) => object.id === "obj-route-main"), true);
-  assert.equal(preview.record.snapshot.ledger.at(-1).type, "schema.migrated");
-  assert.equal(preview.integrity.replay, "pass");
+  const exported = await exportProjectPackage(projectRecord(), { clock });
+  const oldPackage = structuredClone(exported.package);
+  oldPackage.project.schemaVersion = 9;
+  oldPackage.manifest.source.projectSchemaVersion = 9;
+  await assert.rejects(() => previewProjectImport(JSON.stringify(oldPackage), { clock }), (error) => error.code === "IMPORT_UNSUPPORTED_PROJECT_SCHEMA");
 });
 
 test("Import Preview enforces the package input-size boundary before parsing", async () => {

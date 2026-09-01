@@ -1,6 +1,6 @@
 import { normalizePlanGeometry } from "./geometry.js";
 import { normalizeConstraints, validateConstraints } from "./constraint-engine.js";
-import { createActivityEntry, fingerprintEventBrief, fingerprintPlan, normalizeActivityLedger, replayActivityLedger, sealActivityLedger, stableFingerprint, verifyActivityLedger } from "./activity-ledger.js";
+import { createActivityEntry, fingerprintEventBrief, fingerprintPlan, replayActivityLedger, sealActivityLedger, stableFingerprint, verifyActivityLedger } from "./activity-ledger.js";
 import { detectProposalConflicts } from "./proposal-conflicts.js";
 import { eventBriefWithCoverage, normalizeEventBrief } from "./event-brief.js";
 import { materializeSpatialPlan } from "./spatial-analysis.js";
@@ -98,216 +98,63 @@ const createInitialState = (initialPlan) => {
   };
 };
 
-const SPATIAL_EVALUATORS = new Set(["accessible_route_graph", "turning_clearance", "accessible_seating", "accessible_seating_sightlines", "door_clearance", "temporary_ramp", "occupancy_capacity", "circulation_graph", "sightline_raycast"]);
-const ACCESSIBILITY_INFRASTRUCTURE_EVALUATORS = new Set(["accessible_seating_sightlines", "door_clearance", "temporary_ramp"]);
-const ROUTE_KINDS = new Set(["accessible_route", "corridor", "aisle", "service_lane"]);
-const hasOperationalMetadata = (object) => Boolean(object?.door || object?.exit || object?.route || object?.restriction);
+const SNAPSHOT_FIELDS = Object.freeze(["plan", "brief", "proposal", "activeBranchId", "branches", "ledger", "receipts", "projectLocks", "editHistory", "comments", "scenarios", "scenarioRuns"]);
+const sameValue = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 
-const enrichProposal = (proposal, fallbackProposal) => {
-  if (!proposal) return proposal;
-  const fallbackChanges = new Map((fallbackProposal?.changes ?? []).map((change) => [change.id, change]));
-  return {
-    ...proposal,
-    waivers: Array.isArray(proposal.waivers) ? proposal.waivers : [],
-    changes: proposal.changes.map((change) => {
-      const fallback = fallbackChanges.get(change.id);
-      if (!fallback) return change;
-      return {
-        ...fallback,
-        ...change,
-        targetObjectIds: change.targetObjectIds ?? fallback.targetObjectIds,
-        spatialEffects: change.spatialEffects ?? fallback.spatialEffects,
-      };
-    }),
+const restoreSnapshot = (snapshot) => {
+  const restored = clone(snapshot);
+  const fail = (reason, details = {}) => {
+    throw venueError("SNAPSHOT_INVALID", { reason, requiredProjectSchemaVersion: 10, ...details }, "Use a canonical Project schema 10 snapshot.");
   };
-};
+  if (!restored || typeof restored !== "object" || Array.isArray(restored)) fail("snapshot-object-required");
+  const unknownFields = Object.keys(restored).filter((field) => !SNAPSHOT_FIELDS.includes(field));
+  const missingFields = SNAPSHOT_FIELDS.filter((field) => restored[field] === undefined || restored[field] === null);
+  if (unknownFields.length || missingFields.length) fail("snapshot-shape-invalid", { unknownFields: unknownFields.sort(), missingFields });
+  if (!restored.plan?.id || !restored.plan?.version || !restored.plan?.spatial || !Array.isArray(restored.plan.objects) || !Array.isArray(restored.plan.constraints)) fail("plan-shape-invalid");
+  if (restored.plan.objects.some((object) => !object?.id || !object.footprint || !object.layer || !Number.isFinite(object.elevationM) || !Array.isArray(object.locks))) fail("plan-object-shape-invalid");
+  if (!restored.brief?.id || !Object.hasOwn(restored.brief, "schedule") || !Array.isArray(restored.brief.requirements)) fail("brief-shape-invalid");
+  if (!restored.proposal?.id || !Array.isArray(restored.proposal.changes) || !Array.isArray(restored.proposal.waivers)) fail("proposal-shape-invalid");
+  if (!restored.activeBranchId || !Array.isArray(restored.branches) || restored.branches.length === 0 || !restored.branches.some((branch) => branch.id === restored.activeBranchId)) fail("branch-shape-invalid");
+  if (restored.branches.some((branch) => !branch?.id || !branch.proposal || !Array.isArray(branch.revisions) || typeof branch.notes !== "string" || typeof branch.archived !== "boolean" || !Object.hasOwn(branch, "decisionStatus"))) fail("branch-shape-invalid");
+  if (!Array.isArray(restored.ledger) || restored.ledger.length === 0 || !Array.isArray(restored.receipts) || !Array.isArray(restored.projectLocks) || !Array.isArray(restored.comments) || !Array.isArray(restored.scenarios) || !Array.isArray(restored.scenarioRuns) || !Array.isArray(restored.editHistory?.undo) || !Array.isArray(restored.editHistory?.redo)) fail("collection-shape-invalid");
+  if (restored.ledger.some((entry) => entry.schemaVersion !== 1 || typeof entry.hash !== "string" || (entry.previousHash !== null && typeof entry.previousHash !== "string"))) fail("sealed-ledger-required");
 
-const normalizeLegacyBriefProof = (proof, snapshotBrief, authorization) => {
-  if (!proof) throw venueError("LEGACY_BRIEF_ATTESTATION_REQUIRED", { reason: "accepted-brief-proof-missing", briefFingerprint: fingerprintEventBrief(snapshotBrief) });
-  const source = proof.source;
-  if (source !== "authenticated-human-attestation") throw venueError("LEGACY_BRIEF_ATTESTATION_REQUIRED", { reason: "accepted-brief-proof-source-invalid" });
-  const principal = authorization?.principal;
-  const allowedRoles = ["venue-administrator", "organization-administrator"];
-  if (!proof.attestationId || !proof.actorId || !allowedRoles.includes(proof.actorRole)
-    || principal?.type !== "human" || principal.id !== proof.actorId || !principal.roles?.includes(proof.actorRole)) {
-    throw venueError("LEGACY_BRIEF_ATTESTATION_REQUIRED", { reason: "accepted-brief-attestation-invalid" });
-  }
-  const brief = normalizeEventBrief(proof.brief);
-  const trustedBriefFingerprint = fingerprintEventBrief(brief);
-  const snapshotBriefFingerprint = fingerprintEventBrief(snapshotBrief);
-  if (trustedBriefFingerprint !== snapshotBriefFingerprint) throw venueError("LEDGER_INTEGRITY_FAILED", { migration: { status: "fail", reason: "accepted-brief-proof-mismatch", trustedBriefFingerprint, snapshotBriefFingerprint } }, "Legacy Activity Ledger proof does not match the Event Brief under review.");
-  return {
-    brief,
-    fingerprint: trustedBriefFingerprint,
-    evidence: {
-      source,
-      briefFingerprint: trustedBriefFingerprint,
-      ...(proof.attestationId ? { attestationId: proof.attestationId } : {}),
-      ...(proof.actorId ? { actorId: proof.actorId } : {}),
-      ...(proof.actorRole ? { actorRole: proof.actorRole } : {}),
-      ...(proof.challengeId ? { challengeId: proof.challengeId } : {}),
-      ...(proof.projectRevision !== undefined ? { projectRevision: proof.projectRevision } : {}),
-      ...(proof.legacyLedgerHeadHash ? { legacyLedgerHeadHash: proof.legacyLedgerHeadHash } : {}),
-      ...(proof.planSha256 ? { planSha256: proof.planSha256 } : {}),
-      ...(proof.briefSha256 ? { briefSha256: proof.briefSha256 } : {}),
-      ...(proof.reason ? { reason: proof.reason } : {}),
-      ...(proof.idempotencyKey ? { idempotencyKey: proof.idempotencyKey } : {}),
-    },
-  };
-};
-
-const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackProposal, legacyBriefProof = null, authorization = TRUSTED_LOCAL_AUTHORIZATION) => {
-  const normalized = clone(snapshot);
-  const originalEmergencyObjectIds = new Set((normalized.plan.objects ?? [])
-    .filter((object) => ["fire_exit", "assembly_point", "emergency_access_lane", "fire_equipment", "first_aid", "command_post"].includes(object.kind) || object.emergency)
-    .map((object) => object.id));
-  const migratedEmergencyPlanning = !normalized.plan.emergencyPlan
-    || !Array.isArray(normalized.plan.emergencyReviews)
-    || (fallbackPlan.objects ?? []).some((object) => (["fire_exit", "assembly_point", "emergency_access_lane", "fire_equipment", "first_aid", "command_post"].includes(object.kind) || object.emergency) && !originalEmergencyObjectIds.has(object.id))
-    || !Array.isArray(normalized.plan.constraints)
-    || !normalized.plan.constraints.some((constraint) => constraint.evaluator === "emergency_readiness");
-  const migratedSimulationFramework = !Array.isArray(normalized.scenarios) || !Array.isArray(normalized.scenarioRuns);
-  let migratedSpatialEvidence = false;
-  let migratedOperationalGeometry = false;
-  const migratedTypedLocks = normalized.plan.objects.some((object) => !Array.isArray(object.locks));
-  let migratedAccessibilityInfrastructure = false;
-  let migratedAcceptedBriefProof = false;
-  let acceptedBriefMigrationProof = null;
-  if (normalized.plan.id === fallbackPlan.id && fallbackPlan.constraints.some((constraint) => SPATIAL_EVALUATORS.has(constraint.evaluator))) {
-    const fallbackSpatialChangeIds = new Set((fallbackProposal?.changes ?? []).filter((change) => change.spatialEffects?.length).map((change) => change.id));
-    const missingSpatialChangeEvidence = (snapshot.proposal?.changes ?? []).some((change) => fallbackSpatialChangeIds.has(change.id) && !change.spatialEffects?.length);
-    const existingObjects = new Map(normalized.plan.objects.map((object) => [object.id, object]));
-    const mergedObjects = fallbackPlan.objects.map((fallbackObject) => {
-      const existing = existingObjects.get(fallbackObject.id);
-      if (!existing) {
-        if (hasOperationalMetadata(fallbackObject)) migratedOperationalGeometry = true;
-        if (!fallbackObject.door && !fallbackObject.exit && !fallbackObject.restriction
-          && (fallbackObject.accessibility || fallbackObject.occupancy || fallbackObject.sightline)) migratedSpatialEvidence = true;
-        return clone(fallbackObject);
-      }
-      const specializedRouteKind = existing.kind === "accessible_route" && ROUTE_KINDS.has(fallbackObject.kind) ? fallbackObject.kind : existing.kind;
-      const enriched = {
-        ...fallbackObject,
-        ...existing,
-        kind: specializedRouteKind,
-        accessibility: existing.accessibility || fallbackObject.accessibility ? { ...(fallbackObject.accessibility ?? {}), ...(existing.accessibility ?? {}) } : undefined,
-        occupancy: existing.occupancy ?? fallbackObject.occupancy,
-        sightline: existing.sightline ?? fallbackObject.sightline,
-        door: existing.door || fallbackObject.door ? { ...(fallbackObject.door ?? {}), ...(existing.door ?? {}), ...(fallbackObject.door?.clearance || existing.door?.clearance ? { clearance: { ...(fallbackObject.door?.clearance ?? {}), ...(existing.door?.clearance ?? {}) } } : {}) } : undefined,
-        exit: existing.exit ?? fallbackObject.exit,
-        route: existing.route ?? fallbackObject.route,
-        restriction: existing.restriction ?? fallbackObject.restriction,
-      };
-      if ((!existing.accessibility && fallbackObject.accessibility) || (!existing.occupancy && fallbackObject.occupancy) || (!existing.sightline && fallbackObject.sightline)) migratedSpatialEvidence = true;
-      if (specializedRouteKind !== existing.kind || (!existing.door && fallbackObject.door) || (!existing.exit && fallbackObject.exit) || (!existing.route && fallbackObject.route) || (!existing.restriction && fallbackObject.restriction)) migratedOperationalGeometry = true;
-      if ((fallbackObject.accessibility?.accessibleSeatSampleIds && !existing.accessibility?.accessibleSeatSampleIds)
-        || (fallbackObject.door?.clearance && !existing.door?.clearance)
-        || (fallbackObject.ramp && !existing.ramp)) migratedAccessibilityInfrastructure = true;
-      return enriched;
-    });
-    const fallbackIds = new Set(fallbackPlan.objects.map((object) => object.id));
-    normalized.plan.objects = [...mergedObjects, ...normalized.plan.objects.filter((object) => !fallbackIds.has(object.id))];
-    normalized.plan.occupancy = { ...fallbackPlan.occupancy, ...normalized.plan.occupancy };
-    normalized.plan.accessibilityPolicy = { ...fallbackPlan.accessibilityPolicy, ...normalized.plan.accessibilityPolicy };
-    normalized.plan.emergencyPlan = { ...fallbackPlan.emergencyPlan, ...normalized.plan.emergencyPlan };
-    normalized.plan.emergencyReviews = Array.isArray(normalized.plan.emergencyReviews) ? normalized.plan.emergencyReviews : [];
-
-    const existingConstraints = new Map(normalizeConstraints(normalized.plan.constraints, fallbackPlan.constraints).map((constraint) => [constraint.id, constraint]));
-    normalized.plan.constraints = fallbackPlan.constraints.map((fallbackConstraint) => {
-      const existing = existingConstraints.get(fallbackConstraint.id);
-      if (!existing) {
-        if (ACCESSIBILITY_INFRASTRUCTURE_EVALUATORS.has(fallbackConstraint.evaluator)) migratedAccessibilityInfrastructure = true;
-        else migratedSpatialEvidence = true;
-        return clone(fallbackConstraint);
-      }
-      if (SPATIAL_EVALUATORS.has(fallbackConstraint.evaluator) && existing.evaluator !== fallbackConstraint.evaluator) {
-        migratedSpatialEvidence = true;
-        const migrated = clone(fallbackConstraint);
-        if (existing.enabled !== undefined) migrated.enabled = existing.enabled;
-        return migrated;
-      }
-      return existing;
-    });
-    const fallbackConstraintIds = new Set(fallbackPlan.constraints.map((constraint) => constraint.id));
-    normalized.plan.constraints.push(...[...existingConstraints.values()].filter((constraint) => !fallbackConstraintIds.has(constraint.id)));
-    normalized.proposal = enrichProposal(normalized.proposal, fallbackProposal);
-    normalized.branches = (normalized.branches ?? []).map((branch) => ({ ...branch, proposal: enrichProposal(branch.proposal, fallbackProposal) }));
-    if ((normalized.proposal.changes ?? []).some((change) => change.spatialEffects?.length)) migratedSpatialEvidence = migratedSpatialEvidence || missingSpatialChangeEvidence;
-  }
-  normalized.plan = normalizePlanGeometry(normalized.plan, fallbackPlan);
-  normalized.plan.emergencyReviews = Array.isArray(normalized.plan.emergencyReviews) ? normalized.plan.emergencyReviews : [];
-  normalized.plan.constraints = normalizeConstraints(normalized.plan.constraints, fallbackPlan.constraints);
-  // Snapshots and ledger payloads share the JSON-safe project contract. Remove
-  // optional properties introduced as `undefined` during enrichment before the
-  // accepted Plan is fingerprinted and sealed into migration history.
-  normalized.plan = clone(normalized.plan);
-  normalized.brief = normalizeEventBrief(normalized.brief, fallbackBrief);
-  if (!Array.isArray(normalized.branches) || normalized.branches.length === 0) {
-    normalized.activeBranchId = "branch-balanced";
-    normalized.branches = [{ id: "branch-balanced", name: "Balanced", notes: "", strategy: "balanced", proposal: clone(normalized.proposal), revisions: [], archived: false, decisionStatus: null, createdAt: now(), createdBy: "system" }];
-  }
-  normalized.branches = normalized.branches.map((branch) => ({
-    ...branch,
-    notes: typeof branch.notes === "string" ? branch.notes : "",
-    revisions: Array.isArray(branch.revisions) ? branch.revisions : [],
-    archived: branch.archived === true,
-    decisionStatus: branch.decisionStatus ?? null,
-  }));
+  let canonicalPlan;
+  let canonicalBrief;
+  let canonicalProposal;
+  let canonicalBranches;
   try {
-    normalized.proposal = normalizeProposalPlanningEffects(normalized.proposal, "proposal");
-    normalized.branches = normalized.branches.map((branch, branchIndex) => ({
+    canonicalPlan = normalizePlanGeometry(restored.plan);
+    canonicalPlan.constraints = normalizeConstraints(canonicalPlan.constraints);
+    canonicalBrief = normalizeEventBrief(restored.brief);
+    canonicalProposal = normalizeProposalPlanningEffects(restored.proposal, "proposal");
+    canonicalBranches = restored.branches.map((branch, branchIndex) => ({
       ...branch,
       proposal: normalizeProposalPlanningEffects(branch.proposal, `branches[${branchIndex}].proposal`),
       revisions: branch.revisions.map((proposal, revisionIndex) => normalizeProposalPlanningEffects(proposal, `branches[${branchIndex}].revisions[${revisionIndex}]`)),
     }));
+    if (!sameValue(restored.plan, canonicalPlan) || !sameValue(restored.brief, canonicalBrief) || !sameValue(restored.proposal, canonicalProposal) || !sameValue(restored.branches, canonicalBranches)
+      || !sameValue(restored.comments, normalizeComments(restored.comments)) || !sameValue(restored.projectLocks, normalizeProjectLocks(restored.projectLocks, restored.plan))
+      || restored.scenarios.some((scenario) => !sameValue(scenario, normalizeScenarioDefinition(scenario)))) fail("non-canonical-value");
   } catch (error) {
-    throw venueError("PLANNING_EFFECT_INVALID", { cause: error.message }, "Persisted Planning Effect failed canonical normalization.");
+    if (error?.code) throw error;
+    if (/Planning Effect invalid/i.test(error instanceof Error ? error.message : String(error))) throw venueError("PLANNING_EFFECT_INVALID", { cause: error instanceof Error ? error.message : String(error) }, "Persisted Planning Effect is not canonical.");
+    fail("non-canonical-value", { cause: error instanceof Error ? error.message : String(error) });
   }
-  const proposals = [normalized.proposal, ...normalized.branches.flatMap((branch) => [branch.proposal, ...branch.revisions])];
+
+  const proposals = [restored.proposal, ...restored.branches.flatMap((branch) => [branch.proposal, ...branch.revisions])];
   for (const proposal of proposals) for (const change of proposal.changes) for (const effect of change.planningEffects ?? []) {
     if (!effect.source?.adapterId) continue;
     try {
-      assertPlanningEffectBinding(effect, { brief: normalized.brief, constraints: normalized.plan.constraints });
+      assertPlanningEffectBinding(effect, { brief: restored.brief, constraints: restored.plan.constraints });
     } catch (error) {
       throw venueError("PLANNING_EFFECT_INVALID", { operation: effect.operation, targetBriefId: effect.targetBriefId, targetRequirementId: effect.targetRequirementId }, "Persisted adapter Planning Effect is not bound to the server-owned Brief and Constraint registry.");
     }
   }
-  if (!Array.isArray(normalized.receipts)) normalized.receipts = [];
-  normalized.comments = normalizeComments(normalized.comments ?? []);
-  normalized.scenarios = Array.isArray(normalized.scenarios) ? normalized.scenarios.map(normalizeScenarioDefinition) : [];
-  normalized.scenarioRuns = Array.isArray(normalized.scenarioRuns) ? normalized.scenarioRuns.map((run) => {
-    const scenario = run.scenarioSnapshot ? normalizeScenarioDefinition(run.scenarioSnapshot) : normalized.scenarios.find((item) => item.id === run.scenarioId) ?? null;
-    const scenarioFingerprint = run.scenarioFingerprint ?? (scenario ? scenarioDefinitionFingerprint(scenario) : null);
-    const normalizeHistoricalResult = (result) => result ? { model: result.model ?? scenario?.model ?? "operations", scenarioFingerprint: result.scenarioFingerprint ?? scenarioFingerprint, ...result } : null;
-    return {
-      ...run,
-      model: run.model ?? scenario?.model ?? "operations",
-      scenarioFingerprint,
-      ...(scenario ? { scenarioSnapshot: scenario } : {}),
-      partialResult: normalizeHistoricalResult(run.partialResult),
-      result: normalizeHistoricalResult(run.result),
-    };
-  }) : [];
-  if (!normalized.editHistory || !Array.isArray(normalized.editHistory.undo) || !Array.isArray(normalized.editHistory.redo)) normalized.editHistory = { undo: [], redo: [] };
-  normalized.projectLocks = normalizeProjectLocks(normalized.projectLocks ?? [], normalized.plan);
-  const legacyLedger = normalized.ledger.every((entry) => !entry.hash && !entry.previousHash && !entry.schemaVersion);
-  if (legacyLedger) {
-    const proof = normalizeLegacyBriefProof(legacyBriefProof, normalized.brief, authorization);
-    normalized.ledger = normalized.ledger.map((entry) => {
-      const version = entry.details?.acceptedPlan?.version ?? entry.details?.toVersion ?? entry.details?.version;
-      const acceptedPlan = entry.details?.acceptedPlan ?? (version === fallbackPlan.version ? fallbackPlan : version === normalized.plan.version ? normalized.plan : null);
-      return acceptedPlan ? { ...entry, details: { ...entry.details, acceptedPlan: clone(acceptedPlan), planFingerprint: fingerprintPlan(acceptedPlan) } } : entry;
-    });
-    acceptedBriefMigrationProof = proof.evidence;
-    migratedAcceptedBriefProof = true;
-  } else if (normalized.ledger.every((entry) => !entry.details?.acceptedBrief && !entry.details?.briefFingerprint)) {
-    const integrity = verifyActivityLedger(normalized.ledger);
-    if (integrity.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { integrity });
-    acceptedBriefMigrationProof = normalizeLegacyBriefProof(legacyBriefProof, normalized.brief, authorization).evidence;
-    migratedAcceptedBriefProof = true;
-  }
-  normalized.ledger = normalizeActivityLedger(normalized.ledger);
-  const evidencedProjectLockIds = new Set(normalized.projectLocks.filter((lock) => normalized.ledger.some((entry) => entry.type === "object.lock_added"
+
+  const integrity = verifyActivityLedger(restored.ledger);
+  if (integrity.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { integrity });
+  const evidencedProjectLockIds = new Set(restored.projectLocks.filter((lock) => restored.ledger.some((entry) => entry.type === "object.lock_added"
     && entry.details?.lockId === lock.id
     && entry.details?.objectId === lock.objectId
     && entry.details?.lockType === lock.type
@@ -315,40 +162,15 @@ const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackPropos
     && entry.details?.reasonCode === lock.reasonCode
     && entry.details?.authorId === lock.authorId)).map((lock) => lock.id));
   const assertProposalLocks = (proposal) => {
-    const conflicts = detectLockConflicts(normalized.plan, proposal.changes, normalized.projectLocks)
+    const conflicts = detectLockConflicts(restored.plan, proposal.changes, restored.projectLocks)
       .filter((conflict) => conflict.source !== "project" || !evidencedProjectLockIds.has(conflict.lockId));
     if (conflicts.length) throw venueError("LOCK_CONFLICT", { conflicts, objectIds: [...new Set(conflicts.map((conflict) => conflict.objectId))] });
   };
-  assertProposalLocks(normalized.proposal);
-  for (const branch of normalized.branches) assertProposalLocks(branch.proposal);
-  const migrations = [
-    ...(migratedSpatialEvidence ? [{ id: "project-schema-v5-to-v6-spatial-evidence", fromModel: "metric-summary", toModel: "canonical-spatial-evidence" }] : []),
-    ...(migratedOperationalGeometry ? [{ id: "project-schema-v6-to-v7-operational-geometry", fromModel: "generic-spatial-objects", toModel: "typed-operational-geometry" }] : []),
-    ...(migratedTypedLocks ? [{ id: "project-schema-v7-to-v8-typed-locks", fromModel: "boolean-object-locks", toModel: "typed-property-locks" }] : []),
-    ...(migratedAccessibilityInfrastructure ? [{ id: "project-schema-v8-to-v9-accessibility-infrastructure", fromModel: "basic-accessibility-evidence", toModel: "accessible-sightlines-door-clearance-and-ramps" }] : []),
-    ...(migratedSimulationFramework ? [{ id: "project-schema-v9-to-v10-simulation-framework", fromModel: "no-simulation-state", toModel: "versioned-scenarios-and-runs" }] : []),
-    ...(migratedEmergencyPlanning ? [{ id: "project-schema-v10-emergency-planning", fromModel: "basic-egress-evidence", toModel: "reviewed-emergency-planning" }] : []),
-    ...(migratedAcceptedBriefProof ? [{ id: "activity-ledger-v1-accepted-brief-proof", fromModel: "plan-only-accepted-truth", toModel: "plan-and-brief-accepted-truth" }] : []),
-  ];
-  for (const migration of migrations) {
-    const briefProofMigration = migration.id === "activity-ledger-v1-accepted-brief-proof";
-    const humanAttestation = briefProofMigration && acceptedBriefMigrationProof?.source === "authenticated-human-attestation";
-    normalized.ledger = sealActivityLedger([...normalized.ledger, createActivityEntry(normalized.ledger.length + 1, "schema.migrated", humanAttestation ? "human" : "system", {
-      migrationId: migration.id,
-      fromModel: migration.fromModel,
-      toModel: migration.toModel,
-      planId: normalized.plan.id,
-      version: normalized.plan.version,
-      acceptedPlan: clone(normalized.plan),
-      planFingerprint: fingerprintPlan(normalized.plan),
-      acceptedBrief: clone(normalized.brief),
-      briefFingerprint: fingerprintEventBrief(normalized.brief),
-      ...(briefProofMigration ? { briefMigrationProof: clone(acceptedBriefMigrationProof) } : {}),
-    }, { actorId: humanAttestation ? acceptedBriefMigrationProof.actorId : "system", actorType: humanAttestation ? "human" : "system", source: humanAttestation ? "studio" : "system", sessionId: humanAttestation ? `legacy-brief-${acceptedBriefMigrationProof.attestationId}` : "schema-migration" })]);
-  }
-  const replay = replayActivityLedger(normalized.ledger, normalized.plan, normalized.brief);
+  assertProposalLocks(restored.proposal);
+  for (const branch of restored.branches) assertProposalLocks(branch.proposal);
+  const replay = replayActivityLedger(restored.ledger, restored.plan, restored.brief);
   if (replay.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { replay }, "Activity Ledger does not reproduce accepted Plan and Event Brief truth.");
-  return normalized;
+  return restored;
 };
 
 const syncActiveBranch = (state, proposal) => ({
@@ -434,14 +256,11 @@ const formatExport = (state) => {
   ].join("\n");
 };
 
-export function createVenuePlanner(initialPlan, { authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, projectId = null, approvalPolicy, adapterPlanningBindings = {}, legacyBriefProof = null, operationalResourceFreshnessVerifier = null } = {}) {
+export function createVenuePlanner(initialPlan, { authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, projectId = null, approvalPolicy, adapterPlanningBindings = {}, operationalResourceFreshnessVerifier = null } = {}) {
   const durableInitialPlan = Object.keys(adapterPlanningBindings).length && initialPlan?.brief?.planningEffectBindings === undefined
     ? { ...clone(initialPlan), brief: { ...clone(initialPlan.brief), planningEffectBindings: clone(adapterPlanningBindings) } }
     : initialPlan;
   const initialState = createInitialState(durableInitialPlan);
-  const fallbackPlan = clone(initialState.plan);
-  const fallbackBrief = clone(initialState.brief);
-  const fallbackProposal = clone(initialState.proposal);
   let state = initialState;
   let undoStack = [];
   let redoStack = [];
@@ -672,7 +491,7 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
     }
 
     if (command.type === "restore_snapshot") {
-      const snapshot = normalizeSnapshot(command.snapshot, fallbackPlan, fallbackBrief, fallbackProposal, legacyBriefProof, defaultAuthorization);
+      const snapshot = restoreSnapshot(command.snapshot);
       if (!snapshot?.plan?.id || !snapshot?.plan?.version || !snapshot?.proposal?.id || !Array.isArray(snapshot?.ledger)) {
         throw venueError("SNAPSHOT_INVALID");
       }

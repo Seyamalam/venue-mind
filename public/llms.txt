@@ -116,7 +116,7 @@ VenueMind lets agents inspect accepted Plans, preview non-destructive Proposals,
 - MCP server: 0.4.0
 - TypeScript SDK: 0.1.0
 - Agent skills: 1.1.0
-- Interchange Package: 1
+- Interchange Package: 1 + Project schema 10
 
 ## Machine-readable contracts
 

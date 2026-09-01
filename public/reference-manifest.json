@@ -2761,11 +2761,6 @@
       "stableReferences": "planId, version, planFingerprint"
     },
     {
-      "type": "schema.migrated",
-      "category": "system",
-      "stableReferences": "fromSchemaVersion, toSchemaVersion"
-    },
-    {
       "type": "authorization.denied",
       "category": "security",
       "stableReferences": "policyDecisionId, permission, reason"
@@ -2945,7 +2940,7 @@
     {
       "surface": "Project record",
       "current": "10",
-      "compatibility": "Migrates released snapshots from schema 5 through 10 before use."
+      "compatibility": "Exact current schema only; older records are rejected."
     },
     {
       "surface": "Spatial geometry",
@@ -2955,7 +2950,7 @@
     {
       "surface": "Venue Template catalog",
       "current": "1",
-      "compatibility": "Schema-0 inventory stock migrates to availability metadata."
+      "compatibility": "Exact current schema only; older template documents are rejected."
     },
     {
       "surface": "Validation engine",
@@ -2994,8 +2989,8 @@
     },
     {
       "surface": "Interchange Package",
-      "current": "1",
-      "compatibility": "Create-only import with checksum, migration, geometry, ledger, and replay preflight."
+      "current": "1 + Project schema 10",
+      "compatibility": "Create-only import with exact schema, checksum, geometry, Locks, ledger, and replay preflight."
     }
   ],
   "deprecationPolicy": [

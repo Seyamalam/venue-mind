@@ -37,6 +37,16 @@ const changes = [
   },
 ];
 
+const venueTemplateLocks = (objectId) => ["position", "rotation", "dimension", "deletion", "role"].map((type) => ({
+  id: `lock-${objectId}-${type}`,
+  objectId,
+  type,
+  source: "venue-template",
+  reasonCode: "venue-infrastructure",
+  authorId: "venue-template",
+  active: true,
+}));
+
 export const summitForwardPlan = {
   id: "plan-summit-forward-2026",
   version: "3.2",
@@ -213,7 +223,7 @@ export const summitForwardPlan = {
     { id: "obj-post-access", kind: "staff_post", label: "Access post", layer: "annotations", elevationM: 0, locked: false, staffPost: { coverageZoneObjectIds: ["obj-route-main"], assignments: [{ shiftId: "shift-a", roleId: "role-access-steward", count: 1 }, { shiftId: "shift-b", roleId: "role-access-steward", count: 1 }] }, footprint: { kind: "circle", center: { x: 16.5, y: 3 }, radius: 0.2 } },
     { id: "obj-post-stage", kind: "staff_post", label: "Stage post", layer: "annotations", elevationM: 0, locked: false, staffPost: { coverageZoneObjectIds: ["obj-stage-west"], assignments: [{ shiftId: "shift-a", roleId: "role-stage-manager", count: 1 }, { shiftId: "shift-b", roleId: "role-stage-manager", count: 1 }] }, footprint: { kind: "circle", center: { x: 7.5, y: 16.5 }, radius: 0.2 } },
     { id: "obj-post-catering", kind: "staff_post", label: "Service post", layer: "annotations", elevationM: 0, locked: false, staffPost: { coverageZoneObjectIds: ["obj-refreshment-east"], assignments: [{ shiftId: "shift-a", roleId: "role-service-lead", count: 1 }, { shiftId: "shift-b", roleId: "role-service-lead", count: 1 }] }, footprint: { kind: "circle", center: { x: 25, y: 6 }, radius: 0.2 } },
-  ],
+  ].map((object) => ({ ...object, locks: object.locked ? venueTemplateLocks(object.id) : [] })),
   constraints: [
     { id: "constraint-protected-objects", checkId: "check-locked-objects", evaluator: "protected_objects_unchanged", label: "Locked objects", category: "protection", severity: "error", scope: { kind: "plan" }, parameters: { objectIds: ["obj-stage-west", "obj-fire-exit-east", "obj-column-southwest", "obj-accessible-entrance-south", "obj-door-south-access", "obj-restroom-accessible"] }, remediation: "Remove Changes that target protected venue objects." },
     { id: "constraint-accessible-route", checkId: "check-accessible-route", evaluator: "accessible_route_graph", label: "Accessible route", category: "accessibility", severity: "error", scope: { kind: "plan" }, parameters: { minimumWidthM: 1.8, requireConnected: true }, policy: { jurisdiction: "US venue policy", source: "Harborview Access Standard 2026", effectiveDate: "2026-01-01" }, remediation: "Connect every required destination and increase the minimum clear route width." },

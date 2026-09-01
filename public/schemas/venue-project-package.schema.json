@@ -68,9 +68,7 @@
               "minLength": 1
             },
             "projectSchemaVersion": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 10
+              "const": 10
             },
             "external": {
               "type": "object",
@@ -107,9 +105,7 @@
           "minLength": 1
         },
         "schemaVersion": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 10
+          "const": 10
         },
         "snapshot": {
           "$ref": "https://venuemind.dev/schemas/planner-snapshot.schema.json"

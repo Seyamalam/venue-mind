@@ -10,8 +10,6 @@ import { createD1SharingRepository, createMemorySharingRepository } from "./shar
 import { drainNotificationEmail } from "./email-delivery.ts";
 import { createShareToken, hashShareToken, safeNotification, shareLinkStatus, SHARE_SCOPES } from "../src/domain/sharing.js";
 import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { createHumanPrincipal } from "../src/domain/authorization.js";
-import { createLegacyBriefAttestationProof, inspectLegacyBriefMigration } from "../src/domain/legacy-brief-migration.js";
 import { transitionRunbookTask } from "../src/domain/event-day-runbook.js";
 import { createAuthenticatedIdentity } from "../src/domain/accounts.js";
 import { createD1RunbookRepository, RunbookClientSequenceConflict, RunbookIdempotencyConflict, RunbookTransitionConflict } from "./runbook-repository.ts";
@@ -471,71 +469,13 @@ export function createWorker(options: WorkerOptions = {}) {
         await collaborationRepositoryFactory(env.DB).removePresence(organization.id, projectId, account.session.id, account.user.id);
         return respond({ status: "offline" });
       }
-      const legacyBriefMigrationMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/migrations\/legacy-brief$/);
-      const legacyBriefAttestationMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/migrations\/legacy-brief\/attest$/);
-      if (legacyBriefMigrationMatch && request.method === "GET") {
-        const projectId = decodeURIComponent(legacyBriefMigrationMatch[1]);
-        const current = await projects.get(organization.id, projectId);
-        if (!current) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
-        try { return respond(await inspectLegacyBriefMigration(current)); }
-        catch (cause) {
-          const error = cause as { code?: string; message?: string; details?: unknown };
-          return apiError(409, error.code ?? "LEGACY_BRIEF_MIGRATION_INVALID", error.message ?? "Legacy Brief migration inspection failed", error.details);
-        }
-      }
-      if (legacyBriefAttestationMatch && request.method === "POST") {
-        const actorRole = organization.roles.includes("organization-administrator") ? "organization-administrator"
-          : organization.roles.includes("venue-administrator") ? "venue-administrator" : null;
-        if (!actorRole) return apiError(403, "LEGACY_BRIEF_ATTESTATION_DENIED", "Venue or Organization Administrator role required");
-        const projectId = decodeURIComponent(legacyBriefAttestationMatch[1]);
-        const current = await projects.get(organization.id, projectId);
-        if (!current) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
-        let body: Record<string, unknown>;
-        try { body = await readBody<Record<string, unknown>>(request); } catch { return apiError(400, "LEGACY_BRIEF_ATTESTATION_INVALID", "Attestation payload is invalid"); }
-        const allowedFields = ["challengeId", "expectedProjectRevision", "expectedLedgerHeadHash", "expectedPlanSha256", "expectedBriefSha256", "reason", "idempotencyKey"];
-        if (Object.keys(body).some((key) => !allowedFields.includes(key))) return apiError(400, "LEGACY_BRIEF_ATTESTATION_INVALID", "Attestation payload contains unknown fields");
-        const existingProof = ((current.snapshot as { ledger?: Array<{ details?: { briefMigrationProof?: Record<string, unknown> } }> }).ledger ?? [])
-          .map((entry) => entry.details?.briefMigrationProof)
-          .find((proof) => proof?.source === "authenticated-human-attestation" && proof.actorId === account.user.id && proof.idempotencyKey === body.idempotencyKey);
-        if (existingProof) return respond({ status: "already-attested", project: current, attestationId: existingProof.attestationId }, { headers: { etag: projectEtag(current.id, current.revision) } });
-        let inspection;
-        try { inspection = await inspectLegacyBriefMigration(current); }
-        catch (cause) {
-          const error = cause as { code?: string; message?: string; details?: unknown };
-          return apiError(409, error.code ?? "LEGACY_BRIEF_MIGRATION_INVALID", error.message ?? "Legacy Brief migration inspection failed", error.details);
-        }
-        if (inspection.status !== "attestation-required") return respond({ status: "not-required", project: current }, { headers: { etag: projectEtag(current.id, current.revision) } });
-        const expected = {
-          challengeId: inspection.challengeId,
-          expectedProjectRevision: inspection.projectRevision,
-          expectedLedgerHeadHash: inspection.legacyLedgerHeadHash,
-          expectedPlanSha256: inspection.planSha256,
-          expectedBriefSha256: inspection.briefSha256,
-        };
-        if (Object.entries(expected).some(([key, value]) => body[key] !== value)) return apiError(412, "LEGACY_BRIEF_CHALLENGE_STALE", "Legacy Brief attestation challenge is stale", { expected });
-        const snapshot = current.snapshot as { plan: Record<string, unknown>; brief: unknown; proposal: unknown };
-        const authorization = { principal: createHumanPrincipal({ id: account.user.id, organizationId: organization.id, roles: organization.roles }) };
-        try {
-          const proof = await createLegacyBriefAttestationProof({ inspection, brief: snapshot.brief, actorId: account.user.id, actorRole, reason: body.reason, idempotencyKey: body.idempotencyKey });
-          const planner = createVenuePlanner({ ...snapshot.plan, brief: snapshot.brief, proposal: snapshot.proposal }, { projectId: current.id, authorization, legacyBriefProof: proof });
-          planner.execute({ type: "restore_snapshot", snapshot: current.snapshot });
-          const saved = await projects.put(organization.id, { ...current, snapshot: planner.getSnapshot(), updatedAt: clock() }, { expectedRevision: current.revision });
-          await collaborationRepositoryFactory(env.DB).append({ organizationId: organization.id, projectId, type: "ledger.appended", actorUserId: account.user.id, sessionId: account.session.id, projectRevision: saved.revision, payload: collaborationEventPayload("ledger.appended", current, saved), occurredAt: clock() });
-          return respond({ status: "attested", project: saved, attestationId: proof.attestationId }, { headers: { etag: projectEtag(saved.id, saved.revision) } });
-        } catch (cause) {
-          if (cause instanceof ProjectRevisionConflict || (cause instanceof Error && cause.message === "PROJECT_REVISION_CONFLICT")) {
-            const latest = cause instanceof ProjectRevisionConflict ? cause.current : await projects.get(organization.id, projectId);
-            return apiError(412, "LEGACY_BRIEF_CHALLENGE_STALE", "Project changed before attestation commit", { currentRevision: latest?.revision ?? null }, latest ? { etag: projectEtag(latest.id, latest.revision) } : undefined);
-          }
-          const error = cause as { code?: string; message?: string; details?: unknown };
-          return apiError(409, error.code ?? "LEGACY_BRIEF_ATTESTATION_INVALID", error.message ?? "Legacy Brief attestation failed", error.details);
-        }
-      }
       if (url.pathname === "/api/projects" && request.method === "GET") return respond({ organizationId: organization.id, projects: await projects.list(organization.id) });
       if (url.pathname.startsWith("/api/projects/") && request.method === "GET") {
         const projectId = projectIdFrom(url.pathname);
         const record = await projects.get(organization.id, projectId);
-        return record ? respond(record, { headers: { etag: projectEtag(record.id, record.revision) } }) : apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        if (!record) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        if (record.schemaVersion !== 10) return apiError(409, "PROJECT_SCHEMA_UNSUPPORTED", "Project schema is unsupported", { schemaVersion: record.schemaVersion, supportedSchemaVersion: 10 });
+        return respond(record, { headers: { etag: projectEtag(record.id, record.revision) } });
       }
       if (url.pathname.startsWith("/api/projects/") && request.method === "PUT") {
         const projectId = projectIdFrom(url.pathname);
@@ -544,6 +484,14 @@ export function createWorker(options: WorkerOptions = {}) {
         if (body.id !== projectId || !body.name || !body.activePlanId || body.schemaVersion !== 10 || !body.snapshot) return apiError(400, "PROJECT_INVALID", "Invalid project record");
         if (body.organizationId && body.organizationId !== organization.id) return apiError(403, "ORGANIZATION_ACCESS_DENIED", "Project organization does not match active organization");
         if (!["planner", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role))) return apiError(403, "PROJECT_WRITE_DENIED", "Project write role required");
+        const snapshot = body.snapshot as { plan?: Record<string, unknown>; brief?: unknown; proposal?: unknown };
+        try {
+          const planner = createVenuePlanner({ ...(snapshot.plan ?? {}), brief: snapshot.brief, proposal: snapshot.proposal });
+          planner.execute({ type: "restore_snapshot", snapshot: body.snapshot });
+        } catch (cause) {
+          const error = cause as { code?: string; message?: string; details?: unknown };
+          return apiError(400, error.code ?? "PROJECT_INVALID", error.message ?? "Project snapshot is invalid", error.details);
+        }
         const record = { ...body, organizationId: organization.id } as ProjectRecord;
         const current = await projects.get(organization.id, projectId);
         const createOnly = request.headers.get("if-none-match") === "*";

@@ -1,5 +1,4 @@
 import { verifyActivityLedger } from "../domain/activity-ledger.js";
-import { summitForwardPlan } from "../domain/summit-forward.js";
 import { createVenuePlanner } from "../domain/venue-planner.js";
 import { detectLockConflicts } from "../domain/locks.js";
 
@@ -102,9 +101,8 @@ const assertNoLockedProposalMutation = (snapshot) => {
 };
 
 const seedForRecord = (record) => {
-  if (record.snapshot?.plan?.id === summitForwardPlan.id) return summitForwardPlan;
   const snapshot = record.snapshot;
-  if (!snapshot?.plan?.spatial) throw new VenueImportError("IMPORT_MIGRATION_UNAVAILABLE", "Legacy Project has no compatible geometry migration seed");
+  if (!snapshot?.plan?.spatial) throw new VenueImportError("IMPORT_INVALID_PROJECT", "Project snapshot requires canonical spatial geometry");
   return { ...clone(snapshot.plan), brief: clone(snapshot.brief), proposal: clone(snapshot.proposal) };
 };
 
@@ -134,7 +132,7 @@ const assertEnvelope = (packageValue) => {
   assertRequired(packageValue.project, ["id", "name", "activePlanId", "schemaVersion", "snapshot", "createdAt", "updatedAt"], "project");
   assertExactKeys(packageValue.project.snapshot, ["plan", "brief", "proposal", "activeBranchId", "branches", "ledger", "receipts", "projectLocks", "editHistory", "comments", "scenarios", "scenarioRuns"], "planner snapshot");
   assertRequired(packageValue.project.snapshot, ["plan", "brief", "proposal", "activeBranchId", "branches", "ledger", "receipts"], "planner snapshot");
-  if (!Number.isInteger(packageValue.project.schemaVersion) || packageValue.project.schemaVersion < 1 || packageValue.project.schemaVersion > 10) {
+  if (packageValue.project.schemaVersion !== 10) {
     throw new VenueImportError("IMPORT_UNSUPPORTED_PROJECT_SCHEMA", `Unsupported Project schema: ${packageValue.project.schemaVersion}`);
   }
   if (packageValue.project.id !== packageValue.manifest.source.projectId) throw new VenueImportError("IMPORT_SOURCE_MISMATCH", "Manifest Project ID does not match payload Project ID");
@@ -143,6 +141,7 @@ const assertEnvelope = (packageValue) => {
 };
 
 export async function exportProjectPackage(record, { clock = () => new Date().toISOString(), sourceMetadata = null } = {}) {
+  if (record?.schemaVersion !== 10) throw new VenueImportError("EXPORT_UNSUPPORTED_PROJECT_SCHEMA", `Unsupported Project schema: ${record?.schemaVersion ?? "missing"}`, { supportedSchemaVersion: 10 });
   const { organizationId: _organizationId, revision: _revision, archivedAt: _archivedAt, deletedAt: _deletedAt, recoveryUntil: _recoveryUntil, pinned: _pinned, lastOpenedAt: _lastOpenedAt, ...portableRecord } = record;
   const project = clone(portableRecord);
   const payload = stableStringify(project);
@@ -184,8 +183,6 @@ export async function previewProjectImport(input, { clock = () => new Date().toI
 
   assertStableIds(packageValue.project.snapshot);
   assertNoLockedProposalMutation(packageValue.project.snapshot);
-  const originalSchemaVersion = packageValue.project.schemaVersion;
-  const originalLedgerLength = packageValue.project.snapshot.ledger.length;
   let planner;
   try {
     planner = createVenuePlanner(seedForRecord(packageValue.project));
@@ -201,10 +198,8 @@ export async function previewProjectImport(input, { clock = () => new Date().toI
   const replay = planner.execute({ type: "replay_history" });
   if (replay.status !== "pass") throw new VenueImportError("IMPORT_REPLAY_FAILED", "Imported Activity Ledger does not reproduce the accepted Plan", { replay });
   const validation = planner.execute({ type: "validate_layout" });
-  const migrationActions = snapshot.ledger.slice(originalLedgerLength).filter((entry) => entry.type === "schema.migrated").map((entry) => entry.details.migrationId);
   const record = {
     ...clone(packageValue.project),
-    schemaVersion: 10,
     snapshot,
     provenance: {
       sourceFormat: packageValue.format,
@@ -234,7 +229,6 @@ export async function previewProjectImport(input, { clock = () => new Date().toI
       ledgerEntries: snapshot.ledger.length,
       validationStatus: validation.status,
     },
-    integrity: { checksum: "pass", ledger: verifyActivityLedger(snapshot.ledger).status, replay: replay.status, ledgerHeadHash: replay.ledgerHeadHash, planFingerprint: replay.currentFingerprint },
-    migration: { fromSchemaVersion: originalSchemaVersion, toSchemaVersion: 10, actions: migrationActions },
+    integrity: { checksum: "pass", schema: "pass", ledger: verifyActivityLedger(snapshot.ledger).status, replay: replay.status, ledgerHeadHash: replay.ledgerHeadHash, planFingerprint: replay.currentFingerprint },
   };
 }

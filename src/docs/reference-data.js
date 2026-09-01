@@ -66,7 +66,6 @@ export const CONSTRAINT_REFERENCE = Object.freeze([
 
 export const LEDGER_EVENT_REFERENCE = Object.freeze([
   ["plan.opened", "plan", "planId, version, planFingerprint"],
-  ["schema.migrated", "system", "fromSchemaVersion, toSchemaVersion"],
   ["authorization.denied", "security", "policyDecisionId, permission, reason"],
   ["proposal.previewed", "proposal", "proposalId, branchId, changeIds[]"],
   ["template.update_previewed", "proposal", "proposalId, branchId, templateId, changeIds[]"],
@@ -105,9 +104,9 @@ export const LEDGER_EVENT_REFERENCE = Object.freeze([
 ].map(([type, category, stableReferences]) => Object.freeze({ type, category, stableReferences })));
 
 export const VERSION_REFERENCE = Object.freeze([
-  { surface: "Project record", current: "10", compatibility: "Migrates released snapshots from schema 5 through 10 before use." },
+  { surface: "Project record", current: "10", compatibility: "Exact current schema only; older records are rejected." },
   { surface: "Spatial geometry", current: "1", compatibility: "Canonical metres with millimetre serialization precision." },
-  { surface: "Venue Template catalog", current: "1", compatibility: "Schema-0 inventory stock migrates to availability metadata." },
+  { surface: "Venue Template catalog", current: "1", compatibility: "Exact current schema only; older template documents are rejected." },
   { surface: "Validation engine", current: VALIDATION_ENGINE_VERSION, compatibility: "Comparable only when engine and immutable input fingerprints match." },
   { surface: "Simulation engine", current: SIMULATION_ENGINE_VERSION, compatibility: "Comparison requires matching engine and Scenario definition fingerprints." },
   { surface: "Activity Ledger", current: "1", compatibility: "Hash-chain verification is required on load, replay, and export." },
@@ -115,7 +114,7 @@ export const VERSION_REFERENCE = Object.freeze([
   { surface: "MCP server", current: "0.4.0", compatibility: "Preferred protocol 2026-07-28; minimum 2025-03-26." },
   { surface: "TypeScript SDK", current: "0.1.0", compatibility: "ESM-only on Node.js 22+; SDK SemVer remains independent of tool, adapter, and Project schema versions." },
   { surface: "Agent skills", current: "1.1.0", compatibility: `Targets tool contract ${VENUE_TOOL_CONTRACT_VERSION}.` },
-  { surface: "Interchange Package", current: "1", compatibility: "Create-only import with checksum, migration, geometry, ledger, and replay preflight." },
+  { surface: "Interchange Package", current: "1 + Project schema 10", compatibility: "Create-only import with exact schema, checksum, geometry, Locks, ledger, and replay preflight." },
 ]);
 
 export const DEPRECATION_POLICY = Object.freeze([

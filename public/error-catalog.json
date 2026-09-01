@@ -22,7 +22,12 @@
   "SNAPSHOT_INVALID": {
     "code": "SNAPSHOT_INVALID",
     "message": "Invalid VenueMind snapshot.",
-    "remediation": "Restore a schema-compatible snapshot containing a Plan, Proposal, and Activity Ledger."
+    "remediation": "Restore a canonical Project schema 10 snapshot containing a Plan, Proposal, and Activity Ledger."
+  },
+  "PROJECT_SCHEMA_UNSUPPORTED": {
+    "code": "PROJECT_SCHEMA_UNSUPPORTED",
+    "message": "Project schema is unsupported.",
+    "remediation": "Use a Project schema 10 record."
   },
   "ADJUSTMENT_REQUIRED": {
     "code": "ADJUSTMENT_REQUIRED",
@@ -363,11 +368,6 @@
     "code": "OCCUPANCY_REVISION_CONFLICT",
     "message": "Live Occupancy monitor revision conflict.",
     "remediation": "Refresh the monitor and retry only if the aggregate transition is still required."
-  },
-  "LEGACY_BRIEF_ATTESTATION_REQUIRED": {
-    "code": "LEGACY_BRIEF_ATTESTATION_REQUIRED",
-    "message": "Legacy Event Brief requires trusted human attestation.",
-    "remediation": "Have an organization owner or administrator review and attest the legacy Event Brief before migration."
   },
   "VENUE_INTERNAL_ERROR": {
     "code": "VENUE_INTERNAL_ERROR",

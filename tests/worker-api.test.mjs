@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import worker, { createMemoryAccountRepository, createWorker } from "../dist/server/index.js";
+import { summitForwardPlan } from "../src/domain/summit-forward.js";
+import { createVenuePlanner } from "../src/domain/venue-planner.js";
 
 test("exposes an unauthenticated API health check and no frontend", async () => {
   const env = { DB: {} };
@@ -51,12 +53,13 @@ test("persists and retrieves project state through the API repository seam", asy
     }),
   });
   const env = { DB: {} };
+  const planner = createVenuePlanner(summitForwardPlan);
   const record = {
     id: "project-summit-forward",
     name: "SummitForward 2026",
-    activePlanId: "plan-summit-forward-2026",
+    activePlanId: planner.getSnapshot().plan.id,
     schemaVersion: 10,
-    snapshot: { plan: { version: "3.2" }, proposal: {}, ledger: [] },
+    snapshot: structuredClone(planner.getSnapshot()),
     createdAt: "2026-08-27T00:00:00.000Z",
     updatedAt: "2026-08-27T00:00:00.000Z",
   };

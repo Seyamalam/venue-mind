@@ -8,7 +8,7 @@ The Organization-owned durable Project record is authoritative when reachable. B
 flowchart TD
   OPEN[Open Project] --> API{Project API reachable?}
   API -->|yes| REMOTE[Load schema-10 record]
-  REMOTE --> VERIFY[Normalize, verify geometry, ledger, replay, Locks]
+  REMOTE --> VERIFY[Require schema 10; verify geometry, ledger, replay, Locks]
   VERIFY --> CACHE[Refresh local recovery copy]
   API -->|no| LOCAL{Recovery copy exists?}
   LOCAL -->|yes| VERIFY
@@ -43,7 +43,7 @@ flowchart TD
 - `LEDGER_INTEGRITY_FAILED`: quarantine the record and use the last verified export or backup.
 - `PROJECT_ID_CONFLICT`: import under an explicitly new Project lineage; import never overwrites.
 - `LOCK_CONFLICT`: keep the protected accepted object and resolve the Proposal through normal review.
-- Unsupported schema: preserve the original bytes, add a tested sequential migration, and retry Import Preview.
+- Unsupported Project schema: preserve the original bytes outside the runtime; import and restore accept schema 10 only.
 
 Each authoritative Project record carries a positive `revision` and a strong ETag. Creation uses `If-None-Match: *`; updates use the exact current ETag in `If-Match`. Missing preconditions fail with `428`, stale revisions fail with structured `412 PROJECT_REVISION_CONFLICT`, and no conflict is reported as a successful offline save.
 

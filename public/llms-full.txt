@@ -738,7 +738,7 @@ Preview an Interchange Package, commit it as a new Project, validate exact geome
 
 1. Open /projects and select IMPORT.
 2. Choose public/examples/venuemind-project-package.json from the repository.
-3. Review the package ID, checksum, migration report, stable-ID checks, geometry checks, Lock checks, ledger integrity, and replay status.
+3. Review the package ID, schema, checksum, stable-ID checks, geometry checks, Lock checks, ledger integrity, and replay status.
 4. Confirm the Project ID does not already exist.
 
 ## Commit and validate
@@ -1353,7 +1353,8 @@ Every stable VenueMind error code, user-safe message, and actionable remediation
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
-| SNAPSHOT_INVALID | Invalid VenueMind snapshot. | Restore a schema-compatible snapshot containing a Plan, Proposal, and Activity Ledger. |
+| SNAPSHOT_INVALID | Invalid VenueMind snapshot. | Restore a canonical Project schema 10 snapshot containing a Plan, Proposal, and Activity Ledger. |
+| PROJECT_SCHEMA_UNSUPPORTED | Project schema is unsupported. | Use a Project schema 10 record. |
 | ADJUSTMENT_REQUIRED | Adjustment instruction is required. | Provide a concise operational adjustment. |
 | PROPOSAL_NOT_REVIEWABLE | Only a Proposal under review can be changed. | Create or activate a Proposal with review status before changing it. |
 | PROPOSAL_MISMATCH | Proposal ID does not match the active Proposal. | Inspect the active Proposal and retry with its stable ID. |
@@ -1422,7 +1423,6 @@ Every stable VenueMind error code, user-safe message, and actionable remediation
 | OCCUPANCY_PRIVACY_REJECTED | Occupancy input contains prohibited person-level data. | Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion. |
 | OCCUPANCY_SIGNAL_OUT_OF_ORDER | Occupancy Signal is older than the accepted source state. | Refresh the source cursor and send a newer source version and observed instant. |
 | OCCUPANCY_REVISION_CONFLICT | Live Occupancy monitor revision conflict. | Refresh the monitor and retry only if the aggregate transition is still required. |
-| LEGACY_BRIEF_ATTESTATION_REQUIRED | Legacy Event Brief requires trusted human attestation. | Have an organization owner or administrator review and attest the legacy Event Brief before migration. |
 | VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
 
 ## Error envelope
@@ -1494,7 +1494,6 @@ The complete event vocabulary for human, agent, system, planning, review, simula
 | Event | Category | Stable references |
 | --- | --- | --- |
 | plan.opened | plan | planId, version, planFingerprint |
-| schema.migrated | system | fromSchemaVersion, toSchemaVersion |
 | authorization.denied | security | policyDecisionId, permission, reason |
 | proposal.previewed | proposal | proposalId, branchId, changeIds[] |
 | template.update_previewed | proposal | proposalId, branchId, templateId, changeIds[] |
@@ -1703,9 +1702,9 @@ Current public versions, comparison rules, migration guarantees, and the policy 
 
 | Surface | Current | Compatibility rule |
 | --- | --- | --- |
-| Project record | 10 | Migrates released snapshots from schema 5 through 10 before use. |
+| Project record | 10 | Exact current schema only; older records are rejected. |
 | Spatial geometry | 1 | Canonical metres with millimetre serialization precision. |
-| Venue Template catalog | 1 | Schema-0 inventory stock migrates to availability metadata. |
+| Venue Template catalog | 1 | Exact current schema only; older template documents are rejected. |
 | Validation engine | 2.7.0 | Comparable only when engine and immutable input fingerprints match. |
 | Simulation engine | 1.2.1 | Comparison requires matching engine and Scenario definition fingerprints. |
 | Activity Ledger | 1 | Hash-chain verification is required on load, replay, and export. |
@@ -1713,7 +1712,7 @@ Current public versions, comparison rules, migration guarantees, and the policy 
 | MCP server | 0.4.0 | Preferred protocol 2026-07-28; minimum 2025-03-26. |
 | TypeScript SDK | 0.1.0 | ESM-only on Node.js 22+; SDK SemVer remains independent of tool, adapter, and Project schema versions. |
 | Agent skills | 1.1.0 | Targets tool contract 1.2.0. |
-| Interchange Package | 1 | Create-only import with checksum, migration, geometry, ledger, and replay preflight. |
+| Interchange Package | 1 + Project schema 10 | Create-only import with exact schema, checksum, geometry, Locks, ledger, and replay preflight. |
 
 ## Deprecation policy
 
@@ -7168,7 +7167,7 @@ Execute Restore Snapshot through the shared VenueMind planner boundary.
 | Field | Type | Required | Default | Bounds | Meaning |
 | --- | --- | --- | --- | --- | --- |
 | type | const "restore_snapshot" | yes | — | — | Stable command discriminator. |
-| snapshot | planner-snapshot | yes | — | — | Complete schema-compatible planner snapshot. |
+| snapshot | planner-snapshot | yes | — | — | Complete canonical Project schema 10 planner snapshot. |
 
 ```javascript
 const snapshot = await fetch('/examples/planner-snapshot.json').then((response) => response.json());
@@ -7194,7 +7193,7 @@ Restored normalized planner state after integrity checks.
 | COMMAND_INVALID | Venue command requires a type. | Send one published Venue command with its required fields. |
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
-| SNAPSHOT_INVALID | Invalid VenueMind snapshot. | Restore a schema-compatible snapshot containing a Plan, Proposal, and Activity Ledger. |
+| SNAPSHOT_INVALID | Invalid VenueMind snapshot. | Restore a canonical Project schema 10 snapshot containing a Plan, Proposal, and Activity Ledger. |
 | LEDGER_INTEGRITY_FAILED | Activity Ledger integrity failed. | Restore an untampered snapshot or recover the last verified Project record. |
 
 - [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
@@ -7452,8 +7451,8 @@ Visible changes to VenueMind contracts, workflows, compatibility, and operationa
 ## Project schema 10
 
 - Added reviewed Emergency Plan evidence and Degraded Scenarios.
-- Preserved migration paths from geometry, route, Lock, accessibility, and Scenario schema generations.
-- Kept accepted Plan truth replayable through the hash-chained Activity Ledger.
+- Made schema 10 the sole Project runtime format with strict restore and import boundaries.
+- Kept accepted Plan and Event Brief truth replayable through the hash-chained Activity Ledger.
 
 ## Documentation policy
 

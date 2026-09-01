@@ -48,12 +48,12 @@ test("persistence, migration, testing, release, and recovery guides carry execut
   assert.match(persistence, /```mermaid/);
   assert.match(persistence, /REMOTE/);
   assert.match(persistence, /LOCAL/);
-  assert.match(migrations, /schemas 5 through 10/);
-  assert.match(migrations, /second normalization/i);
+  assert.match(migrations, /accepts Project schema 10 only/i);
+  assert.match(migrations, /without adding fields, rewriting geometry/i);
   for (const evidence of ["dry run", "checksum", "Project safety export", "staged restore", "Point-in-Time Recovery", "ledger fingerprints"]) assert.match(databaseOperations, new RegExp(evidence, "i"));
   for (const layer of ["Planner and domain", "WebMCP", "MCP server", "Persistence and worker", "Docs and examples", "Whole product"]) assert.match(testing, new RegExp(layer));
   for (const command of ["npm run generate:contracts", "npm run generate:migrations", "npm run generate:docs", "npm run check:generated", "npm test", "npm run build"]) assert.match(release, new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-  for (const failure of ["Project API unavailable", "Ledger or replay failure", "Migration failure", "Database restore", "MCP client failure", "Generated documentation drift"]) assert.match(recovery, new RegExp(failure));
+  for (const failure of ["Project API unavailable", "Ledger or replay failure", "database migration failure", "Database restore", "MCP client failure", "Generated documentation drift"]) assert.match(recovery, new RegExp(failure));
 });
 
 test("required architecture decisions use the complete ADR structure", async () => {

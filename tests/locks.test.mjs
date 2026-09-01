@@ -7,12 +7,10 @@ import { createVenuePlanner } from "../src/domain/venue-planner.js";
 
 const templateLock = (objectId, type) => ({ id: `lock-${objectId}-${type}`, objectId, type, source: "venue-template", reasonCode: "venue-infrastructure", authorId: "venue-template", active: true });
 
-test("legacy locked objects normalize to five typed venue-template Locks", () => {
+test("boolean lock flags do not create authority without typed Locks", () => {
   const object = normalizeObjectLocks({ id: "obj-stage", kind: "stage", locked: true });
-
-  assert.equal(object.locked, true);
-  assert.deepEqual(object.locks.map((lock) => lock.type), ["position", "rotation", "dimension", "deletion", "role"]);
-  assert.ok(object.locks.every((lock) => lock.source === "venue-template" && lock.objectId === object.id));
+  assert.equal(object.locked, false);
+  assert.deepEqual(object.locks, []);
 });
 
 test("partial Locks reject only matching spatial properties", () => {
@@ -73,25 +71,12 @@ test("planner boundary returns one stable LOCK_CONFLICT for multi-object partial
   );
 });
 
-test("schema-v7 boolean Locks migrate to typed Locks before accessibility infrastructure", () => {
+test("snapshot restore rejects objects without typed Locks", () => {
   const source = createVenuePlanner(summitForwardPlan);
-  const legacy = structuredClone(source.getSnapshot());
-  for (const object of legacy.plan.objects) delete object.locks;
-  for (const object of legacy.plan.objects) {
-    if (object.accessibility) delete object.accessibility.accessibleSeatSampleIds;
-    if (object.door) delete object.door.clearance;
-  }
-  legacy.plan.constraints = legacy.plan.constraints.filter((constraint) => !["accessible_seating_sightlines", "door_clearance", "temporary_ramp"].includes(constraint.evaluator));
-
+  const snapshot = structuredClone(source.getSnapshot());
+  delete snapshot.plan.objects[0].locks;
   const restored = createVenuePlanner(summitForwardPlan);
-  restored.execute({ type: "restore_snapshot", snapshot: legacy });
-  const snapshot = restored.getSnapshot();
-  const migrations = snapshot.ledger.filter((entry) => entry.type === "schema.migrated");
-
-  assert.ok(snapshot.plan.objects.every((object) => Array.isArray(object.locks)));
-  assert.equal(snapshot.plan.objects.find((object) => object.id === "obj-stage-west").locks.length, 5);
-  assert.deepEqual(migrations.map((entry) => entry.details.migrationId), ["project-schema-v7-to-v8-typed-locks", "project-schema-v8-to-v9-accessibility-infrastructure"]);
-  assert.equal(restored.execute({ type: "replay_history" }).status, "pass");
+  assert.throws(() => restored.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "SNAPSHOT_INVALID");
 });
 
 test("human Project Locks are temporary, inspectable, validated, auditable, and retry-safe", () => {

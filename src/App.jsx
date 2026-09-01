@@ -209,8 +209,6 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyMounted, setHistoryMounted] = useState(false);
   const [persistenceStatus, setPersistenceStatus] = useState("SYNC");
-  const [legacyBriefMigration, setLegacyBriefMigration] = useState(null);
-  const [legacyBriefReviewOpen, setLegacyBriefReviewOpen] = useState(false);
   const [persistenceEpoch, setPersistenceEpoch] = useState(0);
   const [syncConflict, setSyncConflict] = useState(null);
   const [collaborationStatus, setCollaborationStatus] = useState("CONNECT");
@@ -371,29 +369,20 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
     const start = async () => {
       const loaded = await projectStore.load(projectId);
       if (cancelled) return;
-      if ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10].includes(loaded.record?.schemaVersion)) {
+      if (loaded.record?.schemaVersion === 10) {
         try {
           planner.execute({ type: "restore_snapshot", snapshot: loaded.record.snapshot });
         } catch (error) {
-          if (error?.code === "LEGACY_BRIEF_ATTESTATION_REQUIRED" && loaded.source === "remote") {
-            try {
-              const inspection = await projectStore.inspectLegacyBriefMigration(projectId);
-              if (inspection.status === "attestation-required") {
-                setLegacyBriefMigration(inspection);
-                setLegacyBriefReviewOpen(true);
-                setPersistenceStatus("ATTEST");
-                return;
-              }
-            } catch { /* retain the integrity state below */ }
-          }
           setPersistenceStatus("INTEGRITY");
           return;
         }
         projectRecordMetadata.current = projectRecordMetadataFor(loaded.record);
         setPersistenceStatus(loaded.source === "remote" ? "SAVED" : "LOCAL");
-        if (loaded.record.schemaVersion < 10) await queueSave();
-      } else {
+      } else if (!loaded.record) {
         await queueSave();
+      } else {
+        setPersistenceStatus("UNSUPPORTED");
+        return;
       }
       unsubscribe = planner.subscribe(() => {
         if (skipNextPersistenceSave.current) {
@@ -412,23 +401,6 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
       window.clearTimeout(saveTimer);
     };
   }, [planner, projectStore, persistenceEpoch]);
-
-  const handleLegacyBriefAttestation = async () => {
-    if (!legacyBriefMigration) return;
-    setPersistenceStatus("VERIFY");
-    try {
-      await projectStore.attestLegacyBriefMigration(projectId, legacyBriefMigration, {
-        reason: "Administrator reviewed and adopted the legacy Event Brief",
-        idempotencyKey: `legacy-brief-${legacyBriefMigration.challengeId}`,
-      });
-      setLegacyBriefMigration(null);
-      setLegacyBriefReviewOpen(false);
-      setPersistenceStatus("SAVED");
-      setPersistenceEpoch((value) => value + 1);
-    } catch (error) {
-      setPersistenceStatus(error?.code === "LEGACY_BRIEF_ATTESTATION_DENIED" ? "DENIED" : "STALE");
-    }
-  };
 
   useEffect(() => {
     let active = true;
@@ -1016,13 +988,6 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
         {syncConflict.resolutions.includes("recover-proposal-branch") && <Button type="button" onClick={handleRecoverProposalBranch}><GitBranch size={13} /> BRANCH</Button>}
         <Button type="button" onClick={handleUseRemoteRecord}>REMOTE</Button>
       </div>}
-      {legacyBriefMigration && <div className="sync-conflict-strip" role="alert" aria-label="Legacy Event Brief attestation required">
-        <b>LEGACY BRIEF</b>
-        <span>R{legacyBriefMigration.projectRevision}</span>
-        <span>{legacyBriefMigration.briefFingerprint.toUpperCase()}</span>
-        <Button type="button" onClick={() => setLegacyBriefReviewOpen(true)}>REVIEW</Button>
-      </div>}
-
       <main className="workspace">
         <aside className="brief-panel">
           <section className="brief-section">
@@ -1218,25 +1183,6 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
         <div className="branch-comparison-section"><span className="eyebrow">Constraints</span><div className="comparison-constraint-table">{branchComparison.constraintDeltas.map((constraint) => <div className="comparison-constraint-row" key={constraint.constraintId}><strong>{constraint.label}</strong><span className={`is-${constraint.leftStatus}`}>{constraint.leftStatus.toUpperCase()}</span><span className={`is-${constraint.rightStatus}`}>{constraint.rightStatus.toUpperCase()}</span><b className={`is-${constraint.outcome}`}>{constraint.outcome.toUpperCase()}</b></div>)}</div></div>
         <div className="branch-comparison-section"><span className="eyebrow">Spatial deltas</span><div className="comparison-object-groups">{[["Moved", branchComparison.objectDeltas.movedObjectIds], ["Rotated", branchComparison.objectDeltas.rotatedObjectIds], ["Resized", branchComparison.objectDeltas.resizedObjectIds], ["Added", branchComparison.objectDeltas.addedObjectIds], ["Removed", branchComparison.objectDeltas.removedObjectIds], ["Metadata", branchComparison.objectDeltas.metadataObjectIds]].map(([label, ids]) => <div key={label}><strong>{label}</strong><b>{ids.length}</b><small>{ids.join(" · ") || "—"}</small></div>)}</div></div>
         <div className="comparison-decision"><Input aria-label="Decision note" placeholder="DECISION NOTE" value={decisionNote} onChange={(event) => setDecisionNote(event.target.value)} /><Button type="button" onClick={() => handleBranchDecision(branchComparison.left.branchId, branchComparison.right.branchId)}>CHOOSE A</Button><Button type="button" onClick={() => handleBranchDecision(branchComparison.right.branchId, branchComparison.left.branchId)}>CHOOSE B</Button></div>
-      </SheetContent>}
-      </Sheet>
-      <Sheet open={Boolean(legacyBriefMigration && legacyBriefReviewOpen)} onOpenChange={(open) => { if (!open) setLegacyBriefReviewOpen(false); }}>
-      {legacyBriefMigration && <SheetContent className="brief-editor legacy-brief-review !h-auto !gap-0 !p-0 sm:!max-w-none" side="left" showOverlay={false} showCloseButton={false} aria-label="Legacy Event Brief review">
-        <div className="brief-editor-heading"><div><SheetTitle asChild><span className="eyebrow">LEGACY BRIEF</span></SheetTitle><strong>{legacyBriefMigration.briefFingerprint}</strong><SheetDescription className="sr-only">Legacy Event Brief requirements and adoption controls</SheetDescription></div><Button variant="ghost" size="icon-sm" type="button" onClick={() => setLegacyBriefReviewOpen(false)} aria-label="Close legacy Event Brief review"><X size={18} /></Button></div>
-        <div className="brief-fields">
-          <label><span>Event</span><b>{legacyBriefMigration.brief.eventName}</b></label>
-          <label><span>Date</span><b>{legacyBriefMigration.brief.date ?? "—"}</b></label>
-          <label><span>Timezone</span><b>{legacyBriefMigration.brief.timezone}</b></label>
-          <label><span>Attendance</span><b>{legacyBriefMigration.brief.attendeeTarget}</b></label>
-          <label><span>Occupancy</span><b>{legacyBriefMigration.brief.occupancyMode}</b></label>
-          <label><span>Schedule</span><b>{legacyBriefMigration.brief.schedule ? `${legacyBriefMigration.brief.schedule.startAt} · ${legacyBriefMigration.brief.schedule.endAt}` : "—"}</b></label>
-        </div>
-        <div className="requirement-editor-heading"><span className="eyebrow">Requirements</span><small>{legacyBriefMigration.brief.requirements.length} REQ</small></div>
-        <div className="requirement-editor-list">{legacyBriefMigration.brief.requirements.map((requirement) => <div className="requirement-editor-row" key={requirement.id}>
-          <span className="requirement-label"><small>{requirement.category}</small><b>{requirement.label}</b></span>
-          <b>{requirement.priority.toUpperCase()}</b><b>{requirement.status.toUpperCase()}</b><span className={`requirement-link ${requirement.constraintIds.length > 0 ? "is-linked" : ""}`}>{requirement.constraintIds.length} C</span>
-        </div>)}</div>
-        <div className="brief-editor-actions"><Button type="button" variant="outline" onClick={() => setLegacyBriefReviewOpen(false)}>CLOSE</Button><Button type="button" className="legacy-adopt-button" onClick={handleLegacyBriefAttestation}>ADOPT</Button></div>
       </SheetContent>}
       </Sheet>
       <Sheet open={briefOpen && Boolean(briefDraft)} onOpenChange={(open) => { if (!open) setBriefOpen(false); }}>
