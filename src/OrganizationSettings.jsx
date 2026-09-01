@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, DownloadSimple, Plus, SignOut, Trash, UserPlus } from "@phosphor-icons/react";
 import { ORGANIZATION_ROLES } from "./domain/accounts.js";
+import { browserNavigate, navigateInternalLink } from "./navigation.js";
 import "./organization-settings.css";
 
 const downloadJson = (value, filename) => {
@@ -12,7 +13,7 @@ const downloadJson = (value, filename) => {
   URL.revokeObjectURL(url);
 };
 
-export function OrganizationSettings({ organizationId, account, accountStore }) {
+export function OrganizationSettings({ organizationId, account, accountStore, navigate = browserNavigate }) {
   const organization = account.organizations.find((item) => item.id === organizationId);
   const administrator = organization?.roles.includes("organization-administrator");
   const [members, setMembers] = useState([]);
@@ -59,7 +60,7 @@ export function OrganizationSettings({ organizationId, account, accountStore }) 
   };
 
   return <div className="organization-shell">
-    <header><a href="/projects"><ArrowLeft size={15} /> PROJECTS</a><strong>VenueMind</strong><span>{status}</span></header>
+    <header><a href="/projects" onClick={(event) => navigateInternalLink(event, navigate, "/projects")}><ArrowLeft size={15} /> PROJECTS</a><strong>VenueMind</strong><span>{status}</span></header>
     <main>
       <section className="organization-title"><div><small>ORGANIZATION</small><h1>{organization?.name ?? "—"}</h1><code>{organizationId}</code></div><select value={organizationId} onChange={(event) => accountStore.selectOrganization(event.target.value)}>{account.organizations.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></section>
 

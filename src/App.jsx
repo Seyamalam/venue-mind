@@ -36,6 +36,7 @@ import { AnnotationPins, CommentsPanel } from "./CommentsPanel.jsx";
 import { ScenarioPanel } from "./ScenarioPanel.jsx";
 import { createCollaborationClient } from "./collaboration/collaboration-client.js";
 import { SharingControls } from "./SharingControls.jsx";
+import { browserNavigate, navigateInternalLink } from "./navigation.js";
 
 const briefIcons = {
   accessibility: Wheelchair,
@@ -65,7 +66,7 @@ const projectRecordMetadataFor = (record) => ({
   lastOpenedAt: record.lastOpenedAt ?? null,
 });
 
-function ToolRegistration({ planner, projectStore, projectId, organizationId, onLifecycle }) {
+function ToolRegistration({ planner, projectStore, projectId, organizationId, onLifecycle, navigate }) {
   useEffect(() => {
     const modelContext = document.modelContext;
     if (typeof modelContext?.registerTool !== "function") {
@@ -85,7 +86,7 @@ function ToolRegistration({ planner, projectStore, projectId, organizationId, on
             const result = await projectStore.load(nextProjectId);
             if (!result.record || result.record.deletedAt) throw venueError("PROJECT_NOT_FOUND", { projectId: nextProjectId });
             const opened = { status: nextProjectId === projectId ? "active" : "opening", project: { id: result.record.id, name: result.record.name, activePlanId: result.record.activePlanId, planVersion: result.record.snapshot?.plan?.version ?? null } };
-            if (nextProjectId !== projectId) window.setTimeout(() => window.location.assign(`/studio/${encodeURIComponent(nextProjectId)}`), 0);
+            if (nextProjectId !== projectId) window.setTimeout(() => navigate(`/studio/${encodeURIComponent(nextProjectId)}`), 0);
             return opened;
           },
         };
@@ -97,7 +98,7 @@ function ToolRegistration({ planner, projectStore, projectId, organizationId, on
 
     register();
     return () => controller.abort();
-  }, [onLifecycle, organizationId, planner, projectId, projectStore]);
+  }, [navigate, onLifecycle, organizationId, planner, projectId, projectStore]);
   return null;
 }
 
@@ -140,7 +141,7 @@ function ComparisonShape({ object, maxY, className }) {
   return <line {...common} x1={footprint.start.x} y1={maxY - footprint.start.y} x2={footprint.end.x} y2={maxY - footprint.end.y} style={{ strokeWidth: Math.max(.1, footprint.width) }} />;
 }
 
-export function App({ projectId = "project-summit-forward", organizationId = "org-local", account, accountStore }) {
+export function App({ projectId = "project-summit-forward", organizationId = "org-local", account, accountStore, navigate = browserNavigate }) {
   const organizationRoles = useMemo(() => account?.organizations.find((organization) => organization.id === organizationId)?.roles ?? ["venue-administrator"], [account, organizationId]);
   const studioAuthorization = useMemo(() => Object.freeze({ principal: createHumanPrincipal({ id: account?.user?.id ?? "studio-operator", organizationId, roles: organizationRoles, operationalRoles: ["safety-officer", "venue-administrator"] }) }), [account, organizationId, organizationRoles]);
   const canManageSharing = organizationRoles.some((role) => ["venue-administrator", "organization-administrator"].includes(role));
@@ -760,6 +761,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
         projectId={projectId}
         organizationId={organizationId}
         onLifecycle={setWebMcpLifecycle}
+        navigate={navigate}
       />
 
       <header className="topbar">
@@ -768,12 +770,12 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           <span className="brand-name">VenueMind</span>
         </div>
         <div className="event-heading">
-          <button type="button" className="event-name" onClick={() => { window.location.href = "/projects"; }}>{plannerState.plan.event.name} <CaretDown size={15} weight="bold" /></button>
+          <button type="button" className="event-name" onClick={() => navigate("/projects")}>{plannerState.plan.event.name} <CaretDown size={15} weight="bold" /></button>
           <span>{eventDate}</span><i aria-hidden="true" /><span>{plannerState.plan.venue.name}</span>
         </div>
         <nav className="top-actions" aria-label="Plan actions">
           <select className="organization-select" aria-label="Organization" value={organizationId} onChange={(event) => accountStore?.selectOrganization(event.target.value)}>{account?.organizations.map((organization) => <option value={organization.id} key={organization.id}>{organization.name}</option>)}</select>
-          <a className="organization-settings-link" href="/settings/organization" aria-label="Organization settings">{account?.user?.displayName?.slice(0, 2).toUpperCase() || "ID"}</a>
+          <a className="organization-settings-link" href="/settings/organization" onClick={(event) => navigateInternalLink(event, navigate, "/settings/organization")} aria-label="Organization settings">{account?.user?.displayName?.slice(0, 2).toUpperCase() || "ID"}</a>
           <SharingControls projectId={projectId} organizationId={organizationId} proposalId={plannerState.proposal.id} canManage={canManageSharing} />
           <div className="collaboration-control">
             <HeaderButton className={`collaboration-button is-${collaborationStatus.toLowerCase()}`} ariaLabel="Collaboration presence" onClick={() => setCollaborationOpen((open) => !open)}>LIVE {presence.length}<span className="status-dot" /></HeaderButton>

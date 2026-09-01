@@ -5,6 +5,7 @@ import { createVenuePlanner } from "./domain/venue-planner.js";
 import { createProjectStore } from "./persistence/project-store.js";
 import { previewProjectImport } from "./interchange/venue-package.js";
 import { duplicateProjectRecord } from "./domain/project-lifecycle.js";
+import { browserNavigate, navigateInternalLink } from "./navigation.js";
 import "./project-dashboard.css";
 
 const ArchiveBox = Archive;
@@ -22,7 +23,7 @@ const projectValidation = (project) => {
   }
 };
 
-export function ProjectDashboard({ organizationId = "org-local", account, accountStore }) {
+export function ProjectDashboard({ organizationId = "org-local", account, accountStore, navigate = browserNavigate }) {
   const store = useMemo(() => createProjectStore({ organizationId }), [organizationId]);
   const [projects, setProjects] = useState([]);
   const [source, setSource] = useState("SYNC");
@@ -60,7 +61,7 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
   const openProject = async (project) => {
     const result = await store.updateMetadata(project.id, { lastOpenedAt: new Date().toISOString() });
     replaceProject(result.record);
-    window.location.href = `/studio/${encodeURIComponent(project.id)}`;
+    navigate(`/studio/${encodeURIComponent(project.id)}`);
   };
   const renameProject = async (project) => {
     const name = window.prompt("NAME", project.name);
@@ -125,8 +126,8 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
   return (
     <div className="projects-shell">
       <header className="projects-header">
-        <a className="projects-brand" href="/"><img src="/assets/venuemind-mark.png" alt="" /><strong>VenueMind</strong></a>
-        <nav><select aria-label="Organization" value={organizationId} onChange={(event) => accountStore?.selectOrganization(event.target.value)}>{account?.organizations.map((organization) => <option value={organization.id} key={organization.id}>{organization.name}</option>)}</select><a href="/docs">Docs</a><span>{source}</span><a className="account-chip" href="/settings/organization">{account?.user?.displayName?.slice(0, 2).toUpperCase() || "ID"}</a></nav>
+        <a className="projects-brand" href="/" onClick={(event) => navigateInternalLink(event, navigate, "/")}><img src="/assets/venuemind-mark.png" alt="" /><strong>VenueMind</strong></a>
+        <nav><select aria-label="Organization" value={organizationId} onChange={(event) => accountStore?.selectOrganization(event.target.value)}>{account?.organizations.map((organization) => <option value={organization.id} key={organization.id}>{organization.name}</option>)}</select><a href="/docs" onClick={(event) => navigateInternalLink(event, navigate, "/docs")}>Docs</a><span>{source}</span><a className="account-chip" href="/settings/organization" onClick={(event) => navigateInternalLink(event, navigate, "/settings/organization")}>{account?.user?.displayName?.slice(0, 2).toUpperCase() || "ID"}</a></nav>
       </header>
 
       <main className="projects-main">
