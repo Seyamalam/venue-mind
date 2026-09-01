@@ -28,3 +28,11 @@ test("plan history uses a non-modal shadcn sheet with accessible tabs", async ()
     assert.match(app, new RegExp(`<TabsTrigger value="${value}"`));
   }
 });
+
+test("plan comparison mode uses a single-select shadcn toggle group", async () => {
+  const app = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+  assert.match(app, /<ToggleGroup className="segmented-control" type="single" value=\{viewMode\}/);
+  for (const value of ["before", "proposed", "split"]) {
+    assert.match(app, new RegExp(`<ToggleGroupItem value="${value}"`));
+  }
+});

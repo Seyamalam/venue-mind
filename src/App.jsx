@@ -39,6 +39,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
 import { Sheet, SheetContent, SheetTitle } from "../components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "../components/ui/toggle-group";
 
 const briefIcons = {
   accessibility: Wheelchair,
@@ -957,11 +958,11 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           <div className="comparison-bar">
             <div className="compare-group">
               <span className="bar-label">Compare</span>
-              <div className="segmented-control" role="tablist" aria-label="Compare plan states">
-                <button className={viewMode === "before" ? "active" : ""} onClick={() => setViewMode("before")} type="button" role="tab"><Eye size={16} /> Before</button>
-                <button className={viewMode === "proposed" ? "active" : ""} onClick={() => setViewMode("proposed")} type="button" role="tab"><Sparkle size={16} /> Proposed</button>
-                <button className={viewMode === "split" ? "active" : ""} onClick={() => setViewMode("split")} type="button" role="tab"><Columns size={16} /> Split</button>
-              </div>
+              <ToggleGroup className="segmented-control" type="single" value={viewMode} onValueChange={(value) => { if (value) setViewMode(value); }} aria-label="Compare plan states" spacing={6}>
+                <ToggleGroupItem value="before"><Eye size={16} /> Before</ToggleGroupItem>
+                <ToggleGroupItem value="proposed"><Sparkle size={16} /> Proposed</ToggleGroupItem>
+                <ToggleGroupItem value="split"><Columns size={16} /> Split</ToggleGroupItem>
+              </ToggleGroup>
             </div>
             <div className="outcomes-group">
               <span className="bar-label">Outcomes</span>
