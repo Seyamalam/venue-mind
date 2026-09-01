@@ -29,6 +29,8 @@ import { createHumanPrincipal } from "./domain/authorization.js";
 import { venueError } from "./domain/errors.js";
 import { createProjectStore } from "./persistence/project-store.js";
 import { createRunbookStore } from "./persistence/runbook-store.js";
+import { createRunbookRemote } from "./persistence/runbook-remote.js";
+import { synchronizeRunbook } from "./persistence/runbook-sync.js";
 import { registerVenueTools } from "./webmcp/register-venue-tools.js";
 import { VENUE_TOOL_AUTHORIZATION_SCOPES, VENUE_TOOL_CONTRACT_VERSION, venueToolContracts } from "./contracts/venue-contracts.js";
 import { exportProjectPackage } from "./interchange/venue-package.js";
@@ -175,6 +177,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   const planner = useMemo(() => createVenuePlanner(projectId === "project-summit-forward" ? summitForwardPlan : createEmptyVenuePlan({ projectId }), { authorization: studioAuthorization, projectId }), [projectId, studioAuthorization]);
   const projectStore = useMemo(() => createProjectStore({ organizationId }), [organizationId]);
   const runbookStore = useMemo(() => createRunbookStore(), []);
+  const runbookRemote = useMemo(() => createRunbookRemote({ organizationId }), [organizationId]);
   const plannerState = useSyncExternalStore(planner.subscribe, planner.getSnapshot, planner.getSnapshot);
   const changes = plannerState.proposal.changes;
   const proposalState = plannerState.proposal.status;
@@ -810,6 +813,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
       });
       setRunbookSyncState({ state: "offline", pendingCount: 0 });
       notify(result.status === "created" ? "RUNBOOK CREATED" : "RUNBOOK ACTIVE");
+      void handleRunbookSync(result.runbook);
     } catch (error) {
       notify(error.code ?? "RUNBOOK BLOCKED");
     }
@@ -860,6 +864,22 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
       notify(`TASK ${result.task.status.toUpperCase()} · LOCAL`);
     } catch (error) {
       notify(error.code ?? "TASK BLOCKED");
+    }
+  };
+
+  const handleRunbookSync = async (candidate = runbook) => {
+    if (!candidate) return;
+    const pendingCount = (await runbookStore.listOutbox(candidate.versionId)).length;
+    setRunbookSyncState((current) => ({ ...current, state: "syncing", pendingCount }));
+    try {
+      const result = await synchronizeRunbook({ projectId, runbook: candidate, store: runbookStore, remote: runbookRemote });
+      runbookBus.hydrate(result.runbook);
+      setRunbookSyncState(result.syncState);
+      notify(result.syncState.state === "online" ? "RUNBOOK SYNCED" : "RUNBOOK CONFLICT");
+    } catch (error) {
+      const remaining = (await runbookStore.listOutbox(candidate.versionId)).length;
+      setRunbookSyncState({ state: "offline", pendingCount: remaining });
+      notify(error.code === "RUNBOOK_API_UNAVAILABLE" ? "RUNBOOK LOCAL" : (error.code ?? "RUNBOOK SYNC FAILED"));
     }
   };
 
@@ -1186,7 +1206,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
         onCreateHandoff={handleCreateRunbookHandoff}
         onCopyHandoff={handleCopyRunbookHandoff}
         onExportHandoff={handleExportRunbook}
-        onSync={() => notify("RUNBOOK LOCAL")}
+        onSync={() => { void handleRunbookSync(); }}
         onResolveSyncConflict={() => notify("RUNBOOK CONFLICT")}
       /></Suspense>}
       <Sheet open={comparisonOpen && Boolean(branchComparison)} onOpenChange={(open) => { if (!open) setComparisonOpen(false); }}>
