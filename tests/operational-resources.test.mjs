@@ -12,7 +12,7 @@ const prepared = (overrides = {}) => ({
   sourceSystem: "venue-ops-prod",
   sourceVersion: "resource-77",
   nextCursor: "resource-78",
-  project: { projectId: "project-resource-test", planVersion: "3.3", planFingerprint: "d".repeat(64), eventWindow: EVENT, currentReservationRef: "reservation-current" },
+  project: { projectId: "project-resource-test", planVersion: "3.3", planFingerprint: "plan-dddddddd", eventWindow: EVENT, currentReservationRef: "reservation-current" },
   resources: [
     { resourceId: "resource-primary", family: "av", status: "unavailable", total: 1, unavailable: 1, bookings: [], capability: capability(), source: source("projector-primary", "a".repeat(64)) },
     { resourceId: "resource-backup", family: "av", status: "available", total: 1, unavailable: 0, bookings: [], capability: capability(), source: source("projector-backup", "b".repeat(64)) },

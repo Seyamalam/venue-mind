@@ -1,4 +1,4 @@
-import { AdapterContractError, assertIsoTimestamp, canonicalStringify, sha256Checksum } from "../integrations/contracts.js";
+import { AdapterContractError, assertIsoTimestamp, sha256Checksum } from "../integrations/contracts.js";
 import { isNonContactLabel } from "../integrations/privacy.js";
 
 const MAX_RESOURCES = 1_000;
@@ -12,6 +12,7 @@ const IDENTIFIER = /^[a-z0-9][a-z0-9._:-]{0,159}$/;
 const RESOURCE_ID = /^resource-[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const STAFF_REF = /^staff-ref-[0-9a-f]{32}$/;
 const SHA256 = /^[0-9a-f]{64}$/;
+const PLAN_FINGERPRINT = /^plan-[0-9a-f]{8}$/;
 const FAMILIES = new Set(["inventory", "av", "power", "catering", "staffing"]);
 const STATUSES = new Set(["available", "unavailable"]);
 const clone = (value) => structuredClone(value);
@@ -104,8 +105,18 @@ const normalizeCapability = (family, value) => {
   assertExact(value, ["assignments"], "Staffing capability");
   if (!Array.isArray(value.assignments) || value.assignments.length === 0 || value.assignments.length > MAX_RESOURCES) fail("ADAPTER_SOURCE_INVALID", "Staffing capability requires bounded role and shift assignments");
   const assignments = value.assignments.map((item) => {
-    assertExact(item, ["roleId", "shiftId"], "Staffing capability assignment");
-    return { roleId: identifier(item.roleId, "Staffing roleId"), shiftId: identifier(item.shiftId, "Staffing shiftId") };
+    assertExact(item, ["roleId", "shiftId", "status", "bookings"], "Staffing capability assignment");
+    const normalized = { roleId: identifier(item.roleId, "Staffing roleId"), shiftId: identifier(item.shiftId, "Staffing shiftId") };
+    if (item.status !== undefined) {
+      if (!STATUSES.has(item.status)) fail("ADAPTER_SOURCE_INVALID", "Staffing capability assignment status is invalid");
+      normalized.status = item.status;
+    }
+    if (item.bookings !== undefined) {
+      if (!Array.isArray(item.bookings) || item.bookings.length > MAX_BOOKINGS) fail("ADAPTER_SOURCE_INVALID", `Staffing capability assignment bookings must contain at most ${MAX_BOOKINGS} records`);
+      normalized.bookings = item.bookings.map((booking, index) => normalizeBooking(booking, `Staffing capability assignment booking ${index + 1}`)).sort((left, right) => compare(left.startAt, right.startAt) || compare(left.endAt, right.endAt) || compare(left.bookingRef, right.bookingRef));
+      if (new Set(normalized.bookings.map((booking) => booking.bookingRef)).size !== normalized.bookings.length) fail("ADAPTER_SOURCE_INVALID", "Staffing capability assignment booking references must be unique");
+    }
+    return normalized;
   }).sort((left, right) => compare(left.roleId, right.roleId) || compare(left.shiftId, right.shiftId));
   if (new Set(assignments.map((item) => `${item.roleId}\u0000${item.shiftId}`)).size !== assignments.length) fail("ADAPTER_SOURCE_INVALID", "Staffing capability assignments must be unique");
   return { assignments };
@@ -169,7 +180,7 @@ export function normalizePreparedOperationalResourceInput(value) {
   assertIsoTimestamp(value.project.eventWindow.startAt, "Operational event startAt");
   assertIsoTimestamp(value.project.eventWindow.endAt, "Operational event endAt");
   if (Date.parse(value.project.eventWindow.endAt) <= Date.parse(value.project.eventWindow.startAt)) fail("ADAPTER_SOURCE_INVALID", "Operational event window must increase");
-  if (!SHA256.test(value.project.planFingerprint ?? "")) fail("ADAPTER_CHECKSUM_INVALID", "Operational Project planFingerprint is invalid");
+  if (!PLAN_FINGERPRINT.test(value.project.planFingerprint ?? "")) fail("ADAPTER_CHECKSUM_INVALID", "Operational Project planFingerprint is invalid");
   if (!Array.isArray(value.resources) || value.resources.length > MAX_RESOURCES) fail("ADAPTER_SOURCE_INVALID", `Operational resources must contain at most ${MAX_RESOURCES} records`);
   const resources = value.resources.map(normalizeResource).sort((left, right) => compare(left.resourceId, right.resourceId));
   if (new Set(resources.map((item) => item.resourceId)).size !== resources.length) fail("ADAPTER_SOURCE_INVALID", "Operational resource IDs must be unique");
@@ -223,10 +234,15 @@ export function normalizePreparedOperationalResourceInput(value) {
 export const bookingOverlaps = (booking, eventWindow) => Date.parse(booking.startAt) < Date.parse(eventWindow.endAt)
   && Date.parse(eventWindow.startAt) < Date.parse(booking.endAt);
 
-const availabilityFor = (resource, project) => {
-  const otherBookings = resource.bookings.filter((booking) => booking.reservationRef !== project.currentReservationRef && bookingOverlaps(booking, project.eventWindow));
+const availabilityFor = (resource, project, demand = null) => {
+  const staffingAssignment = resource.family === "staffing" && demand?.family === "staffing"
+    ? resource.capability.assignments.find((assignment) => assignment.roleId === demand.requirements.roleId && assignment.shiftId === demand.requirements.shiftId)
+    : null;
+  const bookings = staffingAssignment?.bookings ?? resource.bookings;
+  const status = staffingAssignment?.status ?? resource.status;
+  const otherBookings = bookings.filter((booking) => booking.reservationRef !== project.currentReservationRef && bookingOverlaps(booking, project.eventWindow));
   const booked = otherBookings.reduce((sum, booking) => sum + booking.quantity, 0);
-  const healthy = resource.status === "unavailable" ? 0 : Math.max(0, resource.total - resource.unavailable);
+  const healthy = status === "unavailable" ? 0 : Math.max(0, resource.total - resource.unavailable);
   return { healthy, booked, available: Math.max(0, healthy - booked), bookingRefs: otherBookings.map((item) => item.bookingRef).sort(compare) };
 };
 
@@ -330,7 +346,7 @@ export async function reconcileOperationalResources(inputValue) {
   const conflicted = [];
   for (const demand of input.demands) {
     const resource = byId.get(demand.resourceId);
-    const rawAvailability = availabilityFor(resource, input.project);
+    const rawAvailability = availabilityFor(resource, input.project, demand);
     const resourceAvailable = Math.max(0, rawAvailability.available - (reservedPrimary.get(resource.resourceId) ?? 0));
     const roleAvailable = demand.family === "staffing"
       ? Math.max(0, (input.staffing.roles.find((item) => item.roleId === demand.requirements.roleId)?.availableHeadcount ?? 0) - (reservedRoleHeadcount.get(demand.requirements.roleId) ?? 0))
@@ -389,5 +405,3 @@ export async function reconcileOperationalResources(inputValue) {
     privacy: { personnelMode: "opaque-reference", rawPersonnelIdentityStored: false, contactDataStored: false },
   });
 }
-
-export const canonicalOperationalResourceContent = (value) => canonicalStringify(value);
