@@ -229,6 +229,11 @@
       "sourcePath": "docs/adr/0026-public-sdk-follows-canonical-tool-and-adapter-contracts.md",
       "publicPath": "/guides/adr/0026-public-sdk-follows-canonical-tool-and-adapter-contracts.md",
       "title": "Architecture decision 0026"
+    },
+    {
+      "sourcePath": "docs/adr/0027-event-day-runbooks-are-plan-bound-operational-aggregates.md",
+      "publicPath": "/guides/adr/0027-event-day-runbooks-are-plan-bound-operational-aggregates.md",
+      "title": "Architecture decision 0027"
     }
   ]
 }

@@ -2762,7 +2762,11 @@
     "roomId": "room-harborview-main-hall",
     "attendeeTarget": 400,
     "occupancyMode": "theater",
-    "schedule": null,
+    "schedule": {
+      "startAt": "2026-09-12T08:00:00-04:00",
+      "endAt": "2026-09-12T16:00:00-04:00",
+      "timezone": "America/New_York"
+    },
     "requirements": [
       {
         "id": "req-theater-seating",
@@ -5968,7 +5972,11 @@
           "roomId": "room-harborview-main-hall",
           "attendeeTarget": 400,
           "occupancyMode": "theater",
-          "schedule": null,
+          "schedule": {
+            "startAt": "2026-09-12T08:00:00-04:00",
+            "endAt": "2026-09-12T16:00:00-04:00",
+            "timezone": "America/New_York"
+          },
           "requirements": [
             {
               "id": "req-theater-seating",
@@ -6075,10 +6083,10 @@
             }
           ]
         },
-        "briefFingerprint": "brief-42aeb1ab"
+        "briefFingerprint": "brief-1f947930"
       },
       "previousHash": "genesis",
-      "hash": "ledger-71137e62"
+      "hash": "ledger-6af8c3b0"
     }
   ],
   "receipts": []

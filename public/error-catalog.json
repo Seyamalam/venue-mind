@@ -304,6 +304,41 @@
     "message": "Activity Ledger integrity failed.",
     "remediation": "Restore an untampered snapshot or recover the last verified Project record."
   },
+  "RUNBOOK_SCHEDULE_REQUIRED": {
+    "code": "RUNBOOK_SCHEDULE_REQUIRED",
+    "message": "Event Day Runbook requires an accepted canonical schedule.",
+    "remediation": "Set and approve an Event Brief schedule with canonical start, end, and timezone values."
+  },
+  "RUNBOOK_DEFINITION_INVALID": {
+    "code": "RUNBOOK_DEFINITION_INVALID",
+    "message": "Event Day Runbook definition is invalid.",
+    "remediation": "Correct the reported phase, task, owner, dependency, or accepted-source reference."
+  },
+  "RUNBOOK_TASK_NOT_FOUND": {
+    "code": "RUNBOOK_TASK_NOT_FOUND",
+    "message": "Runbook task not found.",
+    "remediation": "Inspect the active Runbook Version and retry with a stable task ID."
+  },
+  "RUNBOOK_TASK_REVISION_CONFLICT": {
+    "code": "RUNBOOK_TASK_REVISION_CONFLICT",
+    "message": "Runbook task revision conflict.",
+    "remediation": "Refresh the task projection, review the accepted transition, and retry only if another transition is still required."
+  },
+  "RUNBOOK_TRANSITION_INVALID": {
+    "code": "RUNBOOK_TRANSITION_INVALID",
+    "message": "Runbook task transition is invalid.",
+    "remediation": "Use a published task transition and supply a reason-coded human reopen for terminal work."
+  },
+  "RUNBOOK_DEPENDENCIES_INCOMPLETE": {
+    "code": "RUNBOOK_DEPENDENCIES_INCOMPLETE",
+    "message": "Runbook task dependencies are incomplete.",
+    "remediation": "Complete every dependency before starting this task."
+  },
+  "RUNBOOK_EVIDENCE_REQUIRED": {
+    "code": "RUNBOOK_EVIDENCE_REQUIRED",
+    "message": "Runbook task evidence is incomplete.",
+    "remediation": "Attach every required structured evidence code before completing the task."
+  },
   "LEGACY_BRIEF_ATTESTATION_REQUIRED": {
     "code": "LEGACY_BRIEF_ATTESTATION_REQUIRED",
     "message": "Legacy Event Brief requires trusted human attestation.",
