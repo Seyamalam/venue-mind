@@ -14,6 +14,8 @@ import { transitionRunbookTask } from "../src/domain/event-day-runbook.js";
 import { createAuthenticatedIdentity } from "../src/domain/accounts.js";
 import { createD1RunbookRepository, RunbookClientSequenceConflict, RunbookIdempotencyConflict, RunbookTransitionConflict } from "./runbook-repository.ts";
 import { browserCommandToPersistenceInput, browserRunbookToPersistenceInput, repositoryRunbookToBrowserSnapshot } from "./runbook-http.ts";
+import { createD1OccupancyRepository, OccupancyMonitorConflict } from "./occupancy-repository.ts";
+import { acknowledgeOccupancyAlert, createLiveOccupancyMonitor, evaluateLiveOccupancy, exportLiveOccupancyAudit, ingestOccupancySignal, refreshLiveOccupancy } from "../src/domain/live-occupancy.js";
 
 export { createD1AccountRepository, createMemoryAccountRepository } from "./account-repository.ts";
 export { createStaticIdentityProvider } from "./authentication.ts";
@@ -22,12 +24,14 @@ export { createD1CollaborationRepository, createMemoryCollaborationRepository } 
 export { createD1SharingRepository, createMemorySharingRepository } from "./sharing-repository.ts";
 export { drainNotificationEmail } from "./email-delivery.ts";
 export { createD1RunbookRepository } from "./runbook-repository.ts";
+export { createD1OccupancyRepository } from "./occupancy-repository.ts";
 
 type ProjectRepository = ReturnType<typeof createD1ProjectRepository>;
 type AccountRepository = ReturnType<typeof createD1AccountRepository>;
 type CollaborationRepository = ReturnType<typeof createD1CollaborationRepository>;
 type SharingRepository = ReturnType<typeof createD1SharingRepository>;
 type RunbookRepository = ReturnType<typeof createD1RunbookRepository>;
+type OccupancyRepository = ReturnType<typeof createD1OccupancyRepository>;
 type EmailDelivery = { send: (message: { idempotencyKey: string; to: string; bodyCode: string; refs: Record<string, string | number> }) => Promise<{ delivered: boolean; providerMessageId?: string }> };
 type WorkerEnv = CloudflareEnv & { EMAIL_DELIVERY?: EmailDelivery };
 type WorkerOptions = {
@@ -36,6 +40,7 @@ type WorkerOptions = {
   createCollaborationRepository?: (db: unknown) => CollaborationRepository;
   createSharingRepository?: (db: unknown) => SharingRepository;
   createRunbookRepository?: (db: unknown) => RunbookRepository;
+  createOccupancyRepository?: (db: unknown) => OccupancyRepository;
   identityProvider?: IdentityProvider;
   emailDelivery?: EmailDelivery;
   secureCookies?: boolean;
@@ -95,6 +100,7 @@ export function createWorker(options: WorkerOptions = {}) {
   const secureCookies = options.secureCookies ?? true;
   const clock = options.clock ?? (() => new Date().toISOString());
   const runbookRepositoryFactory = options.createRunbookRepository ?? ((db) => createD1RunbookRepository(db as never, { clock }));
+  const occupancyRepositoryFactory = options.createOccupancyRepository ?? ((db) => createD1OccupancyRepository(db as never));
 
   const appendShareLedger = async (env: WorkerEnv, organizationId: string, actorUserId: string, sessionId: string, record: ProjectRecord, command: Record<string, unknown>) => {
     const projects = projectRepositoryFactory(env.DB);
@@ -282,6 +288,7 @@ export function createWorker(options: WorkerOptions = {}) {
       const projects = projectRepositoryFactory(env.DB);
       const sharing = sharingRepositoryFactory(env.DB);
       const runbooks = runbookRepositoryFactory(env.DB);
+      const occupancy = occupancyRepositoryFactory(env.DB);
       const notifyOrganization = async (eventType: string, record: ProjectRecord, refs: Record<string, string | number>, excludeUserId: string | null = account.user.id) => {
         const recipients = await sharing.notificationRecipients(organization.id, eventType, excludeUserId);
         for (const recipient of recipients) {
@@ -290,6 +297,7 @@ export function createWorker(options: WorkerOptions = {}) {
         }
       };
       const canWriteRunbooks = ["planner", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
+      const canWriteOccupancy = canWriteRunbooks;
       const runbookCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks$/);
       const runbookItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)$/);
       const runbookSyncMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)\/transitions:sync$/);
@@ -365,6 +373,87 @@ export function createWorker(options: WorkerOptions = {}) {
         const runbookVersionId = decodeURIComponent(runbookItemMatch[2]);
         const runbook = await runbooks.getRunbook(organization.id, projectId, runbookVersionId);
         return runbook ? respond({ runbook: repositoryRunbookToBrowserSnapshot(runbook) }) : apiError(404, "RUNBOOK_NOT_FOUND", "Runbook not found");
+      }
+      const occupancyCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/occupancy-monitors$/);
+      const occupancyCommandMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/occupancy-monitors\/([^/]+)\/commands:sync$/);
+      const occupancyExportMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/occupancy-monitors\/([^/]+)\/export$/);
+      const occupancyItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/occupancy-monitors\/([^/]+)$/);
+      if (occupancyCollectionMatch && request.method === "POST") {
+        if (!canWriteOccupancy) return apiError(403, "OCCUPANCY_WRITE_DENIED", "Live Occupancy write role required");
+        const projectId = decodeURIComponent(occupancyCollectionMatch[1]);
+        if (!await projects.get(organization.id, projectId)) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let body: { runbookVersionId?: string; simulation?: unknown; policy?: unknown };
+        try { body = await readBody(request); }
+        catch (cause) { return apiError(cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400, "OCCUPANCY_BASELINE_INVALID", "Live Occupancy payload is invalid"); }
+        if (typeof body.runbookVersionId !== "string" || !body.runbookVersionId.trim()) return apiError(400, "OCCUPANCY_BASELINE_INVALID", "Runbook Version ID is required");
+        const storedRunbook = await runbooks.getRunbook(organization.id, projectId, body.runbookVersionId);
+        if (!storedRunbook) return apiError(404, "RUNBOOK_NOT_FOUND", "Runbook not found");
+        try {
+          const existing = await occupancy.getByRunbook(organization.id, projectId, body.runbookVersionId);
+          const monitor = createLiveOccupancyMonitor({ projectId, runbook: repositoryRunbookToBrowserSnapshot(storedRunbook), simulation: body.simulation ?? null, policy: body.policy, createdAt: clock(), createdBy: account.user.id });
+          const saved = await occupancy.create(organization.id, projectId, monitor as never);
+          return respond({ status: existing ? "already-applied" : "created", monitor: saved, projection: evaluateLiveOccupancy(saved, { at: clock() }) }, { status: existing ? 200 : 201 });
+        } catch (cause) {
+          const error = cause as { code?: string; message?: string; details?: unknown };
+          if (cause instanceof OccupancyMonitorConflict) return apiError(409, error.code ?? "OCCUPANCY_ID_CONFLICT", error.message ?? "Live Occupancy monitor conflicts with stored state", error.details);
+          if (error.code?.startsWith("OCCUPANCY_")) return apiError(400, error.code, error.message ?? "Live Occupancy baseline is invalid", error.details);
+          throw cause;
+        }
+      }
+      if (occupancyCommandMatch && request.method === "POST") {
+        if (!canWriteOccupancy) return apiError(403, "OCCUPANCY_WRITE_DENIED", "Live Occupancy write role required");
+        const projectId = decodeURIComponent(occupancyCommandMatch[1]);
+        const monitorId = decodeURIComponent(occupancyCommandMatch[2]);
+        if (!await projects.get(organization.id, projectId)) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let body: { commands?: unknown[] };
+        try { body = await readBody(request); }
+        catch (cause) { return apiError(cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400, "OCCUPANCY_SYNC_INVALID", "Live Occupancy sync payload is invalid"); }
+        if (!Array.isArray(body.commands) || body.commands.length > 100) return apiError(400, "OCCUPANCY_SYNC_INVALID", "Live Occupancy sync commands are invalid");
+        let current = await occupancy.get(organization.id, projectId, monitorId);
+        if (!current) return apiError(404, "OCCUPANCY_MONITOR_NOT_FOUND", "Live Occupancy monitor not found");
+        const acknowledgements: Array<Record<string, unknown>> = [];
+        for (const candidate of body.commands) {
+          const command = candidate && typeof candidate === "object" && !Array.isArray(candidate) ? candidate as Record<string, unknown> : {};
+          const identity = { idempotencyKey: typeof command.idempotencyKey === "string" ? command.idempotencyKey : null, operationId: typeof command.operationId === "string" ? command.operationId : null };
+          try {
+            const committedAt = clock();
+            const trustedCommand = { ...command, actorType: "human", actorId: account.user.id, source: "studio", sessionId: account.session.id, committedAt };
+            const result = command.type === "ingest_occupancy_signal"
+              ? ingestOccupancySignal(current, trustedCommand, { acceptedAt: committedAt })
+              : command.type === "refresh_live_occupancy"
+                ? refreshLiveOccupancy(current, { ...trustedCommand, evaluatedAt: committedAt }, { committedAt })
+                : command.type === "acknowledge_occupancy_alert"
+                  ? acknowledgeOccupancyAlert(current, trustedCommand, { acknowledgedAt: committedAt })
+                  : (() => { throw venueError("COMMAND_UNSUPPORTED", { commandType: command.type ?? null }); })();
+            if (!result.duplicate) await occupancy.put(organization.id, projectId, result.monitor as never, current.revision);
+            current = result.monitor;
+            acknowledgements.push({ ...identity, status: result.duplicate ? "already-applied" : "applied", receipt: result.receipt });
+          } catch (cause) {
+            const error = cause as { code?: string; message?: string; details?: unknown };
+            if (cause instanceof OccupancyMonitorConflict || ["IDEMPOTENCY_KEY_CONFLICT", "OCCUPANCY_REVISION_CONFLICT"].includes(error.code ?? "")) {
+              acknowledgements.push({ ...identity, status: "conflict", code: error.code ?? "OCCUPANCY_REVISION_CONFLICT", details: error.details });
+              continue;
+            }
+            if (error.code === "IDEMPOTENCY_KEY_REQUIRED" || error.code === "COMMAND_UNSUPPORTED" || error.code?.startsWith("OCCUPANCY_")) {
+              acknowledgements.push({ ...identity, status: "rejected", code: error.code ?? "OCCUPANCY_COMMAND_INVALID", details: error.details, message: error.message });
+              continue;
+            }
+            throw cause;
+          }
+        }
+        return respond({ acknowledgements, monitor: current, projection: evaluateLiveOccupancy(current, { at: clock() }) });
+      }
+      if (occupancyExportMatch && request.method === "GET") {
+        const projectId = decodeURIComponent(occupancyExportMatch[1]);
+        const monitorId = decodeURIComponent(occupancyExportMatch[2]);
+        const monitor = await occupancy.get(organization.id, projectId, monitorId);
+        return monitor ? respond({ artifact: exportLiveOccupancyAudit(monitor, { exportedAt: clock() }) }) : apiError(404, "OCCUPANCY_MONITOR_NOT_FOUND", "Live Occupancy monitor not found");
+      }
+      if (occupancyItemMatch && request.method === "GET") {
+        const projectId = decodeURIComponent(occupancyItemMatch[1]);
+        const monitorId = decodeURIComponent(occupancyItemMatch[2]);
+        const monitor = await occupancy.get(organization.id, projectId, monitorId);
+        return monitor ? respond({ monitor, projection: evaluateLiveOccupancy(monitor, { at: clock() }) }) : apiError(404, "OCCUPANCY_MONITOR_NOT_FOUND", "Live Occupancy monitor not found");
       }
       if (url.pathname === "/api/notifications" && request.method === "GET") return respond({ notifications: await sharing.listNotifications(account.user.id, organization.id) });
       if (url.pathname === "/api/notification-preferences" && request.method === "GET") return respond(await sharing.preferences(account.user.id));

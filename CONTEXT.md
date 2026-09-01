@@ -225,11 +225,11 @@ A source-versioned aggregate count for the event check-in total, whole venue, or
 _Avoid_: attendee location, scan event, sensor payload
 
 **Occupancy Alert**:
-A typed, deterministic stale-source, conflicting-feed, warning-threshold, or exceeded-capacity state for one Live Occupancy scope.
+A typed, deterministic stale-source, conflicting-feed, warning-threshold, or exceeded-capacity state for one Live Occupancy scope. Human acknowledgement records operational ownership without clearing or changing the state.
 _Avoid_: notification, free-form incident, Constraint failure
 
 **Occupancy Incident Ledger**:
-The append-only hash-chained record of accepted Occupancy Signals and Occupancy Alert openings and resolutions for one Live Occupancy Monitor.
+The append-only hash-chained record of accepted Occupancy Signals and Occupancy Alert openings, human acknowledgements, and resolutions for one Live Occupancy Monitor.
 _Avoid_: Activity Ledger, Runbook Ledger, mutable alert history
 
 **Ticket Occupancy Reconciliation**:

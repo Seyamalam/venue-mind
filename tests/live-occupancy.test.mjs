@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { summitForwardPlan } from "../src/domain/summit-forward.js";
 import { createEventDayRunbook } from "../src/domain/event-day-runbook.js";
-import { createLiveOccupancyMonitor, evaluateLiveOccupancy, ingestOccupancySignal, refreshLiveOccupancy, signalFromRegistrationSnapshot, verifyOccupancyLedger } from "../src/domain/live-occupancy.js";
+import { acknowledgeOccupancyAlert, createLiveOccupancyMonitor, evaluateLiveOccupancy, exportLiveOccupancyAudit, ingestOccupancySignal, refreshLiveOccupancy, signalFromRegistrationSnapshot, verifyOccupancyLedger } from "../src/domain/live-occupancy.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const makeRunbook = () => createEventDayRunbook({
@@ -118,4 +118,45 @@ test("Occupancy Incident Ledger rejects tampering", () => {
   const tampered = clone(monitor);
   tampered.ledger.at(-1).details.actual = 1;
   assert.equal(verifyOccupancyLedger(tampered).status, "fail");
+});
+
+test("human acknowledgement retains the active operational state and appends one auditable transition", () => {
+  let monitor = makeMonitor();
+  ({ monitor } = ingestOccupancySignal(monitor, command(monitor, zoneSignal("sensor-east", 420)), { acceptedAt: "2026-09-12T12:00:05.000Z" }));
+  const alert = monitor.activeAlerts.find((candidate) => candidate.code === "CAPACITY_EXCEEDED");
+  const acknowledgement = {
+    alertId: alert.id,
+    reasonCode: "ops-team-dispatched",
+    expectedRevision: monitor.revision,
+    idempotencyKey: "occupancy-ack-capacity-001",
+    actorType: "human",
+    actorId: "user-ops",
+    source: "studio",
+    sessionId: "session-event-day",
+  };
+  const result = acknowledgeOccupancyAlert(monitor, acknowledgement, { acknowledgedAt: "2026-09-12T12:00:10.000Z" });
+  assert.equal(result.projection.overallStatus, "exceeded");
+  assert.deepEqual(
+    result.monitor.activeAlerts.find((candidate) => candidate.id === alert.id),
+    { ...alert, status: "acknowledged", acknowledgedAt: "2026-09-12T12:00:10.000Z", acknowledgedBy: "user-ops", reasonCode: "ops-team-dispatched" },
+  );
+  assert.ok(result.monitor.ledger.some((entry) => entry.type === "occupancy.alert.acknowledged" && entry.details.alertId === alert.id));
+  assert.equal(verifyOccupancyLedger(result.monitor).status, "pass");
+  const retry = acknowledgeOccupancyAlert(result.monitor, acknowledgement, { acknowledgedAt: "2026-09-12T12:00:20.000Z" });
+  assert.equal(retry.duplicate, true);
+  assert.equal(retry.monitor.ledger.length, result.monitor.ledger.length);
+});
+
+test("Live Occupancy audit export binds baseline, projection, receipts, and verified incident evidence", () => {
+  let monitor = makeMonitor();
+  ({ monitor } = ingestOccupancySignal(monitor, command(monitor, zoneSignal("sensor-east", 350)), { acceptedAt: "2026-09-12T12:00:05.000Z" }));
+  const artifact = exportLiveOccupancyAudit(monitor, { exportedAt: "2026-09-12T12:00:10.000Z" });
+  const body = JSON.parse(artifact.content);
+  assert.equal(artifact.filename, `${monitor.id}.audit.json`);
+  assert.equal(body.kind, "venuemind-live-occupancy-audit");
+  assert.equal(body.monitor.id, monitor.id);
+  assert.equal(body.projection.scopes.find((scope) => scope.scopeId === "zone-keynote-floor").count, 350);
+  assert.deepEqual(body.integrity, verifyOccupancyLedger(monitor));
+  assert.equal(body.receipts.length, 1);
+  assert.equal(body.privacy.mode, "aggregate-only");
 });

@@ -75,6 +75,9 @@ export const errorCatalog = Object.freeze({
   OCCUPANCY_PRIVACY_REJECTED: define("OCCUPANCY_PRIVACY_REJECTED", "Occupancy input contains prohibited person-level data.", "Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion."),
   OCCUPANCY_SIGNAL_OUT_OF_ORDER: define("OCCUPANCY_SIGNAL_OUT_OF_ORDER", "Occupancy Signal is older than the accepted source state.", "Refresh the source cursor and send a newer source version and observed instant."),
   OCCUPANCY_REVISION_CONFLICT: define("OCCUPANCY_REVISION_CONFLICT", "Live Occupancy monitor revision conflict.", "Refresh the monitor and retry only if the aggregate transition is still required."),
+  OCCUPANCY_ALERT_NOT_FOUND: define("OCCUPANCY_ALERT_NOT_FOUND", "Occupancy Alert is unavailable.", "Refresh the Live Occupancy Monitor and select an active Alert ID."),
+  OCCUPANCY_ACKNOWLEDGEMENT_INVALID: define("OCCUPANCY_ACKNOWLEDGEMENT_INVALID", "Occupancy Alert acknowledgement is invalid.", "Use an authenticated human operator, an active Alert ID, and one structured reason code."),
+  OCCUPANCY_LEDGER_INTEGRITY_FAILED: define("OCCUPANCY_LEDGER_INTEGRITY_FAILED", "Occupancy Incident Ledger integrity failed.", "Restore the last verified monitor state before inspection or export."),
   VENUE_INTERNAL_ERROR: define("VENUE_INTERNAL_ERROR", "VenueMind could not complete the operation.", "Retry once; if the error persists, inspect the server log with the correlation ID."),
 });
 

@@ -154,7 +154,14 @@ export function evaluateLiveOccupancy(monitor, { at }) {
 }
 
 const metadata = (command) => ({ actorType: command.actorType ?? "human", actorId: text(command.actorId, "actor-id"), source: command.source ?? "studio", sessionId: text(command.sessionId, "session-id") });
-const receiptFingerprint = (kind, command) => stableFingerprint(`occupancy-${kind}`, kind === "ingest" ? { signal: command.signal, expectedRevision: command.expectedRevision } : { evaluatedAt: command.evaluatedAt, expectedRevision: command.expectedRevision });
+const receiptFingerprint = (kind, command) => {
+  const input = kind === "ingest"
+    ? { signal: command.signal, expectedRevision: command.expectedRevision }
+    : kind === "refresh"
+      ? { evaluatedAt: command.evaluatedAt, expectedRevision: command.expectedRevision }
+      : { alertId: command.alertId, reasonCode: command.reasonCode, expectedRevision: command.expectedRevision };
+  return stableFingerprint(`occupancy-${kind}`, input);
+};
 
 const retryReceipt = (monitor, command, fingerprint) => {
   const existing = monitor.receipts.find((receipt) => receipt.idempotencyKey === command.idempotencyKey);
@@ -222,6 +229,20 @@ export function refreshLiveOccupancy(monitor, command, { committedAt = new Date(
   });
 }
 
+export function acknowledgeOccupancyAlert(monitor, command, { acknowledgedAt = new Date().toISOString() } = {}) {
+  const committedAt = iso(acknowledgedAt, "acknowledged-at");
+  if (command.actorType !== "human") throw venueError("OCCUPANCY_ACKNOWLEDGEMENT_INVALID", { reason: "human-required" });
+  const alertId = text(command.alertId, "alert-id");
+  const reasonCode = text(command.reasonCode, "reason-code");
+  return finalize(monitor, { ...command, alertId, reasonCode }, "acknowledge", committedAt, (next, commandMetadata) => {
+    const alert = next.activeAlerts.find((candidate) => candidate.id === alertId);
+    if (!alert) throw venueError("OCCUPANCY_ALERT_NOT_FOUND", { alertId });
+    if (alert.status === "acknowledged") throw venueError("OCCUPANCY_ACKNOWLEDGEMENT_INVALID", { reason: "already-acknowledged", alertId });
+    Object.assign(alert, { status: "acknowledged", acknowledgedAt: committedAt, acknowledgedBy: commandMetadata.actorId, reasonCode });
+    next.ledger.push(appendLedger(next, "occupancy.alert.acknowledged", { alertId, alertKey: alert.key, code: alert.code, scopeId: alert.scopeId, acknowledgedBy: commandMetadata.actorId, reasonCode }, commandMetadata, committedAt));
+  });
+}
+
 export function verifyOccupancyLedger(monitor) {
   let previousHash = monitor.source.runbookLedgerHeadHash;
   for (let index = 0; index < monitor.ledger.length; index += 1) {
@@ -231,6 +252,31 @@ export function verifyOccupancyLedger(monitor) {
     previousHash = hash;
   }
   return { status: "pass", entries: monitor.ledger.length, headHash: previousHash };
+}
+
+export function exportLiveOccupancyAudit(monitor, { exportedAt = new Date().toISOString() } = {}) {
+  const at = iso(exportedAt, "exported-at");
+  const integrity = verifyOccupancyLedger(monitor);
+  if (integrity.status !== "pass") throw venueError("OCCUPANCY_LEDGER_INTEGRITY_FAILED", { sequence: integrity.sequence ?? null });
+  const projection = evaluateLiveOccupancy(monitor, { at });
+  const artifact = {
+    schemaVersion: 1,
+    kind: "venuemind-live-occupancy-audit",
+    exportedAt: at,
+    monitor: { id: monitor.id, projectId: monitor.projectId, runbookVersionId: monitor.runbookVersionId, schemaVersion: monitor.schemaVersion, revision: monitor.revision, createdAt: monitor.createdAt, updatedAt: monitor.updatedAt },
+    source: clone(monitor.source),
+    baseline: clone(monitor.baseline),
+    policy: clone(monitor.policy),
+    projection: clone(projection),
+    feeds: clone(monitor.feeds),
+    observations: clone(monitor.observations),
+    activeAlerts: clone(monitor.activeAlerts),
+    receipts: clone(monitor.receipts),
+    integrity,
+    ledger: clone(monitor.ledger),
+    privacy: clone(projection.privacy),
+  };
+  return { filename: `${monitor.id}.audit.json`, mimeType: "application/json", content: JSON.stringify(artifact, null, 2) };
 }
 
 export function signalFromRegistrationSnapshot(snapshot) {
