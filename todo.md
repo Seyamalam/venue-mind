@@ -1037,11 +1037,12 @@ Completion gate:
 - [x] Keep browser persistence, collaboration, and WebMCP behind client-only route boundaries.
 - [x] Preserve the Vite/Sites compatibility package while Next.js becomes the primary Vercel frontend.
 - [x] Add source-owned shadcn primitives and map the selected Design 2 palette into semantic tokens.
-- [ ] Replace manual internal navigation with Next Link and router APIs.
-- [ ] Move docs content and navigation into Server Components; retain only search, copy, and keyboard behavior on the client.
+- [x] Replace manual internal navigation with Next Link and router APIs.
+- [x] Move docs content and navigation into Server Components; retain only search, copy, and keyboard behavior on the client.
 - [ ] Migrate product controls, menus, popovers, sheets, tabs, forms, confirmations, and feedback to VenueMind compositions over shadcn primitives.
-- [ ] Replace browser prompts with accessible dialogs and confirmation flows.
-- [ ] Split the Studio runtime by heavy editor, simulations, comments, history, and sharing surfaces.
+- [x] Replace browser prompts with accessible dialogs and confirmation flows.
+- [x] Split the heavy editor, simulations, and comments surfaces behind interaction-driven client chunks.
+- [ ] Split the remaining history and sharing surfaces from the initial Studio runtime.
 - [ ] Remove the obsolete Vite SPA entry after the Sites compatibility boundary has a supported Next.js handoff.
 - [ ] Verify route-specific bundles, WebMCP cleanup, persistence recovery, collaboration teardown, accessibility, and visual parity.
 
