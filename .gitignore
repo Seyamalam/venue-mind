@@ -18,3 +18,4 @@ tmp/
 .wrangler/
 .dev.vars
 coverage/
+.devpost-hackathon-state.json
