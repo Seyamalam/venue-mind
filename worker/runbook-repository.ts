@@ -276,10 +276,6 @@ const transitionFingerprint = (runbookId: string, input: ReturnType<typeof norma
   clientId: input.clientId,
   clientSequence: input.clientSequence,
   clientOccurredAt: input.clientOccurredAt,
-  actorType: input.actorType,
-  actorId: input.actorId,
-  source: input.source,
-  sessionId: input.sessionId,
 });
 
 const creationFingerprint = (value: {

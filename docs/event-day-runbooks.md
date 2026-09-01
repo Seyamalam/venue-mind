@@ -37,13 +37,21 @@ The browser caches each Runbook Version and its outbox in IndexedDB. One user ac
 
 The server assigns authoritative commit time and order. In one transaction it checks the idempotency receipt, compares the expected task revision, advances the task projection, appends the transition, stores the receipt, and extends the Runbook Ledger.
 
+The authenticated HTTP boundary is:
+
+- `POST /api/projects/:projectId/runbooks` creates or exactly retries a frozen browser-shaped Runbook.
+- `GET /api/projects/:projectId/runbooks/:runbookVersionId` returns the authoritative browser-shaped projection.
+- `POST /api/projects/:projectId/runbooks/:runbookVersionId/transitions:sync` processes up to 100 original commands in client order and returns one acknowledgement per command plus the final projection.
+
+Create and synchronize require a Planner, Venue Administrator, or Organization Administrator role. Reads require active membership and remain Organization scoped. The server replaces claimed actor, source, and session metadata with the authenticated human, Studio source, and server session before writing audit state.
+
 Batch acknowledgements are explicit:
 
 - `applied` and `already-applied` remove the local operation.
 - `conflict` and `rejected` remain in the outbox for review.
 - an unknown result never removes local evidence.
 
-A repeated key with identical input returns the original receipt. The same key with changed input fails with `IDEMPOTENCY_KEY_CONFLICT`. A stale task update fails with `RUNBOOK_TASK_REVISION_CONFLICT`; last-write-wins is never used.
+A repeated key with identical semantic input returns the original receipt, including after authentication-session rotation. Authority metadata is recorded from the first accepted operation but is not part of its offline semantic fingerprint. The same key with changed task intent fails with `IDEMPOTENCY_KEY_CONFLICT`. A stale task update fails with `RUNBOOK_TASK_REVISION_CONFLICT`; last-write-wins is never used.
 
 ## Ledger and handoff
 

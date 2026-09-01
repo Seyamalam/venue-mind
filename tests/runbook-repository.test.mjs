@@ -194,6 +194,8 @@ test("Runbook transition batches atomically persist projections, receipts, and a
 
   const retried = await repository.applyTransitionBatch("org-alpha", "project-alpha", "runbook-fixture", commands);
   assert.deepEqual(retried.results, applied.results);
+  const rotatedSessionRetry = await repository.applyTransitionBatch("org-alpha", "project-alpha", "runbook-fixture", [{ ...commands[0], sessionId: "session-rotated" }]);
+  assert.deepEqual(rotatedSessionRetry.results, [applied.results[0]]);
   assert.equal(retried.runbook.transitions.length, 2);
   assert.equal(retried.runbook.receipts.length, 2);
   assert.equal(retried.runbook.ledger.length, 2);

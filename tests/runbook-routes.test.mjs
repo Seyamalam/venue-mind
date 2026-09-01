@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
-import { transitionRunbookTask, verifyRunbookLedger } from "../src/domain/event-day-runbook.js";
+import { createEventDayRunbook, transitionRunbookTask, verifyRunbookLedger } from "../src/domain/event-day-runbook.js";
+import { summitForwardPlan } from "../src/domain/summit-forward.js";
 import { applyDatabaseMigrations } from "../worker/database-migrations.ts";
 import { createWorker } from "../worker/index.ts";
 
@@ -196,4 +197,76 @@ test("transition sync returns per-command outcomes and authoritative browser Run
   assert.equal(blocked.runbook.transitions[1].reasonCode, "safety-hold");
   assert.equal(blocked.runbook.ledger[1].details.reasonCode, "safety-hold");
   assert.deepEqual(verifyRunbookLedger(blocked.runbook), { status: "pass", entries: 2, headHash: blocked.runbook.ledger[1].hash });
+});
+
+test("a complete seeded event synchronizes once and exact retries create no duplicate transitions", async (t) => {
+  const { db, request } = await harness();
+  t.after(() => db.close());
+  let local = createEventDayRunbook({
+    projectId: "project-alpha",
+    plan: summitForwardPlan,
+    validation: { validationId: "validation-seeded-event", inputFingerprint: "validation-seeded-event-input", status: "pass" },
+    sourceLedgerHeadHash: "activity-ledger-seeded-event-head",
+    approvalLedgerEntryId: "activity-ledger-seeded-event-approval",
+    frozenAt: "2026-09-01T09:55:00.000Z",
+    frozenBy: "user-seyam",
+  });
+  const commands = [];
+  let clientSequence = 0;
+  for (const task of local.tasks) {
+    const start = {
+      type: "transition_runbook_task",
+      runbookVersionId: local.versionId,
+      taskId: task.id,
+      expectedTaskRevision: 0,
+      fromStatus: "pending",
+      toStatus: "in-progress",
+      evidence: [],
+      operationId: `operation-${task.key}-start`,
+      idempotencyKey: `idempotency-${task.key}-start`,
+      correlationId: `correlation-${task.key}-start`,
+      clientId: "tablet-seeded-event",
+      clientSequence: ++clientSequence,
+      clientOccurredAt: `2026-09-01T10:${String(clientSequence).padStart(2, "0")}:00.000Z`,
+      actorType: "human",
+      actorId: "user-seyam",
+      source: "studio",
+      sessionId: "session-user-seyam",
+    };
+    local = transitionRunbookTask(local, start, { committedAt: start.clientOccurredAt }).runbook;
+    commands.push(start);
+    const current = local.tasks.find((candidate) => candidate.id === task.id);
+    const complete = {
+      ...start,
+      expectedTaskRevision: current.revision,
+      fromStatus: "in-progress",
+      toStatus: "completed",
+      evidence: current.requiredEvidenceCodes.map((code) => ({ code, ref: `evidence://${task.id}/${code}` })),
+      operationId: `operation-${task.key}-complete`,
+      idempotencyKey: `idempotency-${task.key}-complete`,
+      correlationId: `correlation-${task.key}-complete`,
+      clientSequence: ++clientSequence,
+      clientOccurredAt: `2026-09-01T10:${String(clientSequence).padStart(2, "0")}:00.000Z`,
+    };
+    local = transitionRunbookTask(local, complete, { committedAt: complete.clientOccurredAt }).runbook;
+    commands.push(complete);
+  }
+
+  const collection = "/api/projects/project-alpha/runbooks";
+  const created = await request(collection, { identity: "planner", organizationId: "org-alpha", method: "POST", body: { runbook: local } });
+  assert.equal(created.status, 201);
+  const syncPath = `${collection}/${encodeURIComponent(local.versionId)}/transitions:sync`;
+  const first = await (await request(syncPath, { identity: "planner", organizationId: "org-alpha", method: "POST", body: { commands } })).json();
+  assert.equal(first.acknowledgements.length, 18);
+  assert.ok(first.acknowledgements.every((item) => item.status === "applied"));
+  assert.ok(first.runbook.tasks.every((task) => task.status === "completed" && task.revision === 2));
+  assert.equal(first.runbook.transitions.length, 18);
+  assert.equal(first.runbook.receipts.length, 18);
+  assert.deepEqual(verifyRunbookLedger(first.runbook), { status: "pass", entries: 18, headHash: first.runbook.ledger.at(-1).hash });
+
+  const retry = await (await request(syncPath, { identity: "planner", organizationId: "org-alpha", method: "POST", body: { commands } })).json();
+  assert.ok(retry.acknowledgements.every((item) => item.status === "already-applied"));
+  assert.equal(retry.runbook.transitions.length, 18);
+  assert.equal(retry.runbook.receipts.length, 18);
+  assert.equal(retry.runbook.ledger.length, 18);
 });

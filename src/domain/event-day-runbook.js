@@ -221,10 +221,6 @@ const transitionInput = (command) => ({
   clientId: command.clientId,
   clientSequence: command.clientSequence,
   clientOccurredAt: command.clientOccurredAt,
-  actorType: command.actorType,
-  actorId: command.actorId,
-  source: command.source,
-  sessionId: command.sessionId,
 });
 
 export function transitionRunbookTask(runbook, command, { committedAt = new Date().toISOString() } = {}) {

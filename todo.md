@@ -820,17 +820,17 @@ Completion gate:
 
 ## 8.1 Runbook mode
 
-- [ ] Create an event-day runbook from an approved Plan Version.
-- [ ] Freeze the operational baseline and record its source version.
-- [ ] Add timed tasks, owners, dependencies, status, and evidence.
-- [ ] Add setup, doors, live event, interval, egress, and breakdown phases.
-- [ ] Add filtered role views for production, front of house, security, catering, and venue operations.
-- [ ] Add offline-capable task updates.
-- [ ] Add shift handoff summaries derived from structured state.
+- [x] Create an event-day runbook from an approved Plan Version.
+- [x] Freeze the operational baseline and record its source version.
+- [x] Add timed tasks, owners, dependencies, status, and evidence.
+- [x] Add setup, doors, live event, interval, egress, and breakdown phases.
+- [x] Add filtered role views for production, front of house, security, catering, and venue operations.
+- [x] Add offline-capable task updates.
+- [x] Add shift handoff summaries derived from structured state.
 
 Completion gate:
 
-- [ ] A runbook can operate offline through a full seeded event and synchronize without duplicate task transitions.
+- [x] A runbook can operate offline through a full seeded event and synchronize without duplicate task transitions.
 
 ## 8.2 Live occupancy
 

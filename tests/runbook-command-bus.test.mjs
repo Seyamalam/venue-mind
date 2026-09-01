@@ -69,7 +69,7 @@ test("exact retries do not republish a Runbook transition", () => {
     sessionId: "session-event-day",
   };
   assert.equal(bus.execute(command).status, "applied");
-  assert.equal(bus.execute(command).status, "already-applied");
+  assert.equal(bus.execute({ ...command, sessionId: "session-event-day-rotated" }).status, "already-applied");
   assert.equal(publications, 2);
 });
 
