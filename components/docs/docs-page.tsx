@@ -14,7 +14,8 @@ import {
   ShieldCheck,
   SquareTerminal as TerminalWindow,
 } from "lucide-react";
-import { CopyDeepLinkButton, CopyTextButton, DocsSearch } from "@/components/docs/docs-interactions";
+import { CopyDeepLinkButton, CopyTextButton } from "@/components/docs/docs-copy-buttons";
+import { DocsSearch } from "@/components/docs/docs-interactions";
 import { buildDocsNavigation, buildTableOfContents, getDocsNeighbors } from "@/src/docs/navigation.js";
 
 type DocLink = { label: string; href: string };
