@@ -69,13 +69,13 @@ const appendLedger = (monitor, type, details, metadata, committedAt) => {
 };
 
 export function createLiveOccupancyMonitor({ projectId, runbook, plan = runbook?.baseline?.acceptedPlan, simulation = null, policy: policyInput, createdAt, createdBy }) {
-  if (!projectId || !runbook?.versionId || runbook.status !== "active" || !plan?.id || plan.version === undefined || !plan.occupancy || !plan.brief) throw venueError("OCCUPANCY_BASELINE_INVALID", { reason: "runbook-plan-required" });
+  if (!projectId || !runbook?.versionId || runbook.status !== "active" || !plan?.id || plan.version === undefined || !plan.occupancy || !runbook.baseline?.acceptedBrief) throw venueError("OCCUPANCY_BASELINE_INVALID", { reason: "runbook-plan-required" });
   const zones = (plan.occupancy.zones ?? []).map((zone) => {
     if (!zone.id || !Number.isInteger(zone.maximumCapacity) || zone.maximumCapacity < 1) throw venueError("OCCUPANCY_BASELINE_INVALID", { reason: "zone-capacity-invalid", zoneId: zone.id ?? null });
     return { scopeId: zone.id, kind: "zone", label: zone.label ?? zone.id, target: zone.minimumCapacity ?? 0, capacity: zone.maximumCapacity };
   }).sort((left, right) => left.scopeId.localeCompare(right.scopeId));
   const venueCapacity = plan.occupancy.venueMaximum;
-  const attendeeTarget = plan.brief.attendeeTarget;
+  const attendeeTarget = runbook.baseline.acceptedBrief.attendeeTarget;
   if (!Number.isInteger(venueCapacity) || venueCapacity < 1 || !Number.isInteger(attendeeTarget) || attendeeTarget < 0 || new Set(zones.map((zone) => zone.scopeId)).size !== zones.length) throw venueError("OCCUPANCY_BASELINE_INVALID", { reason: "capacity-invalid" });
   const scopes = [{ scopeId: "check-in", kind: "check-in", label: "CHECK-IN", target: attendeeTarget, capacity: attendeeTarget }, { scopeId: "venue", kind: "venue", label: "VENUE", target: attendeeTarget, capacity: venueCapacity }, ...zones];
   const planFingerprint = runbook.source.planFingerprint;

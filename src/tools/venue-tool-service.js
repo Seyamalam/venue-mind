@@ -15,7 +15,7 @@ const canonicalProjectOpen = (value) => value?.project
   ? { status: value.status ?? "active", project: { ...value.project, active: value.project.active ?? value.status === "active" } }
   : { status: "active", project: { ...value, active: value?.active ?? true } };
 
-export function createVenueToolService({ executeCommand, projectOperations, authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, authorizationProvider, recordAuthorizationDenial } = {}) {
+export function createVenueToolService({ executeCommand, projectOperations, occupancyOperations, authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, authorizationProvider, recordAuthorizationDenial } = {}) {
   if (typeof executeCommand !== "function") throw new TypeError("Venue tool service requires a command executor");
 
   return Object.freeze({
@@ -48,6 +48,18 @@ export function createVenueToolService({ executeCommand, projectOperations, auth
       } else if (name === "venue.open_project") {
         if (typeof projectOperations?.openProject !== "function") throw venueError("PROJECT_TOOL_UNAVAILABLE", { toolName: name });
         output = canonicalProjectOpen(await projectOperations.openProject(input.projectId));
+      } else if (name === "venue.inspect_live_occupancy") {
+        if (typeof occupancyOperations?.inspectLiveOccupancy !== "function") throw venueError("OCCUPANCY_TOOL_UNAVAILABLE", { toolName: name });
+        output = await occupancyOperations.inspectLiveOccupancy(input, { source, authorization, organizationId, projectId, signal });
+      } else if (name === "venue.ingest_occupancy_signal") {
+        if (typeof occupancyOperations?.ingestOccupancySignal !== "function") throw venueError("OCCUPANCY_TOOL_UNAVAILABLE", { toolName: name });
+        output = await occupancyOperations.ingestOccupancySignal(input, { source, authorization, organizationId, projectId, signal });
+      } else if (name === "venue.refresh_live_occupancy") {
+        if (typeof occupancyOperations?.refreshLiveOccupancy !== "function") throw venueError("OCCUPANCY_TOOL_UNAVAILABLE", { toolName: name });
+        output = await occupancyOperations.refreshLiveOccupancy(input, { source, authorization, organizationId, projectId, signal });
+      } else if (name === "venue.export_live_occupancy") {
+        if (typeof occupancyOperations?.exportLiveOccupancy !== "function") throw venueError("OCCUPANCY_TOOL_UNAVAILABLE", { toolName: name });
+        output = await occupancyOperations.exportLiveOccupancy(input, { source, authorization, organizationId, projectId, signal });
       } else {
         output = await executeCommand(commandForVenueTool(name, input, source), { signal, authorization, organizationId, projectId });
       }

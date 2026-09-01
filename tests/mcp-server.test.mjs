@@ -6,6 +6,8 @@ import path from "node:path";
 import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
 import { createFileProjectRepository, createMemoryProjectRepository, createVenueMindMcpServer } from "../packages/mcp-server/dist/index.js";
 import { venueToolContracts } from "../src/contracts/venue-contracts.js";
+import { createVenuePlanner } from "../src/domain/venue-planner.js";
+import { summitForwardPlan } from "../src/domain/summit-forward.js";
 
 const silentLogger = { info() {}, error() {} };
 
@@ -51,7 +53,32 @@ test("standalone MCP server exposes the shared VenueMind tool contracts", async 
     assert.ok(tools.some((tool) => tool.name === "venue.get_validation_evidence"));
     assert.ok(tools.some((tool) => tool.name === "venue.get_scenario_result"));
     assert.ok(tools.some((tool) => tool.name === "venue.export_audit_package"));
+    assert.ok(tools.some((tool) => tool.name === "venue.inspect_live_occupancy"));
+    assert.ok(tools.some((tool) => tool.name === "venue.ingest_occupancy_signal"));
+    assert.ok(tools.some((tool) => tool.name === "venue.refresh_live_occupancy"));
+    assert.ok(tools.some((tool) => tool.name === "venue.export_live_occupancy"));
+    assert.equal(tools.some((tool) => tool.name === "venue.acknowledge_occupancy_alert"), false);
   });
+});
+
+test("standalone MCP executes the aggregate Live Occupancy loop with agent acknowledgement excluded", async () => {
+  const planner = createVenuePlanner(summitForwardPlan);
+  const proposal = planner.getSnapshot().proposal;
+  planner.execute({ type: "approve_proposal", proposalId: proposal.id, baseVersion: proposal.baseVersion, actor: "human", actorId: "seed-approver", idempotencyKey: "seed-approved-occupancy" });
+  const snapshot = planner.getSnapshot();
+  const now = new Date().toISOString();
+  const repository = createMemoryProjectRepository([{ id: "project-summit-forward", organizationId: "org-local", name: "SummitForward 2026", activePlanId: snapshot.plan.id, schemaVersion: 10, snapshot, createdAt: now, updatedAt: now, archivedAt: null, deletedAt: null, recoveryUntil: null, pinned: true, lastOpenedAt: now }]);
+  await withClient(async (client) => {
+    const before = await client.callTool({ name: "venue.inspect_live_occupancy", arguments: {} });
+    const signal = await client.callTool({ name: "venue.ingest_occupancy_signal", arguments: { sourceId: "door-a", sourceType: "manual-counter", sourceVersion: "counter-v1", kind: "zone-occupancy", observedAt: new Date().toISOString(), confidence: "high", readings: [{ scopeId: "venue", count: 310 }], idempotencyKey: "mcp-occupancy-1" } });
+    const refreshed = await client.callTool({ name: "venue.refresh_live_occupancy", arguments: { idempotencyKey: "mcp-occupancy-refresh-1" } });
+    const exported = await client.callTool({ name: "venue.export_live_occupancy", arguments: {} });
+
+    assert.match(before.content[0].text, /aggregate-only/);
+    assert.match(signal.content[0].text, /"revision": 1/);
+    assert.match(refreshed.content[0].text, /"revision": 2/);
+    assert.match(exported.content[0].text, /venuemind-live-occupancy-audit/);
+  }, { repository });
 });
 
 test("expanded shared tools expose bounded object, Constraint, evidence, Scenario, adjustment, and audit operations", async () => {

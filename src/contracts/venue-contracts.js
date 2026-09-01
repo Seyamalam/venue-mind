@@ -1397,6 +1397,42 @@ const baseVenueToolContracts = [
     inputSchema: { type: "object", properties: { runId: { type: "string", minLength: 1 } }, required: ["runId"], additionalProperties: false },
   },
   {
+    name: "venue.inspect_live_occupancy",
+    description: "Read the current aggregate-only Live Occupancy projection, source freshness, active Alerts, simulation deltas, and incident Ledger without person-level records.",
+    annotations: { readOnlyHint: true },
+    inputSchema: emptyObject,
+  },
+  {
+    name: "venue.ingest_occupancy_signal",
+    description: "Ingest one bounded aggregate Occupancy Signal from a registration total, sensor, or manual counter with stable source and scope IDs.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        sourceId: { type: "string", minLength: 1, maxLength: 160 },
+        sourceType: { enum: ["registration", "sensor", "manual-counter"] },
+        sourceVersion: { type: "string", minLength: 1, maxLength: 160 },
+        kind: { enum: ["check-in", "zone-occupancy"] },
+        observedAt: { type: "string", format: "date-time" },
+        confidence: { enum: ["low", "medium", "high"] },
+        readings: { type: "array", minItems: 1, maxItems: 100, items: { type: "object", required: ["scopeId", "count"], properties: { scopeId: { type: "string", minLength: 1, maxLength: 160 }, count: { type: "integer", minimum: 0, maximum: 1000000 } }, additionalProperties: false } },
+        ...mutationMetadataProperties,
+      },
+      required: ["sourceId", "sourceType", "sourceVersion", "kind", "observedAt", "confidence", "readings", "idempotencyKey"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "venue.refresh_live_occupancy",
+    description: "Refresh Live Occupancy freshness and derived Alerts at the server-accepted instant without changing any aggregate count.",
+    inputSchema: { type: "object", properties: mutationMetadataProperties, required: ["idempotencyKey"], additionalProperties: false },
+  },
+  {
+    name: "venue.export_live_occupancy",
+    description: "Export the verified aggregate-only Live Occupancy audit artifact with baseline, observations, Alerts, receipts, and hash-chained incident Ledger.",
+    annotations: { readOnlyHint: true },
+    inputSchema: emptyObject,
+  },
+  {
     name: "venue.export_audit_package",
     description: "Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.",
     annotations: { readOnlyHint: true },
@@ -1414,20 +1450,21 @@ const baseVenueToolContracts = [
   },
 ];
 
-export const VENUE_TOOL_CONTRACT_VERSION = "1.2.0";
-export const VENUE_TOOL_AUTHORIZATION_SCOPES = Object.freeze(["venue:read", "venue:propose", "venue:comment", "venue:simulate", "venue:export"]);
+export const VENUE_TOOL_CONTRACT_VERSION = "1.3.0";
+export const VENUE_TOOL_AUTHORIZATION_SCOPES = Object.freeze(["venue:read", "venue:propose", "venue:comment", "venue:simulate", "venue:operate", "venue:export"]);
 
 const authorizationScopeForTool = (name) => {
   if (["venue.add_comment", "venue.edit_comment", "venue.set_comment_status"].includes(name)) return "venue:comment";
   if (["venue.run_scenario", "venue.get_scenario_result", "venue.compare_simulations"].includes(name)) return "venue:simulate";
-  if (["venue.export_plan", "venue.export_simulation", "venue.export_audit_package"].includes(name)) return "venue:export";
+  if (["venue.ingest_occupancy_signal", "venue.refresh_live_occupancy"].includes(name)) return "venue:operate";
+  if (["venue.export_plan", "venue.export_simulation", "venue.export_audit_package", "venue.export_live_occupancy"].includes(name)) return "venue:export";
   if (["venue.preview_revision", "venue.preview_template_update", "venue.apply_edit", "venue.create_proposal_branch", "venue.switch_proposal_branch", "venue.update_proposal_branch", "venue.duplicate_proposal_branch", "venue.archive_proposal_branch", "venue.restore_proposal_branch", "venue.rebase_proposal", "venue.request_adjustment"].includes(name)) return "venue:propose";
   return "venue:read";
 };
 
 const limitsForTool = (name) => Object.freeze({
   maximumInputBytes: name === "venue.apply_edit" ? 262144 : name === "venue.run_scenario" ? 131072 : 65536,
-  maximumOutputBytes: ["venue.export_plan", "venue.export_audit_package"].includes(name) ? 2000000 : ["venue.inspect_layout", "venue.validate_layout", "venue.get_validation_evidence", "venue.get_scenario_result"].includes(name) ? 1048576 : 262144,
+  maximumOutputBytes: ["venue.export_plan", "venue.export_audit_package", "venue.export_live_occupancy"].includes(name) ? 2000000 : ["venue.inspect_layout", "venue.validate_layout", "venue.get_validation_evidence", "venue.get_scenario_result", "venue.inspect_live_occupancy"].includes(name) ? 1048576 : 262144,
 });
 
 const exampleInputForTool = (name) => ({
@@ -1457,6 +1494,10 @@ const exampleInputForTool = (name) => ({
   "venue.run_scenario": { scenario: { id: "scenario-example", name: "Arrival peak", seed: 42, horizonSeconds: 1800, sampleCount: 32, inputs: { population: 400, arrivalRatePerMinute: 30, serviceRatePerMinute: 10, servers: 3 } }, branchId: "branch-balanced", idempotencyKey: "example-scenario-001" },
   "venue.compare_simulations": { leftRunId: "simulation-left", rightRunId: "simulation-right" },
   "venue.export_simulation": { runId: "simulation-example" },
+  "venue.inspect_live_occupancy": {},
+  "venue.ingest_occupancy_signal": { sourceId: "door-a", sourceType: "manual-counter", sourceVersion: "counter-v12", kind: "zone-occupancy", observedAt: "2026-09-12T14:30:00.000Z", confidence: "high", readings: [{ scopeId: "venue", count: 412 }], idempotencyKey: "example-occupancy-001" },
+  "venue.refresh_live_occupancy": { idempotencyKey: "example-occupancy-refresh-001" },
+  "venue.export_live_occupancy": {},
   "venue.export_plan": { format: "json" },
 }[name] ?? {});
 
@@ -1467,6 +1508,7 @@ const errorsForTool = (name, contract) => {
   if (name === "venue.get_object") errors.push("OBJECT_NOT_FOUND");
   if (name === "venue.get_validation_evidence") errors.push("VALIDATION_NOT_FOUND");
   if (name === "venue.get_scenario_result") errors.push("SCENARIO_RUN_NOT_FOUND");
+  if (name.includes("live_occupancy") || name === "venue.ingest_occupancy_signal") errors.push("OCCUPANCY_MONITOR_NOT_FOUND", "OCCUPANCY_TOOL_UNAVAILABLE", "OCCUPANCY_REVISION_CONFLICT", "OCCUPANCY_SIGNAL_INVALID", "OCCUPANCY_PRIVACY_REJECTED");
   return Object.freeze([...new Set(errors)]);
 };
 

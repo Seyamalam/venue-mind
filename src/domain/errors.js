@@ -78,6 +78,8 @@ export const errorCatalog = Object.freeze({
   OCCUPANCY_ALERT_NOT_FOUND: define("OCCUPANCY_ALERT_NOT_FOUND", "Occupancy Alert is unavailable.", "Refresh the Live Occupancy Monitor and select an active Alert ID."),
   OCCUPANCY_ACKNOWLEDGEMENT_INVALID: define("OCCUPANCY_ACKNOWLEDGEMENT_INVALID", "Occupancy Alert acknowledgement is invalid.", "Use an authenticated human operator, an active Alert ID, and one structured reason code."),
   OCCUPANCY_LEDGER_INTEGRITY_FAILED: define("OCCUPANCY_LEDGER_INTEGRITY_FAILED", "Occupancy Incident Ledger integrity failed.", "Restore the last verified monitor state before inspection or export."),
+  OCCUPANCY_MONITOR_NOT_FOUND: define("OCCUPANCY_MONITOR_NOT_FOUND", "Live Occupancy Monitor is unavailable.", "Create the monitor from the active Event Day Runbook before inspecting or changing occupancy."),
+  OCCUPANCY_TOOL_UNAVAILABLE: define("OCCUPANCY_TOOL_UNAVAILABLE", "Live Occupancy tool Adapter is unavailable.", "Open VenueMind Studio or connect an MCP Project session with Live Occupancy operations enabled."),
   VENUE_INTERNAL_ERROR: define("VENUE_INTERNAL_ERROR", "VenueMind could not complete the operation.", "Retry once; if the error persists, inspect the server log with the correlation ID."),
 });
 

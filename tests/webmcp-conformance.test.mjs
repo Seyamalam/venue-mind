@@ -29,7 +29,7 @@ test("WebMCP registers every versioned contract and publishes lifecycle progress
   assert.deepEqual(lifecycle.at(-1), { state: "ready", registered: venueToolContracts.length, total: venueToolContracts.length, errorCode: null });
   assert.equal(venueToolContracts.every((item) => item.contractVersion === VENUE_TOOL_CONTRACT_VERSION), true);
   assert.equal(venueToolContracts.every((item) => item.authorization.requiredScope.startsWith("venue:") && item.limits.maximumInputBytes > 0 && item.limits.maximumOutputBytes > 0), true);
-  assert.match(modelContext.tools.get("venue.inspect_layout").description, /Contract 1\.2\.0\./);
+  assert.match(modelContext.tools.get("venue.inspect_layout").description, /Contract 1\.3\.0\./);
 
   controller.abort();
   assert.equal(modelContext.tools.size, 0);
@@ -43,7 +43,7 @@ test("WebMCP invocation returns a compact summary plus bounded structured conten
   const result = await modelContext.tools.get("venue.inspect_layout").execute({}, {});
 
   assert.match(result.content[0].text, /Plan plan-summit-forward-2026 v3\.2/);
-  assert.equal(result.structuredContent.contractVersion, "1.2.0");
+  assert.equal(result.structuredContent.contractVersion, "1.3.0");
   assert.equal(result.structuredContent.authorizationScope, "venue:read");
   assert.match(result.structuredContent.correlationId, /^corr-webmcp-/);
   assert.equal(result.structuredContent.data.planId, "plan-summit-forward-2026");
@@ -142,4 +142,27 @@ test("WebMCP Project tools use the same shared contracts through a scoped Projec
   assert.equal(opened.structuredContent.data.status, "active");
   assert.deepEqual(calls, ["project-summit-forward"]);
   controller.abort();
+});
+
+test("WebMCP Live Occupancy tools share aggregate operational commands and exclude acknowledgement", async () => {
+  const modelContext = new FakeModelContext();
+  const calls = [];
+  const occupancyOperations = {
+    inspectLiveOccupancy: async () => ({ monitor: { revision: 2 }, projection: { overallStatus: "warning" } }),
+    ingestOccupancySignal: async (input) => { calls.push(["ingest", input]); return { monitor: { revision: 3 }, projection: { overallStatus: "nominal" } }; },
+    refreshLiveOccupancy: async (input) => { calls.push(["refresh", input]); return { monitor: { revision: 4 }, projection: { overallStatus: "stale" } }; },
+    exportLiveOccupancy: async () => ({ filename: "occupancy.audit.json", mimeType: "application/json", content: "{}" }),
+  };
+  await registerVenueTools(modelContext, createVenuePlanner(summitForwardPlan), new AbortController().signal, { occupancyOperations });
+  const inspected = await modelContext.tools.get("venue.inspect_live_occupancy").execute({});
+  const ingested = await modelContext.tools.get("venue.ingest_occupancy_signal").execute({ sourceId: "door-a", sourceType: "manual-counter", sourceVersion: "v7", kind: "zone-occupancy", observedAt: "2026-09-01T10:00:00.000Z", confidence: "high", readings: [{ scopeId: "venue", count: 310 }], idempotencyKey: "webmcp-occupancy-1" });
+  const refreshed = await modelContext.tools.get("venue.refresh_live_occupancy").execute({ idempotencyKey: "webmcp-occupancy-refresh-1" });
+  const exported = await modelContext.tools.get("venue.export_live_occupancy").execute({});
+
+  assert.equal(inspected.structuredContent.data.projection.overallStatus, "warning");
+  assert.equal(ingested.structuredContent.data.monitor.revision, 3);
+  assert.equal(refreshed.structuredContent.data.projection.overallStatus, "stale");
+  assert.equal(exported.structuredContent.data.filename, "occupancy.audit.json");
+  assert.deepEqual(calls.map(([kind]) => kind), ["ingest", "refresh"]);
+  assert.equal(modelContext.tools.has("venue.acknowledge_occupancy_alert"), false);
 });

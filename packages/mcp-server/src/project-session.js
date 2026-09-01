@@ -1,6 +1,9 @@
 import { summitForwardPlan } from "../../../src/domain/summit-forward.js";
-import { createVenuePlanner } from "../../../src/domain/venue-planner.js";
+import { createVenuePlanner, validateVenueState } from "../../../src/domain/venue-planner.js";
 import { venueError } from "../../../src/domain/errors.js";
+import { verifyActivityLedger } from "../../../src/domain/activity-ledger.js";
+import { createEventDayRunbook } from "../../../src/domain/event-day-runbook.js";
+import { createOccupancyCommandBus } from "../../../src/domain/occupancy-command-bus.js";
 
 const DEFAULT_PROJECT_ID = "project-summit-forward";
 const clone = (value) => structuredClone(value);
@@ -42,6 +45,28 @@ export function createProjectSession({ repository, organizationId = repository?.
   let activeRecord = null;
   let planner = null;
   let initialization = null;
+  const occupancyMonitors = new Map();
+
+  const occupancyBusForCurrentProject = () => {
+    const cached = occupancyMonitors.get(activeProjectId) ?? null;
+    const bus = createOccupancyCommandBus({ initialMonitor: cached });
+    if (cached) return bus;
+    const snapshot = planner.getSnapshot();
+    const integrity = verifyActivityLedger(snapshot.ledger);
+    if (integrity.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { projectId: activeProjectId });
+    const validation = validateVenueState({ ...snapshot, proposal: null });
+    if (validation.status !== "pass") throw venueError("OCCUPANCY_MONITOR_NOT_FOUND", { projectId: activeProjectId, reason: "accepted-plan-not-operational" });
+    const approval = snapshot.ledger.slice().reverse().find((entry) => entry.details?.acceptedPlan?.id === snapshot.plan.id) ?? snapshot.ledger.at(-1);
+    const runbook = createEventDayRunbook({ projectId: activeProjectId, plan: snapshot.plan, brief: snapshot.brief, validation, sourceLedgerHeadHash: integrity.headHash, approvalLedgerEntryId: approval.id, frozenAt: clock(), frozenBy: "mcp-host" });
+    const created = bus.execute({ type: "create_occupancy_monitor", projectId: activeProjectId, runbook, plan: snapshot.plan, createdAt: clock(), createdBy: "mcp-host" });
+    occupancyMonitors.set(activeProjectId, created.monitor);
+    return bus;
+  };
+
+  const occupancyMetadata = (input, type, revision) => {
+    const identity = input.idempotencyKey ?? `mcp-occupancy-${type}-${Date.now()}`;
+    return { operationId: `occupancy-operation-${identity}`, idempotencyKey: identity, correlationId: input.correlationId ?? `mcp-occupancy-${identity}`, expectedRevision: revision, actorType: "agent", actorId: "mcp-agent", source: "mcp", sessionId: "mcp-session", committedAt: clock() };
+  };
 
   const hydrate = async (record) => {
     const nextPlanner = createVenuePlanner(summitForwardPlan, { projectId: record.id });
@@ -123,6 +148,33 @@ export function createProjectSession({ repository, organizationId = repository?.
       } finally {
         if (onAbort) signal.removeEventListener("abort", onAbort);
       }
+    },
+    async inspectLiveOccupancy() {
+      await initialize();
+      const bus = occupancyBusForCurrentProject();
+      return bus.execute({ type: "inspect_live_occupancy", evaluatedAt: clock() });
+    },
+    async ingestOccupancySignal(input) {
+      await initialize();
+      const bus = occupancyBusForCurrentProject();
+      const current = bus.getSnapshot();
+      const result = bus.execute({ type: "ingest_occupancy_signal", signal: { sourceId: input.sourceId, sourceType: input.sourceType, sourceVersion: input.sourceVersion, kind: input.kind, observedAt: input.observedAt, confidence: input.confidence, readings: input.readings }, ...occupancyMetadata(input, "ingest", current.revision) });
+      occupancyMonitors.set(activeProjectId, result.monitor);
+      return result;
+    },
+    async refreshLiveOccupancy(input) {
+      await initialize();
+      const bus = occupancyBusForCurrentProject();
+      const current = bus.getSnapshot();
+      const command = { type: "refresh_live_occupancy", ...occupancyMetadata(input, "refresh", current.revision) };
+      command.evaluatedAt = command.committedAt;
+      const result = bus.execute(command);
+      occupancyMonitors.set(activeProjectId, result.monitor);
+      return result;
+    },
+    async exportLiveOccupancy() {
+      await initialize();
+      return occupancyBusForCurrentProject().execute({ type: "export_live_occupancy", exportedAt: clock() });
     },
     async recordAuthorizationDenial(input) {
       await initialize();

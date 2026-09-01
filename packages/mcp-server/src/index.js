@@ -91,6 +91,7 @@ export function createVenueMindMcpServer({
   const toolService = createVenueToolService({
     executeCommand: (command, options) => session.execute(command, options),
     projectOperations: session,
+    occupancyOperations: session,
     authorizationProvider: () => agentAuthorization ?? createShortLivedAgentAuthorization({ agentId: "mcp-agent", organizationId, projectId: "project-summit-forward", scopes: AGENT_SCOPES, issuedBy: "venuemind-stdio-host" }),
     recordAuthorizationDenial: (denial) => session.recordAuthorizationDenial(denial),
   });

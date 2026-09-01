@@ -93,7 +93,7 @@ const projectRecordMetadataFor = (record) => ({
   lastOpenedAt: record.lastOpenedAt ?? null,
 });
 
-function ToolRegistration({ planner, projectStore, projectId, organizationId, onLifecycle, navigate }) {
+function ToolRegistration({ planner, projectStore, projectId, organizationId, occupancyOperations, onLifecycle, navigate }) {
   useEffect(() => {
     const modelContext = document.modelContext;
     if (typeof modelContext?.registerTool !== "function") {
@@ -117,7 +117,7 @@ function ToolRegistration({ planner, projectStore, projectId, organizationId, on
             return opened;
           },
         };
-        await registerVenueTools(modelContext, planner, controller.signal, { projectId, organizationId, projectOperations, onLifecycle });
+        await registerVenueTools(modelContext, planner, controller.signal, { projectId, organizationId, projectOperations, occupancyOperations, onLifecycle });
       } catch {
         // registerVenueTools publishes the terminal failure state.
       }
@@ -125,7 +125,7 @@ function ToolRegistration({ planner, projectStore, projectId, organizationId, on
 
     register();
     return () => controller.abort();
-  }, [navigate, onLifecycle, organizationId, planner, projectId, projectStore]);
+  }, [navigate, occupancyOperations, onLifecycle, organizationId, planner, projectId, projectStore]);
   return null;
 }
 
@@ -257,6 +257,13 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   const [occupancyMonitor, setOccupancyMonitor] = useState(null);
   const [occupancyProjection, setOccupancyProjection] = useState(null);
   const [occupancySyncState, setOccupancySyncState] = useState({ state: "offline", pendingCount: 0, lastSyncedAt: null });
+  const occupancyOperationsRef = useRef({});
+  const occupancyOperations = useMemo(() => Object.freeze({
+    inspectLiveOccupancy: (...args) => occupancyOperationsRef.current.inspectLiveOccupancy(...args),
+    ingestOccupancySignal: (...args) => occupancyOperationsRef.current.ingestOccupancySignal(...args),
+    refreshLiveOccupancy: (...args) => occupancyOperationsRef.current.refreshLiveOccupancy(...args),
+    exportLiveOccupancy: (...args) => occupancyOperationsRef.current.exportLiveOccupancy(...args),
+  }), []);
   const runbookClientSequence = useRef(0);
   const runbookBus = useMemo(() => createRunbookCommandBus({ onChange: (next) => {
     setRunbook(next);
@@ -973,12 +980,15 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
     }
   };
 
-  const handleOccupancySignal = async ({ sourceId, sourceType, kind, confidence, readings }, actorType = "human") => {
+  const handleOccupancySignal = async ({ sourceId, sourceType, sourceVersion = "studio-v1", kind, observedAt = new Date().toISOString(), confidence, readings, idempotencyKey, correlationId }, actorType = "human") => {
     if (!occupancyMonitor) return null;
+    const generated = occupancyMetadata("ingest", occupancyMonitor.revision, actorType, actorType === "agent" ? "webmcp-agent" : studioActorId);
     const command = {
       type: "ingest_occupancy_signal",
-      signal: { sourceId, sourceType, sourceVersion: "studio-v1", kind, observedAt: new Date().toISOString(), confidence, readings },
-      ...occupancyMetadata("ingest", occupancyMonitor.revision, actorType, actorType === "agent" ? "webmcp-agent" : studioActorId),
+      signal: { sourceId, sourceType, sourceVersion, kind, observedAt, confidence, readings },
+      ...generated,
+      ...(idempotencyKey ? { idempotencyKey } : {}),
+      ...(correlationId ? { correlationId } : {}),
     };
     try {
       const result = await applyOccupancyCommand(command);
@@ -991,10 +1001,11 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
     }
   };
 
-  const handleOccupancyRefresh = async (actorType = "human") => {
+  const handleOccupancyRefresh = async (actorType = "human", input = {}) => {
     if (!occupancyMonitor) return null;
     const committedAt = new Date().toISOString();
-    const command = { type: "refresh_live_occupancy", evaluatedAt: committedAt, ...occupancyMetadata("refresh", occupancyMonitor.revision, actorType, actorType === "agent" ? "webmcp-agent" : studioActorId), committedAt };
+    const generated = occupancyMetadata("refresh", occupancyMonitor.revision, actorType, actorType === "agent" ? "webmcp-agent" : studioActorId);
+    const command = { type: "refresh_live_occupancy", evaluatedAt: committedAt, ...generated, ...(input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : {}), ...(input.correlationId ? { correlationId: input.correlationId } : {}), committedAt };
     const result = await applyOccupancyCommand(command);
     notify("OCCUPANCY REFRESHED");
     void handleOccupancySync(result.monitor);
@@ -1084,6 +1095,25 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
     }
   };
 
+  occupancyOperationsRef.current = {
+    inspectLiveOccupancy: async () => {
+      if (!occupancyMonitor) throw venueError("OCCUPANCY_MONITOR_NOT_FOUND", { projectId });
+      return occupancyBus.execute({ type: "inspect_live_occupancy", evaluatedAt: new Date().toISOString() });
+    },
+    ingestOccupancySignal: async (input) => {
+      if (!occupancyMonitor) throw venueError("OCCUPANCY_MONITOR_NOT_FOUND", { projectId });
+      return handleOccupancySignal(input, "agent");
+    },
+    refreshLiveOccupancy: async (input) => {
+      if (!occupancyMonitor) throw venueError("OCCUPANCY_MONITOR_NOT_FOUND", { projectId });
+      return handleOccupancyRefresh("agent", input);
+    },
+    exportLiveOccupancy: async () => {
+      if (!occupancyMonitor) throw venueError("OCCUPANCY_MONITOR_NOT_FOUND", { projectId });
+      return occupancyBus.execute({ type: "export_live_occupancy", exportedAt: new Date().toISOString() });
+    },
+  };
+
   return (
     <div className="app-shell">
       <ToolRegistration
@@ -1091,6 +1121,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
         projectStore={projectStore}
         projectId={projectId}
         organizationId={organizationId}
+        occupancyOperations={occupancyOperations}
         onLifecycle={setWebMcpLifecycle}
         navigate={navigate}
       />
