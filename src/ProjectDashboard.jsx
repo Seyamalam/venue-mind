@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Archive, ArrowCounterClockwise, ArrowRight, CheckCircle, CircleNotch, Clock, Copy, DotsThreeVertical, FolderOpen, MagnifyingGlass, PencilSimple, Plus, PushPin, SlidersHorizontal, Trash, UploadSimple, X } from "@phosphor-icons/react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
-import { createEmptyVenuePlan } from "./domain/empty-project.js";
-import { createVenuePlanner } from "./domain/venue-planner.js";
 import { createProjectStore } from "./persistence/project-store.js";
-import { previewProjectImport } from "./interchange/venue-package.js";
-import { duplicateProjectRecord } from "./domain/project-lifecycle.js";
 import { browserNavigate, navigateInternalLink } from "./navigation.js";
 import "./project-dashboard.css";
 
@@ -15,13 +11,8 @@ const projectVersion = (project) => project.snapshot?.plan?.version ?? "—";
 const projectEvent = (project) => project.snapshot?.plan?.event ?? { attendeeTarget: 0, date: null };
 const projectValidation = (project) => {
   if (!project.snapshot?.plan || !project.snapshot?.proposal) return "SYNC";
-  try {
-    const planner = createVenuePlanner(createEmptyVenuePlan({ projectId: project.id, name: project.name }));
-    planner.execute({ type: "restore_snapshot", snapshot: project.snapshot });
-    return planner.execute({ type: "validate_layout" }).status.toUpperCase();
-  } catch {
-    return "CHECK";
-  }
+  const activeBranch = project.snapshot.branches?.find((branch) => branch.id === project.snapshot.activeBranchId);
+  return (activeBranch?.proposal?.validation?.status ?? project.snapshot.proposal.validation?.status ?? "CHECK").toUpperCase();
 };
 
 export function ProjectDashboard({ organizationId = "org-local", account, accountStore, navigate = browserNavigate }) {
@@ -70,6 +61,7 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
     replaceProject((await store.rename(project.id, name)).record);
   };
   const duplicateProject = async (project) => {
+    const { duplicateProjectRecord } = await import("./domain/project-lifecycle.js");
     const token = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}`;
     const record = duplicateProjectRecord(project, { projectId: `project-${token}`, name: `${project.name} Copy` });
     const created = await store.importProject(record);
@@ -90,6 +82,10 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
     const token = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}`;
     const projectId = `project-${token}`;
     const name = `Untitled ${String(projects.length + 1).padStart(2, "0")}`;
+    const [{ createEmptyVenuePlan }, { createVenuePlanner }] = await Promise.all([
+      import("./domain/empty-project.js"),
+      import("./domain/venue-planner.js"),
+    ]);
     const plan = createEmptyVenuePlan({ projectId, name });
     const planner = createVenuePlanner(plan);
     const saved = await store.save({ id: projectId, name, activePlanId: plan.id, snapshot: planner.getSnapshot() });
@@ -101,6 +97,7 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
     if (!file) return;
     setImportError("");
     try {
+      const { previewProjectImport } = await import("./interchange/venue-package.js");
       const preview = await previewProjectImport(await file.text());
       setImportPreview({ ...preview, idConflict: projects.some((project) => project.id === preview.record.id) });
     } catch (error) {
