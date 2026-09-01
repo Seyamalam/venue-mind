@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
-import { createEventDayRunbook } from "../src/domain/event-day-runbook.js";
-import { verifyOccupancyLedger } from "../src/domain/live-occupancy.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
+import { createEventDayRunbook } from "../src/domain/event-day-runbook.ts";
+import { verifyOccupancyLedger } from "../src/domain/live-occupancy.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
 import { applyDatabaseMigrations } from "../worker/database-migrations.ts";
 import { createWorker } from "../worker/index.ts";
 

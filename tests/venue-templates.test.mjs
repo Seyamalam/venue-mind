@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createRoomTemplateUpdateProposal } from "../src/domain/template-updates.js";
-import { assertCurrentTemplateDocument, evaluateInventoryAvailability, venueTemplateCatalog } from "../src/domain/venue-templates.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
+import { createRoomTemplateUpdateProposal } from "../src/domain/template-updates.ts";
+import { assertCurrentTemplateDocument, evaluateInventoryAvailability, venueTemplateCatalog } from "../src/domain/venue-templates.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 

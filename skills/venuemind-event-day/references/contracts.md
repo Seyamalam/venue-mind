@@ -1,6 +1,6 @@
 # Generated contracts
 
-Target tool contract: `1.3.0`.
+Target tool contract: `1.4.0`.
 
 - Tools and errors: `/venue-tools.json`, `/tool-error-catalog.json`
 - Comments and anchors: `/schemas/comment.schema.json`, `/schemas/comment-anchor.schema.json`

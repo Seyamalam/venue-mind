@@ -1,19 +1,19 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { fingerprintPlan } from "../src/domain/activity-ledger.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { sha256Checksum } from "../src/integrations/contracts.js";
-import { createAdapterRuntime } from "../src/integrations/runtime.js";
-import { createMemorySecretStore } from "../src/integrations/secret-store.js";
+import { fingerprintPlan } from "../src/domain/activity-ledger.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { sha256Checksum } from "../src/integrations/contracts.ts";
+import { createAdapterRuntime } from "../src/integrations/runtime.ts";
+import { createMemorySecretStore } from "../src/integrations/secret-store.ts";
 import {
   assertOperationalResourceSnapshot,
   createOperationalSubstitutionStagingBatch,
   normalizeOperationalResourceAdapterInput,
   operationalResourceAdapter,
-} from "../src/integrations/adapters/operational-resource-adapter.js";
-import { assertReviewableStagingBatch, loadAdapterProposalForReview } from "../src/integrations/staging.js";
+} from "../src/integrations/adapters/operational-resource-adapter.ts";
+import { assertReviewableStagingBatch, loadAdapterProposalForReview } from "../src/integrations/staging.ts";
 
 const fixture = JSON.parse(await readFile(new URL("./fixtures/adapter-operational-resources-v1.json", import.meta.url), "utf8"));
 const clock = () => Date.parse("2026-09-01T12:00:00.000Z");

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createRunbookCommandBus } from "../src/domain/runbook-command-bus.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
+import { createRunbookCommandBus } from "../src/domain/runbook-command-bus.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
 
 const createCommand = {
   type: "create_runbook_version",

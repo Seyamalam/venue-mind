@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isNonContactLabel } from "../src/integrations/privacy.js";
+import { isNonContactLabel } from "../src/integrations/privacy.ts";
 
 test("non-contact labels reject contact shapes hidden with Unicode formatting and variation controls", () => {
   const contactValues = [

@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { compareSimulationResults, createScenarioRunner, exportSimulationRun, normalizeScenarioDefinition, SIMULATION_ENGINE_VERSION } from "../src/domain/scenario-engine.js";
-import { exportProjectPackage, previewProjectImport } from "../src/interchange/venue-package.js";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { compareSimulationResults, createScenarioRunner, exportSimulationRun, normalizeScenarioDefinition, SIMULATION_ENGINE_VERSION } from "../src/domain/scenario-engine.ts";
+import { exportProjectPackage, previewProjectImport } from "../src/interchange/venue-package.ts";
 
 const scenario = {
   id: "scenario-summit-day",

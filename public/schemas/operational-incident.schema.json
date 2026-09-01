@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/operational-incident.schema.json",
+  "title": "VenueMind Operational Incident",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "revision",
+    "severity",
+    "category",
+    "summaryCode",
+    "status",
+    "acknowledgement",
+    "escalation",
+    "location",
+    "owner",
+    "relatedRefs",
+    "attachments",
+    "handoffs",
+    "emergencyActions",
+    "timestamps"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "severity": {
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "category": {
+      "enum": [
+        "accessibility",
+        "crowd-capacity",
+        "medical",
+        "security",
+        "fire-life-safety",
+        "facilities",
+        "production-av",
+        "catering",
+        "staffing",
+        "transport",
+        "weather",
+        "other"
+      ]
+    },
+    "summaryCode": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 64,
+      "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+    },
+    "status": {
+      "enum": [
+        "open",
+        "mitigating",
+        "resolved",
+        "closed"
+      ]
+    },
+    "acknowledgement": {
+      "type": "object"
+    },
+    "escalation": {
+      "type": "object"
+    },
+    "location": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://venuemind.dev/schemas/incident-location-context.schema.json",
+      "title": "VenueMind Incident Location Context",
+      "type": "object",
+      "required": [
+        "kind",
+        "planId",
+        "planVersion",
+        "planFingerprint"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "plan-object",
+            "coordinate"
+          ]
+        },
+        "planId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "planVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "planFingerprint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "planObjectId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "point": {
+          "type": "object",
+          "required": [
+            "x",
+            "y"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "owner": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "relatedRefs": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "maxItems": 50
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "maxItems": 8
+    },
+    "handoffs": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "emergencyActions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "timestamps": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

@@ -29,13 +29,13 @@ test("contributor entry point routes every change and recovery path without oral
 
 test("architecture guide identifies every runtime boundary and complete extension paths", async () => {
   const architecture = await read("docs/architecture.md");
-  for (const source of ["src/contracts/venue-contracts.js", "src/domain/venue-planner.js", "src/domain/constraint-engine.js", "src/domain/authorization.js", "src/domain/activity-ledger.js", "src/tools/venue-tool-service.js", "src/webmcp/", "packages/mcp-server/src/", "src/persistence/project-store.js", "worker/index.ts", "src/docs/"]) assert.match(architecture, new RegExp(source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), source);
+  for (const source of ["src/contracts/venue-contracts.ts", "src/domain/venue-planner.ts", "src/domain/constraint-engine.ts", "src/domain/authorization.ts", "src/domain/activity-ledger.ts", "src/tools/venue-tool-service.ts", "src/webmcp/", "packages/mcp-server/src/", "src/persistence/project-store.ts", "worker/index.ts", "src/docs/"]) assert.match(architecture, new RegExp(source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), source);
   assert.ok((architecture.match(/```mermaid/g) ?? []).length >= 2);
   assert.match(architecture, /sequenceDiagram/);
   const commandSection = architecture.split("## Add a command")[1].split("## Add a Constraint")[0];
   for (const requirement of ["venueCommandSchema", "VenuePlanner.execute", "COMMAND_PERMISSION", "venueToolContracts", "commandForVenueTool", "Activity Ledger", "generate:contracts", "check:generated"]) assert.match(commandSection, new RegExp(requirement.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   const constraintSection = architecture.split("## Add a Constraint")[1];
-  for (const requirement of ["evaluator.enum", "constraint-engine.js", "stable object", "CONSTRAINT_REFERENCE", "not-applicable", "fingerprint"]) assert.match(constraintSection, new RegExp(requirement.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
+  for (const requirement of ["evaluator.enum", "constraint-engine.ts", "stable object", "CONSTRAINT_REFERENCE", "not-applicable", "fingerprint"]) assert.match(constraintSection, new RegExp(requirement.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
 });
 
 test("persistence, migration, testing, release, and recovery guides carry executable completion criteria", async () => {

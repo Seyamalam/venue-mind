@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { permissionForTool } from "../src/domain/authorization.js";
-import { VENUE_TOOL_CONTRACT_VERSION, venueToolContracts } from "../src/contracts/venue-contracts.js";
+import { permissionForTool } from "../src/domain/authorization.ts";
+import { VENUE_TOOL_CONTRACT_VERSION, venueToolContracts } from "../src/contracts/venue-contracts.ts";
 
 test("shared Incident tools expose report, inspection, and export without human response authority", () => {
   const byName = new Map(venueToolContracts.map((contract) => [contract.name, contract]));

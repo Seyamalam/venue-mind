@@ -22,7 +22,7 @@ The production Worker returns `401` without authenticated identity or an active 
 
 ## Organizations and Roles
 
-The first sign-in creates a personal Organization and an `organization-administrator` Membership. Administrators can create Organizations, invite an email address with published Roles, change Roles, remove Memberships, and inspect Organization audit events. Invitation secrets are returned once and only their SHA-256 hashes are persisted.
+The first sign-in creates a personal Organization with `organization-administrator` and `venue-administrator` Membership Roles. Administrators can create Organizations, invite an email address with published Roles, change Roles, remove Memberships, and inspect Organization audit events. `safety-officer` and `venue-administrator` are the authenticated operational Roles eligible for emergency actions when the approved Emergency Plan names them. Invitation secrets are returned once and only their SHA-256 hashes are persisted.
 
 Approval and other planning authority still flow through `src/domain/authorization.js`. Organization Membership supplies human Roles; it does not bypass the planner permission matrix. Agent Grants carry both `organizationId` and `projectId` and remain time-limited.
 

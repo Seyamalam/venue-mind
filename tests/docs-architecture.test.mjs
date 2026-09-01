@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { access, readdir, readFile } from "node:fs/promises";
 import test from "node:test";
-import { docsPageBySlug, docsPages, publicDocsWorkflows } from "../src/docs/content.js";
-import { buildDocsNavigation, buildTableOfContents, getDocsNeighbors } from "../src/docs/navigation.js";
-import { buildDocsSearchIndex, nextSearchSelection, searchDocs } from "../src/docs/search.js";
-import { venueToolContracts } from "../src/contracts/venue-contracts.js";
+import { docsPageBySlug, docsPages, publicDocsWorkflows } from "../src/docs/content.ts";
+import { buildDocsNavigation, buildTableOfContents, getDocsNeighbors } from "../src/docs/navigation.ts";
+import { buildDocsSearchIndex, nextSearchSelection, searchDocs } from "../src/docs/search.ts";
+import { venueToolContracts } from "../src/contracts/venue-contracts.ts";
 
 const publicFile = (pathname) => new URL(`../public${pathname}`, import.meta.url);
 const docsLinks = docsPages.flatMap((page) => page.sections.flatMap((section) => section.blocks

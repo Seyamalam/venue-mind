@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createActivityEntry, fingerprintEventBrief, fingerprintPlan, replayActivityLedger, sealActivityLedger } from "../src/domain/activity-ledger.js";
-import { normalizePlanGeometry } from "../src/domain/geometry.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createActivityEntry, fingerprintEventBrief, fingerprintPlan, replayActivityLedger, sealActivityLedger } from "../src/domain/activity-ledger.ts";
+import { normalizePlanGeometry } from "../src/domain/geometry.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
 
 const createPlanner = () => createVenuePlanner(summitForwardPlan);
 

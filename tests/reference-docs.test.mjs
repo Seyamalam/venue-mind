@@ -10,24 +10,24 @@ import {
   venueCommandSchema,
   venueConstraintSchema,
   venueToolContracts,
-} from "../src/contracts/venue-contracts.js";
-import { permissionForCommand } from "../src/domain/authorization.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { errorCatalog } from "../src/domain/errors.js";
+} from "../src/contracts/venue-contracts.ts";
+import { permissionForCommand } from "../src/domain/authorization.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { errorCatalog } from "../src/domain/errors.ts";
 import {
   commandReferencePages,
   publishedConstraintEvaluators,
   publishedLedgerSchemaVersion,
   referenceManifest,
   toolReferencePages,
-} from "../src/docs/pages/reference.js";
+} from "../src/docs/pages/reference.ts";
 import {
   CONSTRAINT_REFERENCE,
   LEDGER_EVENT_REFERENCE,
   TOOL_OUTPUT_REFERENCE,
   VERSION_REFERENCE,
-} from "../src/docs/reference-data.js";
+} from "../src/docs/reference-data.ts";
 
 const commandSchemas = venueCommandSchema.oneOf.flatMap((schema) => {
   const types = schema.properties.type.enum ?? [schema.properties.type.const];
@@ -150,7 +150,7 @@ test("constraint and version references are bound to runtime constants", () => {
 });
 
 test("ledger event reference exactly matches events emitted by the planner", async () => {
-  const source = await readFile(new URL("../src/domain/venue-planner.js", import.meta.url), "utf8");
+  const source = await readFile(new URL("../src/domain/venue-planner.ts", import.meta.url), "utf8");
   const literalPattern = /(?:appendLedger|createActivityEntry)\([^,]+,\s*"([a-z_]+\.[a-z_]+)"/g;
   const emitted = new Set([...source.matchAll(literalPattern)].map((match) => match[1]));
   for (const event of ["comment.resolved", "comment.reopened", "simulation.completed", "simulation.cancelled"]) emitted.add(event);

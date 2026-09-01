@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createActivityEntry, fingerprintPlan, replayActivityLedger, sealActivityLedger } from "../src/domain/activity-ledger.js";
-import { detectLockConflicts, normalizeObjectLocks } from "../src/domain/locks.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
+import { createActivityEntry, fingerprintPlan, replayActivityLedger, sealActivityLedger } from "../src/domain/activity-ledger.ts";
+import { detectLockConflicts, normalizeObjectLocks } from "../src/domain/locks.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
 
 const templateLock = (objectId, type) => ({ id: `lock-${objectId}-${type}`, objectId, type, source: "venue-template", reasonCode: "venue-infrastructure", authorId: "venue-template", active: true });
 

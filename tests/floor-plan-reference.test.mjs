@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createFloorPlanReferenceIntake, inspectFloorPlanReferenceAdapters } from "../src/interchange/floor-plan-reference.js";
+import { createFloorPlanReferenceIntake, inspectFloorPlanReferenceAdapters } from "../src/interchange/floor-plan-reference.ts";
 
 test("DXF and PDF adapters are explicit reference-only boundaries", () => {
   const adapters = inspectFloorPlanReferenceAdapters();

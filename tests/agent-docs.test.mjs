@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { previewProjectImport } from "../src/interchange/venue-package.js";
-import { venueToolContracts } from "../src/contracts/venue-contracts.js";
-import { buildAgentDocuments } from "../src/docs/agent-documents.js";
-import { docsPages } from "../src/docs/content.js";
+import { previewProjectImport } from "../src/interchange/venue-package.ts";
+import { venueToolContracts } from "../src/contracts/venue-contracts.ts";
+import { buildAgentDocuments } from "../src/docs/agent-documents.ts";
+import { docsPages } from "../src/docs/content.ts";
 
 const publicFile = (name) => new URL(`../public/${name}`, import.meta.url);
 
@@ -62,7 +62,7 @@ test("agent skill package metadata and evaluation metrics are published", async 
   const manifest = JSON.parse(await readFile(publicFile("skills-manifest.json"), "utf8"));
   const metrics = JSON.parse(await readFile(publicFile("skill-evaluation-metrics.json"), "utf8"));
   assert.equal(manifest.packages.length, 6);
-  assert.equal(manifest.toolContractVersion, "1.3.0");
+  assert.equal(manifest.toolContractVersion, "1.4.0");
   assert.equal(metrics.cases, 12);
   assert.equal(metrics.toolSelectionAccuracy, 1);
   assert.equal(metrics.unnecessaryCallRate, 0);
@@ -194,7 +194,7 @@ test("every shared tool is generated into the public manifest, examples, errors,
   const llms = await readFile(publicFile("llms.txt"), "utf8");
   const expectedNames = venueToolContracts.map((tool) => tool.name).sort();
 
-  assert.equal(manifest.length, 43);
+  assert.equal(manifest.length, venueToolContracts.length);
   assert.deepEqual(manifest.map((tool) => tool.name).sort(), expectedNames);
   assert.deepEqual(Object.keys(examples).sort(), expectedNames);
   assert.deepEqual(Object.keys(errors).sort(), expectedNames);

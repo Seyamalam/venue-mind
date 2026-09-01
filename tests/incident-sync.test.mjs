@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { synchronizeIncidents } from "../src/persistence/incident-sync.js";
+import { synchronizeIncidents } from "../src/persistence/incident-sync.ts";
 
 const register = (revision = 2) => ({
   schemaVersion: 1,

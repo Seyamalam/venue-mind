@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createOccupancyRemote } from "../src/persistence/occupancy-remote.js";
+import { createOccupancyRemote } from "../src/persistence/occupancy-remote.ts";
 
 test("Live Occupancy remote scopes create, get, sync, and export requests to one Project", async () => {
   const calls = [];

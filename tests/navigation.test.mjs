@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { browserNavigate, navigateInternalLink } from "../src/navigation.js";
+import { browserNavigate, navigateInternalLink } from "../src/navigation.ts";
 
 const clickEvent = (overrides = {}) => {
   let prevented = false;

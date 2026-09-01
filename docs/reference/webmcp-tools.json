@@ -11,7 +11,7 @@
       "additionalProperties": false
     },
     "title": "List Projects",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -120,7 +120,7 @@
       "additionalProperties": false
     },
     "title": "Open Project",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -221,7 +221,7 @@
       "additionalProperties": false
     },
     "title": "Inspect Templates",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -252,7 +252,7 @@
       "additionalProperties": false
     },
     "title": "Get Project Brief",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -295,7 +295,7 @@
       "additionalProperties": false
     },
     "title": "List Constraints",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -326,7 +326,7 @@
       "additionalProperties": false
     },
     "title": "Inspect Layout",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -1552,7 +1552,7 @@
       "additionalProperties": false
     },
     "title": "Get Object",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -1633,7 +1633,7 @@
       "additionalProperties": false
     },
     "title": "Search Objects",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -1687,7 +1687,7 @@
       "additionalProperties": false
     },
     "title": "Preview Revision",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -1779,7 +1779,7 @@
       "additionalProperties": false
     },
     "title": "Preview Template Update",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -1855,7 +1855,7 @@
       "additionalProperties": false
     },
     "title": "Apply Edit",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -1913,7 +1913,7 @@
       "additionalProperties": false
     },
     "title": "Measure Objects",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -1949,7 +1949,7 @@
       "additionalProperties": false
     },
     "title": "Validate Layout",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -2447,7 +2447,7 @@
       "additionalProperties": false
     },
     "title": "Get Validation Evidence",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -2484,7 +2484,7 @@
       "additionalProperties": false
     },
     "title": "List Proposal Branches",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -2528,7 +2528,7 @@
       "additionalProperties": false
     },
     "title": "Compare Proposal Branches",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -2592,7 +2592,7 @@
       "additionalProperties": false
     },
     "title": "Create Proposal Branch",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -2646,7 +2646,7 @@
       "additionalProperties": false
     },
     "title": "Switch Proposal Branch",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -2706,7 +2706,7 @@
       "additionalProperties": false
     },
     "title": "Update Proposal Branch",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -2767,7 +2767,7 @@
       "additionalProperties": false
     },
     "title": "Duplicate Proposal Branch",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -2820,7 +2820,7 @@
       "additionalProperties": false
     },
     "title": "Archive Proposal Branch",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -2872,7 +2872,7 @@
       "additionalProperties": false
     },
     "title": "Restore Proposal Branch",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -2913,7 +2913,7 @@
       "additionalProperties": false
     },
     "title": "Detect Proposal Conflicts",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -2962,7 +2962,7 @@
       "additionalProperties": false
     },
     "title": "Rebase Proposal",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -3015,7 +3015,7 @@
       "additionalProperties": false
     },
     "title": "Request Adjustment",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -3075,7 +3075,7 @@
       "additionalProperties": false
     },
     "title": "List Comments",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -3198,7 +3198,7 @@
       "additionalProperties": false
     },
     "title": "Add Comment",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:comment"
     },
@@ -3281,7 +3281,7 @@
       "additionalProperties": false
     },
     "title": "Edit Comment",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:comment"
     },
@@ -3347,7 +3347,7 @@
       "additionalProperties": false
     },
     "title": "Set Comment Status",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:comment"
     },
@@ -3385,7 +3385,7 @@
       "additionalProperties": false
     },
     "title": "Get Change Log",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -3510,7 +3510,7 @@
       "additionalProperties": false
     },
     "title": "Replay History",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -3541,7 +3541,7 @@
       "additionalProperties": false
     },
     "title": "List Scenarios",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -3572,7 +3572,7 @@
       "additionalProperties": false
     },
     "title": "List Scenario Runs",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -3615,7 +3615,7 @@
       "additionalProperties": false
     },
     "title": "Get Scenario Result",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:simulate"
     },
@@ -3999,7 +3999,7 @@
       "additionalProperties": false
     },
     "title": "Run Scenario",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:simulate"
     },
@@ -4061,7 +4061,7 @@
       "additionalProperties": false
     },
     "title": "Compare Simulations",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:simulate"
     },
@@ -4103,7 +4103,7 @@
       "additionalProperties": false
     },
     "title": "Export Simulation",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:export"
     },
@@ -4136,7 +4136,7 @@
       "additionalProperties": false
     },
     "title": "Inspect Live Occupancy",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -4736,7 +4736,7 @@
       "additionalProperties": false
     },
     "title": "Ingest Occupancy Signal",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:operate"
     },
@@ -5286,7 +5286,7 @@
       "additionalProperties": false
     },
     "title": "Refresh Live Occupancy",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:operate"
     },
@@ -5813,7 +5813,7 @@
       "additionalProperties": false
     },
     "title": "Export Live Occupancy",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:export"
     },
@@ -5858,6 +5858,1574 @@
     ]
   },
   {
+    "name": "venue.inspect_incidents",
+    "description": "Inspect the Runbook-bound Incident Register or one stable Operational Incident with structured severity, category, owner, location, acknowledgement, escalation, evidence, and ordered ledger state.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "incidentId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "status": {
+          "enum": [
+            "open",
+            "mitigating",
+            "resolved",
+            "closed"
+          ]
+        },
+        "severity": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+        "category": {
+          "enum": [
+            "accessibility",
+            "crowd-capacity",
+            "medical",
+            "security",
+            "fire-life-safety",
+            "facilities",
+            "production-av",
+            "catering",
+            "staffing",
+            "transport",
+            "weather",
+            "other"
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 50
+        }
+      },
+      "additionalProperties": false
+    },
+    "title": "Inspect Incidents",
+    "contractVersion": "1.4.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 1048576
+    },
+    "exampleInput": {
+      "status": "open",
+      "limit": 25
+    },
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "register"
+      ],
+      "properties": {
+        "register": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://venuemind.dev/schemas/incident-register.schema.json",
+          "title": "VenueMind Incident Register",
+          "type": "object",
+          "required": [
+            "schemaVersion",
+            "id",
+            "projectId",
+            "runbookVersionId",
+            "source",
+            "baseline",
+            "incidents",
+            "transitions",
+            "receipts",
+            "ledger",
+            "revision",
+            "createdAt",
+            "createdBy",
+            "updatedAt"
+          ],
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "id": {
+              "type": "string"
+            },
+            "projectId": {
+              "type": "string"
+            },
+            "runbookVersionId": {
+              "type": "string"
+            },
+            "source": {
+              "type": "object"
+            },
+            "baseline": {
+              "type": "object",
+              "required": [
+                "fingerprint"
+              ],
+              "properties": {
+                "fingerprint": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": true
+            },
+            "incidents": {
+              "type": "array",
+              "items": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "$id": "https://venuemind.dev/schemas/operational-incident.schema.json",
+                "title": "VenueMind Operational Incident",
+                "type": "object",
+                "required": [
+                  "schemaVersion",
+                  "id",
+                  "revision",
+                  "severity",
+                  "category",
+                  "summaryCode",
+                  "status",
+                  "acknowledgement",
+                  "escalation",
+                  "location",
+                  "owner",
+                  "relatedRefs",
+                  "attachments",
+                  "handoffs",
+                  "emergencyActions",
+                  "timestamps"
+                ],
+                "properties": {
+                  "schemaVersion": {
+                    "const": 1
+                  },
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "severity": {
+                    "enum": [
+                      "low",
+                      "medium",
+                      "high",
+                      "critical"
+                    ]
+                  },
+                  "category": {
+                    "enum": [
+                      "accessibility",
+                      "crowd-capacity",
+                      "medical",
+                      "security",
+                      "fire-life-safety",
+                      "facilities",
+                      "production-av",
+                      "catering",
+                      "staffing",
+                      "transport",
+                      "weather",
+                      "other"
+                    ]
+                  },
+                  "summaryCode": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 64,
+                    "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+                  },
+                  "status": {
+                    "enum": [
+                      "open",
+                      "mitigating",
+                      "resolved",
+                      "closed"
+                    ]
+                  },
+                  "acknowledgement": {
+                    "type": "object"
+                  },
+                  "escalation": {
+                    "type": "object"
+                  },
+                  "location": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "$id": "https://venuemind.dev/schemas/incident-location-context.schema.json",
+                    "title": "VenueMind Incident Location Context",
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "planId",
+                      "planVersion",
+                      "planFingerprint"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "plan-object",
+                          "coordinate"
+                        ]
+                      },
+                      "planId": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "planVersion": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "planFingerprint": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "planObjectId": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "point": {
+                        "type": "object",
+                        "required": [
+                          "x",
+                          "y"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "owner": {
+                    "type": [
+                      "object",
+                      "null"
+                    ]
+                  },
+                  "relatedRefs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "maxItems": 50
+                  },
+                  "attachments": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "maxItems": 8
+                  },
+                  "handoffs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "emergencyActions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "timestamps": {
+                    "type": "object"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "transitions": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "receipts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "ledger": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "createdBy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": false
+        },
+        "incidents": {
+          "type": "array",
+          "items": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "https://venuemind.dev/schemas/operational-incident.schema.json",
+            "title": "VenueMind Operational Incident",
+            "type": "object",
+            "required": [
+              "schemaVersion",
+              "id",
+              "revision",
+              "severity",
+              "category",
+              "summaryCode",
+              "status",
+              "acknowledgement",
+              "escalation",
+              "location",
+              "owner",
+              "relatedRefs",
+              "attachments",
+              "handoffs",
+              "emergencyActions",
+              "timestamps"
+            ],
+            "properties": {
+              "schemaVersion": {
+                "const": 1
+              },
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "severity": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high",
+                  "critical"
+                ]
+              },
+              "category": {
+                "enum": [
+                  "accessibility",
+                  "crowd-capacity",
+                  "medical",
+                  "security",
+                  "fire-life-safety",
+                  "facilities",
+                  "production-av",
+                  "catering",
+                  "staffing",
+                  "transport",
+                  "weather",
+                  "other"
+                ]
+              },
+              "summaryCode": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 64,
+                "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+              },
+              "status": {
+                "enum": [
+                  "open",
+                  "mitigating",
+                  "resolved",
+                  "closed"
+                ]
+              },
+              "acknowledgement": {
+                "type": "object"
+              },
+              "escalation": {
+                "type": "object"
+              },
+              "location": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "$id": "https://venuemind.dev/schemas/incident-location-context.schema.json",
+                "title": "VenueMind Incident Location Context",
+                "type": "object",
+                "required": [
+                  "kind",
+                  "planId",
+                  "planVersion",
+                  "planFingerprint"
+                ],
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "plan-object",
+                      "coordinate"
+                    ]
+                  },
+                  "planId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "planVersion": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "planFingerprint": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "planObjectId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "point": {
+                    "type": "object",
+                    "required": [
+                      "x",
+                      "y"
+                    ],
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "owner": {
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "relatedRefs": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                },
+                "maxItems": 50
+              },
+              "attachments": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                },
+                "maxItems": 8
+              },
+              "handoffs": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "emergencyActions": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "timestamps": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "incident": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://venuemind.dev/schemas/operational-incident.schema.json",
+          "title": "VenueMind Operational Incident",
+          "type": "object",
+          "required": [
+            "schemaVersion",
+            "id",
+            "revision",
+            "severity",
+            "category",
+            "summaryCode",
+            "status",
+            "acknowledgement",
+            "escalation",
+            "location",
+            "owner",
+            "relatedRefs",
+            "attachments",
+            "handoffs",
+            "emergencyActions",
+            "timestamps"
+          ],
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "severity": {
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "critical"
+              ]
+            },
+            "category": {
+              "enum": [
+                "accessibility",
+                "crowd-capacity",
+                "medical",
+                "security",
+                "fire-life-safety",
+                "facilities",
+                "production-av",
+                "catering",
+                "staffing",
+                "transport",
+                "weather",
+                "other"
+              ]
+            },
+            "summaryCode": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 64,
+              "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+            },
+            "status": {
+              "enum": [
+                "open",
+                "mitigating",
+                "resolved",
+                "closed"
+              ]
+            },
+            "acknowledgement": {
+              "type": "object"
+            },
+            "escalation": {
+              "type": "object"
+            },
+            "location": {
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "$id": "https://venuemind.dev/schemas/incident-location-context.schema.json",
+              "title": "VenueMind Incident Location Context",
+              "type": "object",
+              "required": [
+                "kind",
+                "planId",
+                "planVersion",
+                "planFingerprint"
+              ],
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "plan-object",
+                    "coordinate"
+                  ]
+                },
+                "planId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "planVersion": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "planFingerprint": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "planObjectId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "point": {
+                  "type": "object",
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "owner": {
+              "type": [
+                "object",
+                "null"
+              ]
+            },
+            "relatedRefs": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              },
+              "maxItems": 50
+            },
+            "attachments": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              },
+              "maxItems": 8
+            },
+            "handoffs": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "emergencyActions": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "timestamps": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "receipt": {
+          "type": "object"
+        },
+        "duplicate": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "INCIDENT_REGISTER_NOT_FOUND",
+      "INCIDENT_NOT_FOUND",
+      "INCIDENT_TOOL_UNAVAILABLE",
+      "INCIDENT_REVISION_CONFLICT",
+      "INCIDENT_INVALID",
+      "INCIDENT_PRIVACY_REJECTED",
+      "INCIDENT_LOCATION_INVALID",
+      "INCIDENT_LEDGER_INTEGRITY_FAILED"
+    ]
+  },
+  {
+    "name": "venue.report_incident",
+    "description": "Report one structured Operational Incident against an object or coordinate in the frozen accepted Plan without claiming acknowledgement, escalation, ownership, resolution, or emergency authority.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "severity": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+        "category": {
+          "enum": [
+            "accessibility",
+            "crowd-capacity",
+            "medical",
+            "security",
+            "fire-life-safety",
+            "facilities",
+            "production-av",
+            "catering",
+            "staffing",
+            "transport",
+            "weather",
+            "other"
+          ]
+        },
+        "summaryCode": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "location": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "planObjectId"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "plan-object"
+                },
+                "planObjectId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "point"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "coordinate"
+                },
+                "point": {
+                  "type": "object",
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "relatedRefs": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "required": [
+              "kind",
+              "id"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "occupancy-alert",
+                  "runbook-task",
+                  "plan-object"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "severity",
+        "category",
+        "summaryCode",
+        "location",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Report Incident",
+    "contractVersion": "1.4.0",
+    "authorization": {
+      "requiredScope": "venue:operate"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "severity": "high",
+      "category": "crowd-capacity",
+      "summaryCode": "EAST_ENTRY_CONGESTION",
+      "location": {
+        "kind": "plan-object",
+        "planObjectId": "obj-entry-east"
+      },
+      "relatedRefs": [
+        {
+          "kind": "occupancy-alert",
+          "id": "occupancy-alert-east-entry"
+        }
+      ],
+      "idempotencyKey": "example-incident-report-001"
+    },
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "register"
+      ],
+      "properties": {
+        "register": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://venuemind.dev/schemas/incident-register.schema.json",
+          "title": "VenueMind Incident Register",
+          "type": "object",
+          "required": [
+            "schemaVersion",
+            "id",
+            "projectId",
+            "runbookVersionId",
+            "source",
+            "baseline",
+            "incidents",
+            "transitions",
+            "receipts",
+            "ledger",
+            "revision",
+            "createdAt",
+            "createdBy",
+            "updatedAt"
+          ],
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "id": {
+              "type": "string"
+            },
+            "projectId": {
+              "type": "string"
+            },
+            "runbookVersionId": {
+              "type": "string"
+            },
+            "source": {
+              "type": "object"
+            },
+            "baseline": {
+              "type": "object",
+              "required": [
+                "fingerprint"
+              ],
+              "properties": {
+                "fingerprint": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": true
+            },
+            "incidents": {
+              "type": "array",
+              "items": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "$id": "https://venuemind.dev/schemas/operational-incident.schema.json",
+                "title": "VenueMind Operational Incident",
+                "type": "object",
+                "required": [
+                  "schemaVersion",
+                  "id",
+                  "revision",
+                  "severity",
+                  "category",
+                  "summaryCode",
+                  "status",
+                  "acknowledgement",
+                  "escalation",
+                  "location",
+                  "owner",
+                  "relatedRefs",
+                  "attachments",
+                  "handoffs",
+                  "emergencyActions",
+                  "timestamps"
+                ],
+                "properties": {
+                  "schemaVersion": {
+                    "const": 1
+                  },
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "severity": {
+                    "enum": [
+                      "low",
+                      "medium",
+                      "high",
+                      "critical"
+                    ]
+                  },
+                  "category": {
+                    "enum": [
+                      "accessibility",
+                      "crowd-capacity",
+                      "medical",
+                      "security",
+                      "fire-life-safety",
+                      "facilities",
+                      "production-av",
+                      "catering",
+                      "staffing",
+                      "transport",
+                      "weather",
+                      "other"
+                    ]
+                  },
+                  "summaryCode": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 64,
+                    "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+                  },
+                  "status": {
+                    "enum": [
+                      "open",
+                      "mitigating",
+                      "resolved",
+                      "closed"
+                    ]
+                  },
+                  "acknowledgement": {
+                    "type": "object"
+                  },
+                  "escalation": {
+                    "type": "object"
+                  },
+                  "location": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "$id": "https://venuemind.dev/schemas/incident-location-context.schema.json",
+                    "title": "VenueMind Incident Location Context",
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "planId",
+                      "planVersion",
+                      "planFingerprint"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "plan-object",
+                          "coordinate"
+                        ]
+                      },
+                      "planId": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "planVersion": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "planFingerprint": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "planObjectId": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "point": {
+                        "type": "object",
+                        "required": [
+                          "x",
+                          "y"
+                        ],
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "owner": {
+                    "type": [
+                      "object",
+                      "null"
+                    ]
+                  },
+                  "relatedRefs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "maxItems": 50
+                  },
+                  "attachments": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "maxItems": 8
+                  },
+                  "handoffs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "emergencyActions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "timestamps": {
+                    "type": "object"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "transitions": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "receipts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "ledger": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "createdBy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": false
+        },
+        "incidents": {
+          "type": "array",
+          "items": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "https://venuemind.dev/schemas/operational-incident.schema.json",
+            "title": "VenueMind Operational Incident",
+            "type": "object",
+            "required": [
+              "schemaVersion",
+              "id",
+              "revision",
+              "severity",
+              "category",
+              "summaryCode",
+              "status",
+              "acknowledgement",
+              "escalation",
+              "location",
+              "owner",
+              "relatedRefs",
+              "attachments",
+              "handoffs",
+              "emergencyActions",
+              "timestamps"
+            ],
+            "properties": {
+              "schemaVersion": {
+                "const": 1
+              },
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "severity": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high",
+                  "critical"
+                ]
+              },
+              "category": {
+                "enum": [
+                  "accessibility",
+                  "crowd-capacity",
+                  "medical",
+                  "security",
+                  "fire-life-safety",
+                  "facilities",
+                  "production-av",
+                  "catering",
+                  "staffing",
+                  "transport",
+                  "weather",
+                  "other"
+                ]
+              },
+              "summaryCode": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 64,
+                "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+              },
+              "status": {
+                "enum": [
+                  "open",
+                  "mitigating",
+                  "resolved",
+                  "closed"
+                ]
+              },
+              "acknowledgement": {
+                "type": "object"
+              },
+              "escalation": {
+                "type": "object"
+              },
+              "location": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "$id": "https://venuemind.dev/schemas/incident-location-context.schema.json",
+                "title": "VenueMind Incident Location Context",
+                "type": "object",
+                "required": [
+                  "kind",
+                  "planId",
+                  "planVersion",
+                  "planFingerprint"
+                ],
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "plan-object",
+                      "coordinate"
+                    ]
+                  },
+                  "planId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "planVersion": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "planFingerprint": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "planObjectId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "point": {
+                    "type": "object",
+                    "required": [
+                      "x",
+                      "y"
+                    ],
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "owner": {
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "relatedRefs": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                },
+                "maxItems": 50
+              },
+              "attachments": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                },
+                "maxItems": 8
+              },
+              "handoffs": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "emergencyActions": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "timestamps": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "incident": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://venuemind.dev/schemas/operational-incident.schema.json",
+          "title": "VenueMind Operational Incident",
+          "type": "object",
+          "required": [
+            "schemaVersion",
+            "id",
+            "revision",
+            "severity",
+            "category",
+            "summaryCode",
+            "status",
+            "acknowledgement",
+            "escalation",
+            "location",
+            "owner",
+            "relatedRefs",
+            "attachments",
+            "handoffs",
+            "emergencyActions",
+            "timestamps"
+          ],
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "severity": {
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "critical"
+              ]
+            },
+            "category": {
+              "enum": [
+                "accessibility",
+                "crowd-capacity",
+                "medical",
+                "security",
+                "fire-life-safety",
+                "facilities",
+                "production-av",
+                "catering",
+                "staffing",
+                "transport",
+                "weather",
+                "other"
+              ]
+            },
+            "summaryCode": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 64,
+              "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+            },
+            "status": {
+              "enum": [
+                "open",
+                "mitigating",
+                "resolved",
+                "closed"
+              ]
+            },
+            "acknowledgement": {
+              "type": "object"
+            },
+            "escalation": {
+              "type": "object"
+            },
+            "location": {
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "$id": "https://venuemind.dev/schemas/incident-location-context.schema.json",
+              "title": "VenueMind Incident Location Context",
+              "type": "object",
+              "required": [
+                "kind",
+                "planId",
+                "planVersion",
+                "planFingerprint"
+              ],
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "plan-object",
+                    "coordinate"
+                  ]
+                },
+                "planId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "planVersion": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "planFingerprint": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "planObjectId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "point": {
+                  "type": "object",
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "owner": {
+              "type": [
+                "object",
+                "null"
+              ]
+            },
+            "relatedRefs": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              },
+              "maxItems": 50
+            },
+            "attachments": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              },
+              "maxItems": 8
+            },
+            "handoffs": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "emergencyActions": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "timestamps": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "receipt": {
+          "type": "object"
+        },
+        "duplicate": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT",
+      "INCIDENT_REGISTER_NOT_FOUND",
+      "INCIDENT_NOT_FOUND",
+      "INCIDENT_TOOL_UNAVAILABLE",
+      "INCIDENT_REVISION_CONFLICT",
+      "INCIDENT_INVALID",
+      "INCIDENT_PRIVACY_REJECTED",
+      "INCIDENT_LOCATION_INVALID",
+      "INCIDENT_LEDGER_INTEGRITY_FAILED"
+    ]
+  },
+  {
+    "name": "venue.export_incident_record",
+    "description": "Export one verified post-event Operational Incident record with frozen Plan and Emergency Plan provenance, transitions, structured handoffs, attachment checksums, receipts, and hash-chained ledger evidence.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "incidentId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        }
+      },
+      "required": [
+        "incidentId"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Export Incident Record",
+    "contractVersion": "1.4.0",
+    "authorization": {
+      "requiredScope": "venue:export"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 2000000
+    },
+    "exampleInput": {
+      "incidentId": "incident-example-001"
+    },
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "filename",
+        "mimeType",
+        "content"
+      ],
+      "properties": {
+        "filename": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mimeType": {
+          "const": "application/json"
+        },
+        "content": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "INCIDENT_REGISTER_NOT_FOUND",
+      "INCIDENT_NOT_FOUND",
+      "INCIDENT_TOOL_UNAVAILABLE",
+      "INCIDENT_REVISION_CONFLICT",
+      "INCIDENT_INVALID",
+      "INCIDENT_PRIVACY_REJECTED",
+      "INCIDENT_LOCATION_INVALID",
+      "INCIDENT_LEDGER_INTEGRITY_FAILED"
+    ]
+  },
+  {
     "name": "venue.export_audit_package",
     "description": "Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.",
     "annotations": {
@@ -5869,7 +7437,7 @@
       "additionalProperties": false
     },
     "title": "Export Audit Package",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:export"
     },
@@ -5973,7 +7541,7 @@
       "additionalProperties": false
     },
     "title": "Export Plan",
-    "contractVersion": "1.3.0",
+    "contractVersion": "1.4.0",
     "authorization": {
       "requiredScope": "venue:export"
     },

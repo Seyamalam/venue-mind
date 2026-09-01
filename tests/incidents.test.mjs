@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createEventDayRunbook } from "../src/domain/event-day-runbook.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
+import { createEventDayRunbook } from "../src/domain/event-day-runbook.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
 import {
   acknowledgeIncident,
   attachIncidentEvidence,
@@ -18,7 +18,7 @@ import {
   setIncidentOwner,
   transitionIncidentStatus,
   verifyIncidentLedger,
-} from "../src/domain/incidents.js";
+} from "../src/domain/incidents.ts";
 
 const makeRunbook = () => createEventDayRunbook({
   projectId: "project-summit-forward",
@@ -110,6 +110,7 @@ test("Incident reporting rejects unsafe classification, location, identity field
   assert.throws(() => reportIncident(register, report({ severity: "urgent" })), (error) => error.code === "INCIDENT_INVALID");
   assert.throws(() => reportIncident(register, report({ location: { kind: "coordinate", point: { x: -100, y: -100 } } })), (error) => error.code === "INCIDENT_LOCATION_INVALID");
   assert.throws(() => reportIncident(register, report({ attendeeName: "Private Person" })), (error) => error.code === "INCIDENT_PRIVACY_REJECTED" && error.details.field === "attendeeName");
+  assert.throws(() => reportIncident(register, report({ actorType: "robot" })), (error) => error.code === "INCIDENT_INVALID" && error.details.reason === "actor-type-invalid");
   const first = reportIncident(register, report(), { committedAt: "2026-09-12T09:05:00.000Z" });
   assert.throws(() => reportIncident(first.register, report({ idempotencyKey: "different-key" })), (error) => error.code === "INCIDENT_ID_CONFLICT");
   assert.throws(() => reportIncident(first.register, report({ severity: "critical" })), (error) => error.code === "IDEMPOTENCY_KEY_CONFLICT");
@@ -199,4 +200,21 @@ test("Incident export fails closed when its global ledger is tampered", () => {
   tampered.ledger[0].details.summaryCode = "ALTERED";
   assert.equal(verifyIncidentLedger(tampered).status, "fail");
   assert.throws(() => exportIncidentRecord(tampered, { incidentId: "incident-east-exit", exportedAt: "2026-09-12T09:10:00.000Z" }), (error) => error.code === "INCIDENT_LEDGER_INTEGRITY_FAILED");
+
+  for (const mutate of [
+    (value) => { value.incidents[0].status = "closed"; },
+    (value) => { value.transitions[0].location.planFingerprint = "altered"; },
+    (value) => { value.receipts.splice(0, 1); },
+    (value) => { value.receipts[0].idempotencyKey = "altered"; },
+    (value) => { value.receipts[0].operation = "altered"; },
+    (value) => { value.receipts[0].inputFingerprint = "altered"; },
+    (value) => { value.source.approvalLedgerEntryId = "altered"; },
+    (value) => { value.baseline.acceptedPlan.name = "altered"; },
+    (value) => { value.ledger[0].actorType = "robot"; },
+  ]) {
+    const altered = structuredClone(register);
+    mutate(altered);
+    assert.equal(verifyIncidentLedger(altered).status, "fail");
+    assert.throws(() => exportIncidentRecord(altered, { incidentId: "incident-east-exit", exportedAt: "2026-09-12T09:10:00.000Z" }), (error) => error.code === "INCIDENT_LEDGER_INTEGRITY_FAILED");
+  }
 });

@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryCollaborationRepository, createWorker } from "../dist/server/index.js";
-import { createCollaborationClient } from "../src/collaboration/collaboration-client.js";
-import { projectCollaborationEventTypes } from "../src/domain/collaboration-events.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
+import { createCollaborationClient } from "../src/collaboration/collaboration-client.ts";
+import { projectCollaborationEventTypes } from "../src/domain/collaboration-events.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
 
 const NOW = "2026-08-28T12:00:00.000Z";
 

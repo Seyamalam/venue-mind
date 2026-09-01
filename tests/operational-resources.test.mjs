@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { bookingOverlaps, normalizePreparedOperationalResourceInput, reconcileOperationalResources, resourceSatisfiesDemand } from "../src/domain/operational-resources.js";
+import { bookingOverlaps, normalizePreparedOperationalResourceInput, reconcileOperationalResources, resourceSatisfiesDemand } from "../src/domain/operational-resources.ts";
 
 const EVENT = { startAt: "2026-09-12T10:00:00.000Z", endAt: "2026-09-12T12:00:00.000Z" };
 const templateRef = { templateId: "inventory-template-laser-projector", version: "1.0.0" };

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createOccupancyStore } from "../src/persistence/occupancy-store.js";
-import { synchronizeOccupancy } from "../src/persistence/occupancy-sync.js";
+import { createOccupancyStore } from "../src/persistence/occupancy-store.ts";
+import { synchronizeOccupancy } from "../src/persistence/occupancy-sync.ts";
 
 const storage = () => {
   const values = new Map();

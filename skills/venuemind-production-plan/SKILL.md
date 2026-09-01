@@ -3,7 +3,7 @@ name: venuemind-production-plan
 description: Plan VenueMind staging, AV, power, cable routes, production access, and service lanes as validated, non-destructive Proposal branches.
 metadata:
   version: 1.1.0
-  tool-contract-version: 1.3.0
+  tool-contract-version: 1.4.0
 ---
 
 # VenueMind Production Plan

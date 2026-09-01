@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createIncidentRemote } from "../src/persistence/incident-remote.js";
+import { createIncidentRemote } from "../src/persistence/incident-remote.ts";
 
 test("Incident remote scopes create, get, sync, export, and evidence upload to one Project", async () => {
   const calls = [];

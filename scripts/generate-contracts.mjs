@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 import { mkdir, writeFile } from "node:fs/promises";
-import { venueCommandSchema, venueToolManifestSchema, venueTemplateCatalogSchema, spatialGeometrySchema, spatialEvidenceSchema, venueConstraintSchema, warningWaiverSchema, objectLockSchema, venueErrorSchema, validationResultSchema, commandReceiptSchema, activityLedgerSchema, proposalConflictResultSchema, proposalComparisonSchema, eventBriefSchema, planningEffectSchema, calendarWebhookEventSchema, commentAnchorSchema, commentSchema, scenarioDefinitionSchema, simulationResultSchema, aggregateOccupancySignalSchema, liveOccupancyProjectionSchema, liveOccupancyMonitorSchema, incidentLocationContextSchema, operationalIncidentSchema, incidentRegisterSchema, planExportSchema, projectListResultSchema, projectOpenResultSchema, layoutInspectionSchema, previewRevisionResultSchema, plannerSnapshotSchema, projectRecordSchema, venueProjectPackageSchema, venueToolContracts } from "../src/contracts/venue-contracts.js";
-import { errorCatalog } from "../src/domain/errors.js";
-import { sealActivityLedger } from "../src/domain/activity-ledger.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { exportProjectPackage } from "../src/interchange/venue-package.js";
-import { venueTemplateCatalog } from "../src/domain/venue-templates.js";
-import { agentGrantSchema, authorizationPolicySchema, venueAuthorizationPolicy } from "../src/domain/authorization.js";
+import { venueCommandSchema, venueToolManifestSchema, venueTemplateCatalogSchema, spatialGeometrySchema, spatialEvidenceSchema, venueConstraintSchema, warningWaiverSchema, objectLockSchema, venueErrorSchema, validationResultSchema, commandReceiptSchema, activityLedgerSchema, proposalConflictResultSchema, proposalComparisonSchema, eventBriefSchema, planningEffectSchema, calendarWebhookEventSchema, commentAnchorSchema, commentSchema, scenarioDefinitionSchema, simulationResultSchema, aggregateOccupancySignalSchema, liveOccupancyProjectionSchema, liveOccupancyMonitorSchema, incidentLocationContextSchema, operationalIncidentSchema, incidentRegisterSchema, planExportSchema, projectListResultSchema, projectOpenResultSchema, layoutInspectionSchema, previewRevisionResultSchema, plannerSnapshotSchema, projectRecordSchema, venueProjectPackageSchema, venueToolContracts } from "../src/contracts/venue-contracts.ts";
+import { errorCatalog } from "../src/domain/errors.ts";
+import { sealActivityLedger } from "../src/domain/activity-ledger.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { exportProjectPackage } from "../src/interchange/venue-package.ts";
+import { venueTemplateCatalog } from "../src/domain/venue-templates.ts";
+import { agentGrantSchema, authorizationPolicySchema, venueAuthorizationPolicy } from "../src/domain/authorization.ts";
 
 const schemas = [venueCommandSchema, venueToolManifestSchema, venueTemplateCatalogSchema, spatialGeometrySchema, spatialEvidenceSchema, venueConstraintSchema, warningWaiverSchema, objectLockSchema, venueErrorSchema, validationResultSchema, commandReceiptSchema, activityLedgerSchema, proposalConflictResultSchema, proposalComparisonSchema, eventBriefSchema, planningEffectSchema, calendarWebhookEventSchema, commentAnchorSchema, commentSchema, scenarioDefinitionSchema, simulationResultSchema, aggregateOccupancySignalSchema, liveOccupancyProjectionSchema, liveOccupancyMonitorSchema, incidentLocationContextSchema, operationalIncidentSchema, incidentRegisterSchema, planExportSchema, projectListResultSchema, projectOpenResultSchema, layoutInspectionSchema, previewRevisionResultSchema, plannerSnapshotSchema, projectRecordSchema, venueProjectPackageSchema, agentGrantSchema, authorizationPolicySchema];
 const canonicalizeTimes = (value) => {

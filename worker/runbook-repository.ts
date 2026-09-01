@@ -1,4 +1,4 @@
-import { stableFingerprint } from "../src/domain/activity-ledger.js";
+import { stableFingerprint } from "../src/domain/activity-ledger.ts";
 import { applyDatabaseMigrations } from "./database-migrations.ts";
 
 type D1Statement = {

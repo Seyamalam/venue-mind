@@ -5,9 +5,9 @@ import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
 import { DATABASE_MIGRATIONS, DATABASE_SCHEMA_VERSION } from "../db/generated-migrations.ts";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { fingerprintPlan, verifyActivityLedger } from "../src/domain/activity-ledger.js";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { fingerprintPlan, verifyActivityLedger } from "../src/domain/activity-ledger.ts";
 
 const execute = promisify(execFile);
 const root = path.resolve(new URL("../", import.meta.url).pathname);

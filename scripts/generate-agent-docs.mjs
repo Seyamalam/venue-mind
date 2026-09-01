@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { buildAgentDocuments } from "../src/docs/agent-documents.js";
-import { defaultPublicOrigin } from "../src/docs/public-origin.js";
+import { buildAgentDocuments } from "../src/docs/agent-documents.ts";
+import { defaultPublicOrigin } from "../src/docs/public-origin.ts";
 
 const outputDirectory = new URL("../public/", import.meta.url);
 const skillsManifest = JSON.parse(await readFile(new URL("../skills/manifest.json", import.meta.url), "utf8"));

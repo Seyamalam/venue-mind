@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { analyzeCateringPlan, createReplenishmentScheduleCsv, createServiceStationScheduleCsv, normalizeCateringPolicy } from "../src/domain/catering-planning.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
+import { analyzeCateringPlan, createReplenishmentScheduleCsv, createServiceStationScheduleCsv, normalizeCateringPolicy } from "../src/domain/catering-planning.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 

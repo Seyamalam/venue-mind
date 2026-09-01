@@ -3,7 +3,7 @@
   "packages": 6,
   "requiredToolSelections": 73,
   "toolSelectionAccuracy": 1,
-  "referencedTools": 87,
+  "referencedTools": 89,
   "unnecessaryCalls": 0,
   "unnecessaryCallRate": 0
 }

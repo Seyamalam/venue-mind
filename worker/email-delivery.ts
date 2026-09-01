@@ -1,4 +1,4 @@
-import { safeNotification } from "../src/domain/sharing.js";
+import { safeNotification } from "../src/domain/sharing.ts";
 
 const failureCode = (cause: unknown) => {
   const coded = cause && typeof cause === "object" && "code" in cause ? String(cause.code) : cause instanceof Error ? cause.message : "";

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import type { SearchEntry } from "@/components/docs/docs-search-palette";
-import { searchDocs } from "@/src/docs/search.js";
+import { searchDocs } from "@/src/docs/search.ts";
 
 type SearchPayload = {
   schemaVersion: number;

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createVenueToolService } from "../src/tools/venue-tool-service.js";
+import { createVenueToolService } from "../src/tools/venue-tool-service.ts";
 
 const project = Object.freeze({
   id: "project-main",

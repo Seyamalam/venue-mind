@@ -159,6 +159,29 @@ export interface VenueMindToolOutputMap {
     mimeType: "application/json";
     content: string;
   };
+  "venue.inspect_incidents": {
+    register: VenueMindIncidentRegister;
+    incidents?: VenueMindOperationalIncident[];
+    incident?: VenueMindOperationalIncident;
+    receipt?: {
+      [k: string]: unknown;
+    };
+    duplicate?: boolean;
+  };
+  "venue.report_incident": {
+    register: VenueMindIncidentRegister;
+    incidents?: VenueMindOperationalIncident[];
+    incident?: VenueMindOperationalIncident;
+    receipt?: {
+      [k: string]: unknown;
+    };
+    duplicate?: boolean;
+  };
+  "venue.export_incident_record": {
+    filename: string;
+    mimeType: "application/json";
+    content: string;
+  };
   "venue.export_audit_package": VenueMindPlanExport;
   "venue.export_plan": VenueMindPlanExport;
 }
@@ -798,6 +821,219 @@ export interface VenueMindLiveOccupancyProjection {
     mode: "aggregate-only";
     personRecordsStored: false;
     individualEventsStored: false;
+  };
+}
+export interface VenueMindIncidentRegister {
+  schemaVersion: 1;
+  id: string;
+  projectId: string;
+  runbookVersionId: string;
+  source: {
+    [k: string]: unknown;
+  };
+  baseline: {
+    fingerprint: string;
+    [k: string]: unknown;
+  };
+  incidents: VenueMindOperationalIncident[];
+  transitions: {
+    [k: string]: unknown;
+  }[];
+  receipts: {
+    [k: string]: unknown;
+  }[];
+  ledger: {
+    [k: string]: unknown;
+  }[];
+  revision: number;
+  createdAt: string;
+  createdBy: string;
+  updatedAt: string;
+}
+export interface VenueMindOperationalIncident {
+  schemaVersion: 1;
+  id: string;
+  revision: number;
+  severity: "low" | "medium" | "high" | "critical";
+  category:
+    | "accessibility"
+    | "crowd-capacity"
+    | "medical"
+    | "security"
+    | "fire-life-safety"
+    | "facilities"
+    | "production-av"
+    | "catering"
+    | "staffing"
+    | "transport"
+    | "weather"
+    | "other";
+  summaryCode: string;
+  status: "open" | "mitigating" | "resolved" | "closed";
+  acknowledgement: {
+    [k: string]: unknown;
+  };
+  escalation: {
+    [k: string]: unknown;
+  };
+  location: VenueMindIncidentLocationContext;
+  owner: {
+    [k: string]: unknown;
+  } | null;
+  /**
+   * @maxItems 50
+   */
+  relatedRefs: {
+    [k: string]: unknown;
+  }[];
+  /**
+   * @maxItems 8
+   */
+  attachments:
+    | []
+    | [
+        {
+          [k: string]: unknown;
+        }
+      ]
+    | [
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        }
+      ]
+    | [
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        }
+      ]
+    | [
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        }
+      ]
+    | [
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        }
+      ]
+    | [
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        }
+      ]
+    | [
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        }
+      ]
+    | [
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        }
+      ];
+  handoffs: {
+    [k: string]: unknown;
+  }[];
+  emergencyActions: {
+    [k: string]: unknown;
+  }[];
+  timestamps: {
+    [k: string]: unknown;
+  };
+}
+export interface VenueMindIncidentLocationContext {
+  kind: "plan-object" | "coordinate";
+  planId: string;
+  planVersion: string;
+  planFingerprint: string;
+  planObjectId?: string;
+  point?: {
+    x: number;
+    y: number;
   };
 }
 export interface VenueMindPlanExport {

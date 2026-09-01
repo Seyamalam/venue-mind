@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createEventDayRunbook, deriveRunbookHandoff, taskReadiness, transitionRunbookTask, validateRunbookDefinition, verifyRunbookLedger } from "../src/domain/event-day-runbook.js";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createEventDayRunbook, deriveRunbookHandoff, taskReadiness, transitionRunbookTask, validateRunbookDefinition, verifyRunbookLedger } from "../src/domain/event-day-runbook.ts";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const schedule = { startAt: "2026-09-12T08:00:00-04:00", endAt: "2026-09-12T16:00:00-04:00", timezone: "America/New_York" };

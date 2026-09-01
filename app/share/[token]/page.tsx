@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SharedReview } from "@/src/SharedReview.jsx";
+import { SharedReview } from "@/src/SharedReview";
 
 export const metadata: Metadata = {
   title: "Shared Review",

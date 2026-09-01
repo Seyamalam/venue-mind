@@ -1,15 +1,9 @@
-// @ts-expect-error Monorepo JavaScript implementation is bundled into the published entry point.
-import * as contracts from "../../../src/integrations/contracts.js";
-// @ts-expect-error Monorepo JavaScript implementation is bundled into the published entry point.
-import * as runtime from "../../../src/integrations/runtime.js";
-// @ts-expect-error Monorepo JavaScript implementation is bundled into the published entry point.
-import { createExternalIdMapping as internalCreateExternalIdMapping } from "../../../src/integrations/staging.js";
-// @ts-expect-error Monorepo JavaScript implementation is bundled into the published entry point.
-import { collectAdapterPages as internalCollectAdapterPages } from "../../../src/integrations/pagination.js";
-// @ts-expect-error Monorepo JavaScript implementation is bundled into the published entry point.
-import { adapterHttpError as internalAdapterHttpError, normalizeRetryAfter as internalNormalizeRetryAfter } from "../../../src/integrations/http-errors.js";
-// @ts-expect-error Monorepo JavaScript implementation is bundled into the published entry point.
-import { verifyWebhookHmac as internalVerifyWebhookHmac } from "../../../src/integrations/webhook-signatures.js";
+import * as contracts from "../../../src/integrations/contracts.ts";
+import * as runtime from "../../../src/integrations/runtime.ts";
+import { createExternalIdMapping as internalCreateExternalIdMapping } from "../../../src/integrations/staging.ts";
+import { collectAdapterPages as internalCollectAdapterPages } from "../../../src/integrations/pagination.ts";
+import { adapterHttpError as internalAdapterHttpError, normalizeRetryAfter as internalNormalizeRetryAfter } from "../../../src/integrations/http-errors.ts";
+import { verifyWebhookHmac as internalVerifyWebhookHmac } from "../../../src/integrations/webhook-signatures.ts";
 
 export type AdapterCapability = "import" | "export" | "synchronize" | "webhook";
 export type AdapterImportResultMode = "reviewable-proposal" | "aggregate-snapshot";

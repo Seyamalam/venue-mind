@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryAccountRepository, createWorker } from "../dist/server/index.js";
-import { createProjectStore } from "../src/persistence/project-store.js";
-import { createAgentGrant, createAgentPrincipal } from "../src/domain/authorization.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { venueToolContracts } from "../src/contracts/venue-contracts.js";
-import { executeVenueWebMcpTool } from "../src/webmcp/tool-runtime.js";
-import { createMemoryProjectRepository } from "../packages/mcp-server/src/project-repository.js";
-import { createProjectSession } from "../packages/mcp-server/src/project-session.js";
-import { createStructuredLogger, createVenueMindMcpServer } from "../packages/mcp-server/src/index.js";
-import { createOrganizationInvitation, createUserSession, invitationStatus, sessionStatus } from "../src/domain/accounts.js";
+import { createProjectStore } from "../src/persistence/project-store.ts";
+import { createAgentGrant, createAgentPrincipal } from "../src/domain/authorization.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { venueToolContracts } from "../src/contracts/venue-contracts.ts";
+import { executeVenueWebMcpTool } from "../src/webmcp/tool-runtime.ts";
+import { createMemoryProjectRepository } from "../packages/mcp-server/src/project-repository.ts";
+import { createProjectSession } from "../packages/mcp-server/src/project-session.ts";
+import { createStructuredLogger, createVenueMindMcpServer } from "../packages/mcp-server/src/index.ts";
+import { createOrganizationInvitation, createUserSession, invitationStatus, sessionStatus } from "../src/domain/accounts.ts";
 
 const NOW = "2026-08-28T10:00:00.000Z";
 const later = "2026-08-28T10:30:00.000Z";

@@ -8,9 +8,9 @@ test("Next routes own only the CSS required by their runtime", async () => {
   const [workspaceLayout, shareLayout, studio, review, gate] = await Promise.all([
     read("../app/(workspace)/layout.tsx"),
     read("../app/share/layout.tsx"),
-    read("../src/App.jsx"),
-    read("../src/SharedReview.jsx"),
-    read("../src/auth/WorkspaceGate.jsx"),
+    read("../src/App.tsx"),
+    read("../src/SharedReview.tsx"),
+    read("../src/auth/WorkspaceGate.tsx"),
   ]);
 
   assert.doesNotMatch(workspaceLayout, /src\/styles\.css/);

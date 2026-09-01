@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { QUEUE_BENCHMARKS, QUEUE_CATEGORIES } from "../src/domain/queue-simulation.js";
-import { createScenarioRunner, normalizeScenarioDefinition } from "../src/domain/scenario-engine.js";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { QUEUE_BENCHMARKS, QUEUE_CATEGORIES } from "../src/domain/queue-simulation.ts";
+import { createScenarioRunner, normalizeScenarioDefinition } from "../src/domain/scenario-engine.ts";
 
 const queueScenario = {
   model: "queue",

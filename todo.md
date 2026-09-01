@@ -839,7 +839,7 @@ Completion gate:
 - [x] Compare live occupancy with approved capacity and simulation assumptions.
 - [x] Trigger structured warnings for thresholds and stale data.
 - [x] Preserve privacy by defaulting to aggregate data.
-- [x] Record threshold events in the incident ledger.
+- [x] Record threshold events in the Occupancy Monitor Ledger.
 
 Completion gate:
 
@@ -847,17 +847,17 @@ Completion gate:
 
 ## 8.3 Issues and incidents
 
-- [ ] Add issue severity, category, location, owner, status, and timestamps.
-- [ ] Anchor incidents to Plan objects or coordinates.
-- [ ] Add photos or attachments behind secure storage controls.
-- [ ] Add escalation and acknowledgement states.
-- [ ] Add structured handoffs.
-- [ ] Link emergency actions to the approved emergency Plan Version.
-- [ ] Export a post-event incident record.
+- [x] Add issue severity, category, location, owner, status, and timestamps.
+- [x] Anchor incidents to Plan objects or coordinates.
+- [x] Add photos or attachments behind secure storage controls.
+- [x] Add escalation and acknowledgement states.
+- [x] Add structured handoffs.
+- [x] Link emergency actions to the approved emergency Plan Version.
+- [x] Export a post-event incident record.
 
 Completion gate:
 
-- [ ] Every incident transition has one actor, one timestamp, one location context, and one ordered ledger entry.
+- [x] Every incident transition has one actor, one timestamp, one location context, and one ordered ledger entry.
 
 ## 8.4 Live plan deviations
 

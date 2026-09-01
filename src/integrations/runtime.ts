@@ -1,0 +1,285 @@
+import {
+  AdapterContractError,
+  adapterInvocationId,
+  assertIsoTimestamp,
+  assertAdapterScope,
+  canonicalStringify,
+  defineAdapter,
+  normalizeSyncCursor,
+  sha256Checksum,
+} from "./contracts.ts";
+import { createScopedSecretReader } from "./secret-store.ts";
+import { assertAdapterProjectContext, assertReviewableStagingBatch, assertStagingBatchIntegrity, createAdapterStagingBatch } from "./staging.ts";
+import { createMemoryProcessedBatchStore } from "./processed-batch-store.ts";
+
+const clone = (value: any) => structuredClone(value);
+
+const fail = (code: any, message: any, details: any = {}) => {
+  throw new AdapterContractError(code, message, details);
+};
+
+const asAdapterFailure = (error: any) => {
+  if (error instanceof AdapterContractError) return error;
+  return new AdapterContractError(error?.code ?? "ADAPTER_HANDLER_FAILED", error?.message ?? "Adapter handler failed");
+};
+
+const isPolicyFailure = (error: any) => error.code.startsWith("ADAPTER_SECRET_")
+  || error.code === "ADAPTER_SCOPE_DENIED"
+  || error.code === "ADAPTER_SOURCE_MISMATCH"
+  || error.code === "ADAPTER_ID_BOUNDARY_VIOLATION"
+  || error.code === "ADAPTER_REVIEW_BYPASS"
+  || error.code === "ADAPTER_BASE_OBJECT_CONFLICT"
+  || error.code === "ADAPTER_BASE_PLAN_VERSION_REQUIRED"
+  || error.code === "ADAPTER_PROPOSAL_REVISION_REQUIRED"
+  || error.code === "ADAPTER_STAGING_INTEGRITY_FAILED"
+  || error.code === "ADAPTER_PROJECT_BINDING_REQUIRED"
+  || error.code === "ADAPTER_PROJECT_BINDING_MISMATCH"
+  || error.code === "ADAPTER_PLANNING_BINDING_MISMATCH"
+  || error.code === "ADAPTER_WEBHOOK_STORE_REQUIRED"
+  || error.code === "ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED"
+  || error.code === "ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED"
+  || error.code === "ADAPTER_ENTITY_TYPE_INVALID"
+  || error.code === "ADAPTER_ENTITY_TYPE_UNSUPPORTED"
+  || error.code === "ADAPTER_PROTECTED_FIELD"
+  || error.code === "ADAPTER_CHECKSUM_INVALID"
+  || error.code === "ADAPTER_CHECKSUM_MISMATCH"
+  || error.code === "ADAPTER_PERSONAL_DATA_REJECTED"
+  || error.code.startsWith("ADAPTER_CONTRACT_");
+
+const normalizeWebhookEvent = async (definition: any, value: any) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) fail("ADAPTER_CONTRACT_INVALID", "Webhook result must be an object");
+  const unknown = Object.keys(value).filter((key: any) => !["sourceSystem", "eventId", "eventType", "occurredAt", "sourceVersion", "payload", "checksum"].includes(key));
+  if (unknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Webhook result contains unknown fields", { fields: unknown.sort() });
+  for (const field of ["sourceSystem", "eventId", "eventType", "occurredAt", "sourceVersion"]) if (typeof value[field] !== "string" || !value[field]) fail("ADAPTER_CONTRACT_INVALID", `Webhook ${field} is required`);
+  assertIsoTimestamp(value.occurredAt, "Webhook occurredAt");
+  const content: any = { adapterId: definition.id, adapterVersion: definition.version, sourceSystem: value.sourceSystem, eventId: value.eventId, eventType: value.eventType, occurredAt: value.occurredAt, sourceVersion: value.sourceVersion, payload: clone(value.payload) };
+  const checksum = await sha256Checksum(content);
+  if (value.checksum !== undefined && value.checksum !== checksum) fail("ADAPTER_CHECKSUM_MISMATCH", "Webhook checksum does not match normalized content", { eventId: value.eventId });
+  return Object.freeze({ schemaVersion: 1, ...content, checksum });
+};
+
+const validateStoredWebhookEvent = async (definition: any, value: any, expected: any, inserted: any) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", "Webhook store returned an invalid row");
+  const allowed: any = ["schemaVersion", "adapterId", "adapterVersion", "sourceSystem", "eventId", "eventType", "occurredAt", "sourceVersion", "payload", "checksum"];
+  const unknown = Object.keys(value).filter((key: any) => !allowed.includes(key));
+  if (unknown.length) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", "Webhook store row contains unknown fields", { fields: unknown.sort() });
+  if (value.schemaVersion !== 1 || value.adapterId !== definition.id || value.adapterVersion !== definition.version || value.sourceSystem !== expected.sourceSystem || value.eventId !== expected.eventId) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", "Webhook store row identity does not match its durable key", { adapterId: value.adapterId, adapterVersion: value.adapterVersion, sourceSystem: value.sourceSystem, eventId: value.eventId });
+  for (const field of ["eventType", "occurredAt", "sourceVersion"]) if (typeof value[field] !== "string" || !value[field]) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", `Webhook store ${field} is invalid`);
+  try {
+    assertIsoTimestamp(value.occurredAt, "Webhook store occurredAt");
+  } catch (error: any) {
+    fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", error.message);
+  }
+  const content: any = { adapterId: value.adapterId, adapterVersion: value.adapterVersion, sourceSystem: value.sourceSystem, eventId: value.eventId, eventType: value.eventType, occurredAt: value.occurredAt, sourceVersion: value.sourceVersion, payload: clone(value.payload) };
+  const checksum = await sha256Checksum(content);
+  const schemaBoundChecksum = await sha256Checksum({ schemaVersion: value.schemaVersion, ...content });
+  if (![checksum, schemaBoundChecksum].includes(value.checksum)) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", "Webhook store row checksum does not match its normalized content", { eventId: value.eventId });
+  if (value.checksum !== expected.checksum) {
+    const code = inserted ? "ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED" : "ADAPTER_WEBHOOK_REPLAY_MISMATCH";
+    fail(code, inserted ? "Webhook store did not persist the accepted event exactly" : "Webhook event ID was replayed with different content", { eventId: value.eventId, sourceSystem: value.sourceSystem });
+  }
+  return Object.freeze({ schemaVersion: 1, ...content, checksum: value.checksum });
+};
+
+const normalizeExport = async (definition: any, value: any) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) fail("ADAPTER_CONTRACT_INVALID", "Export result must be an object");
+  const unknown = Object.keys(value).filter((key: any) => !["sourceSystem", "mediaType", "sourceVersion", "data", "checksum"].includes(key));
+  if (unknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Export result contains unknown fields", { fields: unknown.sort() });
+  for (const field of ["sourceSystem", "mediaType", "sourceVersion"]) if (typeof value[field] !== "string" || !value[field]) fail("ADAPTER_CONTRACT_INVALID", `Export ${field} is required`);
+  const content: any = { adapterId: definition.id, adapterVersion: definition.version, sourceSystem: value.sourceSystem, mediaType: value.mediaType, sourceVersion: value.sourceVersion, data: clone(value.data) };
+  const checksum = await sha256Checksum(content);
+  if (value.checksum !== undefined && value.checksum !== checksum) fail("ADAPTER_CHECKSUM_MISMATCH", "Export checksum does not match normalized content");
+  return Object.freeze({ schemaVersion: 1, ...content, checksum });
+};
+
+const assertAggregateImportResult = async (adapter: any, output: any, capability: any, preparedInput: any) => {
+  if (typeof adapter.assertImportResult !== "function") fail("ADAPTER_CONTRACT_INVALID", "Aggregate snapshot adapters require an import-result validator", { adapterId: adapter.definition.id });
+  await adapter.assertImportResult(output, { capability, preparedInput: clone(preparedInput) });
+  return output;
+};
+
+export function createVenueAdapter(definitionInput: any, handlers: any) {
+  const definition = defineAdapter(definitionInput);
+  if (!handlers || typeof handlers !== "object" || Array.isArray(handlers)) fail("ADAPTER_CONTRACT_INVALID", "Adapter handlers must be an object");
+  const unknown = Object.keys(handlers).filter((key: any) => !definition.capabilities.includes(key));
+  if (unknown.length) fail("ADAPTER_CAPABILITY_UNDECLARED", "Adapter implements undeclared capabilities", { capabilities: unknown.sort() });
+  for (const capability of definition.capabilities) if (typeof handlers[capability] !== "function") fail("ADAPTER_HANDLER_MISSING", `Adapter handler is missing for ${capability}`);
+
+  return Object.freeze({
+    definition,
+    async invoke(capability: any, input: any, context: any) {
+      if (!definition.capabilities.includes(capability)) fail("ADAPTER_CAPABILITY_UNSUPPORTED", `${definition.id} does not support ${capability}`);
+      const output = await handlers[capability](clone(input), context);
+      if (capability === "import" || capability === "synchronize") {
+        const staging = await createAdapterStagingBatch(definition, output, { basePlanVersion: input?.basePlanVersion, proposalRevision: input?.proposalRevision });
+        if (staging.status === "awaiting-review") await assertReviewableStagingBatch(staging, null, { requireProjectContext: false });
+        else if (staging.status !== "no-changes" || staging.proposal !== null) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "No-change staging must not contain a Proposal");
+        return staging;
+      }
+      if (capability === "export") return normalizeExport(definition, output);
+      if (capability === "webhook") return normalizeWebhookEvent(definition, output);
+      return clone(output);
+    },
+  });
+}
+
+export function createAdapterRuntime(options: any = {}) {
+  const clock = options.clock ?? (() => Date.now());
+  const sleep = options.sleep ?? ((milliseconds: any) => new Promise((resolve: any) => setTimeout(resolve, milliseconds)));
+  const deadLetterSink = options.deadLetterSink ?? { async add() {} };
+  const processedBatchStore = options.processedBatchStore ?? createMemoryProcessedBatchStore();
+  const webhookEventStore = options.webhookEventStore ?? null;
+  const resolveProjectContext = typeof options.resolveProjectContext === "function" ? options.resolveProjectContext : async () => options.projectContext ?? null;
+  const requestTimes: any = new Map();
+
+  const validateStagingForPersistence = async (definition: any, capability: any, output: any) => {
+    await assertStagingBatchIntegrity(output);
+    const hasProjectMapping = output.mappings.some((mapping: any) => mapping.venueEntityType === "project");
+    const projectContext = hasProjectMapping ? await resolveProjectContext({ adapterId: definition.id, adapterVersion: definition.version, capability, sourceSystem: output.sourceSystem }) : null;
+    assertAdapterProjectContext(output, projectContext);
+    if (output.status === "awaiting-review") await assertReviewableStagingBatch(output, projectContext);
+    else if (output.status !== "no-changes" || output.proposal !== null) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "No-change staging must not contain a Proposal");
+    return output;
+  };
+
+  const validateImportForPersistence = async (adapter: any, capability: any, output: any, preparedInput: any) => {
+    if (adapter.definition.importResultMode === "reviewable-proposal") {
+      await validateStagingForPersistence(adapter.definition, capability, output);
+      if (typeof adapter.assertImportResult === "function") await adapter.assertImportResult(output, { capability, preparedInput: clone(preparedInput) });
+      return output;
+    }
+    if (adapter.definition.importResultMode === "aggregate-snapshot") return assertAggregateImportResult(adapter, output, capability, preparedInput);
+    fail("ADAPTER_CONTRACT_INVALID", "Adapter importResultMode is unsupported", { adapterId: adapter.definition.id });
+  };
+
+  const validateStoredProcessedBatch = async (adapter: any, capability: any, value: any, expected: any, preparedInput: any, requireExactOutput: any = false) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store returned an invalid row");
+    const unknown = Object.keys(value).filter((key: any) => !["invocationId", "inputChecksum", "completedAt", "output"].includes(key));
+    if (unknown.length || value.invocationId !== expected.invocationId || value.inputChecksum !== expected.inputChecksum) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store row identity does not match its durable key");
+    try { assertIsoTimestamp(value.completedAt, "Processed batch completedAt"); } catch { fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store timestamp is invalid"); }
+    await validateImportForPersistence(adapter, capability, value.output, preparedInput);
+    if (expected.completedAt !== undefined && value.completedAt !== expected.completedAt) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store changed the completion timestamp");
+    if (requireExactOutput && await sha256Checksum(value.output) !== await sha256Checksum(expected.output)) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store did not persist the accepted output exactly");
+    return value;
+  };
+
+  const acquireRateLimit = async (definition: any) => {
+    const key = `${definition.id}@${definition.version}`;
+    const now = clock();
+    const retained = (requestTimes.get(key) ?? []).filter((time: any) => time > now - definition.rateLimit.windowMs);
+    if (retained.length >= definition.rateLimit.requests) {
+      const waitMs = Math.max(0, retained[0] + definition.rateLimit.windowMs - now);
+      await sleep(waitMs);
+      const advanced = clock();
+      requestTimes.set(key, retained.filter((time: any) => time > advanced - definition.rateLimit.windowMs));
+    } else requestTimes.set(key, retained);
+    requestTimes.get(key).push(clock());
+  };
+
+  return Object.freeze({
+    async execute(adapter: any, capability: any, input: any, authorization: any = {}) {
+      const { definition } = adapter;
+      assertAdapterScope(definition, capability, authorization.grantedScopes ?? []);
+      const adapterContext = authorization.trustedAdapterContexts?.[definition.id];
+      const preparedInput = typeof adapter.prepareInput === "function" ? await adapter.prepareInput(capability, clone(input), { adapterContext: clone(adapterContext) }) : clone(input);
+      const invocationId = adapterInvocationId(definition, capability, preparedInput);
+      const inputChecksum = await sha256Checksum(preparedInput);
+      const stagesImport = capability === "import" || capability === "synchronize";
+      const processedBatchKey = `${definition.id}@${definition.version}:${capability}:${inputChecksum}`;
+      if (stagesImport) {
+        const completed = await processedBatchStore.get(processedBatchKey);
+        if (completed) {
+          await validateStoredProcessedBatch(adapter, capability, completed, { invocationId, inputChecksum }, preparedInput);
+          return { status: "duplicate", invocationId, attempts: [], duplicateOf: completed.completedAt, output: clone(completed.output) };
+        }
+      }
+      const attempts: any = [];
+      const secretReader = createScopedSecretReader(authorization.secretStore, authorization.secretReferences ?? []);
+      for (let attempt = 1; attempt <= definition.retryPolicy.maxAttempts; attempt += 1) {
+        await acquireRateLimit(definition);
+        try {
+          const output = await adapter.invoke(capability, preparedInput, { invocationId, attempt, clock: () => new Date(clock()).toISOString(), secrets: secretReader });
+          if (stagesImport) await validateImportForPersistence(adapter, capability, output, preparedInput);
+          if (capability === "webhook" && typeof adapter.assertWebhookResult === "function") await adapter.assertWebhookResult(output, { capability, preparedInput: clone(preparedInput) });
+          attempts.push({ attempt, status: "succeeded", at: new Date(clock()).toISOString() });
+          if (stagesImport) {
+            const completedAt = new Date(clock()).toISOString();
+            const expected: any = { invocationId, inputChecksum, completedAt, output };
+            const stored = await processedBatchStore.putIfAbsent(processedBatchKey, expected);
+            if (!stored || typeof stored !== "object" || Array.isArray(stored) || typeof stored.inserted !== "boolean" || !Object.hasOwn(stored, "value")) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store returned an invalid insert result");
+            const validationExpected = stored.inserted ? expected : { invocationId, inputChecksum };
+            await validateStoredProcessedBatch(adapter, capability, stored.value, validationExpected, preparedInput, stored.inserted);
+            if (!stored.inserted) return { status: "duplicate", invocationId, attempts, duplicateOf: stored.value.completedAt, output: clone(stored.value.output) };
+            return { status: "succeeded", invocationId, attempts, output: clone(stored.value.output) };
+          }
+          return { status: "succeeded", invocationId, attempts, output };
+        } catch (cause: any) {
+          const error = asAdapterFailure(cause);
+          if (isPolicyFailure(error)) throw error;
+          const retryable = definition.retryPolicy.retryableCodes.includes(error.code);
+          const exhausted = attempt === definition.retryPolicy.maxAttempts;
+          attempts.push({ attempt, status: retryable && !exhausted ? "retrying" : "failed", code: error.code, at: new Date(clock()).toISOString() });
+          if (!retryable || exhausted) {
+            const deadLetter = Object.freeze({
+              schemaVersion: 1,
+              id: `${invocationId}-dead-letter`,
+              adapterId: definition.id,
+              adapterVersion: definition.version,
+              capability,
+              inputChecksum,
+              failedAt: new Date(clock()).toISOString(),
+              attempts: clone(attempts),
+              terminalCode: error.code,
+            });
+            await deadLetterSink.add(deadLetter);
+            return { status: "dead-lettered", invocationId, attempts, deadLetter, error };
+          }
+          const exponential = definition.retryPolicy.initialDelayMs * (definition.retryPolicy.multiplier ** (attempt - 1));
+          const requested = Number.isFinite(error.details?.retryAfterMs) ? error.details.retryAfterMs : 0;
+          const delayMs = Math.min(definition.retryPolicy.maximumDelayMs, Math.max(exponential, requested));
+          attempts.at(-1).delayMs = delayMs;
+          await sleep(delayMs);
+        }
+      }
+      throw new Error("Unreachable adapter attempt state");
+    },
+
+    async acceptWebhook(adapter: any, input: any, authorization: any = {}) {
+      if (!webhookEventStore || typeof webhookEventStore.putIfAbsent !== "function") fail("ADAPTER_WEBHOOK_STORE_REQUIRED", "Webhook acceptance requires an injected atomic durable event store");
+      const result = await this.execute(adapter, "webhook", input, authorization);
+      if (result.status !== "succeeded") return result;
+      const key = `${adapter.definition.id}@${adapter.definition.version}\u0000${result.output.sourceSystem}\u0000${result.output.eventId}`;
+      const stored = await webhookEventStore.putIfAbsent(key, result.output);
+      const storedOutput = await validateStoredWebhookEvent(adapter.definition, stored.value, result.output, stored.inserted);
+      if (typeof adapter.assertWebhookResult === "function") await adapter.assertWebhookResult(storedOutput);
+      if (!stored.inserted) {
+        return { ...result, status: "duplicate", output: clone(storedOutput) };
+      }
+      return { ...result, output: clone(storedOutput) };
+    },
+
+    inspectRateLimit(adapter: any) {
+      return clone(requestTimes.get(`${adapter.definition.id}@${adapter.definition.version}`) ?? []);
+    },
+  });
+}
+
+export function createMemoryDeadLetterSink() {
+  const items: any = [];
+  return Object.freeze({
+    async add(item: any) { items.push(clone(item)); },
+    list() { return clone(items); },
+  });
+}
+
+export function verifySyncCursor(definition: any, cursor: any) {
+  const normalized = normalizeSyncCursor(cursor, definition);
+  if (!normalized) return null;
+  const { checksum, ...payload } = normalized;
+  return sha256Checksum(payload).then((actual: any) => {
+    if (actual !== checksum) fail("ADAPTER_CHECKSUM_MISMATCH", "Synchronization cursor checksum does not match", { expected: checksum, actual });
+    return normalized;
+  });
+}
+
+export const serializeDeadLetter = (deadLetter: any) => `${canonicalStringify(deadLetter)}\n`;

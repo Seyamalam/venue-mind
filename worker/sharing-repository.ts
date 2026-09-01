@@ -1,5 +1,5 @@
 import { applyDatabaseMigrations } from "./database-migrations.ts";
-import { normalizeNotificationPreferences, shareLinkStatus } from "../src/domain/sharing.js";
+import { normalizeNotificationPreferences, shareLinkStatus } from "../src/domain/sharing.ts";
 
 type D1Statement = { bind: (...values: unknown[]) => D1Statement; first: <T>() => Promise<T | null>; all: <T>() => Promise<{ results: T[] }>; run: () => Promise<unknown> };
 type D1Database = { prepare: (sql: string) => D1Statement; batch: (statements: D1Statement[]) => Promise<unknown> };

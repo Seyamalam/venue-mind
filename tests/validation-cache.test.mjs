@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createValidationEngine } from "../src/domain/constraint-engine.js";
-import { analyzeSpatialPlan } from "../src/domain/spatial-analysis.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
+import { createValidationEngine } from "../src/domain/constraint-engine.ts";
+import { analyzeSpatialPlan } from "../src/domain/spatial-analysis.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
 
 test("Validation cache returns byte-equivalent results for identical immutable input", () => {
   let analyses = 0;

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createProjectStore } from "../src/persistence/project-store.js";
+import { createProjectStore } from "../src/persistence/project-store.ts";
 
 const createStorage = () => {
   const values = new Map();

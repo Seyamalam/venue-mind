@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createMemoryRunbookPersistenceAdapter, createRunbookStore } from "../src/persistence/runbook-store.js";
+import { createMemoryRunbookPersistenceAdapter, createRunbookStore } from "../src/persistence/runbook-store.ts";
 
 const makeRunbook = (revision = 0) => ({ schemaVersion: 1, id: "runbook-project-plan", versionId: "runbook-project-plan-v1", revision, version: 1, frozenAt: "2026-09-11T20:00:00.000Z", source: { projectId: "project-summit-forward" }, tasks: [] });
 

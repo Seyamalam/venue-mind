@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const panelUrl = new URL("../src/RunbookPanel.jsx", import.meta.url);
+const panelUrl = new URL("../src/RunbookPanel.tsx", import.meta.url);
 const stylesUrl = new URL("../src/styles.css", import.meta.url);
 const readPanel = () => readFile(panelUrl, "utf8");
 

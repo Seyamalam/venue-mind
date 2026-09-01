@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createIncidentStore, createMemoryIncidentPersistenceAdapter } from "../src/persistence/incident-store.js";
+import { createIncidentStore, createMemoryIncidentPersistenceAdapter } from "../src/persistence/incident-store.ts";
 
 const command = (clientSequence, idempotencyKey, summary = `Issue ${clientSequence}`) => ({
   type: "create_incident",
@@ -70,4 +70,14 @@ test("Incident store caches the authoritative Incident Register source shape", a
   const hydrated = await store.hydrate();
   assert.deepEqual(hydrated.register, register);
   assert.deepEqual(hydrated.handoffs, [{ id: "handoff-1", incidentId: "incident-alpha" }]);
+});
+
+test("Incident store gives humans an explicit way to discard retained conflicts", async () => {
+  const store = createIncidentStore({ organizationId: "org-alpha", projectId: "project-alpha", adapter: createMemoryIncidentPersistenceAdapter(), clock: () => "2026-09-12T12:00:00.000Z" });
+  const command = { type: "report_incident", operationId: "op-conflict", idempotencyKey: "incident-conflict", clientId: "studio-a", clientSequence: 1 };
+  await store.enqueue(command);
+  await store.acknowledge([{ idempotencyKey: command.idempotencyKey, status: "conflict", code: "INCIDENT_REVISION_CONFLICT" }]);
+  assert.equal((await store.listOutbox())[0].syncStatus, "conflict");
+  assert.deepEqual(await store.discardConflicts(), ["incident-conflict"]);
+  assert.deepEqual(await store.listOutbox(), []);
 });

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createEmptyVenuePlan } from "../src/domain/empty-project.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
+import { createEmptyVenuePlan } from "../src/domain/empty-project.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
 
 test("an empty Project starts as a valid canonical Plan with stable IDs", () => {
   const plan = createEmptyVenuePlan({ projectId: "project-autumn-forum", name: "Autumn Forum" });

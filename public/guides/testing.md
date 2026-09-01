@@ -7,7 +7,7 @@
 | Planner and domain | `npm run test:domain` | Commands, Validation, Approval, replay, and strict schema boundaries |
 | WebMCP | `node --test tests/webmcp*.test.mjs` | Registration, scopes, limits, cancellation, redaction |
 | MCP server | `npm run test:mcp` | Official client, stdio lifecycle, resources, prompts, progress |
-| Persistence and worker | `node --test tests/project-store.test.mjs tests/sites-worker.test.mjs tests/database-migrations.test.mjs tests/sharing-notifications.test.mjs` | remote authority, local recovery, sharing, notifications, API routing, database upgrade/restore |
+| Persistence and worker | `node --test tests/project-store.test.mjs tests/incident-store.test.mjs tests/incident-routes.test.mjs tests/incident-attachments.test.mjs tests/database-migrations.test.mjs` | remote authority, local recovery, private evidence, API routing, database upgrade/restore |
 | Interchange and exports | `node --test tests/interchange.test.mjs tests/plan-exports.test.mjs` | checksums, round trips, vector/PDF/CSV/audit output |
 | Docs and examples | `node --test tests/docs-architecture.test.mjs tests/reference-docs.test.mjs tests/client-examples.test.mjs` | reachability, contract drift, executable clients |
 | Skills | `npm run test:skills` | package structure, version compatibility, adversarial evals |
@@ -21,6 +21,7 @@
 - For Constraints, assert actual value, threshold, units, affected stable IDs, evidence fingerprint, and status.
 - For Project persistence, assert schema-10-only rejection, export/import round trip, ledger verification, and replay.
 - For database migrations, assert dry run, checksum, every released fixture, integrity/orphans, backup, staged restore, Project fingerprint, ledger head, and replay.
+- For Incidents, assert frozen Runbook/Plan provenance, object and coordinate anchors, authority boundaries, exact retry, stale revisions, one transition/receipt/ledger entry per mutation, R2 signature and metadata checks, compensation, and byte-free exports.
 - For public examples, compile or execute code and schema-check configuration and raw fixtures.
 
 ## Failure triage

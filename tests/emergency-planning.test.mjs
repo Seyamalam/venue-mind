@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { analyzeEmergencyPlan, emergencyChangeObjectIds, normalizeEmergencyPlan } from "../src/domain/emergency-planning.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
+import { analyzeEmergencyPlan, emergencyChangeObjectIds, normalizeEmergencyPlan } from "../src/domain/emergency-planning.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const emergencyEdit = (planner, key = "move-first-aid-review") => planner.execute({ type: "apply_edit", edit: { operation: "move", objectIds: ["obj-first-aid-north"], delta: { x: -1, y: 0 } }, actor: "human", actorId: "operator", idempotencyKey: key });

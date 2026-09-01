@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { VENUE_TOOL_CONTRACT_VERSION, venueToolContracts } from "../src/contracts/venue-contracts.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { registerVenueTools } from "../src/webmcp/register-venue-tools.js";
-import { executeVenueWebMcpTool } from "../src/webmcp/tool-runtime.js";
+import { VENUE_TOOL_CONTRACT_VERSION, venueToolContracts } from "../src/contracts/venue-contracts.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { registerVenueTools } from "../src/webmcp/register-venue-tools.ts";
+import { executeVenueWebMcpTool } from "../src/webmcp/tool-runtime.ts";
 
 const contract = (name) => venueToolContracts.find((item) => item.name === name);
 

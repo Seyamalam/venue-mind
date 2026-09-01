@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createEventDayRunbook, transitionRunbookTask } from "../src/domain/event-day-runbook.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createRunbookAuditPackage, exportEventDayRunbook } from "../src/interchange/runbook-exports.js";
+import { createEventDayRunbook, transitionRunbookTask } from "../src/domain/event-day-runbook.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createRunbookAuditPackage, exportEventDayRunbook } from "../src/interchange/runbook-exports.ts";
 
 const makeRunbook = () => createEventDayRunbook({
   projectId: "project-summit-forward",

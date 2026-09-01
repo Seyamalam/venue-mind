@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { fingerprintPlan } from "../src/domain/activity-ledger.js";
-import { createEmptyVenuePlan } from "../src/domain/empty-project.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { exportProjectPackage, previewProjectImport } from "../src/interchange/venue-package.js";
-import { createProjectStore } from "../src/persistence/project-store.js";
+import { fingerprintPlan } from "../src/domain/activity-ledger.ts";
+import { createEmptyVenuePlan } from "../src/domain/empty-project.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { exportProjectPackage, previewProjectImport } from "../src/interchange/venue-package.ts";
+import { createProjectStore } from "../src/persistence/project-store.ts";
 
 const clock = () => "2026-08-27T02:00:00.000Z";
 

@@ -1,4 +1,4 @@
-import { createAuthenticatedIdentity } from "../src/domain/accounts.js";
+import { createAuthenticatedIdentity } from "../src/domain/accounts.ts";
 
 export type AuthenticatedIdentity = ReturnType<typeof createAuthenticatedIdentity>;
 export type IdentityProvider = { authenticate: (request: Request) => Promise<AuthenticatedIdentity | null> | AuthenticatedIdentity | null };

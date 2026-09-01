@@ -3,6 +3,8 @@ import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 import { applyDatabaseMigrations } from "../worker/database-migrations.ts";
 import { createD1IncidentRepository, IncidentRegisterConflict } from "../worker/incident-repository.ts";
+import { stableFingerprint } from "../src/domain/activity-ledger.ts";
+import { reportIncident } from "../src/domain/incidents.ts";
 
 const NOW = "2026-09-12T12:00:00.000Z";
 
@@ -29,21 +31,53 @@ class SqliteD1 {
   close() { this.database.close(); }
 }
 
-const register = (overrides = {}) => ({
-  schemaVersion: 1,
-  id: "incident-register-alpha",
-  projectId: "project-alpha",
-  runbookVersionId: "runbook-alpha",
-  source: { runbookLedgerHeadHash: "runbook-ledger-alpha" },
-  baseline: { fingerprint: "incident-baseline-alpha", sourcePlanVersion: "3.3" },
-  incidents: [],
-  receipts: [],
-  ledger: [],
-  revision: 0,
-  createdAt: NOW,
-  updatedAt: NOW,
-  ...overrides,
-});
+const register = (overrides = {}) => {
+  const source = {
+    runbookVersionId: "runbook-alpha",
+    runbookLedgerHeadHash: "runbook-ledger-alpha",
+    planId: "plan-alpha",
+    planVersion: "3.3",
+    planFingerprint: "plan-alpha-fingerprint",
+  };
+  const acceptedPlan = {
+    id: "plan-alpha",
+    version: "3.3",
+    objects: [{ id: "object-alpha" }],
+    spatial: { roomBoundary: { outer: [{ x: 0, y: 0 }, { x: 20, y: 0 }, { x: 20, y: 20 }, { x: 0, y: 20 }], holes: [] } },
+  };
+  const baseline = { acceptedPlan, emergencyPlan: null, runbookTaskIds: [] };
+  baseline.fingerprint = stableFingerprint("incident-baseline", { source, acceptedPlan, emergencyPlan: null, runbookTaskIds: [] });
+  return {
+    schemaVersion: 1,
+    id: "incident-register-alpha",
+    projectId: "project-alpha",
+    runbookVersionId: "runbook-alpha",
+    source,
+    baseline,
+    incidents: [],
+    transitions: [],
+    receipts: [],
+    ledger: [],
+    revision: 0,
+    createdAt: NOW,
+    updatedAt: NOW,
+    ...overrides,
+  };
+};
+
+const advance = (current) => reportIncident(current, {
+  incidentId: "incident-001",
+  severity: "high",
+  category: "facilities",
+  summaryCode: "FACILITY_BLOCKED",
+  location: { kind: "plan-object", planObjectId: "object-alpha" },
+  relatedRefs: [],
+  idempotencyKey: "incident-report-001",
+  actorType: "human",
+  actorId: "user-owner",
+  source: "studio",
+  sessionId: "session-alpha",
+}, { committedAt: "2026-09-12T12:01:00.000Z" }).register;
 
 async function harness() {
   const db = new SqliteD1();
@@ -70,8 +104,16 @@ test("Incident Register repository persists one immutable Runbook baseline and t
   assert.equal(await repository.get("org-bravo", "project-alpha", created.id), null);
   assert.deepEqual(await repository.create("org-alpha", "project-alpha", structuredClone(created)), created);
 
+  const conflicting = structuredClone(register());
+  conflicting.baseline.acceptedPlan.version = "3.4";
+  conflicting.baseline.fingerprint = stableFingerprint("incident-baseline", {
+    source: conflicting.source,
+    acceptedPlan: conflicting.baseline.acceptedPlan,
+    emergencyPlan: null,
+    runbookTaskIds: [],
+  });
   await assert.rejects(
-    () => repository.create("org-alpha", "project-alpha", register({ baseline: { fingerprint: "different-baseline" } })),
+    () => repository.create("org-alpha", "project-alpha", conflicting),
     (error) => error instanceof IncidentRegisterConflict && error.code === "INCIDENT_REGISTER_ID_CONFLICT",
   );
   await assert.rejects(
@@ -85,22 +127,50 @@ test("Incident Register writes advance exactly one revision and reject stale or 
   t.after(() => db.close());
   await repository.create("org-alpha", "project-alpha", register());
 
-  const next = register({
-    incidents: [{ id: "incident-001", severity: "high" }],
-    ledger: [{ hash: "incident-ledger-bravo" }],
-    revision: 1,
-    updatedAt: "2026-09-12T12:01:00.000Z",
-  });
+  const next = advance(register());
   assert.deepEqual(await repository.put("org-alpha", "project-alpha", next, 0), next);
   assert.deepEqual(await repository.get("org-alpha", "project-alpha", next.id), next);
 
   await assert.rejects(
-    () => repository.put("org-alpha", "project-alpha", { ...next, revision: 2, updatedAt: "2026-09-12T12:02:00.000Z" }, 0),
+    () => repository.put("org-alpha", "project-alpha", next, 0),
     (error) => error instanceof IncidentRegisterConflict && error.code === "INCIDENT_REGISTER_REVISION_CONFLICT" && error.details.currentRevision === 1,
   );
   await assert.rejects(
     () => repository.put("org-alpha", "project-alpha", { ...next, baseline: { fingerprint: "changed" }, revision: 2, updatedAt: "2026-09-12T12:02:00.000Z" }, 1),
     (error) => error instanceof IncidentRegisterConflict && error.code === "INCIDENT_REGISTER_BASELINE_IMMUTABLE",
   );
+  await assert.rejects(
+    () => repository.put("org-alpha", "project-alpha", { ...next, source: { runbookLedgerHeadHash: "forged" }, revision: 2, updatedAt: "2026-09-12T12:02:00.000Z" }, 1),
+    (error) => error instanceof IncidentRegisterConflict && error.code === "INCIDENT_REGISTER_BASELINE_IMMUTABLE",
+  );
   assert.deepEqual(await repository.get("org-alpha", "project-alpha", next.id), next);
+
+  const forged = structuredClone(next);
+  forged.baseline.sourcePlanVersion = "forged";
+  db.database.exec("DROP TRIGGER validate_event_day_incident_register_update");
+  await db.prepare("UPDATE event_day_incident_registers SET register_json=? WHERE id=?").bind(JSON.stringify(forged), next.id).run();
+  await assert.rejects(
+    () => repository.get("org-alpha", "project-alpha", next.id),
+    (error) => error instanceof IncidentRegisterConflict && error.code === "INCIDENT_REGISTER_BASELINE_IMMUTABLE",
+  );
+});
+
+test("Incident Register reads fail closed when row metadata, source, or ledger evidence is corrupted", async (t) => {
+  const { db, repository } = await harness();
+  t.after(() => db.close());
+  const next = advance(register());
+  await repository.create("org-alpha", "project-alpha", register());
+  await repository.put("org-alpha", "project-alpha", next, 0);
+
+  const forged = structuredClone(next);
+  forged.source.approvalLedgerEntryId = "forged";
+  forged.revision = 2;
+  forged.updatedAt = "2026-09-12T12:02:00.000Z";
+  await db.prepare("UPDATE event_day_incident_registers SET register_json=?,revision=?,updated_at=? WHERE id=?")
+    .bind(JSON.stringify(forged), forged.revision, forged.updatedAt, forged.id).run();
+
+  await assert.rejects(
+    () => repository.get("org-alpha", "project-alpha", forged.id),
+    (error) => error instanceof IncidentRegisterConflict && error.code === "INCIDENT_REGISTER_INTEGRITY_FAILED",
+  );
 });

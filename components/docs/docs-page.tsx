@@ -16,32 +16,10 @@ import {
 } from "lucide-react";
 import { CopyDeepLinkButton, CopyTextButton } from "@/components/docs/docs-copy-buttons";
 import { DocsSearch } from "@/components/docs/docs-interactions";
-import { buildDocsNavigation, buildTableOfContents, getDocsNeighbors } from "@/src/docs/navigation.js";
+import { buildDocsNavigation, buildTableOfContents, getDocsNeighbors } from "@/src/docs/navigation.ts";
+import type { DocBlock, PublishedDocsPage } from "@/src/docs/blocks.ts";
 
-type DocLink = { label: string; href: string };
-type DocColumn = { key: string; label: string };
-type DocRow = Record<string, string | number | null | undefined> & { id?: string; name?: string; code?: string };
-type DocBlock =
-  | { type: "prose"; value: string }
-  | { type: "bullets"; items: string[] }
-  | { type: "steps"; items: string[] }
-  | { type: "links"; items: DocLink[] }
-  | { type: "table"; columns: DocColumn[]; rows: DocRow[] }
-  | { type: "code"; language: string; value: string };
-
-export type DocsPageData = {
-  slug: string;
-  group: string;
-  title: string;
-  eyebrow: string;
-  description: string;
-  canonicalPath: string;
-  audience: string[];
-  compatibility: string[];
-  lastReviewedVersion: string;
-  navigation?: { hidden?: boolean; collection?: string; parentSlug?: string };
-  sections: Array<{ id: string; title: string; blocks: DocBlock[] }>;
-};
+export type DocsPageData = PublishedDocsPage;
 
 const icons = {
   Start: BookOpen,
@@ -71,7 +49,7 @@ function Block({ block }: { block: DocBlock }) {
         <table>
           <thead><tr>{block.columns.map((column) => <th key={column.key} scope="col">{column.label}</th>)}</tr></thead>
           <tbody>{block.rows.map((row, rowIndex) => (
-            <tr key={row.id ?? row.name ?? row.code ?? rowIndex}>
+            <tr key={String(row.id ?? row.name ?? row.code ?? rowIndex)}>
               {block.columns.map((column) => <td key={column.key}>{row[column.key] ?? "—"}</td>)}
             </tr>
           ))}</tbody>
@@ -82,7 +60,7 @@ function Block({ block }: { block: DocBlock }) {
   return <div className="code-block"><div><span>{block.language}</span><CopyTextButton text={block.value} /></div><pre><code>{block.value}</code></pre></div>;
 }
 
-export function DocsPage({ page, pages }: { page: DocsPageData; pages: DocsPageData[] }) {
+export function DocsPage({ page, pages }: { page: DocsPageData; pages: readonly DocsPageData[] }) {
   const navigation = buildDocsNavigation(pages);
   const tableOfContents = buildTableOfContents(page);
   const neighbors = getDocsNeighbors(pages, page.slug);
@@ -95,8 +73,8 @@ export function DocsPage({ page, pages }: { page: DocsPageData; pages: DocsPageD
         <nav aria-label="Utility"><Link href="/">Open Studio</Link><a href="/llms.txt">llms.txt</a><a href="/schemas/venue-command.schema.json">Schemas</a></nav>
       </header>
       <aside className="docs-nav" aria-label="Documentation navigation">
-        {navigation.map((group: { label: keyof typeof icons; pages: Array<{ slug: string; title: string; href: string }> }) => {
-          const Icon = icons[group.label];
+        {navigation.map((group) => {
+          const Icon = icons[group.label as keyof typeof icons];
           return (
             <section key={group.label}>
               <h2>{Icon && <Icon size={15} />}{group.label}</h2>
@@ -126,8 +104,8 @@ export function DocsPage({ page, pages }: { page: DocsPageData; pages: DocsPageD
           ))}
         </article>
         <nav className="docs-pagination" aria-label="Previous and next pages">
-          {neighbors.previous ? <Link href={neighbors.previous.canonicalPath}><CaretLeft size={17} /><span><small>Previous</small><strong>{neighbors.previous.title}</strong></span></Link> : <span />}
-          {neighbors.next ? <Link href={neighbors.next.canonicalPath}><span><small>Next</small><strong>{neighbors.next.title}</strong></span><CaretRight size={17} /></Link> : <span />}
+          {neighbors.previous ? <Link href={neighbors.previous.canonicalPath as Route}><CaretLeft size={17} /><span><small>Previous</small><strong>{neighbors.previous.title}</strong></span></Link> : <span />}
+          {neighbors.next ? <Link href={neighbors.next.canonicalPath as Route}><span><small>Next</small><strong>{neighbors.next.title}</strong></span><CaretRight size={17} /></Link> : <span />}
         </nav>
       </main>
       <aside className="docs-toc"><span>On this page</span>{tableOfContents.map((item: { id: string; title: string }) => <Link key={item.id} href={`#${item.id}`}>{item.title}</Link>)}</aside>

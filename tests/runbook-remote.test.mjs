@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createRunbookRemote } from "../src/persistence/runbook-remote.js";
+import { createRunbookRemote } from "../src/persistence/runbook-remote.ts";
 
 const response = (body, { status = 200, contentType = "application/json" } = {}) => new Response(contentType === "application/json" ? JSON.stringify(body) : String(body), { status, headers: { "content-type": contentType } });
 

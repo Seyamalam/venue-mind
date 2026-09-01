@@ -1,13 +1,9 @@
 import type { AdapterAuthorization, AdapterCapability, AdapterRuntimeResult, VenueAdapter } from "./adapter.js";
 import { createAdapterRuntime } from "./adapter.js";
-// @ts-expect-error Monorepo JavaScript implementation is bundled into the published entry point.
-import { createMemoryProcessedBatchStore as internalProcessedStore } from "../../../src/integrations/processed-batch-store.js";
-// @ts-expect-error Monorepo JavaScript implementation is bundled into the published entry point.
-import { createMemoryWebhookEventStore as internalWebhookStore } from "../../../src/integrations/webhook-event-store.js";
-// @ts-expect-error Monorepo JavaScript implementation is bundled into the published entry point.
-import { createMemorySecretStore as internalSecretStore } from "../../../src/integrations/secret-store.js";
-// @ts-expect-error Monorepo JavaScript implementation is bundled into the published entry point.
-import { createMemoryDeadLetterSink as internalDeadLetterSink } from "../../../src/integrations/runtime.js";
+import { createMemoryProcessedBatchStore as internalProcessedStore } from "../../../src/integrations/processed-batch-store.ts";
+import { createMemoryWebhookEventStore as internalWebhookStore } from "../../../src/integrations/webhook-event-store.ts";
+import { createMemorySecretStore as internalSecretStore } from "../../../src/integrations/secret-store.ts";
+import { createMemoryDeadLetterSink as internalDeadLetterSink } from "../../../src/integrations/runtime.ts";
 
 export interface AtomicMemoryStore<Value = unknown> {
   get(key: string): Promise<Value | null>;

@@ -6,18 +6,19 @@ import {
   createAgentGrant,
   createAgentPrincipal,
   createHumanPrincipal,
+  createShortLivedAgentAuthorization,
   evaluateVenuePermission,
   HUMAN_ROLE_PERMISSIONS,
   HUMAN_ROLES,
   permissionForCommand,
   permissionForTool,
   VENUE_PERMISSIONS,
-} from "../src/domain/authorization.js";
-import { venueCommandSchema, venueToolContracts } from "../src/contracts/venue-contracts.js";
-import { verifyActivityLedger } from "../src/domain/activity-ledger.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createVenueToolService } from "../src/tools/venue-tool-service.js";
+} from "../src/domain/authorization.ts";
+import { venueCommandSchema, venueToolContracts } from "../src/contracts/venue-contracts.ts";
+import { verifyActivityLedger } from "../src/domain/activity-ledger.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createVenueToolService } from "../src/tools/venue-tool-service.ts";
 
 const NOW = "2026-08-27T10:00:00.000Z";
 const LATER = "2026-08-27T10:30:00.000Z";
@@ -83,6 +84,23 @@ test("Agent Grants are short-lived and bound to one Organization and Project", (
   assert.equal(evaluateVenuePermission({ permission: "plan.read", principal, grant: activeGrant, projectId: "project-other", clock: clock() }).reason, "agent-grant-project-mismatch");
   assert.equal(evaluateVenuePermission({ permission: "plan.read", principal, grant: activeGrant, projectId: "project-summit-forward", clock: clock(EXPIRED) }).reason, "agent-grant-expired");
   assert.throws(() => grant(["venue:read"], { expiresAt: "2026-08-27T12:00:00.001Z" }), (error) => error.code === "AGENT_GRANT_INVALID");
+});
+
+test("delegated WebMCP authority cannot exceed the signed-in human role", () => {
+  const delegatedBy = createHumanPrincipal({ id: "viewer-1", organizationId: "org-alpha", roles: ["viewer"] });
+  const authorization = createShortLivedAgentAuthorization({
+    agentId: "webmcp-agent",
+    organizationId: "org-alpha",
+    projectId: "project-summit-forward",
+    scopes: AGENT_SCOPES,
+    issuedBy: "viewer-1",
+    delegatedBy,
+    ttlMs: 60 * 60 * 1000,
+    clock: clock(NOW),
+  });
+  assert.equal(evaluateVenuePermission({ ...authorization, permission: "plan.read", clock: clock(LATER) }).status, "allow");
+  assert.equal(evaluateVenuePermission({ ...authorization, permission: "incident.report", clock: clock(LATER) }).reason, "delegating-human-insufficient");
+  assert.equal(evaluateVenuePermission({ ...authorization, permission: "incident.export", clock: clock(LATER) }).reason, "delegating-human-insufficient");
 });
 
 test("planner denies insufficient roles without changing Plan truth and records sanitized evidence", () => {

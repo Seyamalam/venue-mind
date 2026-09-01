@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { AdapterContractError, defineAdapter, sha256Checksum } from "../src/integrations/contracts.js";
-import { assertRegistrationSnapshot, assertRegistrationWebhook, registrationTicketingAdapter } from "../src/integrations/adapters/registration-ticketing-adapter.js";
-import { createMemoryProcessedBatchStore } from "../src/integrations/processed-batch-store.js";
-import { createAdapterRuntime, createMemoryDeadLetterSink, serializeDeadLetter } from "../src/integrations/runtime.js";
-import { createMemorySecretStore } from "../src/integrations/secret-store.js";
-import { createMemoryWebhookEventStore } from "../src/integrations/webhook-event-store.js";
+import { AdapterContractError, defineAdapter, sha256Checksum } from "../src/integrations/contracts.ts";
+import { assertRegistrationSnapshot, assertRegistrationWebhook, registrationTicketingAdapter } from "../src/integrations/adapters/registration-ticketing-adapter.ts";
+import { createMemoryProcessedBatchStore } from "../src/integrations/processed-batch-store.ts";
+import { createAdapterRuntime, createMemoryDeadLetterSink, serializeDeadLetter } from "../src/integrations/runtime.ts";
+import { createMemorySecretStore } from "../src/integrations/secret-store.ts";
+import { createMemoryWebhookEventStore } from "../src/integrations/webhook-event-store.ts";
 
 const fixture = JSON.parse(await readFile(new URL("./fixtures/adapter-registration-ticketing-v1.json", import.meta.url), "utf8"));
 const webhookFixture = JSON.parse(await readFile(new URL("./fixtures/adapter-registration-ticketing-webhook-v1.json", import.meta.url), "utf8"));

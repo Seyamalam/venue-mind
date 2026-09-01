@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const panelUrl = new URL("../src/OccupancyPanel.jsx", import.meta.url);
+const panelUrl = new URL("../src/OccupancyPanel.tsx", import.meta.url);
 const stylesUrl = new URL("../src/styles.css", import.meta.url);
 
 test("Live Occupancy uses one non-modal shadcn operational surface with no raw controls or narrative copy", async () => {
@@ -30,8 +30,8 @@ test("Live Occupancy exposes exact operational states, aggregate input, acknowle
 });
 
 test("Live Occupancy panel is lazy, opened from OPS, and viewport safe", async () => {
-  const [app, styles] = await Promise.all([readFile(new URL("../src/App.jsx", import.meta.url), "utf8"), readFile(stylesUrl, "utf8")]);
-  assert.match(app, /const loadOccupancyPanel = \(\) => import\("\.\/OccupancyPanel\.jsx"\)/);
+  const [app, styles] = await Promise.all([readFile(new URL("../src/App.tsx", import.meta.url), "utf8"), readFile(stylesUrl, "utf8")]);
+  assert.match(app, /const loadOccupancyPanel = \(\) => import\("\.\/OccupancyPanel"\)/);
   assert.match(app, /const LazyOccupancyPanel = lazy\(loadOccupancyPanel\)/);
   assert.match(app, /occupancyMounted && <Suspense/);
   assert.match(app, /<b>OCCUPANCY<\/b>/);

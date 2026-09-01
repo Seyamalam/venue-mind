@@ -1,6 +1,6 @@
-import { createVenuePlanner } from "../../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../../src/domain/summit-forward.js";
-import { registerVenueTools } from "../../src/webmcp/register-venue-tools.js";
+import { createVenuePlanner } from "../../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../../src/domain/summit-forward.ts";
+import { registerVenueTools } from "../../src/webmcp/register-venue-tools.ts";
 
 export function createBrowserToolHarness() {
   const tools = new Map();

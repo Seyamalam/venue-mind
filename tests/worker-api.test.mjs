@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import worker, { createMemoryAccountRepository, createWorker } from "../dist/server/index.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
 
 test("exposes an unauthenticated API health check and no frontend", async () => {
   const env = { DB: {} };

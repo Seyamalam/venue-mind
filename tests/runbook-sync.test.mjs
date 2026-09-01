@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createMemoryRunbookPersistenceAdapter, createRunbookStore } from "../src/persistence/runbook-store.js";
-import { synchronizeRunbook } from "../src/persistence/runbook-sync.js";
+import { createMemoryRunbookPersistenceAdapter, createRunbookStore } from "../src/persistence/runbook-store.ts";
+import { synchronizeRunbook } from "../src/persistence/runbook-sync.ts";
 
 const runbook = (revision = 1) => ({ schemaVersion: 1, id: "runbook-project-plan", versionId: "runbook-project-plan-v1", version: 1, revision, frozenAt: "2026-09-11T20:00:00.000Z", source: { projectId: "project-a" }, tasks: [] });
 const command = (sequence) => ({ type: "transition_runbook_task", runbookVersionId: "runbook-project-plan-v1", taskId: `task-${sequence}`, expectedTaskRevision: 0, fromStatus: "pending", toStatus: "in-progress", evidence: [], operationId: `operation-${sequence}`, idempotencyKey: `idempotency-${sequence}`, correlationId: `correlation-${sequence}`, clientId: "tablet-a", clientSequence: sequence, clientOccurredAt: "2026-09-12T12:00:00.000Z", actorType: "human", actorId: "user-a", source: "studio", sessionId: "session-a" });

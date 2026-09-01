@@ -3,23 +3,23 @@
 import { createD1AccountRepository, isOrganizationAdministrator } from "./account-repository.ts";
 import { createStaticIdentityProvider, type IdentityProvider } from "./authentication.ts";
 import { createD1ProjectRepository, ProjectRevisionConflict, type ProjectRecord } from "./project-repository.ts";
-import { parseProjectEtag, projectEtag } from "../src/domain/project-concurrency.js";
-import { collaborationEventPayload, projectCollaborationEventTypes } from "../src/domain/collaboration-events.js";
+import { parseProjectEtag, projectEtag } from "../src/domain/project-concurrency.ts";
+import { collaborationEventPayload, projectCollaborationEventTypes } from "../src/domain/collaboration-events.ts";
 import { createD1CollaborationRepository, createMemoryCollaborationRepository } from "./collaboration-repository.ts";
 import { createD1SharingRepository, createMemorySharingRepository } from "./sharing-repository.ts";
 import { drainNotificationEmail } from "./email-delivery.ts";
-import { createShareToken, hashShareToken, safeNotification, shareLinkStatus, SHARE_SCOPES } from "../src/domain/sharing.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { transitionRunbookTask } from "../src/domain/event-day-runbook.js";
-import { createAuthenticatedIdentity } from "../src/domain/accounts.js";
+import { createShareToken, hashShareToken, safeNotification, shareLinkStatus, SHARE_SCOPES } from "../src/domain/sharing.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { transitionRunbookTask } from "../src/domain/event-day-runbook.ts";
+import { createAuthenticatedIdentity } from "../src/domain/accounts.ts";
 import { createD1RunbookRepository, RunbookClientSequenceConflict, RunbookIdempotencyConflict, RunbookTransitionConflict } from "./runbook-repository.ts";
 import { browserCommandToPersistenceInput, browserRunbookToPersistenceInput, repositoryRunbookToBrowserSnapshot } from "./runbook-http.ts";
 import { createD1OccupancyRepository, OccupancyMonitorConflict } from "./occupancy-repository.ts";
-import { acknowledgeOccupancyAlert, createLiveOccupancyMonitor, evaluateLiveOccupancy, exportLiveOccupancyAudit, ingestOccupancySignal, refreshLiveOccupancy } from "../src/domain/live-occupancy.js";
-import { createIncidentCommandBus } from "../src/domain/incident-command-bus.js";
+import { acknowledgeOccupancyAlert, createLiveOccupancyMonitor, evaluateLiveOccupancy, exportLiveOccupancyAudit, ingestOccupancySignal, refreshLiveOccupancy } from "../src/domain/live-occupancy.ts";
+import { createIncidentCommandBus } from "../src/domain/incident-command-bus.ts";
 import { createD1IncidentRepository, IncidentRegisterConflict } from "./incident-repository.ts";
 import { createIncidentAttachmentService, IncidentAttachmentError } from "./incident-attachments.ts";
-import { venueError } from "../src/domain/errors.js";
+import { venueError } from "../src/domain/errors.ts";
 
 export { createD1AccountRepository, createMemoryAccountRepository } from "./account-repository.ts";
 export { createStaticIdentityProvider } from "./authentication.ts";
@@ -311,9 +311,9 @@ export function createWorker(options: WorkerOptions = {}) {
       };
       const canWriteRunbooks = ["planner", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
       const canWriteOccupancy = canWriteRunbooks;
-      const canWriteIncidents = canWriteRunbooks;
-      const canExportIncidents = ["reviewer", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
-      const canActOnEmergency = ["venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
+      const canWriteIncidents = ["planner", "safety-officer", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
+      const canAccessIncidentAttachments = ["planner", "safety-officer", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
+      const canExportIncidents = ["reviewer", "approver", "safety-officer", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
       const runbookCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks$/);
       const runbookItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)$/);
       const runbookSyncMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)\/transitions:sync$/);
@@ -518,10 +518,25 @@ export function createWorker(options: WorkerOptions = {}) {
           const identity = { idempotencyKey: typeof command.idempotencyKey === "string" ? command.idempotencyKey : null, operationId: typeof command.operationId === "string" ? command.operationId : null };
           try {
             if (command.type === "attach_incident_evidence") throw venueError("INCIDENT_ATTACHMENT_INVALID", { reason: "multipart-upload-required" });
-            if (command.type === "record_incident_emergency_action" && !canActOnEmergency) throw venueError("AUTHORIZATION_DENIED", { permission: "incident.emergency-act" });
+            const emergencyAuthorityRole = command.type === "record_incident_emergency_action"
+              ? (current.baseline?.emergencyPlan?.authorizedReviewerRoles ?? []).find((role: unknown) => typeof role === "string" && organization.roles.includes(role)) ?? null
+              : null;
+            if (command.type === "record_incident_emergency_action" && !emergencyAuthorityRole) throw venueError("AUTHORIZATION_DENIED", { permission: "incident.emergency-act" });
             const committedAt = clock();
             const bus = createIncidentCommandBus({ initialRegister: current });
-            const result = bus.execute({ ...command, actorType: "human", actorId: account.user.id, source: "studio", sessionId: account.session.id, committedAt });
+            const isWebMcpReport = command.type === "report_incident"
+              && command.actorType === "agent"
+              && command.actorId === "webmcp-agent"
+              && command.source === "webmcp";
+            const result = bus.execute({
+              ...command,
+              ...(command.type === "record_incident_emergency_action" ? { authorityRole: emergencyAuthorityRole } : {}),
+              actorType: "human",
+              actorId: account.user.id,
+              source: isWebMcpReport ? "webmcp" : "studio",
+              sessionId: account.session.id,
+              committedAt,
+            });
             if (!result.duplicate) await incidents.put(organization.id, projectId, result.register as never, current.revision);
             current = result.register;
             acknowledgements.push({ ...identity, status: result.duplicate ? "already-applied" : "applied", receipt: result.receipt });
@@ -568,6 +583,7 @@ export function createWorker(options: WorkerOptions = {}) {
         }
       }
       if (incidentAttachmentItemMatch && request.method === "GET") {
+        if (!canAccessIncidentAttachments) return apiError(403, "INCIDENT_ATTACHMENT_DENIED", "Incident attachment role required");
         const projectId = decodeURIComponent(incidentAttachmentItemMatch[1]);
         const registerId = decodeURIComponent(incidentAttachmentItemMatch[2]);
         const incidentId = decodeURIComponent(incidentAttachmentItemMatch[3]);

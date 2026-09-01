@@ -5,9 +5,9 @@ import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
 import { build } from "esbuild";
-import { venueToolContracts } from "../src/contracts/venue-contracts.js";
-import { errorCatalog } from "../src/domain/errors.js";
-import { CLIENT_CONFIGS, CODEX_TOML, HOST_WORKFLOWS, PLACEHOLDERS } from "../src/examples/client-catalog.js";
+import { venueToolContracts } from "../src/contracts/venue-contracts.ts";
+import { errorCatalog } from "../src/domain/errors.ts";
+import { CLIENT_CONFIGS, CODEX_TOML, HOST_WORKFLOWS, PLACEHOLDERS } from "../src/examples/client-catalog.ts";
 import { runBrowserExample } from "../examples/webmcp/browser-invocation.mjs";
 
 const executeFile = promisify(execFile);

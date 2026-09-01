@@ -9,7 +9,7 @@ import {
   invitationStatus,
   personalOrganizationSlug,
   sessionStatus,
-} from "../src/domain/accounts.js";
+} from "../src/domain/accounts.ts";
 import type { AuthenticatedIdentity } from "./authentication.ts";
 
 type D1Statement = {
@@ -110,9 +110,9 @@ export function createD1AccountRepository(db: D1Database, {
           db.prepare(`INSERT INTO organizations (id, name, slug, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`)
             .bind(organizationId, name, slug, userId, now, now),
           db.prepare(`INSERT INTO organization_memberships (organization_id, user_id, roles_json, status, created_at, updated_at) VALUES (?, ?, ?, 'active', ?, ?)`)
-            .bind(organizationId, userId, JSON.stringify(["organization-administrator"]), now, now),
+            .bind(organizationId, userId, JSON.stringify(["organization-administrator", "venue-administrator"]), now, now),
         ]);
-        await audit(organizationId, "membership.created", userId, userId, { roles: ["organization-administrator"], source: "provisioning" });
+        await audit(organizationId, "membership.created", userId, userId, { roles: ["organization-administrator", "venue-administrator"], source: "provisioning" });
         context = await contextForUser(userId);
       }
       if (!context) throw new Error("ACCOUNT_UNAVAILABLE");
@@ -154,7 +154,7 @@ export function createD1AccountRepository(db: D1Database, {
         db.prepare(`INSERT INTO organizations (id, name, slug, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`)
           .bind(organizationId, name.trim(), slug.trim().toLowerCase(), userId, now, now),
         db.prepare(`INSERT INTO organization_memberships (organization_id, user_id, roles_json, status, created_at, updated_at) VALUES (?, ?, ?, 'active', ?, ?)`)
-          .bind(organizationId, userId, JSON.stringify(["organization-administrator"]), now, now),
+          .bind(organizationId, userId, JSON.stringify(["organization-administrator", "venue-administrator"]), now, now),
       ]);
       await audit(organizationId, "organization.created", userId, userId, { name: name.trim(), slug: slug.trim().toLowerCase() });
       return (await contextForUser(userId))?.organizations.find((organization) => organization.id === organizationId);
@@ -295,8 +295,8 @@ export function createMemoryAccountRepository({
         const now = clock();
         const organizationId = idFactory("org");
         organizations.set(organizationId, { id: organizationId, name: identity.displayName || identity.email.split("@")[0], slug: personalOrganizationSlug(identity), createdBy: userId, createdAt: now });
-        memberships.set(key(organizationId, userId), createOrganizationMembership({ organizationId, userId, roles: ["organization-administrator"], createdAt: now }));
-        audit(organizationId, "membership.created", userId, userId, { roles: ["organization-administrator"], source: "provisioning" });
+        memberships.set(key(organizationId, userId), createOrganizationMembership({ organizationId, userId, roles: ["organization-administrator", "venue-administrator"], createdAt: now }));
+        audit(organizationId, "membership.created", userId, userId, { roles: ["organization-administrator", "venue-administrator"], source: "provisioning" });
         context = await contextForUser(userId);
       }
       return context!;
@@ -323,9 +323,9 @@ export function createMemoryAccountRepository({
       const now = clock();
       const organization = { id: idFactory("org"), name: name.trim(), slug: slug.trim().toLowerCase(), createdBy: userId, createdAt: now };
       organizations.set(organization.id, organization);
-      memberships.set(key(organization.id, userId), createOrganizationMembership({ organizationId: organization.id, userId, roles: ["organization-administrator"], createdAt: now }));
+      memberships.set(key(organization.id, userId), createOrganizationMembership({ organizationId: organization.id, userId, roles: ["organization-administrator", "venue-administrator"], createdAt: now }));
       audit(organization.id, "organization.created", userId, userId, { name: organization.name, slug: organization.slug });
-      return { id: organization.id, name: organization.name, slug: organization.slug, roles: ["organization-administrator"] };
+      return { id: organization.id, name: organization.name, slug: organization.slug, roles: ["organization-administrator", "venue-administrator"] };
     },
     async membership(organizationId: string, userId: string) { return memberships.get(key(organizationId, userId)) ?? null; },
     async listMemberships(organizationId: string) {

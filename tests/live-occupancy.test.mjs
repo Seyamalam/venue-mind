@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createEventDayRunbook } from "../src/domain/event-day-runbook.js";
-import { acknowledgeOccupancyAlert, createLiveOccupancyMonitor, evaluateLiveOccupancy, exportLiveOccupancyAudit, ingestOccupancySignal, refreshLiveOccupancy, signalFromRegistrationSnapshot, verifyOccupancyLedger } from "../src/domain/live-occupancy.js";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createEventDayRunbook } from "../src/domain/event-day-runbook.ts";
+import { acknowledgeOccupancyAlert, createLiveOccupancyMonitor, evaluateLiveOccupancy, exportLiveOccupancyAudit, ingestOccupancySignal, refreshLiveOccupancy, signalFromRegistrationSnapshot, verifyOccupancyLedger } from "../src/domain/live-occupancy.ts";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const makeRunbook = () => createEventDayRunbook({

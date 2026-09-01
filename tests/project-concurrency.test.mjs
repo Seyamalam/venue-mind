@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseProjectEtag, projectEtag, reconcileProjectRecords } from "../src/domain/project-concurrency.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { verifyActivityLedger } from "../src/domain/activity-ledger.js";
+import { parseProjectEtag, projectEtag, reconcileProjectRecords } from "../src/domain/project-concurrency.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { verifyActivityLedger } from "../src/domain/activity-ledger.ts";
 
 test("Project ETags are strong, revision-bound, and Project-bound", () => {
   const etag = projectEtag("project alpha/1", 7);

@@ -179,6 +179,29 @@
     "idempotencyKey": "example-occupancy-refresh-001"
   },
   "venue.export_live_occupancy": {},
+  "venue.inspect_incidents": {
+    "status": "open",
+    "limit": 25
+  },
+  "venue.report_incident": {
+    "severity": "high",
+    "category": "crowd-capacity",
+    "summaryCode": "EAST_ENTRY_CONGESTION",
+    "location": {
+      "kind": "plan-object",
+      "planObjectId": "obj-entry-east"
+    },
+    "relatedRefs": [
+      {
+        "kind": "occupancy-alert",
+        "id": "occupancy-alert-east-entry"
+      }
+    ],
+    "idempotencyKey": "example-incident-report-001"
+  },
+  "venue.export_incident_record": {
+    "incidentId": "incident-example-001"
+  },
   "venue.export_audit_package": {},
   "venue.export_plan": {
     "format": "json"

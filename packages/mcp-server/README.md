@@ -20,7 +20,7 @@ Use the validated examples instead of copying configuration from this file:
 - [Claude Desktop configuration](../../public/examples/client/config/claude-desktop.json)
 - [Cursor Project configuration](../../public/examples/client/config/cursor-project.json)
 - [Executable TypeScript client](../../examples/typescript/supervised-workflow.ts)
-- [Complete client guide](../../src/docs/pages/examples.js)
+- [Complete client guide](../../src/docs/pages/examples.ts)
 
 Replace `<VENUE_MIND_ROOT>`, `<WRITABLE_DATA_DIR>`, and `<ORGANIZATION_ID>` before use. The generated example manifest records how every artifact is checked.
 

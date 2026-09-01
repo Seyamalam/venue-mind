@@ -234,6 +234,11 @@
       "sourcePath": "docs/adr/0027-event-day-runbooks-are-plan-bound-operational-aggregates.md",
       "publicPath": "/guides/adr/0027-event-day-runbooks-are-plan-bound-operational-aggregates.md",
       "title": "Architecture decision 0027"
+    },
+    {
+      "sourcePath": "docs/adr/0028-runbook-bound-incident-registers.md",
+      "publicPath": "/guides/adr/0028-runbook-bound-incident-registers.md",
+      "title": "Architecture decision 0028"
     }
   ]
 }

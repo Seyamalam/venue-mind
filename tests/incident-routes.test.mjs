@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
-import { createEventDayRunbook } from "../src/domain/event-day-runbook.js";
-import { verifyIncidentLedger } from "../src/domain/incidents.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
+import { createEventDayRunbook } from "../src/domain/event-day-runbook.ts";
+import { verifyIncidentLedger } from "../src/domain/incidents.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
 import { applyDatabaseMigrations } from "../worker/database-migrations.ts";
 import { createWorker } from "../worker/index.ts";
 
@@ -64,7 +64,7 @@ async function harness() {
     db.prepare("INSERT INTO project_states (project_id,schema_version,snapshot_json,updated_at) VALUES (?,?,?,?)").bind("project-alpha", 10, "{}", "2026-09-12T10:00:00.000Z"),
   ]);
   let now = "2026-09-12T11:00:00.000Z";
-  const identities = { operator: ["user-seyam", ["organization-administrator"]], viewer: ["user-viewer", ["viewer"]] };
+  const identities = { operator: ["user-seyam", ["organization-administrator", "venue-administrator"]], viewer: ["user-viewer", ["viewer"]], approver: ["user-approver", ["approver"]] };
   const api = createWorker({
     clock: () => now,
     secureCookies: false,
@@ -112,6 +112,26 @@ test("Incident routes create, report, manage, attach, download, reload, and expo
   assert.equal(managed.register.incidents[0].acknowledgement.status, "acknowledged");
   assert.equal(managed.register.incidents[0].escalation.level, "venue-command");
 
+  setNow("2026-09-12T11:02:30.000Z");
+  const agentReported = await (await request(`${item}/commands:sync`, { method: "POST", body: { commands: [{
+    type: "report_incident",
+    incidentId: "incident-agent-report",
+    severity: "medium",
+    category: "facilities",
+    summaryCode: "POWER_FEED_UNSTABLE",
+    location: { kind: "plan-object", planObjectId: "obj-first-aid-north" },
+    relatedRefs: [],
+    idempotencyKey: "route-agent-report-001",
+    actorType: "agent",
+    actorId: "webmcp-agent",
+    source: "webmcp",
+  }] } })).json();
+  const agentTransition = agentReported.register.transitions.find((transition) => transition.incidentId === "incident-agent-report");
+  assert.deepEqual(
+    { actorType: agentTransition.actorType, actorId: agentTransition.actorId, source: agentTransition.source },
+    { actorType: "human", actorId: "user-seyam", source: "webmcp" },
+  );
+
   setNow("2026-09-12T11:03:00.000Z");
   const form = new FormData();
   form.set("file", new File([Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x01])], "east-exit.png", { type: "image/png" }));
@@ -121,17 +141,33 @@ test("Incident routes create, report, manage, attach, download, reload, and expo
   assert.equal(attached.attachment.contentType, "image/png");
   assert.equal("storageKey" in attached.attachment, false);
   assert.equal(bucket.objects.size, 1);
+
+  setNow("2026-09-12T11:04:00.000Z");
+  const emergency = await (await request(`${item}/commands:sync`, { method: "POST", body: { commands: [{
+    type: "record_incident_emergency_action",
+    incidentId: "incident-east-exit",
+    actionCode: "CLOSE_EXIT",
+    targetObjectIds: ["obj-fire-exit-east"],
+    scenarioDefinitionId: "scenario-blocked-east-exit",
+    authorityRole: "safety-officer",
+    expectedIncidentRevision: attached.incident.revision,
+    idempotencyKey: "route-emergency-001",
+  }] } })).json();
+  assert.equal(emergency.acknowledgements[0].status, "applied");
+  assert.equal(emergency.register.incidents.find((incident) => incident.id === "incident-east-exit").emergencyActions[0].authorityRole, "venue-administrator");
+
   const download = await request(`${item}/incidents/incident-east-exit/attachments/${encodeURIComponent(attached.attachment.id)}`);
   assert.equal(download.status, 200);
   assert.equal(download.headers.get("cache-control"), "private, no-store");
   assert.equal(new Uint8Array(await download.arrayBuffer())[0], 0x89);
 
   const loaded = await (await request(item)).json();
-  assert.equal(loaded.register.incidents[0].attachments.length, 1);
+  assert.equal(loaded.register.incidents.find((incident) => incident.id === "incident-east-exit").attachments.length, 1);
   assert.equal(verifyIncidentLedger(loaded.register).status, "pass");
   const exported = await (await request(`${item}/incidents/incident-east-exit/export`)).json();
   assert.equal(JSON.parse(exported.artifact.content).integrity.status, "pass");
   assert.equal(JSON.parse(exported.artifact.content).privacy.attachmentBytesIncluded, false);
+  assert.equal((await request(`${item}/incidents/incident-east-exit/export`, { identity: "approver" })).status, 200);
 });
 
 test("Incident routes keep privileged response actions human-only and evidence metadata private", async (t) => {
@@ -143,7 +179,7 @@ test("Incident routes keep privileged response actions human-only and evidence m
   const item = `${collection}/${encodeURIComponent(created.register.id)}`;
   assert.equal((await request(`${item}/commands:sync`, { identity: "viewer", method: "POST", body: { commands: [] } })).status, 403);
   assert.equal((await request(`${item}/export?incidentId=missing`, { identity: "viewer" })).status, 403);
-  const missing = await request(`${item}/incidents/missing/attachments/missing`);
-  assert.equal(missing.status, 404);
-  assert.equal((await missing.json()).code, "INCIDENT_ATTACHMENT_NOT_FOUND");
+  const denied = await request(`${item}/incidents/missing/attachments/missing`, { identity: "viewer" });
+  assert.equal(denied.status, 403);
+  assert.equal((await denied.json()).code, "INCIDENT_ATTACHMENT_DENIED");
 });
