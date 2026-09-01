@@ -172,6 +172,36 @@ test("generic Adapter Change evidence rejects contact-shaped labels", () => {
   assert.equal(normalizeAdapterChange(valid, roomInventoryAdapter.definition).evidence.kind, "inventory-substitution");
 });
 
+test("generic Adapter Change evidence rejects oversized identifiers before staging without echoing them", () => {
+  const valid = {
+    id: "change-evidence-bounds",
+    operation: "update",
+    venueEntityType: "project-object-instance",
+    venueObjectId: "obj-evidence-target",
+    external: { adapterId: "room-inventory", sourceSystem: "room-inventory-prod", entityType: "room-inventory-record", externalId: "vendor-evidence-7", sourceVersion: "42", checksum: "a".repeat(64) },
+    values: { label: "Evidence target" },
+    evidence: { kind: "inventory-substitution", sourceId: "snapshot-inventory-42", sourceChecksum: "b".repeat(64), references: ["resource-projector-backup"] },
+  };
+  const oversized = `attacker-${"x".repeat(10_000)}`;
+  const attacks = [
+    { ...valid.evidence, kind: oversized },
+    { ...valid.evidence, sourceId: oversized },
+    { ...valid.evidence, references: [oversized] },
+  ];
+
+  for (const evidence of attacks) {
+    assert.throws(
+      () => normalizeAdapterChange({ ...valid, evidence }, roomInventoryAdapter.definition),
+      (error) => error instanceof AdapterContractError
+        && error.code === "ADAPTER_CONTRACT_INVALID"
+        && !error.message.includes(oversized)
+        && !JSON.stringify(error).includes(oversized),
+    );
+  }
+
+  assert.deepEqual(normalizeAdapterChange(valid, roomInventoryAdapter.definition).evidence, valid.evidence);
+});
+
 test("generic source record evidence rejects contact PII without echoing malicious keys", async () => {
   const sourceRecord = {
     external: { adapterId: "room-inventory", sourceSystem: "room-inventory-prod", entityType: "room-inventory-record", externalId: "vendor-venue-7", sourceVersion: "42", checksum: "a".repeat(64) },
