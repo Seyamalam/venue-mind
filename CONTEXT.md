@@ -36,6 +36,26 @@ _Avoid_: creator, currently open Organization
 A server-assigned positive integer identifying one complete authoritative Project record state. Conditional writes advance it exactly once; a client never chooses the next value.
 _Avoid_: Plan Version, Proposal revision, save count
 
+**Event Day Runbook**:
+A separate operational aggregate whose immutable baseline is bound to one accepted Plan Version, Validation fingerprint, and Activity Ledger head. It contains stable phases, tasks, transitions, receipts, handoffs, and its own anchored ledger.
+_Avoid_: Project snapshot field, checklist, Proposal, schedule document
+
+**Runbook Version**:
+One immutable Event Day Runbook definition and accepted baseline. A newer accepted Plan creates a new Runbook Version rather than retargeting an active one.
+_Avoid_: Project Record Revision, mutable task state, Plan Version
+
+**Runbook Task Revision**:
+A server-advanced counter for one task projection used to reject stale event-day transitions without conflicting with other tasks.
+_Avoid_: Runbook Version, Project Record Revision, client sequence
+
+**Runbook Transition**:
+An append-only, retry-safe status change for one stable Runbook task, ordered by server sequence and bound to a command receipt.
+_Avoid_: Activity Ledger entry, narrative update, last-write-wins save
+
+**Runbook Handoff**:
+A deterministic structured projection of pending, active, blocked, overdue, evidence-gap, and completed task IDs at one Runbook ledger sequence.
+_Avoid_: editable summary, chat message, accepted Plan change
+
 **Synchronization Conflict**:
 A structured stale-write result containing base, local, and current remote Project records plus their changed and overlapping fields.
 _Avoid_: offline error, validation conflict, last-write-wins
