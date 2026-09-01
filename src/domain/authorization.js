@@ -36,6 +36,12 @@ export const VENUE_PERMISSIONS = Object.freeze([
   "simulation.run",
   "occupancy.read",
   "occupancy.write",
+  "incident.read",
+  "incident.report",
+  "incident.manage",
+  "incident.attachment",
+  "incident.emergency-act",
+  "incident.export",
   "export.plan",
   "export.audit",
   "audit.read",
@@ -44,11 +50,11 @@ export const VENUE_PERMISSIONS = Object.freeze([
   "lock.manage",
 ]);
 
-const viewer = ["project.read", "plan.read", "proposal.read", "comment.read", "simulation.read", "occupancy.read"];
-const planner = [...viewer, "proposal.create", "proposal.manage", "comment.write", "simulation.run", "occupancy.write", "export.plan"];
-const reviewer = [...viewer, "proposal.review", "comment.write", "export.audit", "audit.read"];
+const viewer = ["project.read", "plan.read", "proposal.read", "comment.read", "simulation.read", "occupancy.read", "incident.read"];
+const planner = [...viewer, "proposal.create", "proposal.manage", "comment.write", "simulation.run", "occupancy.write", "incident.report", "incident.manage", "incident.attachment", "export.plan"];
+const reviewer = [...viewer, "proposal.review", "comment.write", "incident.export", "export.audit", "audit.read"];
 const approver = [...reviewer, "approval.approve", "approval.waive"];
-const venueAdministrator = [...new Set([...planner, ...reviewer, ...approver, "project.manage", "plan.update", "lock.manage"])] ;
+const venueAdministrator = [...new Set([...planner, ...reviewer, ...approver, "incident.emergency-act", "project.manage", "plan.update", "lock.manage"])] ;
 
 export const HUMAN_ROLE_PERMISSIONS = Object.freeze({
   viewer: Object.freeze(viewer),
@@ -60,12 +66,12 @@ export const HUMAN_ROLE_PERMISSIONS = Object.freeze({
 });
 
 export const AGENT_SCOPE_PERMISSIONS = Object.freeze({
-  "venue:read": Object.freeze(["project.read", "plan.read", "proposal.read", "comment.read", "simulation.read", "occupancy.read", "audit.read"]),
+  "venue:read": Object.freeze(["project.read", "plan.read", "proposal.read", "comment.read", "simulation.read", "occupancy.read", "incident.read", "audit.read"]),
   "venue:propose": Object.freeze(["proposal.create", "proposal.manage"]),
   "venue:comment": Object.freeze(["comment.read", "comment.write"]),
   "venue:simulate": Object.freeze(["simulation.read", "simulation.run"]),
-  "venue:operate": Object.freeze(["occupancy.read", "occupancy.write"]),
-  "venue:export": Object.freeze(["export.plan", "export.audit"]),
+  "venue:operate": Object.freeze(["occupancy.read", "occupancy.write", "incident.read", "incident.report"]),
+  "venue:export": Object.freeze(["export.plan", "export.audit", "incident.export"]),
 });
 
 export const DEFAULT_APPROVAL_POLICY = Object.freeze({
@@ -148,6 +154,9 @@ const TOOL_PERMISSION = Object.freeze({
   "venue.ingest_occupancy_signal": "occupancy.write",
   "venue.refresh_live_occupancy": "occupancy.write",
   "venue.export_live_occupancy": "export.audit",
+  "venue.inspect_incidents": "incident.read",
+  "venue.report_incident": "incident.report",
+  "venue.export_incident_record": "incident.export",
 });
 
 export const permissionForCommand = (commandType) => COMMAND_PERMISSION[commandType] ?? null;

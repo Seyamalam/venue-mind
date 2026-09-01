@@ -1099,6 +1099,57 @@ export const liveOccupancyMonitorSchema = {
 const liveOccupancyResultSchema = { type: "object", required: ["monitor", "projection"], properties: { monitor: liveOccupancyMonitorSchema, projection: liveOccupancyProjectionSchema, receipt: { type: "object" }, duplicate: { type: "boolean" } }, additionalProperties: false };
 const liveOccupancyExportSchema = { type: "object", required: ["filename", "mimeType", "content"], properties: { filename: { type: "string", minLength: 1 }, mimeType: { const: "application/json" }, content: { type: "string" } }, additionalProperties: false };
 
+const incidentSeveritySchema = { enum: ["low", "medium", "high", "critical"] };
+const incidentCategorySchema = { enum: ["accessibility", "crowd-capacity", "medical", "security", "fire-life-safety", "facilities", "production-av", "catering", "staffing", "transport", "weather", "other"] };
+const incidentLocationInputSchema = {
+  oneOf: [
+    { type: "object", required: ["kind", "planObjectId"], properties: { kind: { const: "plan-object" }, planObjectId: { type: "string", minLength: 1, maxLength: 160 } }, additionalProperties: false },
+    { type: "object", required: ["kind", "point"], properties: { kind: { const: "coordinate" }, point: { type: "object", required: ["x", "y"], properties: { x: { type: "number" }, y: { type: "number" } }, additionalProperties: false } }, additionalProperties: false },
+  ],
+};
+
+export const incidentLocationContextSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/incident-location-context.schema.json",
+  title: "VenueMind Incident Location Context",
+  type: "object",
+  required: ["kind", "planId", "planVersion", "planFingerprint"],
+  properties: {
+    kind: { enum: ["plan-object", "coordinate"] },
+    planId: { type: "string", minLength: 1 },
+    planVersion: { type: "string", minLength: 1 },
+    planFingerprint: { type: "string", minLength: 1 },
+    planObjectId: { type: "string", minLength: 1 },
+    point: { type: "object", required: ["x", "y"], properties: { x: { type: "number" }, y: { type: "number" } }, additionalProperties: false },
+  },
+  additionalProperties: false,
+};
+
+export const operationalIncidentSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/operational-incident.schema.json",
+  title: "VenueMind Operational Incident",
+  type: "object",
+  required: ["id", "registerId", "revision", "severity", "category", "summaryCode", "status", "acknowledgement", "escalation", "location", "owner", "relatedRefs", "attachments", "handoffs", "emergencyActions", "timestamps"],
+  properties: {
+    id: { type: "string", minLength: 1 }, registerId: { type: "string", minLength: 1 }, revision: { type: "integer", minimum: 1 }, severity: incidentSeveritySchema, category: incidentCategorySchema, summaryCode: { type: "string", minLength: 1, maxLength: 80, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }, status: { enum: ["open", "mitigating", "resolved", "closed"] }, acknowledgement: { type: "object" }, escalation: { type: "object" }, location: incidentLocationContextSchema, owner: { type: ["object", "null"] }, relatedRefs: { type: "array", items: { type: "object" }, maxItems: 20 }, attachments: { type: "array", items: { type: "object" }, maxItems: 8 }, handoffs: { type: "array", items: { type: "object" } }, emergencyActions: { type: "array", items: { type: "object" } }, timestamps: { type: "object" },
+  },
+  additionalProperties: false,
+};
+
+export const incidentRegisterSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/incident-register.schema.json",
+  title: "VenueMind Incident Register",
+  type: "object",
+  required: ["schemaVersion", "id", "projectId", "runbookVersionId", "source", "baselineFingerprint", "incidents", "transitions", "receipts", "ledger", "revision", "createdAt", "updatedAt"],
+  properties: { schemaVersion: { const: 1 }, id: { type: "string" }, projectId: { type: "string" }, runbookVersionId: { type: "string" }, source: { type: "object" }, baselineFingerprint: { type: "string", minLength: 1 }, incidents: { type: "array", items: operationalIncidentSchema }, transitions: { type: "array", items: { type: "object" } }, receipts: { type: "array", items: { type: "object" } }, ledger: { type: "array", items: { type: "object" } }, revision: { type: "integer", minimum: 0 }, createdAt: { type: "string", format: "date-time" }, updatedAt: { type: "string", format: "date-time" } },
+  additionalProperties: false,
+};
+
+const incidentResultSchema = { type: "object", required: ["register"], properties: { register: incidentRegisterSchema, incidents: { type: "array", items: operationalIncidentSchema }, incident: operationalIncidentSchema, receipt: { type: "object" }, duplicate: { type: "boolean" } }, additionalProperties: false };
+const incidentExportSchema = { type: "object", required: ["filename", "mimeType", "content"], properties: { filename: { type: "string", minLength: 1 }, mimeType: { const: "application/json" }, content: { type: "string" } }, additionalProperties: false };
+
 const projectSummarySchema = {
   type: "object",
   required: ["id", "name", "activePlanId", "planVersion", "active"],
@@ -1487,6 +1538,35 @@ const baseVenueToolContracts = [
     inputSchema: emptyObject,
   },
   {
+    name: "venue.inspect_incidents",
+    description: "Inspect the Runbook-bound Incident Register or one stable Operational Incident with structured severity, category, owner, location, acknowledgement, escalation, evidence, and ordered ledger state.",
+    annotations: { readOnlyHint: true },
+    inputSchema: { type: "object", properties: { incidentId: { type: "string", minLength: 1, maxLength: 160 }, status: { enum: ["open", "mitigating", "resolved", "closed"] }, severity: incidentSeveritySchema, category: incidentCategorySchema, limit: { type: "integer", minimum: 1, maximum: 100, default: 50 } }, additionalProperties: false },
+  },
+  {
+    name: "venue.report_incident",
+    description: "Report one structured Operational Incident against an object or coordinate in the frozen accepted Plan without claiming acknowledgement, escalation, ownership, resolution, or emergency authority.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        severity: incidentSeveritySchema,
+        category: incidentCategorySchema,
+        summaryCode: { type: "string", minLength: 1, maxLength: 80, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        location: incidentLocationInputSchema,
+        relatedRefs: { type: "array", maxItems: 20, items: { type: "object", required: ["kind", "id"], properties: { kind: { enum: ["occupancy-alert", "runbook-task", "plan-object"] }, id: { type: "string", minLength: 1, maxLength: 160 } }, additionalProperties: false } },
+        ...mutationMetadataProperties,
+      },
+      required: ["severity", "category", "summaryCode", "location", "idempotencyKey"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "venue.export_incident_record",
+    description: "Export one verified post-event Operational Incident record with frozen Plan and Emergency Plan provenance, transitions, structured handoffs, attachment checksums, receipts, and hash-chained ledger evidence.",
+    annotations: { readOnlyHint: true },
+    inputSchema: { type: "object", properties: { incidentId: { type: "string", minLength: 1, maxLength: 160 } }, required: ["incidentId"], additionalProperties: false },
+  },
+  {
     name: "venue.export_audit_package",
     description: "Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.",
     annotations: { readOnlyHint: true },
@@ -1504,21 +1584,21 @@ const baseVenueToolContracts = [
   },
 ];
 
-export const VENUE_TOOL_CONTRACT_VERSION = "1.3.0";
+export const VENUE_TOOL_CONTRACT_VERSION = "1.4.0";
 export const VENUE_TOOL_AUTHORIZATION_SCOPES = Object.freeze(["venue:read", "venue:propose", "venue:comment", "venue:simulate", "venue:operate", "venue:export"]);
 
 const authorizationScopeForTool = (name) => {
   if (["venue.add_comment", "venue.edit_comment", "venue.set_comment_status"].includes(name)) return "venue:comment";
   if (["venue.run_scenario", "venue.get_scenario_result", "venue.compare_simulations"].includes(name)) return "venue:simulate";
-  if (["venue.ingest_occupancy_signal", "venue.refresh_live_occupancy"].includes(name)) return "venue:operate";
-  if (["venue.export_plan", "venue.export_simulation", "venue.export_audit_package", "venue.export_live_occupancy"].includes(name)) return "venue:export";
+  if (["venue.ingest_occupancy_signal", "venue.refresh_live_occupancy", "venue.report_incident"].includes(name)) return "venue:operate";
+  if (["venue.export_plan", "venue.export_simulation", "venue.export_audit_package", "venue.export_live_occupancy", "venue.export_incident_record"].includes(name)) return "venue:export";
   if (["venue.preview_revision", "venue.preview_template_update", "venue.apply_edit", "venue.create_proposal_branch", "venue.switch_proposal_branch", "venue.update_proposal_branch", "venue.duplicate_proposal_branch", "venue.archive_proposal_branch", "venue.restore_proposal_branch", "venue.rebase_proposal", "venue.request_adjustment"].includes(name)) return "venue:propose";
   return "venue:read";
 };
 
 const limitsForTool = (name) => Object.freeze({
   maximumInputBytes: name === "venue.apply_edit" ? 262144 : name === "venue.run_scenario" ? 131072 : 65536,
-  maximumOutputBytes: ["venue.export_plan", "venue.export_audit_package", "venue.export_live_occupancy"].includes(name) ? 2000000 : ["venue.inspect_layout", "venue.validate_layout", "venue.get_validation_evidence", "venue.get_scenario_result", "venue.inspect_live_occupancy"].includes(name) ? 1048576 : 262144,
+  maximumOutputBytes: ["venue.export_plan", "venue.export_audit_package", "venue.export_live_occupancy", "venue.export_incident_record"].includes(name) ? 2000000 : ["venue.inspect_layout", "venue.validate_layout", "venue.get_validation_evidence", "venue.get_scenario_result", "venue.inspect_live_occupancy", "venue.inspect_incidents"].includes(name) ? 1048576 : 262144,
 });
 
 const exampleInputForTool = (name) => ({
@@ -1552,6 +1632,9 @@ const exampleInputForTool = (name) => ({
   "venue.ingest_occupancy_signal": { sourceId: "door-a", sourceType: "manual-counter", sourceVersion: "counter-v12", kind: "zone-occupancy", observedAt: "2026-09-12T14:30:00.000Z", confidence: "high", readings: [{ scopeId: "venue", count: 412 }], idempotencyKey: "example-occupancy-001" },
   "venue.refresh_live_occupancy": { idempotencyKey: "example-occupancy-refresh-001" },
   "venue.export_live_occupancy": {},
+  "venue.inspect_incidents": { status: "open", limit: 25 },
+  "venue.report_incident": { severity: "high", category: "crowd-capacity", summaryCode: "east-entry-congestion", location: { kind: "plan-object", planObjectId: "obj-entry-east" }, relatedRefs: [{ kind: "occupancy-alert", id: "occupancy-alert-east-entry" }], idempotencyKey: "example-incident-report-001" },
+  "venue.export_incident_record": { incidentId: "incident-example-001" },
   "venue.export_plan": { format: "json" },
 }[name] ?? {});
 
@@ -1563,6 +1646,7 @@ const errorsForTool = (name, contract) => {
   if (name === "venue.get_validation_evidence") errors.push("VALIDATION_NOT_FOUND");
   if (name === "venue.get_scenario_result") errors.push("SCENARIO_RUN_NOT_FOUND");
   if (name.includes("live_occupancy") || name === "venue.ingest_occupancy_signal") errors.push("OCCUPANCY_MONITOR_NOT_FOUND", "OCCUPANCY_TOOL_UNAVAILABLE", "OCCUPANCY_REVISION_CONFLICT", "OCCUPANCY_SIGNAL_INVALID", "OCCUPANCY_PRIVACY_REJECTED");
+  if (name.includes("incident")) errors.push("INCIDENT_REGISTER_NOT_FOUND", "INCIDENT_NOT_FOUND", "INCIDENT_TOOL_UNAVAILABLE", "INCIDENT_REVISION_CONFLICT", "INCIDENT_INVALID", "INCIDENT_PRIVACY_REJECTED", "INCIDENT_LOCATION_INVALID", "INCIDENT_LEDGER_INTEGRITY_FAILED");
   return Object.freeze([...new Set(errors)]);
 };
 
@@ -1579,6 +1663,9 @@ const outputSchemaForTool = (name) => ({
   "venue.ingest_occupancy_signal": liveOccupancyResultSchema,
   "venue.refresh_live_occupancy": liveOccupancyResultSchema,
   "venue.export_live_occupancy": liveOccupancyExportSchema,
+  "venue.inspect_incidents": incidentResultSchema,
+  "venue.report_incident": incidentResultSchema,
+  "venue.export_incident_record": incidentExportSchema,
 }[name] ?? {});
 
 export const venueToolContracts = Object.freeze(baseVenueToolContracts.map((contract) => Object.freeze({

@@ -15,7 +15,7 @@ const canonicalProjectOpen = (value) => value?.project
   ? { status: value.status ?? "active", project: { ...value.project, active: value.project.active ?? value.status === "active" } }
   : { status: "active", project: { ...value, active: value?.active ?? true } };
 
-export function createVenueToolService({ executeCommand, projectOperations, occupancyOperations, authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, authorizationProvider, recordAuthorizationDenial } = {}) {
+export function createVenueToolService({ executeCommand, projectOperations, occupancyOperations, incidentOperations, authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, authorizationProvider, recordAuthorizationDenial } = {}) {
   if (typeof executeCommand !== "function") throw new TypeError("Venue tool service requires a command executor");
 
   return Object.freeze({
@@ -60,6 +60,15 @@ export function createVenueToolService({ executeCommand, projectOperations, occu
       } else if (name === "venue.export_live_occupancy") {
         if (typeof occupancyOperations?.exportLiveOccupancy !== "function") throw venueError("OCCUPANCY_TOOL_UNAVAILABLE", { toolName: name });
         output = await occupancyOperations.exportLiveOccupancy(input, { source, authorization, organizationId, projectId, signal });
+      } else if (name === "venue.inspect_incidents") {
+        if (typeof incidentOperations?.inspectIncidents !== "function") throw venueError("INCIDENT_TOOL_UNAVAILABLE", { toolName: name });
+        output = await incidentOperations.inspectIncidents(input, { source, authorization, organizationId, projectId, signal });
+      } else if (name === "venue.report_incident") {
+        if (typeof incidentOperations?.reportIncident !== "function") throw venueError("INCIDENT_TOOL_UNAVAILABLE", { toolName: name });
+        output = await incidentOperations.reportIncident(input, { source, authorization, organizationId, projectId, signal });
+      } else if (name === "venue.export_incident_record") {
+        if (typeof incidentOperations?.exportIncidentRecord !== "function") throw venueError("INCIDENT_TOOL_UNAVAILABLE", { toolName: name });
+        output = await incidentOperations.exportIncidentRecord(input, { source, authorization, organizationId, projectId, signal });
       } else {
         output = await executeCommand(commandForVenueTool(name, input, source), { signal, authorization, organizationId, projectId });
       }

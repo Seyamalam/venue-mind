@@ -63,7 +63,7 @@ test("every planner command and published tool resolves through the authorizatio
 
 test("Agent Grant scope matrix remains separate from every human-only permission", () => {
   const principal = createAgentPrincipal({ id: "agent-1" });
-  const humanOnly = new Set(["project.manage", "plan.update", "proposal.review", "approval.approve", "approval.waive", "lock.manage"]);
+  const humanOnly = new Set(["project.manage", "plan.update", "proposal.review", "approval.approve", "approval.waive", "lock.manage", "incident.manage", "incident.attachment", "incident.emergency-act"]);
   for (const scope of AGENT_SCOPES) {
     const activeGrant = grant([scope]);
     const expected = new Set(AGENT_SCOPE_PERMISSIONS[scope]);

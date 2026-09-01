@@ -228,9 +228,37 @@ _Avoid_: attendee location, scan event, sensor payload
 A typed, deterministic stale-source, conflicting-feed, warning-threshold, or exceeded-capacity state for one Live Occupancy scope. Human acknowledgement records operational ownership without clearing or changing the state.
 _Avoid_: notification, free-form incident, Constraint failure
 
-**Occupancy Incident Ledger**:
+**Occupancy Monitor Ledger**:
 The append-only hash-chained record of accepted Occupancy Signals and Occupancy Alert openings, human acknowledgements, and resolutions for one Live Occupancy Monitor.
-_Avoid_: Activity Ledger, Runbook Ledger, mutable alert history
+_Avoid_: Incident Register, Activity Ledger, Runbook Ledger, mutable alert history
+
+**Incident Register**:
+The Runbook-bound operational record of every Operational Incident, its ordered transitions, receipts, and audit evidence for one immutable accepted Plan baseline.
+_Avoid_: Project snapshot field, Occupancy Monitor Ledger, issue list
+
+**Operational Incident**:
+A structured event-day condition with stable identity, severity, category, location, ownership, acknowledgement, escalation, status, and timestamps.
+_Avoid_: Issue, Comment, Occupancy Alert, free-form incident
+
+**Incident Location Context**:
+One Plan-bound location identifying either a stable Project Object Instance or a coordinate inside the accepted Room Boundary.
+_Avoid_: Location label, attendee location, Proposal object
+
+**Incident Transition**:
+One authoritative change to an Operational Incident, attributed to one actor at one accepted instant and carrying the Incident Location Context in effect for that change.
+_Avoid_: Incident edit, mutable history, device timestamp
+
+**Incident Handoff**:
+A structured transfer of one active Operational Incident between two Plan- and Runbook-resolved operational owners, preserving open action codes and evidence references.
+_Avoid_: Chat summary, assignee name, Runbook Handoff
+
+**Incident Attachment**:
+Private, access-controlled photo evidence whose Incident record retains only bounded media metadata and an integrity checksum.
+_Avoid_: Public URL, inline image data, original filename
+
+**Emergency Action Invocation**:
+A human-authorized record that one action from the approved Emergency Plan baseline was invoked for an Operational Incident without changing the accepted Plan.
+_Avoid_: Emergency Review, Plan mutation, agent recommendation
 
 **Ticket Occupancy Reconciliation**:
 Deterministic evidence comparing Ticket Class totals and zone allocations with the Project attendee target and Occupancy Zone limits.
