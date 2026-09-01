@@ -10,7 +10,7 @@ import { roomInventoryAdapter } from "../src/integrations/adapters/room-inventor
 import { createMemoryProcessedBatchStore } from "../src/integrations/processed-batch-store.js";
 import { createAdapterRuntime, verifySyncCursor } from "../src/integrations/runtime.js";
 import { createMemorySecretStore } from "../src/integrations/secret-store.js";
-import { assertReviewableStagingBatch, createExternalIdMapping, loadAdapterProposalForReview } from "../src/integrations/staging.js";
+import { assertReviewableStagingBatch, createAdapterStagingBatch, createExternalIdMapping, loadAdapterProposalForReview } from "../src/integrations/staging.js";
 
 const fixture = JSON.parse(await readFile(new URL("./fixtures/adapter-room-inventory-v1.json", import.meta.url), "utf8"));
 const exportFixture = JSON.parse(await readFile(new URL("./fixtures/adapter-room-inventory-export-v1.json", import.meta.url), "utf8"));
@@ -170,6 +170,29 @@ test("generic Adapter Change evidence rejects contact-shaped labels", () => {
     );
   }
   assert.equal(normalizeAdapterChange(valid, roomInventoryAdapter.definition).evidence.kind, "inventory-substitution");
+});
+
+test("generic source record evidence rejects contact PII without echoing malicious keys", async () => {
+  const sourceRecord = {
+    external: { adapterId: "room-inventory", sourceSystem: "room-inventory-prod", entityType: "room-inventory-record", externalId: "vendor-venue-7", sourceVersion: "42", checksum: "a".repeat(64) },
+    synchronizedAt: "2026-08-28T12:00:00.000Z",
+    descriptive: { title: "Venue inventory", location: { label: "Grand Hall" }, organizer: { displayName: "Venue operations", organization: "Venue Group", role: "operator" } },
+  };
+  const create = (record) => createAdapterStagingBatch(roomInventoryAdapter.definition, {
+    sourceSystem: "room-inventory-prod",
+    sourceVersion: "inventory-42",
+    synchronizedAt: "2026-08-28T12:00:00.000Z",
+    syncCursor: null,
+    changes: [],
+    mappings: [],
+    sourceRecords: [record],
+    warnings: [],
+  }, { basePlanVersion: "3.3", proposalRevision: 2 });
+
+  await assert.rejects(() => create({ ...sourceRecord, descriptive: { ...sourceRecord.descriptive, title: "Call alice@example.com" } }), (error) => error.code === "ADAPTER_PERSONAL_DATA_REJECTED" && !JSON.stringify(error).includes("alice@example.com"));
+  await assert.rejects(() => create({ ...sourceRecord, descriptive: { ...sourceRecord.descriptive, location: { label: "+1\u2066 555 123 4567" } } }), (error) => error.code === "ADAPTER_PERSONAL_DATA_REJECTED" && !JSON.stringify(error).includes("555"));
+  await assert.rejects(() => create({ ...sourceRecord, descriptive: { ...sourceRecord.descriptive, "bob@example.com": "hidden" } }), (error) => error.code === "ADAPTER_CONTRACT_UNKNOWN_FIELD" && !JSON.stringify(error).includes("bob@example.com") && error.details.fieldCount === 1);
+  assert.equal((await create(sourceRecord)).sourceRecords[0].descriptive.title, "Venue inventory");
 });
 
 test("capability scopes and secret references are both enforced", async () => {

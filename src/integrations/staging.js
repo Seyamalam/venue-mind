@@ -120,7 +120,7 @@ export const stagingIntegrityPayload = (batch) => ({
 export async function createAdapterStagingBatch(definition, input, options = {}) {
   if (!input || typeof input !== "object" || Array.isArray(input)) fail("ADAPTER_CONTRACT_INVALID", "Adapter import result must be an object");
   const unknown = Object.keys(input).filter((key) => !["sourceSystem", "sourceVersion", "synchronizedAt", "syncCursor", "changes", "mappings", "sourceRecords", "warnings"].includes(key));
-  if (unknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Adapter import result contains unknown fields", { fields: unknown.sort() });
+  if (unknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Adapter import result contains unknown fields", { fieldCount: unknown.length });
   for (const field of ["sourceSystem", "sourceVersion"]) if (typeof input[field] !== "string" || !input[field]) fail("ADAPTER_CONTRACT_INVALID", `Import ${field} is required`);
   assertIsoTimestamp(input.synchronizedAt, "Import synchronizedAt");
   if (typeof options.basePlanVersion !== "string" || !options.basePlanVersion) fail("ADAPTER_BASE_PLAN_VERSION_REQUIRED", "Adapter staging requires exactly one base Plan Version");
@@ -138,17 +138,17 @@ export async function createAdapterStagingBatch(definition, input, options = {})
   const sourceRecords = rawSourceRecords.map((record) => {
     if (!record || typeof record !== "object" || Array.isArray(record)) fail("ADAPTER_CONTRACT_INVALID", "Source record evidence must be an object");
     const recordUnknown = Object.keys(record).filter((key) => !["external", "synchronizedAt", "descriptive"].includes(key));
-    if (recordUnknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Source record evidence contains unknown fields", { fields: recordUnknown.sort() });
+    if (recordUnknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Source record evidence contains unknown fields", { fieldCount: recordUnknown.length });
     const external = normalizeExternalReference(record.external, definition);
     assertIsoTimestamp(record.synchronizedAt, "Source record synchronizedAt");
     const descriptive = record.descriptive ?? {};
     const descriptiveUnknown = Object.keys(descriptive).filter((key) => !["title", "location", "organizer"].includes(key));
-    if (descriptiveUnknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Source record descriptive evidence contains unknown fields", { fields: descriptiveUnknown.sort() });
-    if (typeof descriptive.title !== "string" || !descriptive.title) fail("ADAPTER_SOURCE_INVALID", "Source record title is required");
+    if (descriptiveUnknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Source record descriptive evidence contains unknown fields", { fieldCount: descriptiveUnknown.length });
+    if (!isNonContactLabel(descriptive.title)) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Source record title must be a non-contact label");
     const locationUnknown = Object.keys(descriptive.location ?? {}).filter((key) => key !== "label");
     const organizerUnknown = Object.keys(descriptive.organizer ?? {}).filter((key) => !["displayName", "organization", "role"].includes(key));
-    if (locationUnknown.length || organizerUnknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Source record descriptive metadata contains unknown fields", { fields: [...locationUnknown, ...organizerUnknown].sort() });
-    if (typeof descriptive.location?.label !== "string" || !descriptive.location.label) fail("ADAPTER_SOURCE_INVALID", "Source record location label is required");
+    if (locationUnknown.length || organizerUnknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Source record descriptive metadata contains unknown fields", { fieldCount: locationUnknown.length + organizerUnknown.length });
+    if (!isNonContactLabel(descriptive.location?.label)) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Source record location must be a non-contact label");
     for (const field of ["displayName", "organization", "role"]) {
       const value = descriptive.organizer?.[field];
       if (!isNonContactLabel(value)) fail("ADAPTER_SOURCE_INVALID", "Organizer metadata must contain exact labels and no contact PII", { field });
@@ -160,7 +160,7 @@ export async function createAdapterStagingBatch(definition, input, options = {})
   const mappingDrafts = rawMappingDrafts.map((mapping) => {
     if (!mapping || typeof mapping !== "object" || Array.isArray(mapping)) fail("ADAPTER_CONTRACT_INVALID", "Import mapping must be an object");
     const mappingUnknown = Object.keys(mapping).filter((key) => !["venueEntityType", "venueObjectId", "external"].includes(key));
-    if (mappingUnknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Import mapping contains unknown fields", { fields: mappingUnknown.sort() });
+    if (mappingUnknown.length) fail("ADAPTER_CONTRACT_UNKNOWN_FIELD", "Import mapping contains unknown fields", { fieldCount: mappingUnknown.length });
     return { venueEntityType: mapping.venueEntityType, venueObjectId: mapping.venueObjectId, external: normalizeExternalReference(mapping.external, definition) };
   });
   const status = changes.length === 0 ? "no-changes" : "awaiting-review";
@@ -196,16 +196,16 @@ export async function assertStagingBatchIntegrity(batch) {
   if (!batch || typeof batch !== "object" || Array.isArray(batch)) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch must be an object");
   const allowedBatchFields = ["schemaVersion", "id", "status", "adapterId", "adapterVersion", "sourceSystem", "sourceVersion", "synchronizedAt", "basePlanVersion", "proposalRevision", "checksum", "syncCursor", "mappings", "sourceRecords", "warnings", "proposal"];
   const unknownBatchFields = Object.keys(batch).filter((key) => !allowedBatchFields.includes(key));
-  if (unknownBatchFields.length) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch contains fields outside its canonical integrity payload", { fields: unknownBatchFields.sort() });
+  if (unknownBatchFields.length) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch contains fields outside its canonical integrity payload", { fieldCount: unknownBatchFields.length });
   if (batch.proposal) {
     const unknownProposalFields = Object.keys(batch.proposal).filter((key) => !["id", "revision", "baseVersion", "status", "goal", "changes", "validation", "waivers"].includes(key));
-    if (unknownProposalFields.length) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging Proposal contains fields outside its canonical integrity payload", { fields: unknownProposalFields.sort() });
+    if (unknownProposalFields.length) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging Proposal contains fields outside its canonical integrity payload", { fieldCount: unknownProposalFields.length });
   }
   if (!Array.isArray(batch.mappings)) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging mappings must be an array");
   for (const mapping of batch.mappings) {
     const unknownMappingFields = Object.keys(mapping ?? {}).filter((key) => !["schemaVersion", "venueEntityType", "venueObjectId", "external", "batchId", "sourceSystem", "sourceVersion", "synchronizedAt", "checksum"].includes(key));
     const unknownExternalFields = Object.keys(mapping?.external ?? {}).filter((key) => !["adapterId", "sourceSystem", "entityType", "externalId", "sourceVersion", "checksum"].includes(key));
-    if (unknownMappingFields.length || unknownExternalFields.length) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging mapping contains fields outside its canonical integrity payload", { fields: [...unknownMappingFields, ...unknownExternalFields].sort() });
+    if (unknownMappingFields.length || unknownExternalFields.length) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging mapping contains fields outside its canonical integrity payload", { fieldCount: unknownMappingFields.length + unknownExternalFields.length });
   }
   const actualChecksum = await sha256Checksum(stagingIntegrityPayload(batch));
   if (batch.checksum !== actualChecksum) fail("ADAPTER_STAGING_INTEGRITY_FAILED", "Staging batch checksum does not match its canonical content", { expected: batch.checksum, actual: actualChecksum });
