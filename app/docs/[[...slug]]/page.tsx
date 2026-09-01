@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DocsRoute } from "@/components/routes/docs-route";
+import { DocsPage as DocsPageContent, type DocsPageData } from "@/components/docs/docs-page";
 import { docsPageBySlug, docsPages } from "@/src/docs/content.js";
 
 export const dynamicParams = false;
@@ -22,6 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
 
 export default async function DocsPage({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug = [] } = await params;
-  if (slug.length > 1 || !docsPageBySlug[slug[0] ?? "overview"]) notFound();
-  return <DocsRoute />;
+  const page = docsPageBySlug[slug[0] ?? "overview"];
+  if (slug.length > 1 || !page) notFound();
+  return <DocsPageContent page={page as DocsPageData} pages={docsPages as DocsPageData[]} />;
 }
