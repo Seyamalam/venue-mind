@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    {
+      "id": "inventory-page-empty",
+      "path": "inventory-page-empty.json",
+      "purpose": "Terminal, privacy-safe provider page for SDK sandbox tests."
+    }
+  ]
+}

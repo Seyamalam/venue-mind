@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/project-open-result.schema.json",
+  "title": "VenueMind Project Open Result",
+  "type": "object",
+  "required": [
+    "status",
+    "project"
+  ],
+  "properties": {
+    "status": {
+      "enum": [
+        "active",
+        "opening"
+      ]
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "activePlanId",
+        "planVersion",
+        "active"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "activePlanId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "planVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "proposalId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "active": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

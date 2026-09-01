@@ -2983,6 +2983,11 @@
       "compatibility": "Preferred protocol 2026-07-28; minimum 2025-03-26."
     },
     {
+      "surface": "TypeScript SDK",
+      "current": "0.1.0",
+      "compatibility": "ESM-only on Node.js 22+; SDK SemVer remains independent of tool, adapter, and Project schema versions."
+    },
+    {
       "surface": "Agent skills",
       "current": "1.1.0",
       "compatibility": "Targets tool contract 1.2.0."

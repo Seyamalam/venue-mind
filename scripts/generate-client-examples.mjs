@@ -50,6 +50,10 @@ const artifacts = new Map([
   ["raw/export-text.response.json", json(rpcResponse(7, exported))],
   ["webmcp/browser-invocation.mjs", await readFile(new URL("webmcp/browser-invocation.mjs", source), "utf8")],
   ["typescript/supervised-workflow.ts", await readFile(new URL("typescript/supervised-workflow.ts", source), "utf8")],
+  ["sdk-adapter/src/index.ts", await readFile(new URL("sdk-adapter/src/index.ts", source), "utf8")],
+  ["sdk-adapter/test/contract.test.mjs", await readFile(new URL("sdk-adapter/test/contract.test.mjs", source), "utf8")],
+  ["sdk-adapter/package.json", await readFile(new URL("sdk-adapter/package.json", source), "utf8")],
+  ["sdk-adapter/tsconfig.json", await readFile(new URL("sdk-adapter/tsconfig.json", source), "utf8")],
 ]);
 
 const manifest = {
@@ -58,7 +62,7 @@ const manifest = {
   safetyBoundary: "Agent examples stop at human Approval.",
   files: [...artifacts.keys()].map((path) => ({
     path,
-    validation: path.startsWith("config/") ? "configuration" : path.startsWith("raw/") ? "runtime-contract" : path.startsWith("webmcp/") ? "executed-webmcp" : path.startsWith("typescript/") ? "compiled-and-executed-mcp" : "content",
+    validation: path.startsWith("config/") ? "configuration" : path.startsWith("raw/") ? "runtime-contract" : path.startsWith("webmcp/") ? "executed-webmcp" : path.startsWith("typescript/") ? "compiled-and-executed-mcp" : path.startsWith("sdk-adapter/") ? "packed-sdk-contract-suite" : "content",
   })),
   sourceVersions: { projectSchema: 10, toolContract: "1.2.0", mcpServer: "0.4.0", validationEngine: failedValidation.engineVersion },
   expected: {

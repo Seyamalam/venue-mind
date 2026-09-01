@@ -578,6 +578,7 @@
         "sharing",
         "registration",
         "operational-resources",
+        "typescript-sdk",
         "recovery"
       ]
     },

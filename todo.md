@@ -802,16 +802,16 @@ Completion gate:
 
 ## 7.5 Public SDK
 
-- [ ] Publish TypeScript types from canonical schemas.
-- [ ] Add a typed client for Project, Plan, Proposal, Validation, ledger, and export APIs.
-- [ ] Add adapter helpers for idempotency, pagination, retries, and webhooks.
-- [ ] Add sandbox fixtures and a local test server.
-- [ ] Add semantic versioning and deprecation policy.
-- [ ] Add generated API reference and examples.
+- [x] Publish TypeScript types from canonical schemas.
+- [x] Add a typed client for Project, Plan, Proposal, Validation, ledger, and export APIs.
+- [x] Add adapter helpers for idempotency, pagination, retries, and webhooks.
+- [x] Add sandbox fixtures and a local test server.
+- [x] Add semantic versioning and deprecation policy.
+- [x] Add generated API reference and examples.
 
 Completion gate:
 
-- [ ] The example adapter builds and passes its contract suite against the latest SDK release.
+- [x] The example adapter builds and passes its contract suite against the latest SDK release.
 
 ---
 

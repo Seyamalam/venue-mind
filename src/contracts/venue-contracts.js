@@ -1029,6 +1029,118 @@ const scenarioInputSchema = {
   additionalProperties: false,
 };
 
+export const planExportSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/plan-export.schema.json",
+  title: "VenueMind Plan Export",
+  type: "object",
+  required: ["format", "filename", "mimeType", "encoding", "content"],
+  properties: {
+    format: { enum: ["json", "text", "svg", "pdf", "pdf-emergency", "csv", "csv-objects", "csv-inventory", "csv-staffing", "svg-post-map", "csv-production", "svg-production", "csv-catering-stations", "csv-replenishment", "audit"] },
+    filename: { type: "string", minLength: 1 },
+    mimeType: { type: "string", minLength: 1 },
+    encoding: { enum: ["utf8", "base64"] },
+    content: { type: "string" },
+  },
+  additionalProperties: false,
+};
+
+const projectSummarySchema = {
+  type: "object",
+  required: ["id", "name", "activePlanId", "planVersion", "active"],
+  properties: {
+    id: { type: "string", minLength: 1 },
+    name: { type: "string", minLength: 1 },
+    activePlanId: { type: "string", minLength: 1 },
+    schemaVersion: { type: "integer", minimum: 1 },
+    planVersion: { type: ["string", "null"] },
+    proposalId: { type: ["string", "null"] },
+    updatedAt: { type: "string", format: "date-time" },
+    active: { type: "boolean" },
+  },
+  additionalProperties: false,
+};
+
+export const projectListResultSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/project-list-result.schema.json",
+  title: "VenueMind Project List Result",
+  type: "object",
+  required: ["source", "projects"],
+  properties: {
+    source: { type: "string", minLength: 1 },
+    projects: { type: "array", items: projectSummarySchema },
+  },
+  additionalProperties: false,
+};
+
+export const projectOpenResultSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/project-open-result.schema.json",
+  title: "VenueMind Project Open Result",
+  type: "object",
+  required: ["status", "project"],
+  properties: {
+    status: { enum: ["active", "opening"] },
+    project: projectSummarySchema,
+  },
+  additionalProperties: false,
+};
+
+export const layoutInspectionSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/layout-inspection.schema.json",
+  title: "VenueMind Layout Inspection",
+  type: "object",
+  required: ["planId", "planVersion", "event", "venue", "templateBindings", "inventoryAvailability", "occupancy", "staffing", "productionPolicy", "cateringPolicy", "emergencyPlan", "emergencyReviews", "spatial", "spatialObjects", "lockedObjects", "projectLocks", "comments", "scenarios", "scenarioRuns", "constraints", "metrics", "proposal", "activeBranchId", "proposalBranches", "commandReceiptCount", "ledgerIntegrity", "brief"],
+  properties: {
+    planId: { type: "string", minLength: 1 },
+    planVersion: { type: "string", minLength: 1 },
+    event: { type: "object" },
+    venue: { type: "object" },
+    templateBindings: { type: "object" },
+    inventoryAvailability: { type: "array", items: { type: "object" } },
+    occupancy: { type: "object" },
+    staffing: { type: ["object", "null"] },
+    productionPolicy: { type: ["object", "null"] },
+    cateringPolicy: { type: ["object", "null"] },
+    emergencyPlan: { type: ["object", "null"] },
+    emergencyReviews: { type: "array", items: { type: "object" } },
+    spatial: spatialGeometrySchema,
+    spatialObjects: { type: "array", items: { type: "object", required: ["id", "kind", "label"], properties: { id: { type: "string" }, kind: { type: "string" }, label: { type: "string" } }, additionalProperties: true } },
+    lockedObjects: { type: "array", items: { type: "object" } },
+    projectLocks: { type: "array", items: objectLockSchema },
+    comments: { type: "array", items: commentSchema },
+    scenarios: { type: "array", items: { type: "object" } },
+    scenarioRuns: { type: "array", items: { type: "object" } },
+    constraints: { type: "array", items: venueConstraintSchema },
+    metrics: { type: "object" },
+    proposal: { anyOf: [{ type: "object", required: ["id", "baseVersion", "revision", "status", "goal", "changedItems", "templateUpdate"], properties: { id: { type: "string" }, baseVersion: { type: "string" }, revision: { type: "integer", minimum: 1 }, status: { type: "string" }, goal: { type: "string" }, changedItems: { type: "integer", minimum: 0 }, templateUpdate: { type: ["object", "null"] } }, additionalProperties: false }, { type: "null" }] },
+    activeBranchId: { type: "string", minLength: 1 },
+    proposalBranches: { type: "array", items: { type: "object", required: ["id", "name", "strategy", "proposalId"], properties: { id: { type: "string" }, name: { type: "string" }, strategy: { type: "string" }, proposalId: { type: "string" } }, additionalProperties: false } },
+    commandReceiptCount: { type: "integer", minimum: 0 },
+    ledgerIntegrity: { type: "object" },
+    brief: eventBriefSchema,
+  },
+  additionalProperties: false,
+};
+
+export const previewRevisionResultSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/preview-revision-result.schema.json",
+  title: "VenueMind Preview Revision Result",
+  type: "object",
+  required: ["proposalId", "baseVersion", "revision", "changedItems", "requiresHumanApproval"],
+  properties: {
+    proposalId: { type: "string", minLength: 1 },
+    baseVersion: { type: "string", minLength: 1 },
+    revision: { type: "integer", minimum: 1 },
+    changedItems: { type: "integer", minimum: 0 },
+    requiresHumanApproval: { const: true },
+  },
+  additionalProperties: false,
+};
+
 const baseVenueToolContracts = [
   {
     name: "venue.list_projects",
@@ -1358,6 +1470,17 @@ const errorsForTool = (name, contract) => {
   return Object.freeze([...new Set(errors)]);
 };
 
+const outputSchemaForTool = (name) => ({
+  "venue.list_projects": projectListResultSchema,
+  "venue.open_project": projectOpenResultSchema,
+  "venue.inspect_layout": layoutInspectionSchema,
+  "venue.preview_revision": previewRevisionResultSchema,
+  "venue.validate_layout": validationResultSchema,
+  "venue.get_change_log": activityLedgerSchema,
+  "venue.export_plan": planExportSchema,
+  "venue.export_audit_package": planExportSchema,
+}[name] ?? {});
+
 export const venueToolContracts = Object.freeze(baseVenueToolContracts.map((contract) => Object.freeze({
   ...contract,
   title: contract.name.split(".").at(-1).split("_").map((word) => word[0].toUpperCase() + word.slice(1)).join(" "),
@@ -1365,6 +1488,7 @@ export const venueToolContracts = Object.freeze(baseVenueToolContracts.map((cont
   authorization: Object.freeze({ requiredScope: authorizationScopeForTool(contract.name) }),
   limits: limitsForTool(contract.name),
   exampleInput: Object.freeze(exampleInputForTool(contract.name)),
+  outputSchema: outputSchemaForTool(contract.name),
   errors: errorsForTool(contract.name, contract),
 })));
 
@@ -1375,7 +1499,7 @@ export const venueToolManifestSchema = {
   type: "array",
   items: {
     type: "object",
-    required: ["name", "title", "description", "contractVersion", "authorization", "limits", "inputSchema", "exampleInput", "errors"],
+    required: ["name", "title", "description", "contractVersion", "authorization", "limits", "inputSchema", "outputSchema", "exampleInput", "errors"],
     properties: {
       name: { type: "string", pattern: "^venue\\.[a-z0-9_]+$" },
       title: { type: "string", minLength: 1 },
@@ -1385,6 +1509,7 @@ export const venueToolManifestSchema = {
       authorization: { type: "object", required: ["requiredScope"], properties: { requiredScope: { enum: VENUE_TOOL_AUTHORIZATION_SCOPES } }, additionalProperties: false },
       limits: { type: "object", required: ["maximumInputBytes", "maximumOutputBytes"], properties: { maximumInputBytes: { type: "integer", minimum: 1 }, maximumOutputBytes: { type: "integer", minimum: 1 } }, additionalProperties: false },
       inputSchema: { type: "object" },
+      outputSchema: { type: "object" },
       exampleInput: { type: "object" },
       errors: { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", minLength: 1 } },
     },
