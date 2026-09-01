@@ -1357,6 +1357,8 @@ Every stable VenueMind error code, user-safe message, and actionable remediation
 | ADJUSTMENT_REQUIRED | Adjustment instruction is required. | Provide a concise operational adjustment. |
 | PROPOSAL_NOT_REVIEWABLE | Only a Proposal under review can be changed. | Create or activate a Proposal with review status before changing it. |
 | PROPOSAL_MISMATCH | Proposal ID does not match the active Proposal. | Inspect the active Proposal and retry with its stable ID. |
+| PROPOSAL_EMPTY | Proposal contains no executable Changes. | Keep accepted truth unchanged; create a Proposal only after at least one planning Change exists. |
+| PLANNING_EFFECT_INVALID | Persisted Planning Effect is invalid. | Restore a snapshot whose active and historical Proposal Changes conform to the published Planning Effect schema. |
 | BRANCH_NAME_REQUIRED | Proposal Branch name is required. | Provide a non-empty Branch name. |
 | BRANCH_NOT_FOUND | Proposal Branch not found. | List Proposal Branches and retry with an existing stable Branch ID. |
 | REBASE_CONFLICT | Unresolved Proposal conflicts block rebase. | Resolve blocking conflicts, then retry the rebase. |
@@ -1406,6 +1408,7 @@ Every stable VenueMind error code, user-safe message, and actionable remediation
 | TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
 | TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
 | LEDGER_INTEGRITY_FAILED | Activity Ledger integrity failed. | Restore an untampered snapshot or recover the last verified Project record. |
+| LEGACY_BRIEF_ATTESTATION_REQUIRED | Legacy Event Brief requires trusted human attestation. | Have an organization owner or administrator review and attest the legacy Event Brief before migration. |
 | VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
 
 ## Error envelope
@@ -1886,6 +1889,8 @@ The active Event Brief and exact requirement-to-evidence coverage.
 | roomId | Published result field. |
 | attendeeTarget | Published result field. |
 | occupancyMode | Published result field. |
+| schedule | Published result field. |
+| planningEffectBindings | Published result field. |
 | requirements[] | Published result field. |
 | coverage | Published result field. |
 | coverageMatrix | Published result field. |
@@ -1893,6 +1898,8 @@ The active Event Brief and exact requirement-to-evidence coverage.
 | summary | Published result field. |
 
 - Stable ID: id
+- Stable ID: planningEffectBindings.*.targetRequirementId
+- Stable ID: planningEffectBindings.*.affectedConstraintIds[]
 - Stable ID: requirements[].id
 - Stable ID: coverageMatrix[].constraintId
 
@@ -2472,7 +2479,7 @@ Validate the visible proposal or committed plan against locks, accessibility, ca
 
 ## Output
 
-Deterministic Validation for one exact immutable input fingerprint.
+Deterministic Validation for one exact immutable input fingerprint, including typed evidence-family invalidation evidence.
 
 | Output field | Meaning |
 | --- | --- |
@@ -2489,6 +2496,8 @@ Deterministic Validation for one exact immutable input fingerprint.
 | productionEvidence | Published result field. |
 | cateringEvidence | Published result field. |
 | emergencyEvidence | Published result field. |
+| evidenceFamilyFingerprints | Published result field. |
+| planningEvidenceInvalidations | Published result field. |
 | emergencyReviewRequired | Published result field. |
 | emergencyChangedObjectIds[] | Stable identifier. |
 | authorizedEmergencyReviewerRoles[] | Published result field. |
@@ -2554,7 +2563,7 @@ Read deterministic evidence for the current Validation, optionally restricted to
 
 ## Output
 
-A bounded evidence view of one Validation result.
+A bounded evidence view of one Validation result and its exact evidence-family invalidations.
 
 | Output field | Meaning |
 | --- | --- |
@@ -2567,6 +2576,8 @@ A bounded evidence view of one Validation result.
 | unresolvedIssues | Published result field. |
 | candidateGeometryFingerprint | Published result field. |
 | evidenceFingerprint | Published result field. |
+| evidenceFamilyFingerprints | Published result field. |
+| planningEvidenceInvalidations | Published result field. |
 | checks[] | Published result field. |
 | spatialEvidence | Published result field. |
 | productionEvidence | Published result field. |
@@ -3627,21 +3638,27 @@ Verify the Activity Ledger hash chain and replay accepted Plan transitions again
 
 ## Output
 
-Replay verification from accepted transitions to current Plan truth.
+Replay verification from accepted transitions to current Plan and Event Brief truth.
 
 | Output field | Meaning |
 | --- | --- |
 | status | Published result field. |
 | transitions[] | Published result field. |
+| briefTransitions[] | Published result field. |
 | currentPlanVersion | Published result field. |
 | replayedFingerprint | Published result field. |
 | currentFingerprint | Published result field. |
+| replayedBriefFingerprint | Published result field. |
+| currentBriefFingerprint | Published result field. |
 | ledgerHeadHash | Published result field. |
 | lockedObjectViolations[] | Published result field. |
+| truthFingerprintViolations[] | Published result field. |
 
 - Stable ID: transitions[].ledgerEntryId
 - Stable ID: transitions[].planVersion
+- Stable ID: briefTransitions[].ledgerEntryId
 - Stable ID: lockedObjectViolations[].objectId
+- Stable ID: truthFingerprintViolations[].ledgerEntryId
 
 ## Errors
 
@@ -4367,6 +4384,8 @@ The active Event Brief and exact requirement-to-evidence coverage.
 | roomId | Published result field. |
 | attendeeTarget | Published result field. |
 | occupancyMode | Published result field. |
+| schedule | Published result field. |
+| planningEffectBindings | Published result field. |
 | requirements[] | Published result field. |
 | coverage | Published result field. |
 | coverageMatrix | Published result field. |
@@ -4374,6 +4393,8 @@ The active Event Brief and exact requirement-to-evidence coverage.
 | summary | Published result field. |
 
 - Stable ID: id
+- Stable ID: planningEffectBindings.*.targetRequirementId
+- Stable ID: planningEffectBindings.*.affectedConstraintIds[]
 - Stable ID: requirements[].id
 - Stable ID: coverageMatrix[].constraintId
 
@@ -4463,7 +4484,7 @@ Execute Get Validation Evidence through the shared VenueMind planner boundary.
 
 ## Output
 
-A bounded evidence view of one Validation result.
+A bounded evidence view of one Validation result and its exact evidence-family invalidations.
 
 | Output field | Meaning |
 | --- | --- |
@@ -4476,6 +4497,8 @@ A bounded evidence view of one Validation result.
 | unresolvedIssues | Published result field. |
 | candidateGeometryFingerprint | Published result field. |
 | evidenceFingerprint | Published result field. |
+| evidenceFamilyFingerprints | Published result field. |
+| planningEvidenceInvalidations | Published result field. |
 | checks[] | Published result field. |
 | spatialEvidence | Published result field. |
 | productionEvidence | Published result field. |
@@ -4635,7 +4658,7 @@ Execute Validate Layout through the shared VenueMind planner boundary.
 
 ## Output
 
-Deterministic Validation for one exact immutable input fingerprint.
+Deterministic Validation for one exact immutable input fingerprint, including typed evidence-family invalidation evidence.
 
 | Output field | Meaning |
 | --- | --- |
@@ -4652,6 +4675,8 @@ Deterministic Validation for one exact immutable input fingerprint.
 | productionEvidence | Published result field. |
 | cateringEvidence | Published result field. |
 | emergencyEvidence | Published result field. |
+| evidenceFamilyFingerprints | Published result field. |
+| planningEvidenceInvalidations | Published result field. |
 | emergencyReviewRequired | Published result field. |
 | emergencyChangedObjectIds[] | Stable identifier. |
 | authorizedEmergencyReviewerRoles[] | Published result field. |
@@ -4858,21 +4883,27 @@ Execute Replay History through the shared VenueMind planner boundary.
 
 ## Output
 
-Replay verification from accepted transitions to current Plan truth.
+Replay verification from accepted transitions to current Plan and Event Brief truth.
 
 | Output field | Meaning |
 | --- | --- |
 | status | Published result field. |
 | transitions[] | Published result field. |
+| briefTransitions[] | Published result field. |
 | currentPlanVersion | Published result field. |
 | replayedFingerprint | Published result field. |
 | currentFingerprint | Published result field. |
+| replayedBriefFingerprint | Published result field. |
+| currentBriefFingerprint | Published result field. |
 | ledgerHeadHash | Published result field. |
 | lockedObjectViolations[] | Published result field. |
+| truthFingerprintViolations[] | Published result field. |
 
 - Stable ID: transitions[].ledgerEntryId
 - Stable ID: transitions[].planVersion
+- Stable ID: briefTransitions[].ledgerEntryId
 - Stable ID: lockedObjectViolations[].objectId
+- Stable ID: truthFingerprintViolations[].ledgerEntryId
 
 ## Applicable errors
 
@@ -6738,6 +6769,7 @@ Human Approval creating the next immutable Plan Version.
 | IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
 | PROPOSAL_MISMATCH | Proposal ID does not match the active Proposal. | Inspect the active Proposal and retry with its stable ID. |
+| PROPOSAL_EMPTY | Proposal contains no executable Changes. | Keep accepted truth unchanged; create a Proposal only after at least one planning Change exists. |
 | PLAN_VERSION_CONFLICT | Plan version conflict. | Inspect the latest Plan Version and create or rebase the Proposal before retrying. |
 | VALIDATION_FAILED | Proposal validation failed. | Resolve every hard Constraint failure and validate again. |
 | WARNING_WAIVER_REQUIRED | Proposal has warnings that require a human Warning Waiver. | Have a human record a reason-coded waiver for every open warning. |
@@ -7039,7 +7071,12 @@ Execute Update Event Brief through the shared VenueMind planner boundary.
     "roomId": "room-example",
     "attendeeTarget": 1,
     "occupancyMode": "theater",
-    "requirements": []
+    "requirements": [],
+    "schedule": {
+      "startAt": "2026-09-18T09:00:00+06:00",
+      "endAt": "2026-09-18T17:00:00+06:00",
+      "timezone": "Asia/Dhaka"
+    }
   },
   "actor": "human",
   "idempotencyKey": "example-command-001"
@@ -7252,6 +7289,8 @@ JSON Schemas are generated from the runtime contract source during every product
 - [Venue Template catalog](https://venue-mind-jet.vercel.app/schemas/venue-template-catalog.schema.json)
 - [Template catalog example](https://venue-mind-jet.vercel.app/examples/venue-template-catalog.json)
 - [Event Brief](https://venue-mind-jet.vercel.app/schemas/event-brief.schema.json)
+- [Planning Effect](https://venue-mind-jet.vercel.app/schemas/planning-effect.schema.json)
+- [Calendar webhook event](https://venue-mind-jet.vercel.app/schemas/calendar-webhook-event.schema.json)
 - [Comment anchor](https://venue-mind-jet.vercel.app/schemas/comment-anchor.schema.json)
 - [Comment](https://venue-mind-jet.vercel.app/schemas/comment.schema.json)
 - [Scenario definition](https://venue-mind-jet.vercel.app/schemas/scenario-definition.schema.json)

@@ -40,6 +40,7 @@ flowchart LR
 | Trusted hosting identity Adapter | `worker/authentication.ts` |
 | Stable errors and remediation | `src/domain/errors.js` |
 | Ledger sealing, verification, and replay | `src/domain/activity-ledger.js` |
+| Canonical UTC and RFC3339 timestamp validation | `src/domain/timestamps.js` and `src/domain/event-schedule.js` |
 | Tool authorization and dispatch | `src/tools/venue-tool-service.js` |
 | Browser registration and bounded results | `src/webmcp/` |
 | Standalone MCP resources, prompts, progress, and stdio | `packages/mcp-server/src/` |
@@ -49,6 +50,7 @@ flowchart LR
 | Numbered database migrations, integrity, backup, and restore | `db/migrations/`, `worker/database-migrations.ts`, and `scripts/database-maintenance.mjs` |
 | Interchange and operational exports | `src/interchange/` |
 | External adapter contracts, Proposal staging, idempotency, retry, and secret boundaries | `src/integrations/` |
+| Calendar event normalization and Event-to-Project mapping | `src/integrations/adapters/calendar-event-adapter.js` |
 | Canonical docs registry | `src/docs/` |
 | Generated public artifacts | `scripts/generate-*.mjs` and `public/` |
 
@@ -94,9 +96,17 @@ sequenceDiagram
 - Collaboration Events carry durable revision invalidation and Presence Leases carry awareness; neither can mutate accepted Plan truth.
 - SSE reconnect uses a per-Project previous-event chain. A missed link forces an authoritative reload through Project Record Revision checks.
 - Public Share Links are bearer capabilities stored only as SHA-256 hashes. Reviewer access pins one retained Proposal revision; pending operations reconcile idempotently and fail closed. Notification payloads carry fixed body codes plus allowlisted stable references, creation-time preferences determine in-app visibility, and email delivery records success only after the injected provider confirms it.
-- Adapter import and synchronization translate external records into the canonical Proposal and Change model for exactly one base Plan Version. Every Change carries executable `spatialEffects`; accepted Plan truth still changes only through ordinary human Approval.
+- Adapter import and synchronization translate external records into the canonical Proposal and Change model for exactly one base Plan Version. Every Change carries executable `spatialEffects`, closed-union `planningEffects`, or both; accepted Plan and Event Brief truth still change only through ordinary human Approval.
 - External ID Mappings keep source-system identity distinct from both Inventory Item Template IDs and Project Object Instance IDs, and retain source system, source version, synchronization time, and checksum evidence.
+- Calendar Event Snapshots retain only allowlisted descriptive labels as adapter evidence. Attendance and schedule deltas become typed Requirement Changes; title, location, and organizer labels never enter the Proposal or Activity Ledger.
+- Every Project-mapped adapter result, including metadata-only `no-changes` evidence, is verified against an injected server-owned Project context before idempotency persistence. Review loading repeats the check against the planner aggregate.
+- Calendar Planning Effects must match durable server-owned bindings retained with accepted Event Brief truth, including operation-to-Requirement IDs, Requirement categories and Constraint IDs, accepted Brief before-values, and the Constraint registry. Production restore, package import, and Project duplication derive from the same bindings; restore canonicalizes the closed union across active and retained historical Proposal Branches.
+- An adapter batch with no planning Changes has `no-changes` status and no Proposal; it cannot enter review or advance a Plan Version.
+- Adapter staging checksums cover the executable Proposal, mappings, source records, cursor, and warnings. Batch and Proposal IDs are checksum-derived, and every persisted reload is reverified before use.
+- Durable webhook rows are keyed by adapter version, source system, and event ID; both inserted and duplicate store returns must match that identity and a checksum recomputed from normalized content.
+- Event schedule instants use canonical RFC3339 date-times with known explicit offsets matching the named IANA timezone, including DST transitions; the RFC3339 unknown-local-offset form `-00:00` is rejected. Planning Effect synchronization evidence uses the shared canonical UTC timestamp validator.
 - The processed-batch store is the adapter idempotency boundary. A repeated import returns the original staging result without creating another Proposal; production persistence must implement the same atomic `putIfAbsent` contract.
+- Webhook acceptance requires an injected atomic store keyed by adapter version, source system, and event ID. This survives runtime restarts, closes concurrent delivery races, and keeps equal event IDs from different sources distinct.
 - Adapter capability scopes and scoped secret references are checked independently. Adapter handlers receive secret values only through the secret-store boundary, never through persisted configuration or dead letters.
 
 ## Add a command

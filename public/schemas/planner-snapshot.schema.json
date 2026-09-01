@@ -1373,6 +1373,21 @@
         "waivers"
       ],
       "properties": {
+        "changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "planningEffects": {
+                "type": "array",
+                "items": {
+                  "$ref": "https://venuemind.dev/schemas/planning-effect.schema.json"
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
         "waivers": {
           "type": "array",
           "items": {
@@ -1401,9 +1416,25 @@
           "proposal": {
             "type": "object",
             "required": [
+              "changes",
               "waivers"
             ],
             "properties": {
+              "changes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "planningEffects": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "https://venuemind.dev/schemas/planning-effect.schema.json"
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
               "waivers": {
                 "type": "array",
                 "items": {
@@ -1412,6 +1443,40 @@
               }
             },
             "additionalProperties": true
+          },
+          "revisions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "changes",
+                "waivers"
+              ],
+              "properties": {
+                "changes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "planningEffects": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "https://venuemind.dev/schemas/planning-effect.schema.json"
+                        }
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                },
+                "waivers": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "https://venuemind.dev/schemas/warning-waiver.schema.json"
+                  }
+                }
+              },
+              "additionalProperties": true
+            }
           }
         },
         "additionalProperties": true

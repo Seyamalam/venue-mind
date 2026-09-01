@@ -40,7 +40,7 @@ test("Room Inventory import creates one canonical checksum-bound Proposal for an
   assert.equal(result.output.proposal.baseVersion, "3.3");
   assert.equal(result.output.proposal.revision, 2);
   assert.match(result.output.proposal.id, /^proposal-adapter-[0-9a-f]{16}$/);
-  assert.equal(assertReviewableStagingBatch(result.output), true);
+  assert.equal(await assertReviewableStagingBatch(result.output, null, { requireProjectContext: false }), true);
   assert.deepEqual(input, before);
   assert.deepEqual(result.output.mappings.map((mapping) => mapping.external.externalId), ["vendor-chair-7", "vendor-table-2"]);
   assert.ok(result.output.proposal.changes.every((change) => change.spatialEffects.length > 0));
@@ -60,7 +60,7 @@ test("an imported canonical Proposal enters the planner review and Approval path
   const planBefore = planner.getSnapshot().plan;
   const input = { ...structuredClone(fixture), basePlanVersion: "1.0", proposalRevision: 2, mappings: {}, records: [structuredClone(fixture.records.find((record) => record.externalId === "vendor-chair-7"))] };
   const result = await createAdapterRuntime({ clock }).execute(roomInventoryAdapter, "import", input, authorization);
-  const loaded = loadAdapterProposalForReview(planner, result.output);
+  const loaded = await loadAdapterProposalForReview(planner, result.output);
 
   assert.equal(loaded.status, "review");
   assert.equal(loaded.proposalId, result.output.proposal.id);

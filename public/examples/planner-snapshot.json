@@ -2762,6 +2762,7 @@
     "roomId": "room-harborview-main-hall",
     "attendeeTarget": 400,
     "occupancyMode": "theater",
+    "schedule": null,
     "requirements": [
       {
         "id": "req-theater-seating",
@@ -5957,10 +5958,127 @@
           },
           "emergencyReviews": []
         },
-        "planFingerprint": "plan-428eaa43"
+        "planFingerprint": "plan-428eaa43",
+        "acceptedBrief": {
+          "id": "brief-summit-forward-2026",
+          "eventName": "SummitForward 2026",
+          "date": "2026-09-12",
+          "timezone": "America/New_York",
+          "venueId": "venue-harborview-main-hall",
+          "roomId": "room-harborview-main-hall",
+          "attendeeTarget": 400,
+          "occupancyMode": "theater",
+          "schedule": null,
+          "requirements": [
+            {
+              "id": "req-theater-seating",
+              "category": "seating",
+              "label": "Theater style for keynotes",
+              "priority": "high",
+              "owner": "planning",
+              "status": "confirmed",
+              "measurable": true,
+              "constraintIds": [
+                "constraint-capacity"
+              ],
+              "evidenceRefs": []
+            },
+            {
+              "id": "req-west-stage",
+              "category": "production",
+              "label": "Stage on west wall",
+              "priority": "high",
+              "owner": "production",
+              "status": "confirmed",
+              "measurable": false,
+              "constraintIds": [],
+              "evidenceRefs": [
+                "obj-stage-west"
+              ]
+            },
+            {
+              "id": "req-breakout-access",
+              "category": "circulation",
+              "label": "Breakout access after keynotes",
+              "priority": "medium",
+              "owner": "operations",
+              "status": "open",
+              "measurable": false,
+              "constraintIds": [],
+              "evidenceRefs": []
+            },
+            {
+              "id": "req-accessible-route",
+              "category": "accessibility",
+              "label": "Keep accessible route clear",
+              "priority": "critical",
+              "owner": "access",
+              "status": "confirmed",
+              "measurable": true,
+              "constraintIds": [
+                "constraint-accessible-route"
+              ],
+              "evidenceRefs": []
+            },
+            {
+              "id": "req-av-control",
+              "category": "production",
+              "label": "Maintain AV control position",
+              "priority": "high",
+              "owner": "production",
+              "status": "confirmed",
+              "measurable": true,
+              "constraintIds": [
+                "constraint-production-readiness",
+                "constraint-sightlines"
+              ],
+              "evidenceRefs": [
+                "obj-av-desk",
+                "obj-projector-center",
+                "obj-screen-stage"
+              ]
+            },
+            {
+              "id": "req-catering-rear",
+              "category": "catering",
+              "label": "Catering at back of room",
+              "priority": "medium",
+              "owner": "catering",
+              "status": "confirmed",
+              "measurable": true,
+              "constraintIds": [
+                "constraint-catering-readiness"
+              ],
+              "evidenceRefs": [
+                "obj-bar-east",
+                "obj-kitchen-northeast",
+                "obj-refreshment-east"
+              ]
+            },
+            {
+              "id": "req-emergency-readiness",
+              "category": "emergency",
+              "label": "Emergency plan readiness",
+              "priority": "critical",
+              "owner": "safety",
+              "status": "confirmed",
+              "measurable": true,
+              "constraintIds": [
+                "constraint-emergency-readiness"
+              ],
+              "evidenceRefs": [
+                "obj-assembly-east",
+                "obj-command-post-north",
+                "obj-fire-exit-east",
+                "obj-fire-exit-north"
+              ]
+            }
+          ]
+        },
+        "briefFingerprint": "brief-42aeb1ab"
       },
       "previousHash": "genesis",
-      "hash": "ledger-6e70ff1c"
+      "hash": "ledger-71137e62"
     }
   ],
   "receipts": []

@@ -1,4 +1,8 @@
 import { errorCatalog } from "../domain/errors.js";
+import { RFC3339_INSTANT_PATTERN_SOURCE } from "../domain/event-schedule.js";
+import { CANONICAL_UTC_TIMESTAMP_PATTERN_SOURCE } from "../domain/timestamps.js";
+import { CALENDAR_WEBHOOK_EVENT_TYPES } from "../integrations/adapters/calendar-event-adapter.js";
+import { NON_CONTACT_LABEL_PATTERN_SOURCE } from "../integrations/privacy.js";
 
 const emptyObject = { type: "object", properties: {}, additionalProperties: false };
 const mutationMetadataProperties = {
@@ -533,7 +537,7 @@ export const validationResultSchema = {
   $id: "https://venuemind.dev/schemas/validation-result.schema.json",
   title: "VenueMind Validation Result",
   type: "object",
-  required: ["validationId", "inputFingerprint", "engineVersion", "evaluatedPlanVersion", "evaluatedProposalId", "status", "checks", "candidateMetrics", "candidateGeometryFingerprint", "spatialEvidence", "productionEvidence", "cateringEvidence", "emergencyEvidence", "emergencyReviewRequired", "emergencyChangedObjectIds", "authorizedEmergencyReviewerRoles", "blockingIssues", "waivedWarnings", "unwaivedWarnings", "unresolvedIssues", "inventoryAvailability", "inventoryWarnings"],
+  required: ["validationId", "inputFingerprint", "engineVersion", "evaluatedPlanVersion", "evaluatedProposalId", "status", "checks", "candidateMetrics", "candidateGeometryFingerprint", "spatialEvidence", "productionEvidence", "cateringEvidence", "emergencyEvidence", "evidenceFamilyFingerprints", "planningEvidenceInvalidations", "emergencyReviewRequired", "emergencyChangedObjectIds", "authorizedEmergencyReviewerRoles", "blockingIssues", "waivedWarnings", "unwaivedWarnings", "unresolvedIssues", "inventoryAvailability", "inventoryWarnings"],
   properties: {
     validationId: { type: "string", pattern: "^validation-[0-9a-f]{8}$" },
     inputFingerprint: { type: "string", pattern: "^input-[0-9a-f]{8}$" },
@@ -572,6 +576,21 @@ export const validationResultSchema = {
     productionEvidence: { type: "object", required: ["schemaVersion", "kind", "planId", "planVersion", "geometryFingerprint", "summary", "evidenceFingerprint"], properties: { schemaVersion: { const: 1 }, kind: { const: "production-planning-result" }, planId: { type: "string" }, planVersion: { type: "string" }, geometryFingerprint: { type: "string" }, summary: { type: "object" }, evidenceFingerprint: { type: "string", pattern: "^production-planning-" } }, additionalProperties: true },
     cateringEvidence: { type: "object", required: ["schemaVersion", "kind", "planId", "planVersion", "geometryFingerprint", "summary", "evidenceFingerprint"], properties: { schemaVersion: { const: 1 }, kind: { const: "catering-planning-result" }, planId: { type: "string" }, planVersion: { type: "string" }, geometryFingerprint: { type: "string" }, summary: { type: "object" }, evidenceFingerprint: { type: "string", pattern: "^catering-planning-" } }, additionalProperties: true },
     emergencyEvidence: { type: "object", required: ["schemaVersion", "kind", "planId", "planVersion", "geometryFingerprint", "summary", "degradedScenarios", "evidenceFingerprint"], properties: { schemaVersion: { const: 1 }, kind: { const: "emergency-planning-result" }, planId: { type: "string" }, planVersion: { type: "string" }, geometryFingerprint: { type: "string" }, summary: { type: "object" }, degradedScenarios: { type: "array", items: { type: "object" } }, evidenceFingerprint: { type: "string", pattern: "^emergency-planning-" } }, additionalProperties: true },
+    evidenceFamilyFingerprints: {
+      type: "object",
+      required: ["accessibility", "capacity", "catering", "emergency", "flow", "operations", "production", "sightlines"],
+      properties: Object.fromEntries(["accessibility", "capacity", "catering", "emergency", "flow", "operations", "production", "sightlines"].map((family) => [family, { type: "string", pattern: `^evidence-${family}-[0-9a-f]{8}$` }])),
+      additionalProperties: false,
+    },
+    planningEvidenceInvalidations: {
+      type: "object",
+      required: ["affectedConstraintIds", "evidenceFamilies"],
+      properties: {
+        affectedConstraintIds: { type: "array", uniqueItems: true, items: { type: "string", minLength: 1 } },
+        evidenceFamilies: { type: "array", uniqueItems: true, items: { enum: ["capacity", "flow", "operations"] } },
+      },
+      additionalProperties: false,
+    },
     emergencyReviewRequired: { type: "boolean" },
     emergencyChangedObjectIds: { type: "array", uniqueItems: true, items: { type: "string" } },
     authorizedEmergencyReviewerRoles: { type: "array", uniqueItems: true, items: { enum: ["safety-officer", "venue-administrator"] } },
@@ -783,6 +802,30 @@ export const eventBriefSchema = {
     roomId: { type: ["string", "null"] },
     attendeeTarget: { type: "integer", minimum: 0 },
     occupancyMode: { enum: ["theater", "classroom", "banquet", "standing", "mixed", "custom"] },
+    schedule: {
+      anyOf: [
+        { type: "null" },
+        { type: "object", required: ["startAt", "endAt", "timezone"], properties: { startAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, endAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, timezone: { type: "string", minLength: 1 } }, additionalProperties: false },
+      ],
+    },
+    planningEffectBindings: {
+      type: "object",
+      properties: {
+        set_attendance_target: {
+          type: "object",
+          required: ["targetRequirementId", "category", "affectedConstraintIds"],
+          properties: { targetRequirementId: { type: "string", minLength: 1 }, category: { const: "seating" }, affectedConstraintIds: { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", minLength: 1 } } },
+          additionalProperties: false,
+        },
+        set_event_schedule: {
+          type: "object",
+          required: ["targetRequirementId", "category", "affectedConstraintIds"],
+          properties: { targetRequirementId: { type: "string", minLength: 1 }, category: { const: "staffing" }, affectedConstraintIds: { type: "array", maxItems: 0 } },
+          additionalProperties: false,
+        },
+      },
+      additionalProperties: false,
+    },
     requirements: {
       type: "array",
       items: {
@@ -801,6 +844,74 @@ export const eventBriefSchema = {
         },
         additionalProperties: false,
       },
+    },
+  },
+  additionalProperties: false,
+};
+
+const eventBriefRequirementSchema = eventBriefSchema.properties.requirements.items;
+const eventScheduleSchema = eventBriefSchema.properties.schedule.anyOf[1];
+const planningEffectSourceSchema = {
+  type: "object",
+  required: ["adapterId", "sourceSystem", "entityType", "externalId", "sourceVersion", "checksum", "synchronizedAt"],
+  properties: {
+    adapterId: { type: "string", minLength: 1 }, sourceSystem: { type: "string", minLength: 1 }, entityType: { type: "string", minLength: 1 }, externalId: { type: "string", minLength: 1 }, sourceVersion: { type: "string", minLength: 1 }, checksum: { type: "string", pattern: "^[0-9a-f]{64}$" }, synchronizedAt: { type: "string", format: "date-time", pattern: CANONICAL_UTC_TIMESTAMP_PATTERN_SOURCE },
+  },
+  additionalProperties: false,
+};
+
+const planningEffectProperties = {
+  targetBriefId: { type: "string", minLength: 1 },
+  targetRequirementId: { type: "string", minLength: 1 },
+  requirement: eventBriefRequirementSchema,
+  source: planningEffectSourceSchema,
+};
+
+export const planningEffectSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/planning-effect.schema.json",
+  title: "VenueMind Planning Effect",
+  oneOf: [
+    {
+      type: "object",
+      required: ["operation", "targetBriefId", "targetRequirementId", "before", "after", "requirement", "affectedConstraintIds", "evidenceFamilies", "source"],
+      properties: {
+        operation: { const: "set_attendance_target" }, ...planningEffectProperties,
+        before: { type: "integer", minimum: 0 }, after: { type: "integer", minimum: 0 },
+        affectedConstraintIds: { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", minLength: 1 } },
+        evidenceFamilies: { type: "array", minItems: 2, maxItems: 2, prefixItems: [{ const: "capacity" }, { const: "flow" }], items: false },
+      },
+      additionalProperties: false,
+    },
+    {
+      type: "object",
+      required: ["operation", "targetBriefId", "targetRequirementId", "before", "after", "requirement", "affectedConstraintIds", "evidenceFamilies", "source"],
+      properties: {
+        operation: { const: "set_event_schedule" }, ...planningEffectProperties,
+        before: { anyOf: [{ type: "null" }, eventScheduleSchema] }, after: eventScheduleSchema,
+        affectedConstraintIds: { type: "array", maxItems: 0 },
+        evidenceFamilies: { type: "array", minItems: 1, maxItems: 1, prefixItems: [{ const: "operations" }], items: false },
+      },
+      additionalProperties: false,
+    },
+  ],
+};
+
+export const calendarWebhookEventSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/calendar-webhook-event.schema.json",
+  title: "VenueMind Calendar Webhook Event",
+  type: "object",
+  required: ["sourceSystem", "id", "type", "occurredAt", "event"],
+  properties: {
+    sourceSystem: { type: "string", minLength: 1 }, id: { type: "string", minLength: 1 }, type: { enum: CALENDAR_WEBHOOK_EVENT_TYPES }, occurredAt: { type: "string", format: "date-time", pattern: CANONICAL_UTC_TIMESTAMP_PATTERN_SOURCE },
+    event: {
+      type: "object",
+      required: ["externalId", "sourceVersion", "title", "startAt", "endAt", "timezone", "location", "attendanceTarget", "organizer"],
+      properties: {
+        externalId: { type: "string", minLength: 1 }, sourceVersion: { type: "string", minLength: 1 }, title: { type: "string", minLength: 1 }, startAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, endAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, timezone: { type: "string", minLength: 1 }, location: { type: "object", required: ["label"], properties: { label: { type: "string", minLength: 1 } }, additionalProperties: false }, attendanceTarget: { type: "integer", minimum: 0 }, organizer: { type: "object", required: ["displayName", "organization", "role"], properties: { displayName: { type: "string", minLength: 1, pattern: NON_CONTACT_LABEL_PATTERN_SOURCE }, organization: { type: "string", minLength: 1, pattern: NON_CONTACT_LABEL_PATTERN_SOURCE }, role: { type: "string", minLength: 1, pattern: NON_CONTACT_LABEL_PATTERN_SOURCE } }, additionalProperties: false },
+      },
+      additionalProperties: false,
     },
   },
   additionalProperties: false,
@@ -1363,6 +1474,16 @@ export const simulationResultSchema = {
   additionalProperties: false,
 };
 
+const persistedProposalSchema = {
+  type: "object",
+  required: ["changes", "waivers"],
+  properties: {
+    changes: { type: "array", items: { type: "object", properties: { planningEffects: { type: "array", items: { $ref: planningEffectSchema.$id } } }, additionalProperties: true } },
+    waivers: { type: "array", items: { $ref: warningWaiverSchema.$id } },
+  },
+  additionalProperties: true,
+};
+
 export const plannerSnapshotSchema = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://venuemind.dev/schemas/planner-snapshot.schema.json",
@@ -1442,9 +1563,9 @@ export const plannerSnapshotSchema = {
       additionalProperties: true,
     },
     brief: { $ref: eventBriefSchema.$id },
-    proposal: { type: "object", required: ["id", "baseVersion", "status", "changes", "waivers"], properties: { waivers: { type: "array", items: { $ref: warningWaiverSchema.$id } } }, additionalProperties: true },
+    proposal: { ...persistedProposalSchema, required: ["id", "baseVersion", "status", "changes", "waivers"] },
     activeBranchId: { type: "string", minLength: 1 },
-    branches: { type: "array", minItems: 1, items: { type: "object", required: ["id", "name", "strategy", "proposal"], properties: { proposal: { type: "object", required: ["waivers"], properties: { waivers: { type: "array", items: { $ref: warningWaiverSchema.$id } } }, additionalProperties: true } }, additionalProperties: true } },
+    branches: { type: "array", minItems: 1, items: { type: "object", required: ["id", "name", "strategy", "proposal"], properties: { proposal: persistedProposalSchema, revisions: { type: "array", items: persistedProposalSchema } }, additionalProperties: true } },
     ledger: { $ref: activityLedgerSchema.$id },
     receipts: { type: "array", items: { $ref: commandReceiptSchema.$id } },
     projectLocks: { type: "array", items: { $ref: objectLockSchema.$id } },

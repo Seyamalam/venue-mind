@@ -1,0 +1,37 @@
+{
+  "sourceSystem": "calendar-production",
+  "sourceVersion": "calendar-revision-20",
+  "basePlanVersion": "3.3",
+  "proposalRevision": 2,
+  "projectId": "project-summit-forward-2026",
+  "briefId": "brief-summit-forward-2026",
+  "requirementIds": {
+    "attendance": "req-calendar-attendance",
+    "schedule": "req-calendar-schedule"
+  },
+  "attendanceConstraintIds": ["constraint-capacity", "constraint-peak-congestion"],
+  "currentPlanningState": {
+    "attendeeTarget": 400,
+    "schedule": {
+      "startAt": "2026-09-18T09:00:00+06:00",
+      "endAt": "2026-09-18T17:00:00+06:00",
+      "timezone": "Asia/Dhaka"
+    }
+  },
+  "event": {
+    "externalId": "calendar-event-9841",
+    "sourceVersion": "event-revision-20",
+    "title": "Summit Forward — doors open",
+    "startAt": "2026-09-18T09:00:00+06:00",
+    "endAt": "2026-09-18T17:00:00+06:00",
+    "timezone": "Asia/Dhaka",
+    "location": { "label": "Grand Hall, north entrance" },
+    "attendanceTarget": 400,
+    "organizer": {
+      "displayName": "On-site Operations",
+      "organization": "Forward Events",
+      "role": "Event organizer"
+    }
+  },
+  "nextCursor": "calendar-page-21"
+}

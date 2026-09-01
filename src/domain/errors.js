@@ -9,6 +9,8 @@ export const errorCatalog = Object.freeze({
   ADJUSTMENT_REQUIRED: define("ADJUSTMENT_REQUIRED", "Adjustment instruction is required.", "Provide a concise operational adjustment."),
   PROPOSAL_NOT_REVIEWABLE: define("PROPOSAL_NOT_REVIEWABLE", "Only a Proposal under review can be changed.", "Create or activate a Proposal with review status before changing it."),
   PROPOSAL_MISMATCH: define("PROPOSAL_MISMATCH", "Proposal ID does not match the active Proposal.", "Inspect the active Proposal and retry with its stable ID."),
+  PROPOSAL_EMPTY: define("PROPOSAL_EMPTY", "Proposal contains no executable Changes.", "Keep accepted truth unchanged; create a Proposal only after at least one planning Change exists."),
+  PLANNING_EFFECT_INVALID: define("PLANNING_EFFECT_INVALID", "Persisted Planning Effect is invalid.", "Restore a snapshot whose active and historical Proposal Changes conform to the published Planning Effect schema."),
   BRANCH_NAME_REQUIRED: define("BRANCH_NAME_REQUIRED", "Proposal Branch name is required.", "Provide a non-empty Branch name."),
   BRANCH_NOT_FOUND: define("BRANCH_NOT_FOUND", "Proposal Branch not found.", "List Proposal Branches and retry with an existing stable Branch ID."),
   REBASE_CONFLICT: define("REBASE_CONFLICT", "Unresolved Proposal conflicts block rebase.", "Resolve blocking conflicts, then retry the rebase."),
@@ -58,6 +60,7 @@ export const errorCatalog = Object.freeze({
   TOOL_PAYLOAD_TOO_LARGE: define("TOOL_PAYLOAD_TOO_LARGE", "Tool payload exceeds its published size limit.", "Reduce the requested geometry or export payload and retry within the published byte limit."),
   TOOL_CALL_CANCELLED: define("TOOL_CALL_CANCELLED", "Tool call was cancelled.", "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."),
   LEDGER_INTEGRITY_FAILED: define("LEDGER_INTEGRITY_FAILED", "Activity Ledger integrity failed.", "Restore an untampered snapshot or recover the last verified Project record."),
+  LEGACY_BRIEF_ATTESTATION_REQUIRED: define("LEGACY_BRIEF_ATTESTATION_REQUIRED", "Legacy Event Brief requires trusted human attestation.", "Have an organization owner or administrator review and attest the legacy Event Brief before migration."),
   VENUE_INTERNAL_ERROR: define("VENUE_INTERNAL_ERROR", "VenueMind could not complete the operation.", "Retry once; if the error persists, inspect the server log with the correlation ID."),
 });
 
