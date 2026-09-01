@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Archive, ArrowCounterClockwise, ArrowRight, CheckCircle, CircleNotch, Clock, Copy, DotsThreeVertical, FolderOpen, MagnifyingGlass, PencilSimple, Plus, PushPin, SlidersHorizontal, Trash, UploadSimple, X } from "@phosphor-icons/react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../components/ui/alert-dialog";
+import { Button } from "../components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 import { createProjectStore } from "./persistence/project-store.js";
 import { browserNavigate, navigateInternalLink } from "./navigation.js";
 import "./project-dashboard.css";
@@ -28,6 +33,12 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
   const [importPreview, setImportPreview] = useState(null);
   const [importError, setImportError] = useState("");
   const [importing, setImporting] = useState(false);
+  const [renameTarget, setRenameTarget] = useState(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [renaming, setRenaming] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const importInput = useRef(null);
 
   useEffect(() => {
@@ -55,10 +66,30 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
     replaceProject(result.record);
     navigate(`/studio/${encodeURIComponent(project.id)}`);
   };
-  const renameProject = async (project) => {
-    const name = window.prompt("NAME", project.name);
-    if (name == null || !name.trim() || name.trim() === project.name) return;
-    replaceProject((await store.rename(project.id, name)).record);
+  const openRename = (project) => {
+    setRenameTarget(project);
+    setRenameValue(project.name);
+  };
+  const closeRename = () => {
+    if (renaming) return;
+    setRenameTarget(null);
+    setRenameValue("");
+  };
+  const renameProject = async (event) => {
+    event.preventDefault();
+    const project = renameTarget;
+    const name = renameValue.trim();
+    if (!project || !name || name === project.name || renaming) return;
+    setRenaming(true);
+    try {
+      replaceProject((await store.rename(project.id, name)).record);
+      setRenameTarget(null);
+      setRenameValue("");
+    } catch (error) {
+      setImportError(error.code ?? "RENAME_FAILED");
+    } finally {
+      setRenaming(false);
+    }
   };
   const duplicateProject = async (project) => {
     const { duplicateProjectRecord } = await import("./domain/project-lifecycle.js");
@@ -69,10 +100,29 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
   };
   const archiveProject = async (project, archived) => replaceProject((await store.archive(project.id, archived)).record);
   const pinProject = async (project) => replaceProject((await store.pin(project.id, !project.pinned)).record);
-  const deleteProject = async (project) => {
-    const confirmation = window.prompt("TYPE PROJECT NAME", "");
-    if (confirmation == null) return;
-    try { replaceProject((await store.softDelete(project.id, confirmation)).record); } catch (error) { setImportError(error.code ?? "DELETE_FAILED"); }
+  const openDelete = (project) => {
+    setDeleteTarget(project);
+    setDeleteConfirmation("");
+  };
+  const closeDelete = () => {
+    if (deleting) return;
+    setDeleteTarget(null);
+    setDeleteConfirmation("");
+  };
+  const deleteProject = async (event) => {
+    event.preventDefault();
+    const project = deleteTarget;
+    if (!project || deleteConfirmation !== project.name || deleting) return;
+    setDeleting(true);
+    try {
+      replaceProject((await store.softDelete(project.id, deleteConfirmation)).record);
+      setDeleteTarget(null);
+      setDeleteConfirmation("");
+    } catch (error) {
+      setImportError(error.code ?? "DELETE_FAILED");
+    } finally {
+      setDeleting(false);
+    }
   };
   const restoreProject = async (project) => replaceProject((await store.restoreDeleted(project.id)).record);
 
@@ -174,11 +224,11 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
                       ) : (
                         <>
                           <DropdownMenuItem className="project-action-item" onSelect={() => void pinProject(project)}><PushPin weight={project.pinned ? "fill" : "regular"} />{project.pinned ? "UNPIN" : "PIN"}</DropdownMenuItem>
-                          <DropdownMenuItem className="project-action-item" onSelect={() => void renameProject(project)}><PencilSimple />RENAME</DropdownMenuItem>
+                          <DropdownMenuItem className="project-action-item" onSelect={() => openRename(project)}><PencilSimple />RENAME</DropdownMenuItem>
                           <DropdownMenuItem className="project-action-item" onSelect={() => void duplicateProject(project)}><Copy />DUPLICATE</DropdownMenuItem>
                           <DropdownMenuItem className="project-action-item" onSelect={() => void archiveProject(project, !project.archivedAt)}>{project.archivedAt ? <ArrowCounterClockwise /> : <ArchiveBox />}{project.archivedAt ? "RESTORE" : "ARCHIVE"}</DropdownMenuItem>
                           <DropdownMenuSeparator className="project-action-separator" />
-                          <DropdownMenuItem className="project-action-item is-destructive" variant="destructive" onSelect={() => void deleteProject(project)}><Trash />DELETE</DropdownMenuItem>
+                          <DropdownMenuItem className="project-action-item is-destructive" variant="destructive" onSelect={() => openDelete(project)}><Trash />DELETE</DropdownMenuItem>
                         </>
                       )}
                     </DropdownMenuContent>
@@ -199,6 +249,22 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
         <div className="import-preview-integrity"><code>{importPreview.integrity.planFingerprint}</code><code>{importPreview.integrity.ledgerHeadHash}</code></div>
         <button className="import-commit" type="button" disabled={importPreview.idConflict || importing} onClick={commitImport}>{importing ? <CircleNotch className="spin" size={17} /> : <UploadSimple size={17} />}IMPORT PROJECT</button>
       </aside>}
+      <Dialog open={Boolean(renameTarget)} onOpenChange={(open) => { if (!open) closeRename(); }}>
+        <DialogContent className="project-dialog" showCloseButton={false}>
+          <form className="project-dialog-form" onSubmit={renameProject}>
+            <DialogHeader className="project-dialog-header"><span>PROJECT</span><DialogTitle>RENAME</DialogTitle><DialogDescription>{renameTarget?.id}</DialogDescription></DialogHeader>
+            <div className="project-dialog-field"><Label htmlFor="project-rename-name">NAME</Label><Input id="project-rename-name" value={renameValue} onChange={(event) => setRenameValue(event.target.value)} autoComplete="off" /></div>
+            <DialogFooter className="project-dialog-footer"><Button className="project-dialog-button is-secondary" type="button" variant="outline" disabled={renaming} onClick={closeRename}>CANCEL</Button><Button className="project-dialog-button" type="submit" disabled={renaming || !renameValue.trim() || renameValue.trim() === renameTarget?.name}>{renaming ? "SAVING" : "RENAME"}</Button></DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open) closeDelete(); }}>
+        <AlertDialogContent className="project-dialog project-delete-dialog">
+          <AlertDialogHeader className="project-dialog-header"><span>PROJECT</span><AlertDialogTitle>DELETE</AlertDialogTitle><AlertDialogDescription>{deleteTarget?.id}</AlertDialogDescription></AlertDialogHeader>
+          <div className="project-dialog-field"><Label htmlFor="project-delete-name">CONFIRM NAME</Label><code>{deleteTarget?.name}</code><Input id="project-delete-name" value={deleteConfirmation} onChange={(event) => setDeleteConfirmation(event.target.value)} autoComplete="off" spellCheck={false} /></div>
+          <AlertDialogFooter className="project-dialog-footer"><AlertDialogCancel className="project-dialog-button is-secondary" disabled={deleting}>CANCEL</AlertDialogCancel><AlertDialogAction className="project-dialog-button is-destructive" variant="destructive" disabled={deleting || deleteConfirmation !== deleteTarget?.name} onClick={deleteProject}>{deleting ? "DELETING" : "DELETE"}</AlertDialogAction></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {importError && <div className="project-toast" role="status"><strong>{importError}</strong><button type="button" onClick={() => setImportError("")} aria-label="Dismiss import status"><X size={15} /></button></div>}
     </div>
   );

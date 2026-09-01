@@ -22,3 +22,14 @@ test("the projects route defers the planner, lifecycle, and import engines", asy
   assert.match(source, /await import\("\.\/domain\/project-lifecycle\.js"\)/);
   assert.match(source, /await import\("\.\/interchange\/venue-package\.js"\)/);
 });
+
+test("rename and delete use controlled shadcn dialogs instead of browser prompts", async () => {
+  const source = await readFile(new URL("../src/ProjectDashboard.jsx", import.meta.url), "utf8");
+
+  assert.doesNotMatch(source, /window\.prompt/);
+  assert.match(source, /<Dialog open=\{Boolean\(renameTarget\)\}/);
+  assert.match(source, /<AlertDialog open=\{Boolean\(deleteTarget\)\}/);
+  assert.match(source, /value=\{renameValue\} onChange=/);
+  assert.match(source, /value=\{deleteConfirmation\} onChange=/);
+  assert.match(source, /deleteConfirmation !== deleteTarget\?\.name/);
+});
