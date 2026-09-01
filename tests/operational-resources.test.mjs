@@ -108,6 +108,24 @@ test("aggregate reconciliation reserves finite primary and replacement capacity"
   assert.deepEqual(balancedResult.conflicts.map((conflict) => conflict.substitutionOptionIds.length), [1, 1]);
   assert.equal(new Set(balancedResult.substitutionOptions.map((option) => option.replacementResourceId)).size, 2);
 
+  const packed = prepared();
+  packed.resources = [
+    { ...packed.resources[0], resourceId: "resource-primary-large", total: 3, unavailable: 3 },
+    { ...packed.resources[0], resourceId: "resource-primary-medium-a", total: 2, unavailable: 2, source: source("projector-primary-medium-a", "3".repeat(64)) },
+    { ...packed.resources[0], resourceId: "resource-primary-medium-b", total: 2, unavailable: 2, source: source("projector-primary-medium-b", "4".repeat(64)) },
+    { ...packed.resources[1], resourceId: "resource-backup-a", total: 4, source: source("projector-backup-a", "5".repeat(64)) },
+    { ...packed.resources[1], resourceId: "resource-backup-b", total: 3, source: source("projector-backup-b", "6".repeat(64)) },
+  ];
+  packed.demands = [
+    { ...packed.demands[0], demandId: "demand-large", resourceId: "resource-primary-large", quantity: 3, targetObjectIds: ["obj-projector-large"] },
+    { ...packed.demands[0], demandId: "demand-medium-a", resourceId: "resource-primary-medium-a", quantity: 2, targetObjectIds: ["obj-projector-medium-a"] },
+    { ...packed.demands[0], demandId: "demand-medium-b", resourceId: "resource-primary-medium-b", quantity: 2, targetObjectIds: ["obj-projector-medium-b"] },
+  ];
+  const packedResult = await reconcileOperationalResources(packed);
+  assert.equal(packedResult.substitutionOptions.length, 3);
+  const packedLoads = Object.groupBy(packedResult.substitutionOptions, (option) => option.replacementResourceId);
+  assert.deepEqual(Object.fromEntries(Object.entries(packedLoads).map(([resourceId, options]) => [resourceId, options.reduce((sum, option) => sum + option.quantity, 0)])), { "resource-backup-a": 4, "resource-backup-b": 3 });
+
   const shortfall = prepared();
   shortfall.resources = [
     { ...shortfall.resources[0], resourceId: "resource-short", status: "available", unavailable: 0, total: 1 },

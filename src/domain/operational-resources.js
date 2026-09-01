@@ -5,6 +5,9 @@ const MAX_RESOURCES = 1_000;
 const MAX_BOOKINGS = 1_000;
 const MAX_DEMANDS = 1_000;
 const MAX_COUNT = 1_000_000;
+const MAX_EXACT_ALLOCATION_CONFLICTS = 28;
+const MAX_EXACT_ALLOCATION_RESOURCES = 18;
+const MAX_ALLOCATION_SEARCH_NODES = 250_000;
 const IDENTIFIER = /^[a-z0-9][a-z0-9._:-]{0,159}$/;
 const RESOURCE_ID = /^resource-[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const STAFF_REF = /^staff-ref-[0-9a-f]{32}$/;
@@ -256,6 +259,65 @@ const conflictReason = (resource, demand, availability) => {
 
 const fingerprintId = async (prefix, payload) => `${prefix}-${(await sha256Checksum(payload)).slice(0, 16)}`;
 
+const allocateSubstitutionCandidates = (candidateSets, capacities) => {
+  const ordered = candidateSets.filter((item) => item.candidates.length > 0)
+    .sort((left, right) => left.candidates.length - right.candidates.length || right.demand.quantity - left.demand.quantity || compare(left.conflictId, right.conflictId));
+  const candidateIds = [...new Set(ordered.flatMap((item) => item.candidates.map((candidate) => candidate.resourceId)))].sort(compare);
+  const chooseBestFit = (items, available) => {
+    const result = new Map();
+    for (const item of items) {
+      const candidate = item.candidates
+        .filter((resource) => (available.get(resource.resourceId) ?? 0) >= item.demand.quantity)
+        .sort((left, right) => ((available.get(left.resourceId) ?? 0) - item.demand.quantity) - ((available.get(right.resourceId) ?? 0) - item.demand.quantity) || compare(left.resourceId, right.resourceId))[0];
+      if (!candidate) continue;
+      result.set(item.conflictId, candidate);
+      available.set(candidate.resourceId, available.get(candidate.resourceId) - item.demand.quantity);
+    }
+    return result;
+  };
+  let best = chooseBestFit(ordered, new Map(capacities));
+  let bestQuantity = ordered.filter((item) => best.has(item.conflictId)).reduce((sum, item) => sum + item.demand.quantity, 0);
+  if (ordered.length > MAX_EXACT_ALLOCATION_CONFLICTS || candidateIds.length > MAX_EXACT_ALLOCATION_RESOURCES) return best;
+
+  const available = new Map(capacities);
+  const current = new Map();
+  const memo = new Map();
+  let explored = 0;
+  const updateBest = (quantity) => {
+    if (current.size > best.size || (current.size === best.size && quantity > bestQuantity)) {
+      best = new Map(current);
+      bestQuantity = quantity;
+    }
+  };
+  const search = (index, quantity) => {
+    if (explored++ >= MAX_ALLOCATION_SEARCH_NODES) return;
+    if (current.size + ordered.length - index < best.size) return;
+    if (index === ordered.length) {
+      updateBest(quantity);
+      return;
+    }
+    const stateKey = `${index}|${candidateIds.map((id) => available.get(id) ?? 0).join(",")}`;
+    const prior = memo.get(stateKey);
+    if (prior !== undefined && prior >= current.size) return;
+    memo.set(stateKey, current.size);
+    const item = ordered[index];
+    const viable = item.candidates
+      .filter((candidate) => (available.get(candidate.resourceId) ?? 0) >= item.demand.quantity)
+      .sort((left, right) => ((available.get(left.resourceId) ?? 0) - item.demand.quantity) - ((available.get(right.resourceId) ?? 0) - item.demand.quantity) || compare(left.resourceId, right.resourceId));
+    for (const candidate of viable) {
+      const before = available.get(candidate.resourceId);
+      available.set(candidate.resourceId, before - item.demand.quantity);
+      current.set(item.conflictId, candidate);
+      search(index + 1, quantity + item.demand.quantity);
+      current.delete(item.conflictId);
+      available.set(candidate.resourceId, before);
+    }
+    search(index + 1, quantity);
+  };
+  search(0, 0);
+  return best;
+};
+
 export async function reconcileOperationalResources(inputValue) {
   const input = normalizePreparedOperationalResourceInput(inputValue);
   const byId = new Map(input.resources.map((item) => [item.resourceId, item]));
@@ -296,13 +358,7 @@ export async function reconcileOperationalResources(inputValue) {
     }).sort((left, right) => compare(left.resourceId, right.resourceId)) : [];
     return { ...conflict, candidates };
   });
-  const assignedCandidate = new Map();
-  for (const item of [...candidateSets].sort((left, right) => left.candidates.length - right.candidates.length || right.demand.quantity - left.demand.quantity || compare(left.conflictId, right.conflictId))) {
-    const candidate = item.candidates.find((resource) => (optionCapacity.get(resource.resourceId) ?? 0) >= item.demand.quantity);
-    if (!candidate) continue;
-    assignedCandidate.set(item.conflictId, candidate);
-    optionCapacity.set(candidate.resourceId, optionCapacity.get(candidate.resourceId) - item.demand.quantity);
-  }
+  const assignedCandidate = allocateSubstitutionCandidates(candidateSets, optionCapacity);
   for (const { demand, conflictPayload, conflictId } of candidateSets) {
     const candidates = assignedCandidate.has(conflictId) ? [assignedCandidate.get(conflictId)] : [];
     const optionIds = [];
