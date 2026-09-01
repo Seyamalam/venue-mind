@@ -105,7 +105,7 @@ test("released v6 sharing rows upgrade to recoverable v7 lifecycle state", async
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
-test("untracked complete event-day runbook schema adopts migration v8 without replaying tables", async () => {
+test("untracked complete event-day runbook schema adopts v8 and applies live occupancy v9", async () => {
   const directory = await mkdtemp(path.join(root, ".venuemind-runbook-adoption-"));
   try {
     const database = path.join(directory, "untracked-v8.sqlite3");
@@ -113,7 +113,7 @@ test("untracked complete event-day runbook schema adopts migration v8 without re
     const dryRun = await cli("migrate", "--database", database, "--dry-run");
     assert.equal(dryRun.currentVersion, 8);
     assert.equal(dryRun.adoptionRequired, true);
-    assert.equal(dryRun.pending.length, 0);
+    assert.deepEqual(dryRun.pending.map((migration) => migration.version), [9]);
     const migrated = await cli("migrate", "--database", database);
     assert.equal(migrated.currentVersion, DATABASE_SCHEMA_VERSION);
     assert.equal(migrated.applied.filter((item) => item.adopted).length, 8);

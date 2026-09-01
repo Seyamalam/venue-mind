@@ -339,6 +339,31 @@
     "message": "Runbook task evidence is incomplete.",
     "remediation": "Attach every required structured evidence code before completing the task."
   },
+  "OCCUPANCY_BASELINE_INVALID": {
+    "code": "OCCUPANCY_BASELINE_INVALID",
+    "message": "Live Occupancy baseline is invalid.",
+    "remediation": "Create the monitor from one active Event Day Runbook with canonical Plan capacity and event-target evidence."
+  },
+  "OCCUPANCY_SIGNAL_INVALID": {
+    "code": "OCCUPANCY_SIGNAL_INVALID",
+    "message": "Aggregate Occupancy Signal is invalid.",
+    "remediation": "Send one bounded aggregate-only signal for the check-in total, venue, or a stable Occupancy Zone."
+  },
+  "OCCUPANCY_PRIVACY_REJECTED": {
+    "code": "OCCUPANCY_PRIVACY_REJECTED",
+    "message": "Occupancy input contains prohibited person-level data.",
+    "remediation": "Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion."
+  },
+  "OCCUPANCY_SIGNAL_OUT_OF_ORDER": {
+    "code": "OCCUPANCY_SIGNAL_OUT_OF_ORDER",
+    "message": "Occupancy Signal is older than the accepted source state.",
+    "remediation": "Refresh the source cursor and send a newer source version and observed instant."
+  },
+  "OCCUPANCY_REVISION_CONFLICT": {
+    "code": "OCCUPANCY_REVISION_CONFLICT",
+    "message": "Live Occupancy monitor revision conflict.",
+    "remediation": "Refresh the monitor and retry only if the aggregate transition is still required."
+  },
   "LEGACY_BRIEF_ATTESTATION_REQUIRED": {
     "code": "LEGACY_BRIEF_ATTESTATION_REQUIRED",
     "message": "Legacy Event Brief requires trusted human attestation.",

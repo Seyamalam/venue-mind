@@ -11,6 +11,7 @@ import { createVenuePlanner } from "../src/domain/venue-planner.js";
 import { createHumanPrincipal } from "../src/domain/authorization.js";
 import { createLegacyBriefAttestationProof, inspectLegacyBriefMigration } from "../src/domain/legacy-brief-migration.js";
 import { transitionRunbookTask } from "../src/domain/event-day-runbook.js";
+import { createAuthenticatedIdentity } from "../src/domain/accounts.js";
 import { createD1RunbookRepository, RunbookClientSequenceConflict, RunbookIdempotencyConflict, RunbookTransitionConflict } from "./runbook-repository.ts";
 import { browserCommandToPersistenceInput, browserRunbookToPersistenceInput, repositoryRunbookToBrowserSnapshot } from "./runbook-http.ts";
 
@@ -28,7 +29,7 @@ type CollaborationRepository = ReturnType<typeof createD1CollaborationRepository
 type SharingRepository = ReturnType<typeof createD1SharingRepository>;
 type RunbookRepository = ReturnType<typeof createD1RunbookRepository>;
 type EmailDelivery = { send: (message: { idempotencyKey: string; to: string; bodyCode: string; refs: Record<string, string | number> }) => Promise<{ delivered: boolean; providerMessageId?: string }> };
-type WorkerEnv = { ASSETS: { fetch: (request: Request) => Promise<Response> }; DB: unknown; EMAIL_DELIVERY?: EmailDelivery };
+type WorkerEnv = { ASSETS: { fetch: (request: Request) => Promise<Response> }; DB: unknown; EMAIL_DELIVERY?: EmailDelivery; VENUEMIND_AUTH_MODE?: string };
 type WorkerOptions = {
   createProjectRepository?: (db: unknown) => ProjectRepository;
   createAccountRepository?: (db: unknown) => AccountRepository;
@@ -42,6 +43,7 @@ type WorkerOptions = {
 };
 
 const SESSION_COOKIE = "venuemind_session";
+const DEMO_IDENTITY_COOKIE = "venuemind_demo_identity";
 const json = (value: unknown, init: ResponseInit = {}) => new Response(JSON.stringify(value), {
   ...init,
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...init.headers },
@@ -51,6 +53,16 @@ const projectIdFrom = (pathname: string) => decodeURIComponent(pathname.slice("/
 const cookieValue = (request: Request, name: string) => request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${name}=`))?.slice(name.length + 1) ?? null;
 const sessionCookie = (id: string, secure: boolean) => `${SESSION_COOKIE}=${encodeURIComponent(id)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=43200${secure ? "; Secure" : ""}`;
 const clearedSessionCookie = (secure: boolean) => `${SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure ? "; Secure" : ""}`;
+const anonymousDemoIdentity = (request: Request, secure: boolean) => {
+  const suppliedSubject = cookieValue(request, DEMO_IDENTITY_COOKIE);
+  const subject = suppliedSubject && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(suppliedSubject)
+    ? suppliedSubject
+    : crypto.randomUUID();
+  return {
+    identity: createAuthenticatedIdentity({ provider: "anonymous-demo", subject, email: `demo+${subject}@venuemind.invalid`, displayName: "Guest Planner" }),
+    cookie: suppliedSubject === subject ? null : `${DEMO_IDENTITY_COOKIE}=${subject}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000${secure ? "; Secure" : ""}`,
+  };
+};
 const readBody = async <T>(request: Request): Promise<T> => {
   if (Number(request.headers.get("content-length") ?? 0) > 2_000_000) throw new Error("PAYLOAD_TOO_LARGE");
   const text = await request.text();
@@ -166,16 +178,21 @@ export function createWorker(options: WorkerOptions = {}) {
       const accounts = accountRepositoryFactory(env.DB);
       let sessionId = cookieValue(request, SESSION_COOKIE);
       let account = sessionId ? await accounts.resolveSession(decodeURIComponent(sessionId)) : null;
-      let setCookie: string | null = null;
+      const setCookies: string[] = [];
       if (!account) {
-        const identity = await identityProvider.authenticate(request);
+        let identity = await identityProvider.authenticate(request);
+        if (!identity && env.VENUEMIND_AUTH_MODE === "anonymous-demo") {
+          const demo = anonymousDemoIdentity(request, secureCookies);
+          identity = demo.identity;
+          if (demo.cookie) setCookies.push(demo.cookie);
+        }
         if (!identity) return apiError(401, "AUTHENTICATION_REQUIRED", "Authentication required");
         try {
           const provisioned = await accounts.provision(identity);
           const session = await accounts.createSession(provisioned.user.id);
           sessionId = session.id;
           account = { session, ...provisioned };
-          setCookie = sessionCookie(session.id, secureCookies);
+          setCookies.push(sessionCookie(session.id, secureCookies));
         } catch (cause) {
           return apiError(403, cause instanceof Error ? cause.message : "ACCOUNT_UNAVAILABLE", "Account unavailable");
         }
@@ -183,7 +200,7 @@ export function createWorker(options: WorkerOptions = {}) {
 
       const respond = (value: unknown, init: ResponseInit = {}) => {
         const response = json(value, init);
-        if (setCookie) response.headers.append("set-cookie", setCookie);
+        for (const cookie of setCookies) response.headers.append("set-cookie", cookie);
         return response;
       };
       const requestedOrganizationId = request.headers.get("x-venuemind-organization-id")?.trim() || (url.pathname.endsWith("/collaboration") || url.pathname.endsWith("/presence") ? url.searchParams.get("organizationId")?.trim() : null) || null;
@@ -429,7 +446,7 @@ export function createWorker(options: WorkerOptions = {}) {
         for (const event of batch.events) chunks.push(`id: ${event.id}\nevent: ${event.type}\ndata: ${JSON.stringify(event)}`);
         chunks.push(`event: sync.cursor\ndata: ${JSON.stringify({ cursor: batch.cursor, revision: project.revision })}`);
         const response = new Response(`${chunks.join("\n\n")}\n\n`, { headers: { "content-type": "text/event-stream; charset=utf-8", "cache-control": "no-store", "x-collaboration-cursor": String(batch.cursor) } });
-        if (setCookie) response.headers.append("set-cookie", setCookie);
+        for (const cookie of setCookies) response.headers.append("set-cookie", cookie);
         return response;
       }
       if (presenceMatch && request.method === "PUT") {

@@ -8,6 +8,9 @@ const wranglerOutput = new URL("db/wrangler/", root);
 const manifestOutput = new URL("db/migrations-manifest.json", root);
 const names = (await readdir(migrationDirectory)).filter((name) => /^\d{4}_[a-z0-9_]+\.sql$/.test(name)).sort();
 const migrations = [];
+const toWranglerStatement = (statement) => /^CREATE TRIGGER\b/i.test(statement)
+  ? statement.replace(/SELECT CASE ([^;]+) END;/g, "SELECT (CASE $1 END);")
+  : statement;
 
 for (const [index, filename] of names.entries()) {
   const version = Number(filename.slice(0, 4));
@@ -30,7 +33,7 @@ for (const migration of migrations) {
   const appliedAt = "CURRENT_TIMESTAMP";
   const sql = [
     "CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, checksum TEXT NOT NULL, applied_at TEXT NOT NULL, adopted INTEGER NOT NULL DEFAULT 0);",
-    ...migration.statements.map((statement) => `${statement};`),
+    ...migration.statements.map((statement) => `${toWranglerStatement(statement)};`),
     `INSERT INTO schema_migrations (version, name, checksum, applied_at, adopted) VALUES (${migration.version}, '${migration.name}', '${migration.checksum}', ${appliedAt}, 0);`,
     "",
   ].join("\n");

@@ -11,6 +11,9 @@
     "build:next": "next build",
     "build:sites-compat": "vite build",
     "build:worker": "npm run generate:migrations && node scripts/build-worker.mjs",
+    "build:cloudflare": "npm run generate:contracts && npm run generate:docs && npm run build:skills && npm run build:sdk && npm run build:sites-compat && npm run build:worker && npm run build:mcp",
+    "deploy:cloudflare": "npm run build:cloudflare && wrangler deploy",
+    "dev:cloudflare": "npm run build:sites-compat && npm run build:worker && wrangler dev",
     "build:mcp": "node scripts/build-mcp.mjs",
     "build:sdk": "node scripts/build-sdk.mjs",
     "build:skills": "node scripts/build-skills.mjs",
@@ -69,6 +72,7 @@
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.4",
     "json-schema-to-typescript": "16.0.0",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "wrangler": "^4.127.1"
   }
 }

@@ -57,6 +57,24 @@ test("Sites identity normalization and lifecycle clocks are bounded", async () =
   assert.equal(invitationStatus(invitation, "2026-08-29T10:00:00.000Z"), "expired");
 });
 
+test("Cloudflare anonymous demo mode provisions an isolated durable browser identity", async () => {
+  const demoAccounts = createMemoryAccountRepository({ clock: () => NOW });
+  const demoWorker = createWorker({ secureCookies: false, createAccountRepository: () => demoAccounts, createProjectRepository: () => projectRepository });
+  const demoEnv = { ...env, VENUEMIND_AUTH_MODE: "anonymous-demo" };
+  const first = await demoWorker.fetch(new Request("https://example.test/api/session"), demoEnv);
+  assert.equal(first.status, 200);
+  const firstSession = await first.json();
+  const cookies = first.headers.get("set-cookie");
+  assert.match(cookies, /venuemind_demo_identity=/);
+  assert.match(cookies, /venuemind_session=/);
+  assert.equal(firstSession.user.displayName, "Guest Planner");
+
+  const cookieHeader = [...cookies.matchAll(/(venuemind_(?:demo_identity|session)=[^;,]+)/g)].map((match) => match[1]).join("; ");
+  const resumed = await demoWorker.fetch(new Request("https://example.test/api/session", { headers: { cookie: cookieHeader } }), demoEnv);
+  assert.equal(resumed.status, 200);
+  assert.equal((await resumed.json()).user.id, firstSession.user.id);
+});
+
 test("API membership, invitations, roles, sessions, export, deletion, and Project access remain tenant isolated", async () => {
   assert.equal((await request("/api/projects")).status, 401);
   const aliceSession = await (await request("/api/session", { identity: "alice" })).json();
