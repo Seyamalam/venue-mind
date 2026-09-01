@@ -3,12 +3,13 @@ const CONTACT_SHAPE_PATTERN_SOURCE = String.raw`(?:[@＠]|(?:^|[\s(])(?:[Hh][Tt]
 export const NON_CONTACT_LABEL_PATTERN_SOURCE = `^(?![\\s\\S]*${CONTACT_SHAPE_PATTERN_SOURCE})[\\s\\S]+$`;
 
 const nonContactLabelPattern = new RegExp(NON_CONTACT_LABEL_PATTERN_SOURCE);
+const defaultIgnorableCodePointPattern = /\p{Default_Ignorable_Code_Point}/gu;
 
 const canonicalContactText = (value) => value
   .normalize("NFKC")
   .replace(/[\u2024\uFF61]/g, ".")
   .replace(/[\u2010-\u2015\u2212]/g, "-")
-  .replace(/[\u200B-\u200D\u2060\uFEFF]/g, "")
+  .replace(defaultIgnorableCodePointPattern, "")
   .replace(/\s/g, " ");
 
 export const isNonContactLabel = (value) => typeof value === "string"

@@ -48,7 +48,7 @@ const proposalChange = (change, index) => {
   }
   if (change.operation === "delete") spatialEffects.push({ operation: "delete_object", objectId: venueObjectId });
   if (spatialEffects.length === 0) fail("ADAPTER_CHANGE_EMPTY", "Adapter change must produce at least one executable spatial effect", { changeId: change.id });
-  const label = values.label ?? change.external.externalId;
+  const label = values.label ?? venueObjectId;
   return Object.freeze({
     id: change.id,
     number: index + 1,
@@ -64,6 +64,7 @@ const proposalChange = (change, index) => {
       externalId: change.external.externalId,
       sourceChecksum: change.external.checksum,
       ...(change.baseChecksum ? { baseChecksum: change.baseChecksum } : {}),
+      ...(change.evidence ? { adapterEvidence: clone(change.evidence) } : {}),
     },
   });
 };

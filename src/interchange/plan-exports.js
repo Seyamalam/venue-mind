@@ -89,24 +89,25 @@ const rfc4180 = (value) => {
 const metricValue = (object, key) => object[key] == null ? "" : object[key];
 
 export function createObjectScheduleCsv(plan) {
-  const header = ["object_id", "label", "kind", "layer", "footprint", "center_x_m", "center_y_m", "rotation_deg", "elevation_m", "capacity", "inventory_count", "template_id", "template_version", "locked"];
+  const header = ["object_id", "label", "kind", "layer", "footprint", "center_x_m", "center_y_m", "rotation_deg", "elevation_m", "capacity", "inventory_count", "template_id", "template_version", "resource_id", "resource_kind", "resource_quantity", "locked"];
   const rows = [...plan.objects].sort((left, right) => LAYERS.indexOf(left.layer) - LAYERS.indexOf(right.layer) || left.id.localeCompare(right.id)).map((object) => {
     const center = centerOf(object.footprint);
-    return [object.id, object.label, object.kind, object.layer, geometryDescriptor(object.footprint), number(center.x), number(center.y), metricValue(object.footprint, "rotationDegrees"), number(object.elevationM), metricValue(object, "capacity"), metricValue(object, "inventoryCount"), object.templateRef?.templateId ?? "", object.templateRef?.version ?? "", object.locked || object.locks?.length ? "true" : "false"];
+    return [object.id, object.label, object.kind, object.layer, geometryDescriptor(object.footprint), number(center.x), number(center.y), metricValue(object.footprint, "rotationDegrees"), number(object.elevationM), metricValue(object, "capacity"), metricValue(object, "inventoryCount"), object.templateRef?.templateId ?? "", object.templateRef?.version ?? "", object.resourceBinding?.resourceId ?? "", object.resourceBinding?.kind ?? "", object.resourceBinding?.quantity ?? "", object.locked || object.locks?.length ? "true" : "false"];
   });
   return `${[header, ...rows].map((row) => row.map(rfc4180).join(",")).join("\r\n")}\r\n`;
 }
 
 export function createInventoryScheduleCsv(plan, validation) {
-  const header = ["template_id", "template_version", "item_name", "category", "requested", "available", "shortage", "status", "unit_cost", "currency", "cost_basis", "estimated_cost", "unit_weight_kg", "total_weight_kg", "watts_each", "total_watts", "connector", "placed_object_ids"];
+  const header = ["template_id", "template_version", "item_name", "category", "requested", "available", "shortage", "status", "unit_cost", "currency", "cost_basis", "estimated_cost", "unit_weight_kg", "total_weight_kg", "watts_each", "total_watts", "connector", "placed_object_ids", "resource_bindings"];
   const availability = new Map((validation.inventoryAvailability ?? []).map((item) => [`${item.templateId}@${item.version}`, item]));
   const placements = new Map();
   for (const object of plan.objects) {
     if (object.templateRef?.kind !== "inventory-item-template") continue;
     const key = `${object.templateRef.templateId}@${object.templateRef.version}`;
-    const entry = placements.get(key) ?? { requested: 0, objectIds: [] };
+    const entry = placements.get(key) ?? { requested: 0, objectIds: [], resourceBindings: [] };
     entry.requested += object.inventoryCount ?? 1;
     entry.objectIds.push(object.id);
+    if (object.resourceBinding) entry.resourceBindings.push(`${object.resourceBinding.resourceId}:${object.resourceBinding.quantity}`);
     placements.set(key, entry);
   }
   const rows = [...placements.entries()].sort(([left], [right]) => left.localeCompare(right)).map(([key, placement]) => {
@@ -115,7 +116,7 @@ export function createInventoryScheduleCsv(plan, validation) {
     const stock = availability.get(key) ?? { requested: placement.requested, available: template ? template.availability.total - template.availability.unavailable : "", shortage: "", status: "unmeasured" };
     const unitCost = template?.cost.amount ?? "";
     const watts = template?.power.watts ?? "";
-    return [templateId, version, template?.name ?? "", template?.category ?? "", stock.requested, stock.available, stock.shortage, stock.status, unitCost, template?.cost.currency ?? "", template?.cost.basis ?? "", unitCost === "" ? "" : number(unitCost * stock.requested, 2), template?.weightKg ?? "", template ? number(template.weightKg * stock.requested, 2) : "", watts, watts === "" ? "" : number(watts * stock.requested, 2), template?.power.connector ?? "", placement.objectIds.sort().join("|")];
+    return [templateId, version, template?.name ?? "", template?.category ?? "", stock.requested, stock.available, stock.shortage, stock.status, unitCost, template?.cost.currency ?? "", template?.cost.basis ?? "", unitCost === "" ? "" : number(unitCost * stock.requested, 2), template?.weightKg ?? "", template ? number(template.weightKg * stock.requested, 2) : "", watts, watts === "" ? "" : number(watts * stock.requested, 2), template?.power.connector ?? "", placement.objectIds.sort().join("|"), placement.resourceBindings.sort().join("|")];
   });
   return `${[header, ...rows].map((row) => row.map(rfc4180).join(",")).join("\r\n")}\r\n`;
 }

@@ -10,7 +10,7 @@ The normalized input participates in invocation identity, idempotency, processed
 
 ## Snapshot and conflict model
 
-Collections are exact, bounded, code-point sorted, and checksum-bound. Booking windows use canonical UTC timestamps and half-open overlap semantics: a booking overlaps when its start is before the event end and the event start is before its end. Bookings ending exactly when the event starts, or starting exactly when it ends, do not conflict.
+Collections are exact, bounded, code-point sorted, and checksum-bound. Source checksums are computed from normalized provider evidence, so order-only permutations of bookings, connectors, skills, assignments, and top-level collections keep the same invocation identity. Booking windows use canonical UTC timestamps and half-open overlap semantics: a booking overlaps when its start is before the event end and the event start is before its end. Bookings ending exactly when the event starts, or starting exactly when it ends, do not conflict.
 
 The reconciler derives demand from the trusted accepted Plan and reports Operational Resource Conflicts with one of four reasons:
 
@@ -19,17 +19,19 @@ The reconciler derives demand from the trusted accepted Plan and reports Operati
 - `capacity-shortfall`
 - `incompatible-metadata`
 
-Conflict and substitution option IDs are deterministic digests of canonical evidence. A resource assigned to the current Project is excluded only through a trusted reservation mapping. Provider-supplied project identity cannot suppress another booking.
+Conflict and substitution option IDs are deterministic digests of canonical evidence. Capacity is reserved across the complete demand set: one finite unit cannot satisfy two direct demands or appear as a replacement for multiple conflicts. Staffing compatibility uses exact role-and-shift assignment pairs, role headcount, and a shift window that covers the Project event window. A resource assigned to the current Project is excluded only through a one-to-one trusted reservation mapping. Provider-supplied project identity cannot suppress another booking.
 
 ## Explicit substitution boundary
 
 Import and synchronization never apply a replacement. They return sorted compatible Resource Substitution Options bound to one exact Snapshot and Conflict. A caller must explicitly select an option for preview.
 
-The preview translator revalidates the Snapshot checksum and semantics, Plan Version and fingerprint, Conflict and Option IDs, exact target object checksum, and same-template compatibility. It then creates a canonical Adapter Staging Batch whose Proposal changes only the target object's Resource Binding. The accepted Plan remains unchanged until ordinary human Approval. Locks, deterministic Validation, stale Proposal checks, version creation, ledger evidence, undo, replay, and export continue through the shared planner boundary.
+The preview translator requires a host-injected resolver for the latest trusted Project Snapshot. It rejects a missing resolver, missing snapshot, or any ID/checksum mismatch before revalidating Snapshot semantics, Plan Version and fingerprint, Conflict and Option IDs, exact target object checksum, and same-template compatibility. Only single-target inventory, AV, and catering substitutions are advertised by this minimal translator; power, staffing, and multi-target conflicts remain visible but require specialized workflows instead of unusable options.
+
+The translator creates a canonical Adapter Staging Batch whose Proposal changes only the target object's Resource Binding. The accepted Plan remains unchanged until ordinary human Approval. Before Approval, the planner requires a host-injected operational-resource freshness verifier and rejects missing, asynchronous, or mismatched evidence. Locks, deterministic Validation, stale Proposal checks, version creation, ledger evidence, undo, replay, and export continue through the shared planner boundary. Approved Activity Ledger entries retain the exact Snapshot evidence used for the decision.
 
 ## Personnel privacy
 
-Staffing imports retain only role, shift, assignment, booking, and opaque Staff Reference evidence required for operations. Raw provider person IDs are resolved through trusted context and removed before invocation hashing, storage, dead letters, results, Proposals, the Activity Ledger, and exports. Names, email addresses, phone numbers, free-form notes, and contact-shaped keys or values are rejected before adapter invocation.
+Staffing imports retain only role, shift, assignment, booking, and opaque Staff Reference evidence required for operations. Staff References must use the server-owned `staff-ref-*` namespace; human-readable aliases are rejected. Raw provider person IDs are resolved through trusted context and removed before invocation hashing, storage, dead letters, results, Proposals, the Activity Ledger, and exports. Names, email addresses, phone numbers, free-form notes, contact-shaped evidence labels, and values obfuscated with Unicode formatting or variation controls are rejected before adapter invocation.
 
 ## Runtime and persistence
 
@@ -37,4 +39,4 @@ The `operational-resources` Adapter uses `aggregate-snapshot` import validation 
 
 ## Completion evidence
 
-The focused operational-resource suites cover all four supply families, permutation stability, half-open booking conflicts, self-booking exclusion, pool capacity, personnel privacy, compatible and absent substitution options, forged or stale evidence, accepted Plan immutability during preview, normal Validation, human Approval, and auditable Resource Binding replacement.
+The focused operational-resource suites cover all four supply families, semantic permutation stability, half-open booking conflicts, self-booking exclusion, aggregate capacity, exact staffing assignments, global ID namespace separation, personnel privacy, compatible and deliberately absent substitution options, trusted latest-Snapshot preview, Approval-time freshness, accepted Plan immutability during preview, normal Validation, human Approval, and auditable Resource Binding replacement.

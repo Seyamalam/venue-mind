@@ -30,7 +30,7 @@ test("CSV object schedule is RFC4180, deterministic, and contains one row per st
 
   assert.equal(first.content, second.content);
   assert.equal(first.mimeType, "text/csv;charset=utf-8");
-  assert.equal(rows[0], "object_id,label,kind,layer,footprint,center_x_m,center_y_m,rotation_deg,elevation_m,capacity,inventory_count,template_id,template_version,locked");
+  assert.equal(rows[0], "object_id,label,kind,layer,footprint,center_x_m,center_y_m,rotation_deg,elevation_m,capacity,inventory_count,template_id,template_version,resource_id,resource_kind,resource_quantity,locked");
   assert.equal(rows.length, before.getSnapshot().plan.objects.length + 1);
   assert.match(first.content, /obj-seating-west,West seating,seating_section,furniture/);
 });
@@ -40,8 +40,18 @@ test("CSV inventory schedule reconciles requested stock, availability, cost, wei
   const rows = output.content.trim().split("\r\n");
 
   assert.match(output.filename, /-inventory\.csv$/);
-  assert.equal(rows[0], "template_id,template_version,item_name,category,requested,available,shortage,status,unit_cost,currency,cost_basis,estimated_cost,unit_weight_kg,total_weight_kg,watts_each,total_watts,connector,placed_object_ids");
+  assert.equal(rows[0], "template_id,template_version,item_name,category,requested,available,shortage,status,unit_cost,currency,cost_basis,estimated_cost,unit_weight_kg,total_weight_kg,watts_each,total_watts,connector,placed_object_ids,resource_bindings");
   assert.match(rows.find((row) => row.startsWith("inventory-template-banquet-chair,")), /inventory-template-banquet-chair,1\.0\.0,Banquet chair,seating,400,500,0,available,4,USD,day,1600,5,2000,0,0,none,obj-seating-east\|obj-seating-west/);
+});
+
+test("CSV exports retain approved Resource Bindings", () => {
+  const plan = structuredClone(summitForwardPlan);
+  plan.objects.find((object) => object.id === "obj-projector-center").resourceBinding = { schemaVersion: 1, resourceId: "resource-projector-backup", kind: "av", quantity: 1 };
+  const bound = createVenuePlanner(plan);
+  const objects = bound.execute({ type: "export_plan", format: "csv" }).content;
+  const inventory = bound.execute({ type: "export_plan", format: "csv-inventory" }).content;
+  assert.match(objects, /obj-projector-center,[^\r\n]*,resource-projector-backup,av,1,false/);
+  assert.match(inventory, /inventory-template-laser-projector,[^\r\n]*resource-projector-backup:1/);
 });
 
 test("PDF export is a two-page printable vector document encoded for MCP transport", () => {

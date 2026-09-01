@@ -109,6 +109,16 @@
     "message": "Plan version conflict.",
     "remediation": "Inspect the latest Plan Version and create or rebase the Proposal before retrying."
   },
+  "OPERATIONAL_RESOURCE_FRESHNESS_REQUIRED": {
+    "code": "OPERATIONAL_RESOURCE_FRESHNESS_REQUIRED",
+    "message": "Operational resource freshness proof is required.",
+    "remediation": "Resolve the latest trusted operational-resource snapshot for this Project before approving the Proposal."
+  },
+  "OPERATIONAL_RESOURCE_STALE": {
+    "code": "OPERATIONAL_RESOURCE_STALE",
+    "message": "Operational resource evidence is stale.",
+    "remediation": "Refresh operational resources, rebuild the substitution Proposal, and validate it again."
+  },
   "VALIDATION_FAILED": {
     "code": "VALIDATION_FAILED",
     "message": "Proposal validation failed.",

@@ -147,6 +147,31 @@ test("Inventory Item Template and Project Object Instance identities cannot be c
   }, roomInventoryAdapter.definition), (error) => error.code === "ADAPTER_ENTITY_TYPE_UNSUPPORTED");
 });
 
+test("generic Adapter Change evidence rejects contact-shaped labels", () => {
+  const valid = {
+    id: "change-evidence-privacy",
+    operation: "update",
+    venueEntityType: "project-object-instance",
+    venueObjectId: "obj-evidence-target",
+    external: { adapterId: "room-inventory", sourceSystem: "room-inventory-prod", entityType: "room-inventory-record", externalId: "vendor-evidence-7", sourceVersion: "42", checksum: "a".repeat(64) },
+    values: { label: "Evidence target" },
+    evidence: { kind: "inventory-substitution", sourceId: "snapshot-inventory-42", sourceChecksum: "b".repeat(64), references: ["resource-projector-backup"] },
+  };
+  const attacks = [
+    { ...valid.evidence, kind: "discord\u00AD:venue-owner" },
+    { ...valid.evidence, sourceId: "www\u200E.\u200Eexample\u200E.invalid" },
+    { ...valid.evidence, references: ["slack\uFE0F U123ABC"] },
+  ];
+
+  for (const evidence of attacks) {
+    assert.throws(
+      () => normalizeAdapterChange({ ...valid, evidence }, roomInventoryAdapter.definition),
+      (error) => error.code === "ADAPTER_PERSONAL_DATA_REJECTED" && !JSON.stringify(error).includes("venue-owner"),
+    );
+  }
+  assert.equal(normalizeAdapterChange(valid, roomInventoryAdapter.definition).evidence.kind, "inventory-substitution");
+});
+
 test("capability scopes and secret references are both enforced", async () => {
   const runtime = createAdapterRuntime({ clock });
   await assert.rejects(() => runtime.execute(roomInventoryAdapter, "import", fixture, { ...authorization, grantedScopes: [] }), (error) => error.code === "ADAPTER_SCOPE_DENIED" && error.details.missingScopes[0] === "inventory:read");

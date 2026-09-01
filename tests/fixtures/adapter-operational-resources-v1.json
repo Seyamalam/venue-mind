@@ -1,0 +1,112 @@
+{
+  "sourceSystem": "venue-ops-prod",
+  "sourceVersion": "resource-77",
+  "nextCursor": "resource-78",
+  "inventory": [
+    {
+      "externalId": "pool-chair-main",
+      "sourceVersion": "77",
+      "status": "available",
+      "total": 500,
+      "unavailable": 10,
+      "bookings": [
+        { "externalId": "booking-chair-self", "startAt": "2026-09-12T10:00:00.000Z", "endAt": "2026-09-12T12:00:00.000Z", "quantity": 400, "reservationExternalId": "event-current" }
+      ]
+    }
+  ],
+  "avEquipment": [
+    {
+      "externalId": "projector-primary",
+      "sourceVersion": "77",
+      "status": "unavailable",
+      "total": 1,
+      "unavailable": 1,
+      "bookings": [],
+      "equipmentType": "projector",
+      "powerWatts": 1200,
+      "voltage": 230,
+      "connector": "powercon"
+    },
+    {
+      "externalId": "projector-backup",
+      "sourceVersion": "77",
+      "status": "available",
+      "total": 1,
+      "unavailable": 0,
+      "bookings": [],
+      "equipmentType": "projector",
+      "powerWatts": 1200,
+      "voltage": 230,
+      "connector": "powercon"
+    }
+  ],
+  "powerCircuits": [
+    {
+      "externalId": "circuit-west",
+      "sourceVersion": "77",
+      "status": "available",
+      "total": 1,
+      "unavailable": 0,
+      "bookings": [
+        { "externalId": "booking-power-other", "startAt": "2026-09-12T10:30:00.000Z", "endAt": "2026-09-12T11:30:00.000Z", "quantity": 1, "reservationExternalId": "event-other" }
+      ],
+      "voltage": 230,
+      "maxWatts": 43600,
+      "connectors": ["powercon", "nema-5-15"]
+    },
+    {
+      "externalId": "circuit-east",
+      "sourceVersion": "77",
+      "status": "available",
+      "total": 1,
+      "unavailable": 0,
+      "bookings": [],
+      "voltage": 230,
+      "maxWatts": 22000,
+      "connectors": ["powercon", "nema-5-15"]
+    }
+  ],
+  "cateringStations": [
+    {
+      "externalId": "buffet-east",
+      "sourceVersion": "77",
+      "status": "available",
+      "total": 1,
+      "unavailable": 0,
+      "bookings": [],
+      "type": "buffet",
+      "servers": 4,
+      "serviceRatePerServerMinute": 3,
+      "queueCapacityPersons": 24,
+      "accessibleServicePoint": true
+    }
+  ],
+  "staffing": {
+    "roles": [
+      { "externalId": "security", "sourceVersion": "77", "availableHeadcount": 6, "skills": ["incident-response"] }
+    ],
+    "shifts": [
+      { "externalId": "event-shift", "sourceVersion": "77", "startAt": "2026-09-12T10:00:00.000Z", "endAt": "2026-09-12T12:00:00.000Z" }
+    ],
+    "assignments": [
+      {
+        "externalPersonId": "person-001",
+        "sourceVersion": "77",
+        "roleExternalId": "security",
+        "shiftExternalId": "event-shift",
+        "status": "available",
+        "bookings": [
+          { "externalId": "booking-staff-other", "startAt": "2026-09-12T09:30:00.000Z", "endAt": "2026-09-12T10:30:00.000Z", "quantity": 1, "reservationExternalId": "event-other" }
+        ]
+      },
+      {
+        "externalPersonId": "person-002",
+        "sourceVersion": "77",
+        "roleExternalId": "security",
+        "shiftExternalId": "event-shift",
+        "status": "available",
+        "bookings": []
+      }
+    ]
+  }
+}
