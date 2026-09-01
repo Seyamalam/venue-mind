@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SettingsRuntime } from "@/components/routes/settings-runtime";
 
-export const metadata: Metadata = { title: "Settings" };
+export const metadata: Metadata = { title: "Settings", robots: { index: false, follow: false } };
 export const dynamicParams = false;
 
 export function generateStaticParams() {

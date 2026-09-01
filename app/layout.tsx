@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_ORIGIN ?? "https://venue-mind-jet.vercel.app"),
+  metadataBase: new URL(process.env.VENUEMIND_PUBLIC_ORIGIN ?? "https://venue-mind-jet.vercel.app"),
   title: { default: "VenueMind", template: "%s · VenueMind" },
   description: "Versioned venue planning for human-supervised agents and operations teams.",
   applicationName: "VenueMind",

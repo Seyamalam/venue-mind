@@ -13,10 +13,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
   const { slug = [] } = await params;
   const page = docsPageBySlug[slug[0] ?? "overview"];
   if (!page || slug.length > 1) return {};
+  const title = `${page.title} · VenueMind Docs`;
   return {
     title: page.title,
     description: page.description,
     alternates: { canonical: page.canonicalPath },
+    openGraph: { title, description: page.description, url: page.canonicalPath, type: "website", siteName: "VenueMind" },
+    twitter: { card: "summary", title, description: page.description },
   };
 }
 
