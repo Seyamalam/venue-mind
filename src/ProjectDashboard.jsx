@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Archive, ArrowCounterClockwise, ArrowRight, CheckCircle, CircleNotch, Clock, Copy, FolderOpen, MagnifyingGlass, PencilSimple, Plus, PushPin, SlidersHorizontal, Trash, UploadSimple, X } from "@phosphor-icons/react";
+import { Archive, ArrowCounterClockwise, ArrowRight, CheckCircle, CircleNotch, Clock, Copy, DotsThreeVertical, FolderOpen, MagnifyingGlass, PencilSimple, Plus, PushPin, SlidersHorizontal, Trash, UploadSimple, X } from "@phosphor-icons/react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
 import { createEmptyVenuePlan } from "./domain/empty-project.js";
 import { createVenuePlanner } from "./domain/venue-planner.js";
 import { createProjectStore } from "./persistence/project-store.js";
@@ -154,8 +155,10 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
             {visibleProjects.map((project, index) => {
               const event = projectEvent(project);
               const status = projectValidation(project);
+              const projectHref = `/studio/${encodeURIComponent(project.id)}`;
               return (
-                <article className="project-sheet" key={project.id} role="link" tabIndex={0} onClick={() => !project.deletedAt && openProject(project)} onKeyDown={(eventKey) => { if (!project.deletedAt && ["Enter", " "].includes(eventKey.key)) openProject(project); }}>
+                <article className={`project-sheet${project.deletedAt ? " is-deleted" : ""}`} key={project.id}>
+                  {!project.deletedAt && <a className="project-sheet-link" href={projectHref} aria-label={`Open ${project.name}`} onClick={(eventClick) => navigateInternalLink(eventClick, () => void openProject(project), projectHref)} />}
                   <span className="sheet-index">{String(index + 1).padStart(2, "0")}</span>
                   <span className="sheet-version"><small>PLAN</small><strong>v{projectVersion(project)}</strong></span>
                   <span className={`sheet-status is-${status.toLowerCase()}`}>{status}</span>
@@ -164,7 +167,25 @@ export function ProjectDashboard({ organizationId = "org-local", account, accoun
                   <span className="sheet-meta"><b>{event.attendeeTarget ?? 0}</b> PAX</span>
                   <span className="sheet-meta"><Clock size={13} />{project.updatedAt?.slice(0, 10) ?? "—"}</span>
                   <span className="sheet-open">OPEN <ArrowRight size={15} /></span>
-                  <span className="sheet-actions" onClick={(eventClick) => eventClick.stopPropagation()}>{project.deletedAt ? <button type="button" onClick={() => restoreProject(project)} aria-label="Restore Project"><ArrowCounterClockwise size={13} /></button> : <><button type="button" className={project.pinned ? "is-active" : ""} onClick={() => pinProject(project)} aria-label="Pin Project"><PushPin size={13} weight={project.pinned ? "fill" : "regular"} /></button><button type="button" onClick={() => renameProject(project)} aria-label="Rename Project"><PencilSimple size={13} /></button><button type="button" onClick={() => duplicateProject(project)} aria-label="Duplicate Project"><Copy size={13} /></button><button type="button" onClick={() => archiveProject(project, !project.archivedAt)} aria-label={project.archivedAt ? "Restore archived Project" : "Archive Project"}>{project.archivedAt ? <ArrowCounterClockwise size={13} /> : <ArchiveBox size={13} />}</button><button type="button" onClick={() => deleteProject(project)} aria-label="Delete Project"><Trash size={13} /></button></>}</span>
+                  <DropdownMenu>
+                    <span className="sheet-actions">
+                      <DropdownMenuTrigger asChild><button type="button" aria-label={`Project actions: ${project.name}`}><DotsThreeVertical size={16} weight="bold" /></button></DropdownMenuTrigger>
+                    </span>
+                    <DropdownMenuContent className="project-action-menu" align="end" sideOffset={6}>
+                      {project.deletedAt ? (
+                        <DropdownMenuItem className="project-action-item" onSelect={() => void restoreProject(project)}><ArrowCounterClockwise />RESTORE</DropdownMenuItem>
+                      ) : (
+                        <>
+                          <DropdownMenuItem className="project-action-item" onSelect={() => void pinProject(project)}><PushPin weight={project.pinned ? "fill" : "regular"} />{project.pinned ? "UNPIN" : "PIN"}</DropdownMenuItem>
+                          <DropdownMenuItem className="project-action-item" onSelect={() => void renameProject(project)}><PencilSimple />RENAME</DropdownMenuItem>
+                          <DropdownMenuItem className="project-action-item" onSelect={() => void duplicateProject(project)}><Copy />DUPLICATE</DropdownMenuItem>
+                          <DropdownMenuItem className="project-action-item" onSelect={() => void archiveProject(project, !project.archivedAt)}>{project.archivedAt ? <ArrowCounterClockwise /> : <ArchiveBox />}{project.archivedAt ? "RESTORE" : "ARCHIVE"}</DropdownMenuItem>
+                          <DropdownMenuSeparator className="project-action-separator" />
+                          <DropdownMenuItem className="project-action-item is-destructive" variant="destructive" onSelect={() => void deleteProject(project)}><Trash />DELETE</DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <span className="sheet-rail" aria-hidden="true"><i /><i /><i /></span>
                 </article>
               );
