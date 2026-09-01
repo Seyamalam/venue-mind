@@ -765,15 +765,15 @@ Completion gate:
 
 ## 7.2 Calendar and event platforms
 
-- [ ] Import event title, schedule, timezone, location, attendance target, and organizer metadata.
-- [ ] Map external events to Projects.
-- [ ] Detect schedule and attendance changes.
-- [ ] Turn planning-relevant updates into reviewable requirement Changes.
-- [ ] Keep calendar content outside the spatial ledger unless it affects planning state.
+- [x] Import event title, schedule, timezone, location, attendance target, and organizer metadata.
+- [x] Map external events to Projects.
+- [x] Detect schedule and attendance changes.
+- [x] Turn planning-relevant updates into reviewable requirement Changes.
+- [x] Keep calendar content outside the spatial ledger unless it affects planning state.
 
 Completion gate:
 
-- [ ] An updated attendance target creates a traceable requirement change and invalidates only relevant capacity and flow evidence.
+- [x] An updated attendance target creates a traceable requirement change and invalidates only relevant capacity and flow evidence.
 
 ## 7.3 Registration and ticketing
 
