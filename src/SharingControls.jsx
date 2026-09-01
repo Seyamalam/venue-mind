@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { Bell, LinkSimple } from "@phosphor-icons/react";
+import { Button } from "../components/ui/button";
 import { Popover, PopoverTrigger } from "../components/ui/popover";
 
 const loadSharingPanels = () => import("./SharingPanels.jsx");
@@ -51,13 +52,13 @@ export function SharingControls({ projectId, organizationId, proposalId, canMana
   return <>
     {canManage && <Popover open={shareOpen} onOpenChange={(open) => { if (open) setShareMounted(true); setShareOpen(open); }}>
       <div className="share-control">
-        <PopoverTrigger asChild><button className="header-button compact-control" type="button" aria-label="Share Project" onPointerEnter={loadSharingPanels} onFocus={loadSharingPanels}><LinkSimple size={16} /> SHARE</button></PopoverTrigger>
+        <PopoverTrigger asChild><Button variant="outline" className="header-button compact-control" type="button" aria-label="Share Project" onPointerEnter={loadSharingPanels} onFocus={loadSharingPanels}><LinkSimple data-icon="inline-start" /> SHARE</Button></PopoverTrigger>
         {shareMounted && <Suspense fallback={null}><LazySharePopoverPanel status={status} scope={scope} days={days} createdUrl={createdUrl} links={links} onScopeChange={setScope} onDaysChange={setDays} onCreate={create} onCopy={() => navigator.clipboard?.writeText(createdUrl)} onRevoke={revoke} onClose={() => setShareOpen(false)} /></Suspense>}
       </div>
     </Popover>}
     <Popover open={notificationOpen} onOpenChange={(open) => { if (open) setNotificationMounted(true); setNotificationOpen(open); }}>
       <div className="notification-control">
-        <PopoverTrigger asChild><button className="header-button compact-control" type="button" aria-label="Notifications" onPointerEnter={loadSharingPanels} onFocus={loadSharingPanels}><Bell size={16} /> {notifications.filter((item) => !item.readAt).length}</button></PopoverTrigger>
+        <PopoverTrigger asChild><Button variant="outline" className="header-button compact-control" type="button" aria-label="Notifications" onPointerEnter={loadSharingPanels} onFocus={loadSharingPanels}><Bell data-icon="inline-start" /> {notifications.filter((item) => !item.readAt).length}</Button></PopoverTrigger>
         {notificationMounted && <Suspense fallback={null}><LazyNotificationPopoverPanel status={status} preferences={preferences} notifications={notifications} onSavePreferences={savePreferences} onToggleEvent={toggleEvent} onMarkRead={markRead} /></Suspense>}
       </div>
     </Popover>
