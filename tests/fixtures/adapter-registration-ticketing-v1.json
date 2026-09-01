@@ -1,0 +1,66 @@
+{
+  "sourceSystem": "registration-prod",
+  "sourceVersion": "registration-2026-08-28-1200",
+  "nextCursor": "registration-page-43",
+  "eventDayMode": true,
+  "ticketClasses": [
+    {
+      "externalId": "general-admission",
+      "ticketedCount": 360,
+      "attendanceForecast": 350,
+      "zoneAllocations": [
+        {
+          "zoneId": "zone-keynote-floor",
+          "ticketedCount": 360,
+          "attendanceForecast": 350
+        }
+      ],
+      "accessRequirementCodes": []
+    },
+    {
+      "externalId": "accessible-admission",
+      "ticketedCount": 40,
+      "attendanceForecast": 38,
+      "zoneAllocations": [
+        {
+          "zoneId": "zone-keynote-floor",
+          "ticketedCount": 40,
+          "attendanceForecast": 38
+        }
+      ],
+      "accessRequirementCodes": [
+        "accessible-seating",
+        "step-free-route"
+      ]
+    }
+  ],
+  "accessibilityRequirements": [
+    {
+      "code": "accessible-seating",
+      "count": 8,
+      "zoneIds": [
+        "zone-keynote-floor"
+      ]
+    },
+    {
+      "code": "step-free-route",
+      "count": 40,
+      "zoneIds": [
+        "zone-keynote-floor"
+      ]
+    }
+  ],
+  "checkIn": {
+    "asOf": "2026-08-28T12:00:00.000Z",
+    "counts": [
+      {
+        "ticketClassId": "general-admission",
+        "count": 180
+      },
+      {
+        "ticketClassId": "accessible-admission",
+        "count": 20
+      }
+    ]
+  }
+}

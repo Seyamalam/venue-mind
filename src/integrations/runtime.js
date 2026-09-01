@@ -25,6 +25,7 @@ const asAdapterFailure = (error) => {
 
 const isPolicyFailure = (error) => error.code.startsWith("ADAPTER_SECRET_")
   || error.code === "ADAPTER_SCOPE_DENIED"
+  || error.code === "ADAPTER_SOURCE_MISMATCH"
   || error.code === "ADAPTER_ID_BOUNDARY_VIOLATION"
   || error.code === "ADAPTER_REVIEW_BYPASS"
   || error.code === "ADAPTER_BASE_PLAN_VERSION_REQUIRED"
@@ -35,10 +36,13 @@ const isPolicyFailure = (error) => error.code.startsWith("ADAPTER_SECRET_")
   || error.code === "ADAPTER_PLANNING_BINDING_MISMATCH"
   || error.code === "ADAPTER_WEBHOOK_STORE_REQUIRED"
   || error.code === "ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED"
+  || error.code === "ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED"
   || error.code === "ADAPTER_ENTITY_TYPE_INVALID"
   || error.code === "ADAPTER_ENTITY_TYPE_UNSUPPORTED"
   || error.code === "ADAPTER_PROTECTED_FIELD"
   || error.code === "ADAPTER_CHECKSUM_INVALID"
+  || error.code === "ADAPTER_CHECKSUM_MISMATCH"
+  || error.code === "ADAPTER_PERSONAL_DATA_REJECTED"
   || error.code.startsWith("ADAPTER_CONTRACT_");
 
 const normalizeWebhookEvent = async (definition, value) => {
@@ -67,12 +71,13 @@ const validateStoredWebhookEvent = async (definition, value, expected, inserted)
   }
   const content = { adapterId: value.adapterId, adapterVersion: value.adapterVersion, sourceSystem: value.sourceSystem, eventId: value.eventId, eventType: value.eventType, occurredAt: value.occurredAt, sourceVersion: value.sourceVersion, payload: clone(value.payload) };
   const checksum = await sha256Checksum(content);
-  if (value.checksum !== checksum) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", "Webhook store row checksum does not match its normalized content", { eventId: value.eventId, expected: value.checksum, actual: checksum });
-  if (checksum !== expected.checksum) {
+  const schemaBoundChecksum = await sha256Checksum({ schemaVersion: value.schemaVersion, ...content });
+  if (![checksum, schemaBoundChecksum].includes(value.checksum)) fail("ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED", "Webhook store row checksum does not match its normalized content", { eventId: value.eventId });
+  if (value.checksum !== expected.checksum) {
     const code = inserted ? "ADAPTER_WEBHOOK_STORE_INTEGRITY_FAILED" : "ADAPTER_WEBHOOK_REPLAY_MISMATCH";
     fail(code, inserted ? "Webhook store did not persist the accepted event exactly" : "Webhook event ID was replayed with different content", { eventId: value.eventId, sourceSystem: value.sourceSystem });
   }
-  return Object.freeze({ schemaVersion: 1, ...content, checksum });
+  return Object.freeze({ schemaVersion: 1, ...content, checksum: value.checksum });
 };
 
 const normalizeExport = async (definition, value) => {
@@ -84,6 +89,12 @@ const normalizeExport = async (definition, value) => {
   const checksum = await sha256Checksum(content);
   if (value.checksum !== undefined && value.checksum !== checksum) fail("ADAPTER_CHECKSUM_MISMATCH", "Export checksum does not match normalized content");
   return Object.freeze({ schemaVersion: 1, ...content, checksum });
+};
+
+const assertAggregateImportResult = async (adapter, output, capability, preparedInput) => {
+  if (typeof adapter.assertImportResult !== "function") fail("ADAPTER_CONTRACT_INVALID", "Aggregate snapshot adapters require an import-result validator", { adapterId: adapter.definition.id });
+  await adapter.assertImportResult(output, { capability, preparedInput: clone(preparedInput) });
+  return output;
 };
 
 export function createVenueAdapter(definitionInput, handlers) {
@@ -130,6 +141,23 @@ export function createAdapterRuntime(options = {}) {
     return output;
   };
 
+  const validateImportForPersistence = async (adapter, capability, output, preparedInput) => {
+    if (adapter.definition.importResultMode === "reviewable-proposal") return validateStagingForPersistence(adapter.definition, capability, output);
+    if (adapter.definition.importResultMode === "aggregate-snapshot") return assertAggregateImportResult(adapter, output, capability, preparedInput);
+    fail("ADAPTER_CONTRACT_INVALID", "Adapter importResultMode is unsupported", { adapterId: adapter.definition.id });
+  };
+
+  const validateStoredProcessedBatch = async (adapter, capability, value, expected, preparedInput, requireExactOutput = false) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store returned an invalid row");
+    const unknown = Object.keys(value).filter((key) => !["invocationId", "inputChecksum", "completedAt", "output"].includes(key));
+    if (unknown.length || value.invocationId !== expected.invocationId || value.inputChecksum !== expected.inputChecksum) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store row identity does not match its durable key");
+    try { assertIsoTimestamp(value.completedAt, "Processed batch completedAt"); } catch { fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store timestamp is invalid"); }
+    await validateImportForPersistence(adapter, capability, value.output, preparedInput);
+    if (expected.completedAt !== undefined && value.completedAt !== expected.completedAt) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store changed the completion timestamp");
+    if (requireExactOutput && await sha256Checksum(value.output) !== await sha256Checksum(expected.output)) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store did not persist the accepted output exactly");
+    return value;
+  };
+
   const acquireRateLimit = async (definition) => {
     const key = `${definition.id}@${definition.version}`;
     const now = clock();
@@ -147,14 +175,16 @@ export function createAdapterRuntime(options = {}) {
     async execute(adapter, capability, input, authorization = {}) {
       const { definition } = adapter;
       assertAdapterScope(definition, capability, authorization.grantedScopes ?? []);
-      const invocationId = adapterInvocationId(definition, capability, input);
-      const inputChecksum = await sha256Checksum(input);
-      const stagesProposal = capability === "import" || capability === "synchronize";
+      const adapterContext = authorization.trustedAdapterContexts?.[definition.id];
+      const preparedInput = typeof adapter.prepareInput === "function" ? await adapter.prepareInput(capability, clone(input), { adapterContext: clone(adapterContext) }) : clone(input);
+      const invocationId = adapterInvocationId(definition, capability, preparedInput);
+      const inputChecksum = await sha256Checksum(preparedInput);
+      const stagesImport = capability === "import" || capability === "synchronize";
       const processedBatchKey = `${definition.id}@${definition.version}:${capability}:${inputChecksum}`;
-      if (stagesProposal) {
+      if (stagesImport) {
         const completed = await processedBatchStore.get(processedBatchKey);
         if (completed) {
-          await validateStagingForPersistence(definition, capability, completed.output);
+          await validateStoredProcessedBatch(adapter, capability, completed, { invocationId, inputChecksum }, preparedInput);
           return { status: "duplicate", invocationId, attempts: [], duplicateOf: completed.completedAt, output: clone(completed.output) };
         }
       }
@@ -163,13 +193,17 @@ export function createAdapterRuntime(options = {}) {
       for (let attempt = 1; attempt <= definition.retryPolicy.maxAttempts; attempt += 1) {
         await acquireRateLimit(definition);
         try {
-          const output = await adapter.invoke(capability, input, { invocationId, attempt, clock: () => new Date(clock()).toISOString(), secrets: secretReader });
+          const output = await adapter.invoke(capability, preparedInput, { invocationId, attempt, clock: () => new Date(clock()).toISOString(), secrets: secretReader });
+          if (stagesImport) await validateImportForPersistence(adapter, capability, output, preparedInput);
+          if (capability === "webhook" && typeof adapter.assertWebhookResult === "function") await adapter.assertWebhookResult(output, { capability, preparedInput: clone(preparedInput) });
           attempts.push({ attempt, status: "succeeded", at: new Date(clock()).toISOString() });
-          if (stagesProposal) {
-            await validateStagingForPersistence(definition, capability, output);
+          if (stagesImport) {
             const completedAt = new Date(clock()).toISOString();
-            const stored = await processedBatchStore.putIfAbsent(processedBatchKey, { invocationId, inputChecksum, completedAt, output });
-            await validateStagingForPersistence(definition, capability, stored.value.output);
+            const expected = { invocationId, inputChecksum, completedAt, output };
+            const stored = await processedBatchStore.putIfAbsent(processedBatchKey, expected);
+            if (!stored || typeof stored !== "object" || Array.isArray(stored) || typeof stored.inserted !== "boolean" || !Object.hasOwn(stored, "value")) fail("ADAPTER_PROCESSED_STORE_INTEGRITY_FAILED", "Processed batch store returned an invalid insert result");
+            const validationExpected = stored.inserted ? expected : { invocationId, inputChecksum };
+            await validateStoredProcessedBatch(adapter, capability, stored.value, validationExpected, preparedInput, stored.inserted);
             if (!stored.inserted) return { status: "duplicate", invocationId, attempts, duplicateOf: stored.value.completedAt, output: clone(stored.value.output) };
             return { status: "succeeded", invocationId, attempts, output: clone(stored.value.output) };
           }
@@ -212,6 +246,7 @@ export function createAdapterRuntime(options = {}) {
       const key = `${adapter.definition.id}@${adapter.definition.version}\u0000${result.output.sourceSystem}\u0000${result.output.eventId}`;
       const stored = await webhookEventStore.putIfAbsent(key, result.output);
       const storedOutput = await validateStoredWebhookEvent(adapter.definition, stored.value, result.output, stored.inserted);
+      if (typeof adapter.assertWebhookResult === "function") await adapter.assertWebhookResult(storedOutput);
       if (!stored.inserted) {
         return { ...result, status: "duplicate", output: clone(storedOutput) };
       }

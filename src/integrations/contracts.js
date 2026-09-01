@@ -4,10 +4,12 @@ import { assertCanonicalUtcTimestamp } from "../domain/timestamps.js";
 
 export const ADAPTER_CONTRACT_VERSION = 1;
 export const ADAPTER_CAPABILITIES = Object.freeze(["import", "export", "synchronize", "webhook"]);
+export const ADAPTER_IMPORT_RESULT_MODES = Object.freeze(["reviewable-proposal", "aggregate-snapshot"]);
 export const ADAPTER_CHANGE_OPERATIONS = Object.freeze(["create", "update", "delete"]);
 export const VENUE_ENTITY_TYPES = Object.freeze(["event-brief-requirement", "inventory-item-template", "project", "project-object-instance"]);
 
 const CAPABILITY_SET = new Set(ADAPTER_CAPABILITIES);
+const IMPORT_RESULT_MODE_SET = new Set(ADAPTER_IMPORT_RESULT_MODES);
 const CHANGE_OPERATION_SET = new Set(ADAPTER_CHANGE_OPERATIONS);
 const VENUE_ENTITY_TYPE_SET = new Set(VENUE_ENTITY_TYPES);
 const IDENTIFIER = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
@@ -64,13 +66,15 @@ export async function sha256Checksum(value) {
 
 export function defineAdapter(input) {
   assertPlainObject(input, "Adapter definition");
-  assertExactKeys(input, ["contractVersion", "id", "displayName", "version", "capabilities", "scopes", "retryPolicy", "rateLimit"], "Adapter definition");
+  assertExactKeys(input, ["contractVersion", "id", "displayName", "version", "capabilities", "scopes", "retryPolicy", "rateLimit", "importResultMode"], "Adapter definition");
   if (input.contractVersion !== ADAPTER_CONTRACT_VERSION) fail("ADAPTER_CONTRACT_VERSION_UNSUPPORTED", `Adapter contract version must be ${ADAPTER_CONTRACT_VERSION}`, { actual: input.contractVersion });
   if (!IDENTIFIER.test(input.id ?? "")) fail("ADAPTER_CONTRACT_INVALID", "Adapter ID must be a lowercase kebab-case identifier");
   assertString(input.displayName, "Adapter display name");
   if (!VERSION.test(input.version ?? "")) fail("ADAPTER_CONTRACT_INVALID", "Adapter version must be semantic version syntax");
   if (!Array.isArray(input.capabilities) || input.capabilities.length === 0 || input.capabilities.some((item) => !CAPABILITY_SET.has(item))) fail("ADAPTER_CONTRACT_INVALID", "Adapter capabilities are invalid");
   const capabilities = [...new Set(input.capabilities)].sort();
+  const importResultMode = input.importResultMode ?? "reviewable-proposal";
+  if (!IMPORT_RESULT_MODE_SET.has(importResultMode)) fail("ADAPTER_CONTRACT_INVALID", "Adapter importResultMode is invalid", { importResultMode });
   assertPlainObject(input.scopes, "Adapter scopes");
   assertExactKeys(input.scopes, capabilities, "Adapter scopes");
   const scopes = Object.fromEntries(capabilities.map((capability) => {
@@ -80,7 +84,7 @@ export function defineAdapter(input) {
   }));
   const retryPolicy = normalizeRetryPolicy(input.retryPolicy);
   const rateLimit = normalizeRateLimit(input.rateLimit);
-  return Object.freeze({ contractVersion: ADAPTER_CONTRACT_VERSION, id: input.id, displayName: input.displayName, version: input.version, capabilities, scopes, retryPolicy, rateLimit });
+  return Object.freeze({ contractVersion: ADAPTER_CONTRACT_VERSION, id: input.id, displayName: input.displayName, version: input.version, capabilities, importResultMode, scopes, retryPolicy, rateLimit });
 }
 
 export function normalizeRetryPolicy(input = {}) {

@@ -777,15 +777,15 @@ Completion gate:
 
 ## 7.3 Registration and ticketing
 
-- [ ] Import ticket classes and attendance forecasts.
-- [ ] Map ticket classes to zones and access requirements.
-- [ ] Import aggregate accessibility requirements with privacy-preserving defaults.
-- [ ] Reconcile checked-in counts during event-day mode.
-- [ ] Avoid storing unnecessary attendee identity data.
+- [x] Import ticket classes and attendance forecasts.
+- [x] Map ticket classes to zones and access requirements.
+- [x] Import aggregate accessibility requirements with privacy-preserving defaults.
+- [x] Reconcile checked-in counts during event-day mode.
+- [x] Avoid storing unnecessary attendee identity data.
 
 Completion gate:
 
-- [ ] Ticket-class totals reconcile with Project occupancy requirements without exposing personal attendee data.
+- [x] Ticket-class totals reconcile with Project occupancy requirements without exposing personal attendee data.
 
 ## 7.4 Inventory, AV, catering, and staffing adapters
 

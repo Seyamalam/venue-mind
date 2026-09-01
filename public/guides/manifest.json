@@ -46,6 +46,11 @@
       "title": "Sharing and notifications"
     },
     {
+      "sourcePath": "docs/registration-and-ticketing.md",
+      "publicPath": "/guides/registration-and-ticketing.md",
+      "title": "Registration and ticketing"
+    },
+    {
       "sourcePath": "docs/database-operations.md",
       "publicPath": "/guides/database-operations.md",
       "title": "Database operations"

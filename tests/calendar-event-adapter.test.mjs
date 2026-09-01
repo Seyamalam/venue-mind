@@ -78,6 +78,23 @@ test("Calendar Event import retains complete sanitized source evidence and maps 
   assert.equal(result.output.sourceRecords[0].external.checksum, result.output.mappings[0].checksum);
 });
 
+test("a valid earlier calendar winner is returned when an import loses an atomic insert race", async () => {
+  const winnerStore = createMemoryProcessedBatchStore();
+  const winner = await runtimeFor(attendanceFixture, { processedBatchStore: winnerStore }).execute(calendarEventAdapter, "import", structuredClone(attendanceFixture), authorization);
+  const [winnerRow] = winnerStore.list();
+  const laterClock = () => Date.parse("2026-08-28T12:00:01.000Z");
+  const losingStore = {
+    async get() { return null; },
+    async putIfAbsent() { return { inserted: false, value: structuredClone(winnerRow) }; },
+  };
+
+  const loser = await runtimeFor(attendanceFixture, { clock: laterClock, processedBatchStore: losingStore }).execute(calendarEventAdapter, "import", structuredClone(attendanceFixture), authorization);
+  assert.equal(loser.status, "duplicate");
+  assert.equal(loser.duplicateOf, "2026-08-28T12:00:00.000Z");
+  assert.equal(loser.output.checksum, winner.output.checksum);
+  assert.notEqual(loser.attempts[0].at, loser.duplicateOf);
+});
+
 test("staging reload recomputes nested integrity and verifies checksum-derived IDs", async () => {
   const result = await runtimeFor(attendanceFixture).execute(calendarEventAdapter, "import", structuredClone(attendanceFixture), authorization);
   assert.equal(Object.isFrozen(result.output), false, "runtime returns a trusted detached reload");

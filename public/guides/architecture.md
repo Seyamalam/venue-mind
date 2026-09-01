@@ -49,8 +49,9 @@ flowchart LR
 | Share Links, pending-operation reconciliation, Notification Preferences, notifications, and leased email outbox | `src/domain/sharing.js` and `worker/sharing-repository.ts` |
 | Numbered database migrations, integrity, backup, and restore | `db/migrations/`, `worker/database-migrations.ts`, and `scripts/database-maintenance.mjs` |
 | Interchange and operational exports | `src/interchange/` |
-| External adapter contracts, Proposal staging, idempotency, retry, and secret boundaries | `src/integrations/` |
+| External adapter contracts, Proposal staging, aggregate registration reconciliation, idempotency, durable webhook receipt, retry, and secret boundaries | `src/integrations/` |
 | Calendar event normalization and Event-to-Project mapping | `src/integrations/adapters/calendar-event-adapter.js` |
+| Registration and ticketing aggregate normalization | `src/integrations/adapters/registration-ticketing-adapter.js` |
 | Canonical docs registry | `src/docs/` |
 | Generated public artifacts | `scripts/generate-*.mjs` and `public/` |
 
@@ -108,6 +109,8 @@ sequenceDiagram
 - The processed-batch store is the adapter idempotency boundary. A repeated import returns the original staging result without creating another Proposal; production persistence must implement the same atomic `putIfAbsent` contract.
 - Webhook acceptance requires an injected atomic store keyed by adapter version, source system, and event ID. This survives runtime restarts, closes concurrent delivery races, and keeps equal event IDs from different sources distinct.
 - Adapter capability scopes and scoped secret references are checked independently. Adapter handlers receive secret values only through the secret-store boundary, never through persisted configuration or dead letters.
+- Registration and ticketing provider input is recursively screened before invocation IDs, checksums, processed-result storage, dead letters, or webhook replay storage. Project occupancy requirements come separately from repository-derived trusted adapter context. Only aggregate Ticket Class, zone allocation, accessibility requirement, forecast, and Check-in Aggregate fields survive normalization; deep result validation recomputes the reconciliation proof, and this read model does not invent a non-spatial planning-effect shape. Webhook replay uses an injected atomic store keyed by Adapter version, source system, and event ID.
+- Every import and synchronization declares `importResultMode`. `reviewable-proposal` always passes the canonical staging-batch invariant; `aggregate-snapshot` requires an adapter-specific validator for both new and duplicate outputs before processed-batch storage or return.
 
 ## Add a command
 
