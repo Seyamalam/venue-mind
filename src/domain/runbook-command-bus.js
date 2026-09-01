@@ -1,4 +1,5 @@
 import { createEventDayRunbook, deriveRunbookHandoff, taskReadiness, transitionRunbookTask } from "./event-day-runbook.js";
+import { stableFingerprint } from "./activity-ledger.js";
 import { exportEventDayRunbook } from "../interchange/runbook-exports.js";
 import { venueError } from "./errors.js";
 
@@ -26,10 +27,15 @@ export function createRunbookCommandBus({ initialRunbook = null, onChange = () =
     hydrate(nextRunbook) {
       publish(nextRunbook, { type: "runbook.hydrated", runbookVersionId: nextRunbook?.versionId ?? null });
     },
+    preview(command) {
+      if (command?.type !== "transition_runbook_task") throw venueError("COMMAND_UNSUPPORTED", { commandType: command?.type });
+      const result = transitionRunbookTask(requireRunbook(), command, { committedAt: command.committedAt });
+      return { status: result.duplicate ? "already-applied" : "ready", receipt: clone(result.receipt), task: clone(result.runbook.tasks.find((task) => task.id === command.taskId)) };
+    },
     execute(command) {
       if (!command?.type) throw venueError("COMMAND_INVALID");
       if (command.type === "create_runbook_version") {
-        if (runbook && runbook.source.planId === command.plan?.id && runbook.source.planVersion === command.plan?.version) return { status: "existing", runbook: clone(runbook) };
+        if (runbook && runbook.source.planId === command.plan?.id && runbook.source.planVersion === command.plan?.version && runbook.source.planFingerprint === stableFingerprint("plan", command.plan)) return { status: "existing", runbook: clone(runbook) };
         const next = createEventDayRunbook(command);
         publish(next, { type: "runbook.created", runbookVersionId: next.versionId });
         return { status: "created", runbook: clone(next) };

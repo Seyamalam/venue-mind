@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createMemoryRunbookPersistenceAdapter, createRunbookStore } from "../src/persistence/runbook-store.js";
 
-const makeRunbook = (revision = 0) => ({ schemaVersion: 1, id: "runbook-project-plan", versionId: "runbook-project-plan-v1", revision, tasks: [] });
+const makeRunbook = (revision = 0) => ({ schemaVersion: 1, id: "runbook-project-plan", versionId: "runbook-project-plan-v1", revision, version: 1, frozenAt: "2026-09-11T20:00:00.000Z", source: { projectId: "project-summit-forward" }, tasks: [] });
 
 const command = (sequence, overrides = {}) => ({
   type: "transition_runbook_task",
@@ -39,6 +39,9 @@ test("memory fallback hydrates cached Runbook and ordered outbox across store re
   assert.equal(hydrated.runbook.versionId, "runbook-project-plan-v1");
   assert.deepEqual(hydrated.outbox.map((entry) => entry.command.clientSequence), [1, 2, 3]);
   assert.deepEqual(hydrated.outbox.map((entry) => entry.command.operationId), ["operation-1", "operation-2", "operation-3"]);
+  const byProject = await restarted.hydrateProject("project-summit-forward");
+  assert.equal(byProject.runbook.versionId, "runbook-project-plan-v1");
+  assert.equal(byProject.outbox.length, 3);
 });
 
 test("exact enqueue retries reuse the stable command while semantic key conflicts fail", async () => {

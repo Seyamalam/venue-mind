@@ -179,7 +179,7 @@ function RunbookTaskRow({ task, onTaskTransition, onOpenEvidence }) {
           <DropdownMenuGroup>
             {!(["blocked", "done", "completed", "skipped"].includes(status)) && <DropdownMenuItem disabled={!onTaskTransition} onSelect={() => onTaskTransition?.({ taskId: task.id, toStatus: "blocked" })}><ShieldAlert />BLOCK</DropdownMenuItem>}
             {!(["done", "completed", "skipped"].includes(status)) && <DropdownMenuItem disabled={!onTaskTransition} onSelect={() => onTaskTransition?.({ taskId: task.id, toStatus: "skipped" })}><SkipForward />SKIP</DropdownMenuItem>}
-            {(["blocked", "done", "completed", "skipped"].includes(status)) && <DropdownMenuItem disabled={!onTaskTransition} onSelect={() => onTaskTransition?.({ taskId: task.id, toStatus: "pending" })}><RotateCcw />RESET</DropdownMenuItem>}
+            {(["done", "completed", "skipped"].includes(status)) && <DropdownMenuItem disabled={!onTaskTransition} onSelect={() => onTaskTransition?.({ taskId: task.id, toStatus: "pending" })}><RotateCcw />RESET</DropdownMenuItem>}
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -357,7 +357,7 @@ export function RunbookPanel({
     <Sheet open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose?.(); }} modal={false}>
       <SheetContent id="event-day-runbook-panel" className="runbook-panel !h-auto !gap-0 !p-0 sm:!max-w-none" side="right" showOverlay={false} showCloseButton={false} aria-label="Event Day Runbook">
         <header className="runbook-heading">
-          <div><span>EVENT DAY</span><SheetTitle asChild><strong>RUNBOOK</strong></SheetTitle><SheetDescription className="sr-only">Event Day tasks, offline synchronization, and shift handoffs</SheetDescription></div>
+          <div><span>EVENT DAY</span><SheetTitle asChild><strong>RUNBOOK</strong></SheetTitle><SheetDescription className="sr-only">TASKS · SYNC · HANDOFF</SheetDescription></div>
           {runbook && <div className="runbook-heading-meta"><Badge variant="outline">{runbook.version ?? "v1"}</Badge><Badge variant="secondary">PLAN v{sourcePlanVersion}</Badge></div>}
           <Button variant="ghost" size="icon-sm" type="button" onClick={onClose} aria-label="Close Event Day Runbook"><X /></Button>
         </header>

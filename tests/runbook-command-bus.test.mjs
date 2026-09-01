@@ -72,3 +72,31 @@ test("exact retries do not republish a Runbook transition", () => {
   assert.equal(bus.execute(command).status, "already-applied");
   assert.equal(publications, 2);
 });
+
+test("transition previews validate without publishing or mutating the Runbook", () => {
+  let publications = 0;
+  const bus = createRunbookCommandBus({ onChange: () => { publications += 1; } });
+  const runbook = bus.execute(createCommand).runbook;
+  const task = runbook.tasks.find((candidate) => candidate.key === "site-release");
+  const command = {
+    type: "transition_runbook_task",
+    runbookVersionId: runbook.versionId,
+    taskId: task.id,
+    expectedTaskRevision: 0,
+    toStatus: "in-progress",
+    idempotencyKey: "idem-preview-site-start",
+    clientId: "tablet-a",
+    clientSequence: 1,
+    clientOccurredAt: "2026-09-12T12:00:00.000Z",
+    committedAt: "2026-09-12T12:00:01.000Z",
+    actorType: "human",
+    actorId: "user-ops",
+    source: "studio",
+    sessionId: "session-event-day",
+  };
+  assert.equal(bus.preview(command).status, "ready");
+  assert.equal(bus.execute({ type: "inspect_runbook" }).revision, 0);
+  assert.equal(publications, 1);
+  assert.equal(bus.execute(command).task.status, "in-progress");
+  assert.equal(publications, 2);
+});

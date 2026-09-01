@@ -49,6 +49,9 @@ export function createMemoryRunbookPersistenceAdapter(initial = {}) {
     async getRunbook(runbookVersionId) {
       return clone(runbooks.get(runbookVersionId) ?? null);
     },
+    async listRunbooks(projectId) {
+      return [...runbooks.values()].filter((runbook) => runbook.source?.projectId === projectId).map(clone);
+    },
     async putRunbook(runbook) {
       runbooks.set(runbook.versionId, clone(runbook));
       return clone(runbook);
@@ -105,6 +108,12 @@ export function createIndexedDbRunbookPersistenceAdapter({ indexedDB: indexedDBI
       const db = await database();
       const transaction = db.transaction(RUNBOOK_STORE, "readonly");
       return clone((await requestResult(transaction.objectStore(RUNBOOK_STORE).get(runbookVersionId))) ?? null);
+    },
+    async listRunbooks(projectId) {
+      const db = await database();
+      const transaction = db.transaction(RUNBOOK_STORE, "readonly");
+      const values = await requestResult(transaction.objectStore(RUNBOOK_STORE).getAll());
+      return values.filter((runbook) => runbook.source?.projectId === projectId).map(clone);
     },
     async putRunbook(runbook) {
       const db = await database();
@@ -167,6 +176,13 @@ export function createRunbookStore({ adapter, indexedDB, databaseName, clock = (
       if (typeof runbookVersionId !== "string" || !runbookVersionId.trim()) throw venueError("COMMAND_INVALID", { reason: "runbook-version-required" });
       const [runbook, outbox] = await Promise.all([persistence.getRunbook(runbookVersionId), listOutbox(runbookVersionId)]);
       return { source: "local", runbook, outbox };
+    },
+
+    async hydrateProject(projectId) {
+      if (typeof projectId !== "string" || !projectId.trim()) throw venueError("COMMAND_INVALID", { reason: "runbook-project-required" });
+      const runbooks = (await persistence.listRunbooks(projectId)).sort((left, right) => String(right.frozenAt).localeCompare(String(left.frozenAt)) || right.version - left.version);
+      const runbook = runbooks[0] ?? null;
+      return runbook ? { source: "local", runbook, outbox: await listOutbox(runbook.versionId) } : { source: "local", runbook: null, outbox: [] };
     },
 
     async saveRunbook(runbook) {
