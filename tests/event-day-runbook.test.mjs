@@ -49,10 +49,12 @@ test("Runbook Version freezes accepted Plan evidence with deterministic phases a
 });
 
 test("Runbook creation rejects absent schedule, failed validation, missing references, and dependency cycles", () => {
+  const briefWithoutSchedule = clone(summitForwardPlan.brief);
+  delete briefWithoutSchedule.schedule;
   const options = {
     projectId: "project-summit-forward",
     plan: summitForwardPlan,
-    brief: summitForwardPlan.brief,
+    brief: briefWithoutSchedule,
     validation: { validationId: "validation-approved", inputFingerprint: "input-approved", status: "pass" },
     sourceLedgerHeadHash: "ledger-source-head",
     approvalLedgerEntryId: "ledger-approval",
