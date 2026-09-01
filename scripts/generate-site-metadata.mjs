@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { docsPages } from "../src/docs/content.js";
 import { buildDocsNavigation } from "../src/docs/navigation.js";
+import { buildDocsSearchIndex } from "../src/docs/search.js";
 import { referenceManifest } from "../src/docs/pages/reference.js";
 import { defaultPublicOrigin } from "../src/docs/public-origin.js";
 
@@ -41,12 +42,18 @@ const manifest = {
   })),
   navigation: buildDocsNavigation(docsPages),
 };
+const searchIndex = {
+  schemaVersion: 1,
+  generatedFrom: "src/docs/content.js",
+  entries: buildDocsSearchIndex(docsPages),
+};
 
 await mkdir(outputDirectory, { recursive: true });
 await Promise.all([
   writeFile(new URL("sitemap.xml", outputDirectory), sitemap),
   writeFile(new URL("robots.txt", outputDirectory), `User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`),
   writeFile(new URL("docs-manifest.json", outputDirectory), `${JSON.stringify(manifest, null, 2)}\n`),
+  writeFile(new URL("docs-search.json", outputDirectory), `${JSON.stringify(searchIndex)}\n`),
   writeFile(new URL("reference-manifest.json", outputDirectory), `${JSON.stringify(referenceManifest, null, 2)}\n`),
 ]);
 

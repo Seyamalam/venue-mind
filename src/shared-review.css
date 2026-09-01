@@ -1,0 +1,38 @@
+.shared-review-state {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 9px;
+  color: #6845e8;
+  font-size: 9px;
+  letter-spacing: .12em;
+}
+
+.shared-review { min-height: 100vh; background: #f6f4ee; }
+.shared-review > header { height: 64px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #deddd7; background: #fbfaf7; padding: 0 5vw; }
+.shared-review > header span { display: flex; align-items: center; gap: 7px; }
+.shared-review > header code { color: #6845e8; font-size: 8px; }
+.shared-review-heading { display: grid; grid-template-columns: 1fr auto auto; align-items: end; gap: 30px; padding: 42px 7vw 26px; }
+.shared-review-heading span { display: grid; gap: 5px; }
+.shared-review-heading small { color: #777873; font-size: 7px; font-weight: 850; letter-spacing: .1em; }
+.shared-review-heading h1 { margin: 0; font-size: clamp(28px, 4vw, 52px); letter-spacing: -.055em; }
+.shared-review-heading b { font-size: 15px; }
+.shared-review-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 0 7vw 50px; }
+.shared-review-grid article { min-height: 280px; border: 1px solid #dcd8cf; border-radius: 12px; background: #fbfaf7; padding: 18px; }
+.shared-review-grid article > div { display: flex; align-items: center; gap: 7px; border-bottom: 1px solid #e0ddd5; padding-bottom: 12px; color: #6845e8; font-size: 9px; letter-spacing: .08em; }
+.shared-review-grid article > div span { margin-left: auto; }
+.shared-review-grid dl { display: grid; grid-template-columns: 90px 1fr; gap: 12px; margin-top: 24px; }
+.shared-review-grid dt { color: #858680; font-size: 7px; font-weight: 850; }
+.shared-review-grid dd { margin: 0; font-size: 11px; font-weight: 700; }
+.shared-review-grid article > code { display: block; margin: 13px 0; color: #7163ae; font-size: 8px; }
+.shared-review-grid ul { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.shared-review-grid li { display: grid; gap: 2px; border-radius: 6px; background: #f0ecff; padding: 8px; }
+.shared-review-grid li b { font-size: 9px; }
+.shared-review-grid li small { color: #7163ae; font: 650 7px ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+@media (max-width: 760px) {
+  .shared-review-heading { grid-template-columns: 1fr 1fr; }
+  .shared-review-heading span:first-child { grid-column: 1 / -1; }
+  .shared-review-grid { grid-template-columns: 1fr; }
+}

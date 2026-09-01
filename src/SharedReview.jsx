@@ -1,5 +1,8 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { Eye, ShieldCheck } from "@phosphor-icons/react";
+import "./shared-review.css";
 
 export function SharedReview({ token }) {
   const [state, setState] = useState({ status: "LOAD", data: null });

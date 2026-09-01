@@ -6,6 +6,7 @@ import { ProjectDashboard } from "./ProjectDashboard.jsx";
 import { WorkspaceGate } from "./auth/WorkspaceGate.jsx";
 import { OrganizationSettings } from "./OrganizationSettings.jsx";
 import { SharedReview } from "./SharedReview.jsx";
+import "@fontsource-variable/inter";
 import "./styles.css";
 
 const projectId = window.location.pathname.startsWith("/studio/") ? decodeURIComponent(window.location.pathname.slice("/studio/".length)) : "project-summit-forward";

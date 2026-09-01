@@ -102,10 +102,36 @@ test("search indexes every heading and supports wrapped keyboard selection", () 
 
 test("generated public metadata contains every canonical docs route", async () => {
   const manifest = JSON.parse(await readFile(publicFile("/docs-manifest.json"), "utf8"));
+  const searchIndex = JSON.parse(await readFile(publicFile("/docs-search.json"), "utf8"));
   const sitemap = await readFile(publicFile("/sitemap.xml"), "utf8");
   const robots = await readFile(publicFile("/robots.txt"), "utf8");
   assert.equal(manifest.schemaVersion, 1);
   assert.deepEqual(manifest.pages.map((page) => page.canonicalPath), docsPages.map((page) => page.canonicalPath));
+  assert.equal(searchIndex.schemaVersion, 1);
+  assert.deepEqual(searchIndex.entries, buildDocsSearchIndex(docsPages));
   for (const page of docsPages) assert.match(sitemap, new RegExp(`${page.canonicalPath.replaceAll("/", "\\/")}<`));
   assert.match(robots, /Sitemap: https:\/\/venue-mind-jet\.vercel\.app\/sitemap\.xml/);
+});
+
+test("Next docs keep content on the server and isolate search in shadcn primitives", async () => {
+  const pageSource = await readFile(new URL("../app/docs/[[...slug]]/page.tsx", import.meta.url), "utf8");
+  const contentSource = await readFile(new URL("../components/docs/docs-page.tsx", import.meta.url), "utf8");
+  const triggerSource = await readFile(new URL("../components/docs/docs-interactions.tsx", import.meta.url), "utf8");
+  const paletteSource = await readFile(new URL("../components/docs/docs-search-palette.tsx", import.meta.url), "utf8");
+  const copySource = await readFile(new URL("../components/docs/docs-copy-buttons.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(pageSource, /DocsApp|DocsRoute|ssr:\s*false/);
+  assert.match(triggerSource, /dynamic\(loadDocsSearchPalette/);
+  assert.match(triggerSource, /import\("@\/components\/docs\/docs-search-palette"\)/);
+  assert.doesNotMatch(triggerSource, /components\/ui\/(?:dialog|command)/);
+  assert.match(triggerSource, /on(?:Focus|PointerEnter)=\{\(\) => \{ void loadDocsSearchPalette\(\); \}\}/);
+  assert.match(triggerSource, /fetch\("\/docs-search\.json"/);
+  assert.match(paletteSource, /from "@\/components\/ui\/dialog"/);
+  assert.match(paletteSource, /from "@\/components\/ui\/command"/);
+  for (const primitive of ["DialogContent", "CommandInput", "CommandList", "CommandItem"]) {
+    assert.match(paletteSource, new RegExp(`<${primitive}\\b`));
+  }
+  assert.match(paletteSource, /shouldFilter=\{false\}/);
+  assert.match(paletteSource, /\bloop\b/);
+  assert.doesNotMatch(copySource, /components\/ui\/(?:dialog|command)|docs-search-palette/);
+  assert.match(contentSource, /docs-copy-buttons/);
 });

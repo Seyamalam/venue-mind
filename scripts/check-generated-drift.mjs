@@ -24,6 +24,7 @@ const generatedPaths = [
   "public/llms.txt",
   "public/llms-full.txt",
   "public/docs-manifest.json",
+  "public/docs-search.json",
   "public/reference-manifest.json",
   "public/sitemap.xml",
   "public/robots.txt",

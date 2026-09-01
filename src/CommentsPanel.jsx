@@ -1,5 +1,11 @@
 import { useMemo, useState } from "react";
 import { Check, X } from "@phosphor-icons/react";
+import { Button } from "../components/ui/button";
+import { Checkbox } from "../components/ui/checkbox";
+import { Input } from "../components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "../components/ui/select";
+import { Sheet, SheetContent, SheetTitle } from "../components/ui/sheet";
+import { Textarea } from "../components/ui/textarea";
 
 const kinds = ["project", "plan-version", "proposal", "change", "constraint", "coordinate"];
 const kindCode = { project: "PRJ", "plan-version": "VER", proposal: "PRO", change: "CHG", constraint: "CON", coordinate: "XY" };
@@ -8,15 +14,14 @@ const anchorLabel = (anchor) => anchor.kind === "coordinate"
   ? `${anchor.point.x}, ${anchor.point.y} · v${anchor.planVersion}`
   : anchor.changeId ?? anchor.constraintId ?? anchor.proposalId ?? anchor.planVersion ?? anchor.projectId;
 
-export function AnnotationPins({ comments, planVersion, maxY, selectedCommentId, onSelect }) {
-  return <g className="annotation-pins">{comments.filter((comment) => comment.anchor.kind === "coordinate" && comment.anchor.planVersion === planVersion).map((comment) => {
-    const number = comments.findIndex((item) => item.id === comment.id) + 1;
-    const activate = (event) => { event.stopPropagation(); onSelect(comment.id); };
-    return <g className={`annotation-pin is-${comment.status} ${comment.id === selectedCommentId ? "is-selected" : ""}`} role="button" tabIndex="0" aria-label={`Comment ${number}: ${comment.body}`} key={comment.id} transform={`translate(${comment.anchor.point.x} ${maxY - comment.anchor.point.y})`} onPointerDown={(event) => event.stopPropagation()} onClick={activate} onKeyDown={(event) => { if (["Enter", " "].includes(event.key)) activate(event); }}><circle r=".38" /><path d="M-.16 .3 L0 .62 L.16 .3" /><text y=".11">{number}</text></g>;
-  })}</g>;
+function CommentSelect({ label, value, onValueChange, options }) {
+  return <Select key={`${label}:${options.map((option) => option.value).join("|")}`} value={value} onValueChange={onValueChange}>
+    <SelectTrigger aria-label={label}><span className="select-current-value">{options.find((option) => option.value === value)?.label}</span></SelectTrigger>
+    <SelectContent position="popper" align="start" sideOffset={4}>{options.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent>
+  </Select>;
 }
 
-export function CommentsPanel({ state, selectedCommentId, onAdd, onEdit, onStatus, onClose }) {
+export function CommentsPanel({ open, state, selectedCommentId, onAdd, onEdit, onStatus, onClose }) {
   const [kind, setKind] = useState("coordinate");
   const [subjectId, setSubjectId] = useState("");
   const [point, setPoint] = useState({ x: 12, y: 8 });
@@ -51,16 +56,18 @@ export function CommentsPanel({ state, selectedCommentId, onAdd, onEdit, onStatu
     if (result) { setBody(""); setMentions(""); setDecisionRelevant(false); }
   };
 
-  return <aside className="comments-panel" aria-label="Comments and annotations">
-    <header><div><b>COMMENTS</b><span>{state.comments.filter((comment) => comment.status === "open").length} OPEN</span></div><button type="button" aria-label="Close comments" onClick={onClose}><X size={17} /></button></header>
+  return <Sheet open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }} modal={false}>
+    <SheetContent className="comments-panel !h-auto !gap-0 !p-0 sm:!max-w-none" side="right" showOverlay={false} showCloseButton={false} aria-label="Comments and annotations">
+    <header><div><SheetTitle asChild><b>COMMENTS</b></SheetTitle><span>{state.comments.filter((comment) => comment.status === "open").length} OPEN</span></div><Button variant="ghost" size="icon-xs" type="button" aria-label="Close comments" onClick={onClose}><X size={17} /></Button></header>
     <form className="comment-compose" onSubmit={submit}>
-      <div className="comment-anchor-fields"><label><span>TYPE</span><select value={kind} onChange={(event) => { setKind(event.target.value); setSubjectId(""); }}>{kinds.map((value) => <option value={value} key={value}>{kindCode[value]}</option>)}</select></label>{subjectOptions.length > 0 && <label className="is-subject"><span>SUBJECT</span><select value={subjectId || subjectOptions[0]?.id} onChange={(event) => setSubjectId(event.target.value)}>{subjectOptions.map((option) => <option value={option.id} key={`${kind}-${option.id}`}>{option.label}</option>)}</select></label>}{kind === "coordinate" && <><label><span>X</span><input type="number" step="0.05" value={point.x} onChange={(event) => setPoint((value) => ({ ...value, x: Number(event.target.value) }))} /></label><label><span>Y</span><input type="number" step="0.05" value={point.y} onChange={(event) => setPoint((value) => ({ ...value, y: Number(event.target.value) }))} /></label></>}</div>
-      <textarea aria-label="New comment" placeholder="COMMENT" value={body} onChange={(event) => setBody(event.target.value)} required />
-      <div className="comment-compose-meta"><input aria-label="Mentions" placeholder="MENTIONS" value={mentions} onChange={(event) => setMentions(event.target.value)} /><label><input type="checkbox" checked={decisionRelevant} onChange={(event) => setDecisionRelevant(event.target.checked)} /><span>DEC</span></label><button type="submit" disabled={["proposal", "change", "constraint"].includes(kind) && !subjectOptions.length}>ADD</button></div>
+      <div className="comment-anchor-fields"><div className="comment-anchor-field"><span>TYPE</span><CommentSelect label="Comment type" value={kind} onValueChange={(value) => { setKind(value); setSubjectId(""); }} options={kinds.map((value) => ({ value, label: kindCode[value] }))} /></div>{subjectOptions.length > 0 && <div className="comment-anchor-field is-subject"><span>SUBJECT</span><CommentSelect label="Comment subject" value={subjectId || subjectOptions[0]?.id} onValueChange={setSubjectId} options={subjectOptions.map((option) => ({ value: option.id, label: option.label }))} /></div>}{kind === "coordinate" && <><label><span>X</span><Input type="number" step="0.05" value={point.x} onChange={(event) => setPoint((value) => ({ ...value, x: Number(event.target.value) }))} /></label><label><span>Y</span><Input type="number" step="0.05" value={point.y} onChange={(event) => setPoint((value) => ({ ...value, y: Number(event.target.value) }))} /></label></>}</div>
+      <Textarea aria-label="New comment" placeholder="COMMENT" value={body} onChange={(event) => setBody(event.target.value)} required />
+      <div className="comment-compose-meta"><Input aria-label="Mentions" placeholder="MENTIONS" value={mentions} onChange={(event) => setMentions(event.target.value)} /><label><Checkbox checked={decisionRelevant} onCheckedChange={(checked) => setDecisionRelevant(checked === true)} aria-label="Decision relevant" /><span>DEC</span></label><Button type="submit" disabled={["proposal", "change", "constraint"].includes(kind) && !subjectOptions.length}>ADD</Button></div>
     </form>
-    <div className="comment-filters"><select aria-label="Comment status filter" value={filters.status} onChange={(event) => setFilters((value) => ({ ...value, status: event.target.value }))}><option value="all">ALL</option><option value="open">OPEN</option><option value="resolved">DONE</option></select><select aria-label="Comment subject filter" value={filters.subjectKind} onChange={(event) => setFilters((value) => ({ ...value, subjectKind: event.target.value }))}><option value="all">SUBJECT</option>{kinds.map((value) => <option value={value} key={value}>{kindCode[value]}</option>)}</select><select aria-label="Comment author filter" value={filters.authorId} onChange={(event) => setFilters((value) => ({ ...value, authorId: event.target.value }))}><option value="all">AUTHOR</option>{authors.map((author) => <option value={author} key={author}>{author}</option>)}</select></div>
+    <div className="comment-filters"><CommentSelect label="Comment status filter" value={filters.status} onValueChange={(status) => setFilters((value) => ({ ...value, status }))} options={[{ value: "all", label: "ALL" }, { value: "open", label: "OPEN" }, { value: "resolved", label: "DONE" }]} /><CommentSelect label="Comment subject filter" value={filters.subjectKind} onValueChange={(subjectKind) => setFilters((value) => ({ ...value, subjectKind }))} options={[{ value: "all", label: "SUBJECT" }, ...kinds.map((value) => ({ value, label: kindCode[value] }))]} /><CommentSelect label="Comment author filter" value={filters.authorId} onValueChange={(authorId) => setFilters((value) => ({ ...value, authorId }))} options={[{ value: "all", label: "AUTHOR" }, ...authors.map((author) => ({ value: author, label: author }))]} /></div>
     <div className="comment-list">{filtered.map((comment) => <article className={`${comment.id === selectedCommentId ? "is-selected" : ""} is-${comment.status}`} key={comment.id}>
-      <div className="comment-index">{String(state.comments.findIndex((item) => item.id === comment.id) + 1).padStart(2, "0")}</div><div className="comment-record"><header><span>{kindCode[comment.anchor.kind]} · {anchorLabel(comment.anchor)}</span>{comment.decisionRelevant && <b>DEC</b>}</header><textarea aria-label={`Edit ${comment.id}`} defaultValue={comment.body} key={`${comment.id}-${comment.updatedAt}`} onBlur={(event) => { if (event.currentTarget.value.trim() !== comment.body) onEdit(comment, { body: event.currentTarget.value }); }} /><input aria-label={`Mentions for ${comment.id}`} defaultValue={comment.mentions.join(", ")} key={`${comment.id}-mentions-${comment.updatedAt}`} placeholder="MENTIONS" onBlur={(event) => { const next = event.currentTarget.value.split(",").map((value) => value.trim()).filter(Boolean); if (JSON.stringify(next) !== JSON.stringify(comment.mentions)) onEdit(comment, { mentions: next }); }} /><footer><span>{comment.authorId} · {comment.createdAt.slice(11, 16)} · E{comment.editHistory.length}</span><button type="button" onClick={() => onStatus(comment.id, comment.status === "open" ? "resolved" : "open")}>{comment.status === "open" ? <><Check size={12} /> DONE</> : "REOPEN"}</button></footer></div>
+      <div className="comment-index">{String(state.comments.findIndex((item) => item.id === comment.id) + 1).padStart(2, "0")}</div><div className="comment-record"><header><span>{kindCode[comment.anchor.kind]} · {anchorLabel(comment.anchor)}</span>{comment.decisionRelevant && <b>DEC</b>}</header><Textarea aria-label={`Edit ${comment.id}`} defaultValue={comment.body} key={`${comment.id}-${comment.updatedAt}`} onBlur={(event) => { if (event.currentTarget.value.trim() !== comment.body) onEdit(comment, { body: event.currentTarget.value }); }} /><Input aria-label={`Mentions for ${comment.id}`} defaultValue={comment.mentions.join(", ")} key={`${comment.id}-mentions-${comment.updatedAt}`} placeholder="MENTIONS" onBlur={(event) => { const next = event.currentTarget.value.split(",").map((value) => value.trim()).filter(Boolean); if (JSON.stringify(next) !== JSON.stringify(comment.mentions)) onEdit(comment, { mentions: next }); }} /><footer><span>{comment.authorId} · {comment.createdAt.slice(11, 16)} · E{comment.editHistory.length}</span><Button variant="ghost" size="xs" type="button" onClick={() => onStatus(comment.id, comment.status === "open" ? "resolved" : "open")}>{comment.status === "open" ? <><Check size={12} /> DONE</> : "REOPEN"}</Button></footer></div>
     </article>)}</div>
-  </aside>;
+    </SheetContent>
+  </Sheet>;
 }

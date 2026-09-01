@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -13,12 +13,25 @@ import {
   Robot,
   ShieldCheck,
   TerminalWindow,
-  X,
 } from "@phosphor-icons/react";
+import { Button } from "../components/ui/button";
+import {
+  Command,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
 import { docsPageBySlug, docsPages } from "./docs/content.js";
 import { applyDocsMetadata } from "./docs/metadata.js";
 import { buildDocsNavigation, buildTableOfContents, getDocsNeighbors } from "./docs/navigation.js";
-import { buildDocsSearchIndex, nextSearchSelection, searchDocs } from "./docs/search.js";
+import { buildDocsSearchIndex, searchDocs } from "./docs/search.js";
 import "./docs.css";
 
 const icons = { Start: BookOpen, Build: BracketsCurly, Tutorials: GraduationCap, Agents: Robot, Reference: ShieldCheck };
@@ -51,7 +64,7 @@ function DocBlock({ block }) {
   if (block.type === "steps") return <ol>{block.items.map((item, index) => <li key={item}><span>{index + 1}</span>{item}</li>)}</ol>;
   if (block.type === "links") return <div className="doc-link-grid">{block.items.map((item) => <DocsLink key={item.href} href={item.href}><span>{item.label}</span><ArrowRight size={16} /></DocsLink>)}</div>;
   if (block.type === "table") return <div className="doc-table-wrap"><table><thead><tr>{block.columns.map((column) => <th key={column.key} scope="col">{column.label}</th>)}</tr></thead><tbody>{block.rows.map((row, rowIndex) => <tr key={row.id ?? row.name ?? row.code ?? rowIndex}>{block.columns.map((column) => <td key={column.key}>{row[column.key] ?? "—"}</td>)}</tr>)}</tbody></table></div>;
-  if (block.type === "code") return <div className="code-block"><div><span>{block.language}</span><button type="button" onClick={async () => { await navigator.clipboard?.writeText(block.value); setCopied(true); window.setTimeout(() => setCopied(false), 1200); }}><Copy size={14} />{copied ? "Copied" : "Copy"}</button></div><pre><code>{block.value}</code></pre></div>;
+  if (block.type === "code") return <div className="code-block"><div><span>{block.language}</span><Button variant="ghost" size="xs" type="button" onClick={async () => { await navigator.clipboard?.writeText(block.value); setCopied(true); window.setTimeout(() => setCopied(false), 1200); }}><Copy size={14} />{copied ? "Copied" : "Copy"}</Button></div><pre><code>{block.value}</code></pre></div>;
   return null;
 }
 
@@ -66,65 +79,48 @@ function SectionHeading({ page, section }) {
   return (
     <h2 className="doc-section-heading">
       <a href={`#${section.id}`}>{section.title}</a>
-      <button type="button" onClick={copyLink} aria-label={`Copy link to ${section.title}`} title={copied ? "Copied" : "Copy deep link"}>
+      <Button variant="ghost" size="icon-sm" type="button" onClick={copyLink} aria-label={`Copy link to ${section.title}`} title={copied ? "Copied" : "Copy deep link"}>
         {copied ? <CheckCircle size={16} weight="fill" /> : <LinkSimple size={16} />}
-      </button>
+      </Button>
     </h2>
   );
 }
 
 function SearchDialog({ open, onClose, index }) {
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState(-1);
-  const inputRef = useRef(null);
   const results = useMemo(() => searchDocs(index, query), [index, query]);
 
-  useEffect(() => {
-    if (!open) return;
+  const closeSearch = () => {
     setQuery("");
-    setSelected(-1);
-    window.requestAnimationFrame(() => inputRef.current?.focus());
-  }, [open]);
-
-  useEffect(() => setSelected(results.length ? 0 : -1), [query, results.length]);
-
-  if (!open) return null;
+    onClose();
+  };
   const selectResult = (result) => {
     if (!result) return;
-    onClose();
+    closeSearch();
     navigateDocs(result.href);
-  };
-  const onKeyDown = (event) => {
-    if (event.key === "Escape") { event.preventDefault(); onClose(); return; }
-    if (["ArrowDown", "ArrowUp"].includes(event.key)) {
-      event.preventDefault();
-      setSelected((value) => nextSearchSelection(value, event.key, results.length));
-    }
-    if (event.key === "Enter" && selected >= 0) {
-      event.preventDefault();
-      selectResult(results[selected]);
-    }
   };
 
   return (
-    <div className="docs-search-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <section className="docs-search-dialog" role="dialog" aria-modal="true" aria-label="Search VenueMind documentation">
-        <div className="docs-search-input">
-          <MagnifyingGlass size={18} />
-          <input ref={inputRef} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={onKeyDown} placeholder="Search tools, concepts, workflows…" aria-label="Search documentation" aria-controls="docs-search-results" aria-activedescendant={selected >= 0 ? `docs-search-result-${selected}` : undefined} />
-          <button type="button" onClick={onClose} aria-label="Close search"><X size={17} /></button>
-        </div>
-        <div id="docs-search-results" className="docs-search-results" role="listbox" aria-label="Documentation search results">
+    <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) closeSearch(); }}>
+      <DialogContent className="docs-search-dialog" showCloseButton>
+        <DialogHeader className="sr-only">
+          <DialogTitle>Search VenueMind documentation</DialogTitle>
+          <DialogDescription>Search tools, concepts, and workflows.</DialogDescription>
+        </DialogHeader>
+        <Command className="docs-search-command" shouldFilter={false} loop>
+          <CommandInput className="docs-search-input" value={query} onValueChange={setQuery} placeholder="Search tools, concepts, workflows…" aria-label="Search documentation" />
+          <CommandList id="docs-search-results" className="docs-search-results" aria-label="Documentation search results">
           {!query && <div className="docs-search-empty"><span>Search all pages and headings</span><kbd>↑↓</kbd><span>navigate</span><kbd>↵</kbd><span>open</span></div>}
           {query && !results.length && <div className="docs-search-empty">No matching documentation</div>}
-          {results.map((result, indexValue) => (
-            <button id={`docs-search-result-${indexValue}`} key={result.id} type="button" role="option" aria-selected={selected === indexValue} className={selected === indexValue ? "selected" : ""} onMouseEnter={() => setSelected(indexValue)} onClick={() => selectResult(result)}>
+          {results.map((result) => (
+            <CommandItem key={result.id} value={result.id} className="docs-search-result" onSelect={() => selectResult(result)}>
               <span><strong>{result.sectionTitle}</strong><small>{result.pageTitle}</small></span><ArrowRight size={15} />
-            </button>
+            </CommandItem>
           ))}
-        </div>
-      </section>
-    </div>
+          </CommandList>
+        </Command>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -164,8 +160,8 @@ export function DocsApp() {
   return (
     <div className="docs-shell">
       <header className="docs-header">
-        <DocsLink href="/docs" className="docs-brand"><img src="/assets/venuemind-mark.png" alt="" /><strong>VenueMind</strong><span>Docs</span></DocsLink>
-        <button type="button" className="docs-search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search documentation"><MagnifyingGlass size={15} /><span>Search docs</span><kbd>⌘ K</kbd></button>
+        <DocsLink href="/docs" className="docs-brand"><img src="/assets/venuemind-mark.webp" alt="" /><strong>VenueMind</strong><span>Docs</span></DocsLink>
+        <Button variant="outline" type="button" className="docs-search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search documentation"><MagnifyingGlass size={15} /><span>Search docs</span><kbd>⌘ K</kbd></Button>
         <nav aria-label="Utility"><a href="/">Open Studio</a><a href="/llms.txt">llms.txt</a><a href="/schemas/venue-command.schema.json">Schemas</a></nav>
       </header>
       <aside className="docs-nav" aria-label="Documentation navigation">

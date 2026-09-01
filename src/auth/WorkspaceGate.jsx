@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { createAccountStore } from "./account-store.js";
+import "./workspace-gate.css";
 
 export function WorkspaceGate({ children }) {
   const store = useMemo(() => createAccountStore(), []);
