@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "npm run generate:contracts && npm run generate:docs && npm run build:skills && npm run build:sdk && npm run build:next && npm run build:sites-compat && npm run build:worker && npm run build:mcp && node scripts/prepare-sites-build.mjs",
+    "build:vercel": "npm run generate:contracts && npm run generate:docs && npm run build:skills && npm run build:sdk && npm run build:mcp && npm run build:next",
     "build:next": "next build",
     "build:sites-compat": "vite build",
     "build:worker": "npm run generate:migrations && node scripts/build-worker.mjs",
