@@ -61,7 +61,11 @@ async function migrationReport(databasePath) {
         hasSharingDelivery = required.every((column) => shareColumns.has(column));
         if (!hasSharingDelivery && required.some((column) => shareColumns.has(column))) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
       }
-      const baseline = hasSharingDelivery ? 7 : hasSharing ? 6 : hasCollaboration ? 5 : hasConcurrency ? 4 : hasTenancy ? 3 : hasLifecycle ? 2 : 1;
+      const runbooks = ["event_day_runbooks", "event_day_runbook_tasks", "event_day_runbook_transitions", "event_day_runbook_ledger", "event_day_runbook_receipts"];
+      const hasRunbooks = runbooks.every((table) => tables.has(table));
+      if (!hasRunbooks && runbooks.some((table) => tables.has(table))) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+      if (hasRunbooks && !hasSharingDelivery) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+      const baseline = hasRunbooks ? 8 : hasSharingDelivery ? 7 : hasSharing ? 6 : hasCollaboration ? 5 : hasConcurrency ? 4 : hasTenancy ? 3 : hasLifecycle ? 2 : 1;
       applied = DATABASE_MIGRATIONS.slice(0, baseline).map((migration) => ({ version: migration.version, name: migration.name, checksum: migration.checksum, applied_at: null, adopted: 1 }));
       adoptionRequired = true;
   }

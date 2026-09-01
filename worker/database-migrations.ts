@@ -19,6 +19,7 @@ const concurrencyColumns = ["revision", "write_token"];
 const collaborationTables = ["project_collaboration_events", "project_presence"];
 const sharingTables = ["project_share_links", "notification_preferences", "notifications", "notification_email_outbox"];
 const sharingDeliveryColumns = ["lifecycle_state", "creation_ledgered_at", "revocation_ledgered_at", "operation_attempts", "last_operation_error"];
+const runbookTables = ["event_day_runbooks", "event_day_runbook_tasks", "event_day_runbook_transitions", "event_day_runbook_ledger", "event_day_runbook_receipts"];
 
 async function legacyBaseline(db: D1Database) {
   const { results: tableRows } = await db.prepare("SELECT name FROM sqlite_schema WHERE type = 'table'").all<{ name: string }>();
@@ -44,7 +45,10 @@ async function legacyBaseline(db: D1Database) {
     hasSharingDelivery = sharingDeliveryColumns.every((column) => shareColumns.has(column));
     if (!hasSharingDelivery && sharingDeliveryColumns.some((column) => shareColumns.has(column))) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   }
-  return hasSharingDelivery ? 7 : hasSharing ? 6 : hasCollaboration ? 5 : hasConcurrency ? 4 : hasTenancy ? 3 : hasLifecycle ? 2 : 1;
+  const hasRunbooks = runbookTables.every((table) => tables.has(table));
+  if (!hasRunbooks && runbookTables.some((table) => tables.has(table))) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  if (hasRunbooks && !hasSharingDelivery) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  return hasRunbooks ? 8 : hasSharingDelivery ? 7 : hasSharing ? 6 : hasCollaboration ? 5 : hasConcurrency ? 4 : hasTenancy ? 3 : hasLifecycle ? 2 : 1;
 }
 
 export async function planDatabaseMigrations(db: D1Database, { clock = () => new Date().toISOString() } = {}) {
