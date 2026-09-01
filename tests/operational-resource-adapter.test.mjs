@@ -212,6 +212,16 @@ test("explicit compatible selection creates a canonical same-object staging Prop
   assert.deepEqual(plan, before);
 });
 
+test("persisted v1 SHA-256 Plan evidence remains valid during canonical fingerprint migration", async () => {
+  const { plan, context } = await createPlanAndContext();
+  context.project.planFingerprint = await sha256Checksum(plan);
+  const snapshot = (await execute(fixture, context)).output;
+  const conflict = snapshot.conflicts.find((item) => item.demandId === "demand-projector");
+  const batch = await createOperationalSubstitutionStagingBatch({ snapshot, conflictId: conflict.id, optionId: conflict.substitutionOptionIds[0], acceptedPlan: plan, proposalRevision: 2, resolveLatestSnapshot: async () => snapshot });
+  assert.equal(batch.proposal.status, "review");
+  assert.equal(batch.proposal.changes[0].spatialEffects[0].values.resourceBinding.resourceId, "resource-projector-backup");
+});
+
 test("substitution preview preserves the accepted binding family and quantity", async () => {
   const { plan, context } = await createPlanAndContext();
   const object = plan.objects.find((item) => item.id === "obj-projector");

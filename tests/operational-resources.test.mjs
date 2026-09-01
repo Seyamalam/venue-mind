@@ -40,6 +40,13 @@ test("pure reconciliation creates deterministic conflicts and explicit compatibl
   assert.equal(Object.hasOwn(first, "selectedOptionId"), false);
 });
 
+test("prepared v1 evidence accepts legacy SHA-256 and current canonical Plan fingerprints", () => {
+  assert.equal(normalizePreparedOperationalResourceInput(prepared()).project.planFingerprint, "plan-dddddddd");
+  const legacy = prepared();
+  legacy.project.planFingerprint = "d".repeat(64);
+  assert.equal(normalizePreparedOperationalResourceInput(legacy).project.planFingerprint, "d".repeat(64));
+});
+
 test("self bookings and endpoint-adjacent bookings do not reduce availability", async () => {
   const input = prepared();
   input.resources[0] = { ...input.resources[0], status: "available", unavailable: 0, bookings: [

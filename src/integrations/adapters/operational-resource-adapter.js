@@ -123,7 +123,7 @@ const normalizeTrustedContext = (value) => {
   assertExact(value.project.eventWindow, ["startAt", "endAt"], "Trusted operational event window");
   assertIsoTimestamp(value.project.eventWindow.startAt, "Trusted operational event startAt");
   assertIsoTimestamp(value.project.eventWindow.endAt, "Trusted operational event endAt");
-  if (!PLAN_FINGERPRINT.test(value.project.planFingerprint ?? "") || Date.parse(value.project.eventWindow.endAt) <= Date.parse(value.project.eventWindow.startAt)) fail("ADAPTER_SOURCE_INVALID", "Trusted operational Project evidence is invalid");
+  if ((!PLAN_FINGERPRINT.test(value.project.planFingerprint ?? "") && !SHA256.test(value.project.planFingerprint ?? "")) || Date.parse(value.project.eventWindow.endAt) <= Date.parse(value.project.eventWindow.startAt)) fail("ADAPTER_SOURCE_INVALID", "Trusted operational Project evidence is invalid");
   const resourceMappings = records(value.resourceMappings, "Trusted operational resource mappings").map(normalizeMapping).sort((left, right) => compare(left.family, right.family) || compare(left.externalId, right.externalId));
   const roleMappings = records(value.roleMappings, "Trusted operational role mappings").map((item) => { assertExact(item, ["externalId", "roleId"], "Trusted role mapping"); return { externalId: identifier(item.externalId, "Trusted role externalId"), roleId: identifier(item.roleId, "Trusted roleId") }; }).sort((left, right) => compare(left.externalId, right.externalId));
   const shiftMappings = records(value.shiftMappings, "Trusted operational shift mappings").map((item) => { assertExact(item, ["externalId", "shiftId"], "Trusted shift mapping"); return { externalId: identifier(item.externalId, "Trusted shift externalId"), shiftId: identifier(item.shiftId, "Trusted shiftId") }; }).sort((left, right) => compare(left.externalId, right.externalId));
@@ -334,7 +334,8 @@ export async function createOperationalSubstitutionStagingBatch({ snapshot, conf
   await assertOperationalResourceSnapshot(snapshot, {});
   if (!conflictId || !optionId) fail("ADAPTER_SUBSTITUTION_SELECTION_REQUIRED", "Operational substitution requires an explicit conflict and option selection");
   if (!acceptedPlan || typeof acceptedPlan !== "object" || Array.isArray(acceptedPlan)) fail("ADAPTER_PROJECT_BINDING_REQUIRED", "Accepted Plan is required for operational substitution");
-  if (acceptedPlan.version !== snapshot.planVersion || fingerprintPlan(acceptedPlan) !== snapshot.planFingerprint) fail("ADAPTER_BASE_PLAN_VERSION_CONFLICT", "Operational snapshot is stale for the accepted Plan");
+  const acceptedPlanFingerprint = PLAN_FINGERPRINT.test(snapshot.planFingerprint) ? fingerprintPlan(acceptedPlan) : await sha256Checksum(acceptedPlan);
+  if (acceptedPlan.version !== snapshot.planVersion || acceptedPlanFingerprint !== snapshot.planFingerprint) fail("ADAPTER_BASE_PLAN_VERSION_CONFLICT", "Operational snapshot is stale for the accepted Plan");
   const conflict = snapshot.conflicts.find((item) => item.id === conflictId);
   const option = snapshot.substitutionOptions.find((item) => item.id === optionId && item.conflictId === conflictId);
   if (!conflict || !option || !conflict.substitutionOptionIds.includes(optionId)) fail("ADAPTER_SUBSTITUTION_INVALID", "Operational substitution option does not belong to the selected conflict");
