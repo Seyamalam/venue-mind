@@ -8,12 +8,14 @@ export const ADAPTER_CAPABILITIES = Object.freeze(["import", "export", "synchron
 export const ADAPTER_IMPORT_RESULT_MODES = Object.freeze(["reviewable-proposal", "aggregate-snapshot"]);
 export const ADAPTER_CHANGE_OPERATIONS = Object.freeze(["create", "update", "delete"]);
 export const VENUE_ENTITY_TYPES = Object.freeze(["event-brief-requirement", "inventory-item-template", "project", "project-object-instance"]);
+export const ADAPTER_EVIDENCE_LIMITS = Object.freeze({ kindLength: 80, sourceIdLength: 160, referenceLength: 160, references: 20 });
 
 const CAPABILITY_SET = new Set(ADAPTER_CAPABILITIES);
 const IMPORT_RESULT_MODE_SET = new Set(ADAPTER_IMPORT_RESULT_MODES);
 const CHANGE_OPERATION_SET = new Set(ADAPTER_CHANGE_OPERATIONS);
 const VENUE_ENTITY_TYPE_SET = new Set(VENUE_ENTITY_TYPES);
 const IDENTIFIER = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
+const EVIDENCE_IDENTIFIER = /^[a-z0-9][a-z0-9._:-]*$/;
 const VERSION = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 const SHA256 = /^[0-9a-f]{64}$/;
 
@@ -43,6 +45,16 @@ const assertExactKeys = (value, allowed, label) => {
 
 const assertString = (value, label) => {
   if (typeof value !== "string" || value.length === 0) fail("ADAPTER_CONTRACT_INVALID", `${label} must be a non-empty string`);
+};
+
+const assertBoundedEvidenceIdentifier = (value, label, maximumLength) => {
+  if (typeof value !== "string" || value.length === 0 || value.length > maximumLength) {
+    fail("ADAPTER_CONTRACT_INVALID", `${label} must be a bounded lowercase identifier`);
+  }
+};
+
+const assertEvidenceIdentifierSyntax = (value, label, pattern = EVIDENCE_IDENTIFIER) => {
+  if (!pattern.test(value)) fail("ADAPTER_CONTRACT_INVALID", `${label} must be a bounded lowercase identifier`);
 };
 
 export const assertIsoTimestamp = (value, label = "Timestamp") => {
@@ -154,12 +166,17 @@ export function normalizeAdapterChange(input, definition) {
   if (input.evidence !== undefined) {
     assertPlainObject(input.evidence, "Adapter change evidence");
     assertExactKeys(input.evidence, ["kind", "sourceId", "sourceChecksum", "references"], "Adapter change evidence");
-    assertString(input.evidence.kind, "Adapter change evidence kind");
-    assertString(input.evidence.sourceId, "Adapter change evidence sourceId");
+    assertBoundedEvidenceIdentifier(input.evidence.kind, "Adapter change evidence kind", ADAPTER_EVIDENCE_LIMITS.kindLength);
+    assertBoundedEvidenceIdentifier(input.evidence.sourceId, "Adapter change evidence sourceId", ADAPTER_EVIDENCE_LIMITS.sourceIdLength);
     if (!isNonContactLabel(input.evidence.kind) || !isNonContactLabel(input.evidence.sourceId)) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Adapter change evidence labels must not contain contact data");
+    assertEvidenceIdentifierSyntax(input.evidence.kind, "Adapter change evidence kind", IDENTIFIER);
+    assertEvidenceIdentifierSyntax(input.evidence.sourceId, "Adapter change evidence sourceId");
     if (!SHA256.test(input.evidence.sourceChecksum ?? "")) fail("ADAPTER_CHECKSUM_INVALID", "Adapter change evidence sourceChecksum must be a lowercase SHA-256 digest");
-    if (!Array.isArray(input.evidence.references) || input.evidence.references.length > 20 || input.evidence.references.some((item) => typeof item !== "string" || !item) || new Set(input.evidence.references).size !== input.evidence.references.length) fail("ADAPTER_CONTRACT_INVALID", "Adapter change evidence references must be unique bounded strings");
+    if (!Array.isArray(input.evidence.references) || input.evidence.references.length > ADAPTER_EVIDENCE_LIMITS.references) fail("ADAPTER_CONTRACT_INVALID", "Adapter change evidence references must be unique bounded identifiers");
+    for (const reference of input.evidence.references) assertBoundedEvidenceIdentifier(reference, "Adapter change evidence reference", ADAPTER_EVIDENCE_LIMITS.referenceLength);
+    if (new Set(input.evidence.references).size !== input.evidence.references.length) fail("ADAPTER_CONTRACT_INVALID", "Adapter change evidence references must be unique bounded identifiers");
     if (input.evidence.references.some((item) => !isNonContactLabel(item))) fail("ADAPTER_PERSONAL_DATA_REJECTED", "Adapter change evidence labels must not contain contact data");
+    for (const reference of input.evidence.references) assertEvidenceIdentifierSyntax(reference, "Adapter change evidence reference");
   }
   if (input.venueEntityType === "project-object-instance" && input.operation !== "delete") assertPlainObject(input.values, "Adapter change values");
   if (input.venueEntityType === "event-brief-requirement" && input.values !== undefined) fail("ADAPTER_CONTRACT_INVALID", "Requirement changes use typed planningEffects instead of values");

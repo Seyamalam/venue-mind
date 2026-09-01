@@ -115,6 +115,8 @@ Use `reviewable-proposal` when imported data can affect Plan objects or structur
 - Event Brief Requirement changes carry a closed, typed Planning Effect.
 - A no-change result contains no Proposal.
 
+Adapter Change evidence is bounded metadata, not a provider payload. `kind` is a lowercase kebab-case identifier of at most 80 characters. `sourceId` and each reference are lowercase opaque identifiers of at most 160 characters, starting with an ASCII letter or digit and continuing only with letters, digits, `.`, `_`, `:`, or `-`. Evidence may contain at most 20 unique references and one exact lowercase SHA-256 source checksum. Invalid identifiers are rejected before staging without being copied into error messages or details.
+
 Review staging can enter the planner only through the canonical staging loader. Locks, stale base checks, Validation, human Approval, immutable Plan Versions, and Activity Ledger evidence still apply.
 
 ## Aggregate snapshot mode

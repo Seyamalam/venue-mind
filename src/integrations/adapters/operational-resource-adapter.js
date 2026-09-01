@@ -1,12 +1,14 @@
 import { AdapterContractError, assertIsoTimestamp, createSyncCursor, defineAdapter, sha256Checksum } from "../contracts.js";
 import { createAdapterStagingBatch } from "../staging.js";
 import { isNonContactLabel } from "../privacy.js";
+import { fingerprintPlan } from "../../domain/activity-ledger.js";
 import { normalizePreparedOperationalResourceInput, reconcileOperationalResources } from "../../domain/operational-resources.js";
 
 const MAX_RECORDS = 1_000;
 const MAX_COUNT = 1_000_000;
 const IDENTIFIER = /^[a-z0-9][a-z0-9._:-]{0,159}$/;
 const SHA256 = /^[0-9a-f]{64}$/;
+const PLAN_FINGERPRINT = /^plan-[0-9a-f]{8}$/;
 const RESOURCE_ID = /^resource-[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const STAFF_REF = /^staff-ref-[0-9a-f]{32}$/;
 const FAMILIES = ["inventory", "av", "power", "catering", "staffing"];
@@ -121,7 +123,7 @@ const normalizeTrustedContext = (value) => {
   assertExact(value.project.eventWindow, ["startAt", "endAt"], "Trusted operational event window");
   assertIsoTimestamp(value.project.eventWindow.startAt, "Trusted operational event startAt");
   assertIsoTimestamp(value.project.eventWindow.endAt, "Trusted operational event endAt");
-  if (!SHA256.test(value.project.planFingerprint ?? "") || Date.parse(value.project.eventWindow.endAt) <= Date.parse(value.project.eventWindow.startAt)) fail("ADAPTER_SOURCE_INVALID", "Trusted operational Project evidence is invalid");
+  if ((!PLAN_FINGERPRINT.test(value.project.planFingerprint ?? "") && !SHA256.test(value.project.planFingerprint ?? "")) || Date.parse(value.project.eventWindow.endAt) <= Date.parse(value.project.eventWindow.startAt)) fail("ADAPTER_SOURCE_INVALID", "Trusted operational Project evidence is invalid");
   const resourceMappings = records(value.resourceMappings, "Trusted operational resource mappings").map(normalizeMapping).sort((left, right) => compare(left.family, right.family) || compare(left.externalId, right.externalId));
   const roleMappings = records(value.roleMappings, "Trusted operational role mappings").map((item) => { assertExact(item, ["externalId", "roleId"], "Trusted role mapping"); return { externalId: identifier(item.externalId, "Trusted role externalId"), roleId: identifier(item.roleId, "Trusted roleId") }; }).sort((left, right) => compare(left.externalId, right.externalId));
   const shiftMappings = records(value.shiftMappings, "Trusted operational shift mappings").map((item) => { assertExact(item, ["externalId", "shiftId"], "Trusted shift mapping"); return { externalId: identifier(item.externalId, "Trusted shift externalId"), shiftId: identifier(item.shiftId, "Trusted shiftId") }; }).sort((left, right) => compare(left.externalId, right.externalId));
@@ -231,10 +233,11 @@ export async function normalizeOperationalResourceAdapterInput(capability, input
     assignments.push({ assignmentId, staffRef: person.staffRef, roleId, shiftId, resourceId: person.resourceId, sourceChecksum });
     const draft = staffResourceDrafts.get(person.resourceId) ?? { resourceId: person.resourceId, staffRef: person.staffRef, status: "available", sourceVersions: new Set(), sourceChecksums: new Set(), assignments: new Map(), bookings: new Map() };
     if (draft.staffRef !== person.staffRef) fail("ADAPTER_RESOURCE_MAPPING_INVALID", "Trusted personnel resource mapping is inconsistent");
-    if (assignment.status === "unavailable") draft.status = "unavailable";
+    const assignmentKey = `${roleId}\u0000${shiftId}`;
+    if (draft.assignments.has(assignmentKey)) fail("ADAPTER_SOURCE_INVALID", "Operational staffing assignments must be unique per personnel, role, and shift");
     draft.sourceVersions.add(boundedString(assignment.sourceVersion, "Operational staffing assignment sourceVersion"));
     draft.sourceChecksums.add(sourceChecksum);
-    draft.assignments.set(`${roleId}\u0000${shiftId}`, { roleId, shiftId });
+    draft.assignments.set(assignmentKey, { roleId, shiftId, status: assignment.status, bookings });
     for (const item of bookings) {
       const existing = draft.bookings.get(item.bookingRef);
       if (existing && JSON.stringify(existing) !== JSON.stringify(item)) fail("ADAPTER_SOURCE_INVALID", "Operational staffing booking reference has inconsistent content");
@@ -245,7 +248,9 @@ export async function normalizeOperationalResourceAdapterInput(capability, input
   for (const draft of [...staffResourceDrafts.values()].sort((left, right) => compare(left.resourceId, right.resourceId))) {
     const sourceVersions = [...draft.sourceVersions].sort(compare);
     const sourceChecksums = [...draft.sourceChecksums].sort(compare);
-    normalizedResources.push({ resourceId: draft.resourceId, family: "staffing", status: draft.status, total: 1, unavailable: draft.status === "unavailable" ? 1 : 0, bookings: [...draft.bookings.values()].sort((left, right) => compare(left.startAt, right.startAt) || compare(left.bookingRef, right.bookingRef)), capability: { assignments: [...draft.assignments.values()].sort((left, right) => compare(left.roleId, right.roleId) || compare(left.shiftId, right.shiftId)) }, source: { entityType: "staff-assignment", sourceVersion: boundedString(input.sourceVersion, "Operational staffing sourceVersion"), checksum: await sha256Checksum({ staffRef: draft.staffRef, sourceVersions, sourceChecksums }) } });
+    const normalizedAssignments = [...draft.assignments.values()].sort((left, right) => compare(left.roleId, right.roleId) || compare(left.shiftId, right.shiftId));
+    const allUnavailable = normalizedAssignments.every((item) => item.status === "unavailable");
+    normalizedResources.push({ resourceId: draft.resourceId, family: "staffing", status: allUnavailable ? "unavailable" : "available", total: 1, unavailable: allUnavailable ? 1 : 0, bookings: [...draft.bookings.values()].sort((left, right) => compare(left.startAt, right.startAt) || compare(left.bookingRef, right.bookingRef)), capability: { assignments: normalizedAssignments }, source: { entityType: "staff-assignment", sourceVersion: boundedString(input.sourceVersion, "Operational staffing sourceVersion"), checksum: await sha256Checksum({ staffRef: draft.staffRef, sourceVersions, sourceChecksums }) } });
   }
   return normalizePreparedOperationalResourceInput({
     sourceSystem: identifier(input.sourceSystem, "Operational sourceSystem"),
@@ -329,7 +334,8 @@ export async function createOperationalSubstitutionStagingBatch({ snapshot, conf
   await assertOperationalResourceSnapshot(snapshot, {});
   if (!conflictId || !optionId) fail("ADAPTER_SUBSTITUTION_SELECTION_REQUIRED", "Operational substitution requires an explicit conflict and option selection");
   if (!acceptedPlan || typeof acceptedPlan !== "object" || Array.isArray(acceptedPlan)) fail("ADAPTER_PROJECT_BINDING_REQUIRED", "Accepted Plan is required for operational substitution");
-  if (acceptedPlan.version !== snapshot.planVersion || await sha256Checksum(acceptedPlan) !== snapshot.planFingerprint) fail("ADAPTER_BASE_PLAN_VERSION_CONFLICT", "Operational snapshot is stale for the accepted Plan");
+  const acceptedPlanFingerprint = PLAN_FINGERPRINT.test(snapshot.planFingerprint) ? fingerprintPlan(acceptedPlan) : await sha256Checksum(acceptedPlan);
+  if (acceptedPlan.version !== snapshot.planVersion || acceptedPlanFingerprint !== snapshot.planFingerprint) fail("ADAPTER_BASE_PLAN_VERSION_CONFLICT", "Operational snapshot is stale for the accepted Plan");
   const conflict = snapshot.conflicts.find((item) => item.id === conflictId);
   const option = snapshot.substitutionOptions.find((item) => item.id === optionId && item.conflictId === conflictId);
   if (!conflict || !option || !conflict.substitutionOptionIds.includes(optionId)) fail("ADAPTER_SUBSTITUTION_INVALID", "Operational substitution option does not belong to the selected conflict");
@@ -340,6 +346,7 @@ export async function createOperationalSubstitutionStagingBatch({ snapshot, conf
   const object = acceptedPlan.objects?.find((item) => item.id === option.targetObjectIds[0]);
   if (!demand || !replacement || !object || await sha256Checksum(object) !== demand.baseObjectChecksum) fail("ADAPTER_SUBSTITUTION_STALE", "Operational substitution target no longer matches its accepted object evidence");
   if (object.resourceBinding?.resourceId !== conflict.resourceId) fail("ADAPTER_SUBSTITUTION_STALE", "Operational substitution target is not bound to the conflicted resource");
+  if (object.resourceBinding.kind !== demand.family || object.resourceBinding.quantity !== demand.quantity) fail("ADAPTER_SUBSTITUTION_STALE", "Operational substitution target binding no longer matches the demanded family and quantity");
   const binding = replacement.capability.templateRef;
   if (!binding || object.templateRef?.kind !== "inventory-item-template" || object.templateRef.templateId !== binding.templateId || object.templateRef.version !== binding.version) fail("ADAPTER_SUBSTITUTION_INVALID", "Minimal operational substitution must retain the exact Inventory Item Template binding");
   const changeChecksum = await sha256Checksum({ snapshotChecksum: snapshot.checksum, conflictId, optionId, objectId: object.id, replacementResourceId: replacement.resourceId });
