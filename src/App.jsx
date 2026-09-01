@@ -37,6 +37,8 @@ import { ScenarioPanel } from "./ScenarioPanel.jsx";
 import { createCollaborationClient } from "./collaboration/collaboration-client.js";
 import { SharingControls } from "./SharingControls.jsx";
 import { browserNavigate, navigateInternalLink } from "./navigation.js";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
 
 const briefIcons = {
   accessibility: Wheelchair,
@@ -106,8 +108,8 @@ function BriefItem({ icon: Icon, children }) {
   return <li className="brief-item"><Icon size={16} aria-hidden="true" /><span>{children}</span></li>;
 }
 
-function HeaderButton({ children, className = "", onClick, ariaLabel }) {
-  return <button type="button" className={`header-button ${className}`} onClick={onClick} aria-label={ariaLabel}>{children}</button>;
+function HeaderButton({ children, className = "", onClick, ariaLabel, ...props }) {
+  return <button type="button" className={`header-button ${className}`} onClick={onClick} aria-label={ariaLabel} {...props}>{children}</button>;
 }
 
 const formatComparisonMetric = (metric, value, signed = false) => {
@@ -777,35 +779,41 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           <select className="organization-select" aria-label="Organization" value={organizationId} onChange={(event) => accountStore?.selectOrganization(event.target.value)}>{account?.organizations.map((organization) => <option value={organization.id} key={organization.id}>{organization.name}</option>)}</select>
           <a className="organization-settings-link" href="/settings/organization" onClick={(event) => navigateInternalLink(event, navigate, "/settings/organization")} aria-label="Organization settings">{account?.user?.displayName?.slice(0, 2).toUpperCase() || "ID"}</a>
           <SharingControls projectId={projectId} organizationId={organizationId} proposalId={plannerState.proposal.id} canManage={canManageSharing} />
-          <div className="collaboration-control">
-            <HeaderButton className={`collaboration-button is-${collaborationStatus.toLowerCase()}`} ariaLabel="Collaboration presence" onClick={() => setCollaborationOpen((open) => !open)}>LIVE {presence.length}<span className="status-dot" /></HeaderButton>
-            {collaborationOpen && <div className="collaboration-presence" role="status" aria-label="Active Project sessions">
+          <Popover open={collaborationOpen} onOpenChange={setCollaborationOpen}>
+            <div className="collaboration-control">
+            <PopoverTrigger asChild><HeaderButton className={`collaboration-button is-${collaborationStatus.toLowerCase()}`} ariaLabel="Collaboration presence">LIVE {presence.length}<span className="status-dot" /></HeaderButton></PopoverTrigger>
+            <PopoverContent className="collaboration-presence" align="end" sideOffset={8} role="status" aria-label="Active Project sessions">
               <header><b>{collaborationStatus}</b><span>{presence.length} SESS</span></header>
               {presence.map((item) => <div key={item.sessionId}><i>{item.displayName.slice(0, 2).toUpperCase()}</i><span><b>{item.displayName}</b><small>v{item.planVersion} · {item.focusedObjectId ?? "CANVAS"}</small></span></div>)}
-            </div>}
-          </div>
-          <div className="webmcp-control">
-            <HeaderButton className={`status-button is-${webMcpLifecycle.state}`} ariaLabel="WebMCP status" onClick={() => setWebMcpDiagnosticsOpen((open) => !open)}><span className="status-dot" />WebMCP <span className="status-separator">|</span> <span>{webMcpLifecycle.state.toUpperCase()}</span><CaretDown size={14} /></HeaderButton>
-            {webMcpDiagnosticsOpen && <div className="webmcp-diagnostics" role="status" aria-label="WebMCP diagnostics">
+            </PopoverContent>
+            </div>
+          </Popover>
+          <Popover open={webMcpDiagnosticsOpen} onOpenChange={setWebMcpDiagnosticsOpen}>
+            <div className="webmcp-control">
+            <PopoverTrigger asChild><HeaderButton className={`status-button is-${webMcpLifecycle.state}`} ariaLabel="WebMCP status"><span className="status-dot" />WebMCP <span className="status-separator">|</span> <span>{webMcpLifecycle.state.toUpperCase()}</span><CaretDown size={14} /></HeaderButton></PopoverTrigger>
+            <PopoverContent className="webmcp-diagnostics" align="start" sideOffset={8} role="status" aria-label="WebMCP diagnostics">
               <div><b>STATE</b><span>{webMcpLifecycle.state.toUpperCase()}</span></div>
               <div><b>CONTRACT</b><span>{VENUE_TOOL_CONTRACT_VERSION}</span></div>
               <div><b>TOOLS</b><span>{webMcpLifecycle.registered}/{webMcpLifecycle.total}</span></div>
               <div><b>SCOPES</b><span>{VENUE_TOOL_AUTHORIZATION_SCOPES.length}</span></div>
               <div><b>ERROR</b><span>{webMcpLifecycle.errorCode ?? "—"}</span></div>
-            </div>}
-          </div>
+            </PopoverContent>
+            </div>
+          </Popover>
           <HeaderButton className="history-button" ariaLabel="Open plan history" onClick={() => setHistoryOpen((open) => !open)}>Plan v{plannerState.plan.version}<span className={`save-indicator is-${persistenceStatus.toLowerCase()}`}>{persistenceStatus}</span><CaretDown size={14} /></HeaderButton>
           <HeaderButton className={`edit-button ${editorOpen ? "is-active" : ""}`} ariaLabel="Toggle plan editor" onClick={() => setEditorOpen((open) => !open)}>{editorOpen ? "REVIEW" : "EDIT"}</HeaderButton>
           <HeaderButton className={`comments-button ${commentsOpen ? "is-active" : ""}`} ariaLabel="Open comments" onClick={() => { setSimulationOpen(false); setCommentsOpen((open) => !open); }}><ChatCircle size={17} /> {plannerState.comments.filter((comment) => comment.status === "open").length}</HeaderButton>
           <HeaderButton className={`simulation-button ${simulationOpen ? "is-active" : ""}`} ariaLabel="Open simulations" onClick={() => { setCommentsOpen(false); setSimulationOpen((open) => !open); }}>SIM {plannerState.scenarioRuns.filter((run) => run.status === "completed").length}</HeaderButton>
           <button className="icon-button" type="button" onClick={handleUndo} aria-label="Undo"><ArrowCounterClockwise size={22} /></button>
           <button className="icon-button" type="button" onClick={handleRedo} aria-label="Redo"><ArrowCounterClockwise size={22} className="redo-icon" /></button>
-          <div className="export-control">
-            <HeaderButton className={`export-button ${exportOpen ? "is-active" : ""}`} onClick={() => setExportOpen((open) => !open)} ariaLabel="Export plan"><DownloadSimple size={19} /> Export <CaretDown size={14} /></HeaderButton>
-            {exportOpen && <div className="export-menu" role="menu" aria-label="Export formats">
-              {[['package', 'VM JSON', 'Portable'], ['pdf', 'PDF', 'Print'], ['pdf-emergency', 'EMERG PDF', 'Safety'], ['svg', 'SVG', 'Layers'], ['csv-objects', 'CSV OBJ', 'Objects'], ['csv-inventory', 'CSV INV', 'Inventory'], ['csv-staffing', 'CSV STAFF', 'Posts'], ['svg-post-map', 'POST MAP', 'Staff'], ['csv-production', 'CSV PROD', 'Equipment'], ['svg-production', 'PROD MAP', 'AV'], ['csv-catering-stations', 'CSV SERVICE', 'Stations'], ['csv-replenishment', 'CSV REPLEN', 'Routes'], ['audit', 'AUDIT', 'Ledger']].map(([format, label, meta]) => <button type="button" role="menuitem" key={format} onClick={() => handleExport(format)}><b>{label}</b><span>{meta}</span></button>)}
-            </div>}
-          </div>
+          <DropdownMenu open={exportOpen} onOpenChange={setExportOpen}>
+            <div className="export-control">
+              <DropdownMenuTrigger asChild><HeaderButton className={`export-button ${exportOpen ? "is-active" : ""}`} ariaLabel="Export plan"><DownloadSimple size={19} /> Export <CaretDown size={14} /></HeaderButton></DropdownMenuTrigger>
+              <DropdownMenuContent className="export-menu" align="end" sideOffset={8} aria-label="Export formats">
+                {[['package', 'VM JSON', 'Portable'], ['pdf', 'PDF', 'Print'], ['pdf-emergency', 'EMERG PDF', 'Safety'], ['svg', 'SVG', 'Layers'], ['csv-objects', 'CSV OBJ', 'Objects'], ['csv-inventory', 'CSV INV', 'Inventory'], ['csv-staffing', 'CSV STAFF', 'Posts'], ['svg-post-map', 'POST MAP', 'Staff'], ['csv-production', 'CSV PROD', 'Equipment'], ['svg-production', 'PROD MAP', 'AV'], ['csv-catering-stations', 'CSV SERVICE', 'Stations'], ['csv-replenishment', 'CSV REPLEN', 'Routes'], ['audit', 'AUDIT', 'Ledger']].map(([format, label, meta]) => <DropdownMenuItem className="export-menu-item" key={format} onSelect={() => handleExport(format)}><b>{label}</b><span>{meta}</span></DropdownMenuItem>)}
+              </DropdownMenuContent>
+            </div>
+          </DropdownMenu>
         </nav>
       </header>
 
@@ -880,7 +888,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
             {adjustmentOpen && (
               <form className="adjustment-form" onSubmit={handleAdjustmentSubmit}>
                 <label htmlFor="adjustment">Adjustment</label>
-                <textarea id="adjustment" value={adjustment} onChange={(event) => setAdjustment(event.target.value)} placeholder="AV desk +2 ft east" autoFocus />
+                <textarea id="adjustment" value={adjustment} onChange={(event) => setAdjustment(event.target.value)} placeholder="ADJUSTMENT" autoFocus />
                 <div className="form-actions"><button type="button" onClick={() => setAdjustmentOpen(false)}>Cancel</button><button type="submit">Send</button></div>
               </form>
             )}

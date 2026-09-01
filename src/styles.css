@@ -102,7 +102,7 @@ button { color: inherit; }
 .collaboration-button .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #a7a59f; }
 .collaboration-button.is-live .status-dot { background: var(--green); box-shadow: 0 0 0 3px rgba(18,148,93,.1); }
 .collaboration-button.is-retry .status-dot { background: #b77b2f; }
-.collaboration-presence { position: absolute; z-index: 50; top: calc(100% + 8px); right: 0; width: 230px; display: grid; gap: 2px; border: 1px solid #d7d3ca; border-radius: 8px; background: #fbfaf7; box-shadow: 0 15px 42px rgba(33,31,26,.16); padding: 7px; }
+.collaboration-presence { z-index: 50; width: 230px; display: grid; gap: 2px; border: 1px solid #d7d3ca; border-radius: 8px; background: #fbfaf7; box-shadow: 0 15px 42px rgba(33,31,26,.16); padding: 7px; }
 .collaboration-presence header { display: flex; justify-content: space-between; padding: 4px 5px 7px; color: #777873; font-size: 7px; letter-spacing: .08em; }
 .collaboration-presence > div { display: grid; grid-template-columns: 28px 1fr; align-items: center; gap: 7px; padding: 6px 5px; border-radius: 5px; }
 .collaboration-presence > div:hover { background: #f0ecff; }
@@ -112,9 +112,9 @@ button { color: inherit; }
 .collaboration-presence span b { font-size: 9px; }
 .collaboration-presence span small { color: #7e7f79; font: 650 7px ui-monospace, SFMono-Regular, Menlo, monospace; }
 .export-button.is-active { border-color: #a99bea; background: #f0ecff; color: var(--violet); }
-.export-menu { position: absolute; z-index: 50; top: calc(100% + 8px); right: 0; width: 184px; padding: 6px; border: 1px solid #d7d3ca; border-radius: 8px; background: #fbfaf7; box-shadow: 0 15px 42px rgba(33, 31, 26, .16); }
-.export-menu button { width: 100%; min-height: 38px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; border: 0; border-radius: 5px; background: transparent; padding: 0 9px; text-align: left; cursor: pointer; }
-.export-menu button:hover, .export-menu button:focus-visible { background: #efecfb; color: var(--violet); }
+.export-menu { z-index: 50; width: 184px; padding: 6px; border: 1px solid #d7d3ca; border-radius: 8px; background: #fbfaf7; box-shadow: 0 15px 42px rgba(33, 31, 26, .16); }
+.export-menu .export-menu-item { width: 100%; min-height: 38px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; border: 0; border-radius: 5px; background: transparent; padding: 0 9px; text-align: left; cursor: pointer; }
+.export-menu .export-menu-item:hover, .export-menu .export-menu-item:focus-visible { background: #efecfb; color: var(--violet); }
 .export-menu b { font-size: 9px; letter-spacing: .08em; }
 .export-menu span { color: #858680; font-size: 8px; }
 .status-button { min-width: 164px; }
@@ -122,7 +122,7 @@ button { color: inherit; }
 .status-button.is-detecting .status-dot, .status-button.is-registering .status-dot { background: #bc7a24; }
 .status-button.is-unsupported .status-dot { background: #969690; }
 .status-button.is-failed .status-dot { background: #b74b43; }
-.webmcp-diagnostics { position: absolute; z-index: 50; top: calc(100% + 8px); left: 0; width: 184px; display: grid; gap: 1px; padding: 7px; border: 1px solid #d7d3ca; border-radius: 8px; background: #fbfaf7; box-shadow: 0 15px 42px rgba(33, 31, 26, .16); }
+.webmcp-diagnostics { z-index: 50; width: 184px; display: grid; gap: 1px; padding: 7px; border: 1px solid #d7d3ca; border-radius: 8px; background: #fbfaf7; box-shadow: 0 15px 42px rgba(33, 31, 26, .16); }
 .webmcp-diagnostics div { min-height: 27px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 7px; border-radius: 4px; }
 .webmcp-diagnostics div:nth-child(odd) { background: #f2f0ea; }
 .webmcp-diagnostics b { color: #777873; font-size: 7px; letter-spacing: .09em; }
