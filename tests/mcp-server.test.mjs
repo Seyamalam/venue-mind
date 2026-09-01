@@ -58,6 +58,10 @@ test("standalone MCP server exposes the shared VenueMind tool contracts", async 
     assert.ok(tools.some((tool) => tool.name === "venue.refresh_live_occupancy"));
     assert.ok(tools.some((tool) => tool.name === "venue.export_live_occupancy"));
     assert.equal(tools.some((tool) => tool.name === "venue.acknowledge_occupancy_alert"), false);
+    assert.ok(tools.some((tool) => tool.name === "venue.inspect_incidents"));
+    assert.ok(tools.some((tool) => tool.name === "venue.report_incident"));
+    assert.ok(tools.some((tool) => tool.name === "venue.export_incident_record"));
+    assert.equal(tools.some((tool) => /acknowledge_incident|escalate_incident|handoff_incident|attach_incident/.test(tool.name)), false);
   });
 });
 
@@ -78,6 +82,28 @@ test("standalone MCP executes the aggregate Live Occupancy loop with agent ackno
     assert.match(signal.content[0].text, /"revision": 1/);
     assert.match(refreshed.content[0].text, /"revision": 2/);
     assert.match(exported.content[0].text, /venuemind-live-occupancy-audit/);
+  }, { repository });
+});
+
+test("standalone MCP reports and exports a Plan-anchored Incident without response authority", async () => {
+  const planner = createVenuePlanner(summitForwardPlan);
+  const proposal = planner.getSnapshot().proposal;
+  planner.execute({ type: "approve_proposal", proposalId: proposal.id, baseVersion: proposal.baseVersion, actor: "human", actorId: "seed-approver", idempotencyKey: "seed-approved-incidents" });
+  const snapshot = planner.getSnapshot();
+  const now = new Date().toISOString();
+  const repository = createMemoryProjectRepository([{ id: "project-summit-forward", organizationId: "org-local", name: "SummitForward 2026", activePlanId: snapshot.plan.id, schemaVersion: 10, snapshot, createdAt: now, updatedAt: now, archivedAt: null, deletedAt: null, recoveryUntil: null, pinned: true, lastOpenedAt: now }]);
+  await withClient(async (client) => {
+    const before = await client.callTool({ name: "venue.inspect_incidents", arguments: { status: "open" } });
+    const reported = await client.callTool({ name: "venue.report_incident", arguments: { severity: "high", category: "fire-life-safety", summaryCode: "EXIT_OBSTRUCTED", location: { kind: "plan-object", planObjectId: "obj-fire-exit-east" }, relatedRefs: [{ kind: "plan-object", id: "obj-fire-exit-east" }], idempotencyKey: "mcp-incident-1" } });
+    const incidentId = JSON.parse(reported.content[0].text).incident.id;
+    const retried = await client.callTool({ name: "venue.report_incident", arguments: { severity: "high", category: "fire-life-safety", summaryCode: "EXIT_OBSTRUCTED", location: { kind: "plan-object", planObjectId: "obj-fire-exit-east" }, relatedRefs: [{ kind: "plan-object", id: "obj-fire-exit-east" }], idempotencyKey: "mcp-incident-1" } });
+    const exported = await client.callTool({ name: "venue.export_incident_record", arguments: { incidentId } });
+
+    assert.match(before.content[0].text, /"incidents": \[\]/);
+    assert.match(reported.content[0].text, /EXIT_OBSTRUCTED/);
+    assert.match(retried.content[0].text, /"duplicate": true/);
+    assert.match(exported.content[0].text, /venuemind-incident-record/);
+    assert.equal((await client.listTools()).tools.some((tool) => /acknowledge_incident|escalate_incident|handoff_incident/.test(tool.name)), false);
   }, { repository });
 });
 

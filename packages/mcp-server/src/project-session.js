@@ -1,9 +1,10 @@
 import { summitForwardPlan } from "../../../src/domain/summit-forward.js";
 import { createVenuePlanner, validateVenueState } from "../../../src/domain/venue-planner.js";
 import { venueError } from "../../../src/domain/errors.js";
-import { verifyActivityLedger } from "../../../src/domain/activity-ledger.js";
+import { stableFingerprint, verifyActivityLedger } from "../../../src/domain/activity-ledger.js";
 import { createEventDayRunbook } from "../../../src/domain/event-day-runbook.js";
 import { createOccupancyCommandBus } from "../../../src/domain/occupancy-command-bus.js";
+import { createIncidentCommandBus } from "../../../src/domain/incident-command-bus.js";
 
 const DEFAULT_PROJECT_ID = "project-summit-forward";
 const clone = (value) => structuredClone(value);
@@ -46,20 +47,35 @@ export function createProjectSession({ repository, organizationId = repository?.
   let planner = null;
   let initialization = null;
   const occupancyMonitors = new Map();
+  const incidentRegisters = new Map();
+
+  const activeRunbookForCurrentProject = () => {
+    const snapshot = planner.getSnapshot();
+    const integrity = verifyActivityLedger(snapshot.ledger);
+    if (integrity.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { projectId: activeProjectId });
+    const validation = validateVenueState({ ...snapshot, proposal: null });
+    if (validation.status !== "pass") throw venueError("INCIDENT_REGISTER_NOT_FOUND", { projectId: activeProjectId, reason: "accepted-plan-not-operational" });
+    const approval = snapshot.ledger.slice().reverse().find((entry) => entry.details?.acceptedPlan?.id === snapshot.plan.id) ?? snapshot.ledger.at(-1);
+    return createEventDayRunbook({ projectId: activeProjectId, plan: snapshot.plan, brief: snapshot.brief, validation, sourceLedgerHeadHash: integrity.headHash, approvalLedgerEntryId: approval.id, frozenAt: clock(), frozenBy: "mcp-host" });
+  };
 
   const occupancyBusForCurrentProject = () => {
     const cached = occupancyMonitors.get(activeProjectId) ?? null;
     const bus = createOccupancyCommandBus({ initialMonitor: cached });
     if (cached) return bus;
     const snapshot = planner.getSnapshot();
-    const integrity = verifyActivityLedger(snapshot.ledger);
-    if (integrity.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { projectId: activeProjectId });
-    const validation = validateVenueState({ ...snapshot, proposal: null });
-    if (validation.status !== "pass") throw venueError("OCCUPANCY_MONITOR_NOT_FOUND", { projectId: activeProjectId, reason: "accepted-plan-not-operational" });
-    const approval = snapshot.ledger.slice().reverse().find((entry) => entry.details?.acceptedPlan?.id === snapshot.plan.id) ?? snapshot.ledger.at(-1);
-    const runbook = createEventDayRunbook({ projectId: activeProjectId, plan: snapshot.plan, brief: snapshot.brief, validation, sourceLedgerHeadHash: integrity.headHash, approvalLedgerEntryId: approval.id, frozenAt: clock(), frozenBy: "mcp-host" });
+    const runbook = activeRunbookForCurrentProject();
     const created = bus.execute({ type: "create_occupancy_monitor", projectId: activeProjectId, runbook, plan: snapshot.plan, createdAt: clock(), createdBy: "mcp-host" });
     occupancyMonitors.set(activeProjectId, created.monitor);
+    return bus;
+  };
+
+  const incidentBusForCurrentProject = () => {
+    const cached = incidentRegisters.get(activeProjectId) ?? null;
+    const bus = createIncidentCommandBus({ initialRegister: cached });
+    if (cached) return bus;
+    const created = bus.execute({ type: "create_incident_register", projectId: activeProjectId, runbook: activeRunbookForCurrentProject(), createdAt: clock(), createdBy: "mcp-host", actorType: "human" });
+    incidentRegisters.set(activeProjectId, created.register);
     return bus;
   };
 
@@ -175,6 +191,26 @@ export function createProjectSession({ repository, organizationId = repository?.
     async exportLiveOccupancy() {
       await initialize();
       return occupancyBusForCurrentProject().execute({ type: "export_live_occupancy", exportedAt: clock() });
+    },
+    async inspectIncidents(input = {}) {
+      await initialize();
+      const bus = incidentBusForCurrentProject();
+      const register = bus.getSnapshot();
+      if (input.incidentId) return { register, incident: bus.execute({ type: "inspect_incident", incidentId: input.incidentId }) };
+      return { register, incidents: bus.execute({ type: "inspect_incidents", status: input.status, severity: input.severity, category: input.category }).slice(0, input.limit ?? 50) };
+    },
+    async reportIncident(input) {
+      await initialize();
+      const bus = incidentBusForCurrentProject();
+      const identity = input.idempotencyKey;
+      const incidentId = `incident-${stableFingerprint("mcp-incident-id", { projectId: activeProjectId, identity }).slice(-16)}`;
+      const result = bus.execute({ type: "report_incident", incidentId, severity: input.severity, category: input.category, summaryCode: input.summaryCode, location: input.location, relatedRefs: input.relatedRefs ?? [], idempotencyKey: identity, operationId: `incident-operation-${identity}`, correlationId: input.correlationId ?? `mcp-incident-${identity}`, actorType: "agent", actorId: "mcp-agent", source: "mcp", sessionId: "mcp-session", committedAt: clock() });
+      incidentRegisters.set(activeProjectId, result.register);
+      return result;
+    },
+    async exportIncidentRecord(input) {
+      await initialize();
+      return incidentBusForCurrentProject().execute({ type: "export_incident_record", incidentId: input.incidentId, exportedAt: clock() });
     },
     async recordAuthorizationDenial(input) {
       await initialize();

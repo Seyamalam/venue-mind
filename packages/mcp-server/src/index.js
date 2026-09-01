@@ -13,7 +13,7 @@ import { createProjectSession } from "./project-session.js";
 export { createFileProjectRepository, createMemoryProjectRepository } from "./project-repository.js";
 export { createProjectSession } from "./project-session.js";
 
-export const MCP_SERVER_VERSION = "0.5.0";
+export const MCP_SERVER_VERSION = "0.6.0";
 export const MCP_COMPATIBILITY = Object.freeze({
   minimumProtocolRevision: "2025-03-26",
   preferredProtocolRevision: "2026-07-28",
@@ -92,6 +92,7 @@ export function createVenueMindMcpServer({
     executeCommand: (command, options) => session.execute(command, options),
     projectOperations: session,
     occupancyOperations: session,
+    incidentOperations: session,
     authorizationProvider: () => agentAuthorization ?? createShortLivedAgentAuthorization({ agentId: "mcp-agent", organizationId, projectId: "project-summit-forward", scopes: AGENT_SCOPES, issuedBy: "venuemind-stdio-host" }),
     recordAuthorizationDenial: (denial) => session.recordAuthorizationDenial(denial),
   });

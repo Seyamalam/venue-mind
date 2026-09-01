@@ -29,7 +29,7 @@ test("WebMCP registers every versioned contract and publishes lifecycle progress
   assert.deepEqual(lifecycle.at(-1), { state: "ready", registered: venueToolContracts.length, total: venueToolContracts.length, errorCode: null });
   assert.equal(venueToolContracts.every((item) => item.contractVersion === VENUE_TOOL_CONTRACT_VERSION), true);
   assert.equal(venueToolContracts.every((item) => item.authorization.requiredScope.startsWith("venue:") && item.limits.maximumInputBytes > 0 && item.limits.maximumOutputBytes > 0), true);
-  assert.match(modelContext.tools.get("venue.inspect_layout").description, /Contract 1\.3\.0\./);
+  assert.match(modelContext.tools.get("venue.inspect_layout").description, /Contract 1\.4\.0\./);
 
   controller.abort();
   assert.equal(modelContext.tools.size, 0);
@@ -43,7 +43,7 @@ test("WebMCP invocation returns a compact summary plus bounded structured conten
   const result = await modelContext.tools.get("venue.inspect_layout").execute({}, {});
 
   assert.match(result.content[0].text, /Plan plan-summit-forward-2026 v3\.2/);
-  assert.equal(result.structuredContent.contractVersion, "1.3.0");
+  assert.equal(result.structuredContent.contractVersion, "1.4.0");
   assert.equal(result.structuredContent.authorizationScope, "venue:read");
   assert.match(result.structuredContent.correlationId, /^corr-webmcp-/);
   assert.equal(result.structuredContent.data.planId, "plan-summit-forward-2026");
@@ -165,4 +165,24 @@ test("WebMCP Live Occupancy tools share aggregate operational commands and exclu
   assert.equal(exported.structuredContent.data.filename, "occupancy.audit.json");
   assert.deepEqual(calls.map(([kind]) => kind), ["ingest", "refresh"]);
   assert.equal(modelContext.tools.has("venue.acknowledge_occupancy_alert"), false);
+});
+
+test("WebMCP Incident tools share inspection, reporting, and export while response authority stays human", async () => {
+  const modelContext = new FakeModelContext();
+  const calls = [];
+  const incidentOperations = {
+    inspectIncidents: async (input) => { calls.push(["inspect", input]); return { register: { id: "incidents-runbook-1" }, incidents: [] }; },
+    reportIncident: async (input) => { calls.push(["report", input]); return { register: { id: "incidents-runbook-1" }, incident: { id: "incident-1", revision: 1 } }; },
+    exportIncidentRecord: async (input) => { calls.push(["export", input]); return { filename: "incident-1.incident.json", mimeType: "application/json", content: "{}" }; },
+  };
+  await registerVenueTools(modelContext, createVenuePlanner(summitForwardPlan), new AbortController().signal, { incidentOperations });
+  const inspected = await modelContext.tools.get("venue.inspect_incidents").execute({ status: "open" });
+  const reported = await modelContext.tools.get("venue.report_incident").execute({ severity: "high", category: "crowd-capacity", summaryCode: "QUEUE_SPILLBACK", location: { kind: "coordinate", point: { x: 12, y: 8 } }, idempotencyKey: "webmcp-incident-1" });
+  const exported = await modelContext.tools.get("venue.export_incident_record").execute({ incidentId: "incident-1" });
+
+  assert.equal(inspected.structuredContent.data.register.id, "incidents-runbook-1");
+  assert.equal(reported.structuredContent.data.incident.id, "incident-1");
+  assert.equal(exported.structuredContent.data.filename, "incident-1.incident.json");
+  assert.deepEqual(calls.map(([kind]) => kind), ["inspect", "report", "export"]);
+  for (const prohibited of ["acknowledge_incident", "escalate_incident", "handoff_incident", "attach_incident_evidence", "record_incident_emergency_action"]) assert.equal(modelContext.tools.has(`venue.${prohibited}`), false);
 });
