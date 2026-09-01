@@ -3,8 +3,6 @@ import { notFound } from "next/navigation";
 import { DocsPage as DocsPageContent, type DocsPageData } from "@/components/docs/docs-page";
 import { docsPageBySlug, docsPages } from "@/src/docs/content.js";
 
-export const dynamicParams = false;
-
 export function generateStaticParams() {
   return docsPages.map((page) => ({ slug: page.slug === "overview" ? [] : [page.slug] }));
 }

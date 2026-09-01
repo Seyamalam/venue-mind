@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["terminal.local"],
+  cacheComponents: true,
   compress: true,
   poweredByHeader: false,
   typedRoutes: true,

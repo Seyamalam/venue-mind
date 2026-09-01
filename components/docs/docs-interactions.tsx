@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MagnifyingGlass } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/button";
 import type { SearchEntry } from "@/components/docs/docs-search-palette";
 import { searchDocs } from "@/src/docs/search.js";
 
@@ -69,7 +70,8 @@ export function DocsSearch() {
 
   return (
     <>
-      <button
+      <Button
+        variant="outline"
         ref={triggerRef}
         type="button"
         className="docs-search-trigger"
@@ -81,7 +83,7 @@ export function DocsSearch() {
         onPointerEnter={() => { void loadDocsSearchPalette(); }}
       >
         <MagnifyingGlass size={15} /><span>Search docs</span><kbd>⌘ K</kbd>
-      </button>
+      </Button>
       {hasOpened && (
         <LazyDocsSearchPalette
           open={open}
