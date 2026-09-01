@@ -11,7 +11,7 @@ const safeJson = async (response) => {
   return value;
 };
 
-export function createAccountStore({ fetchImpl = globalThis.fetch?.bind(globalThis), storage = globalThis.localStorage } = {}) {
+export function createAccountStore({ fetchImpl = globalThis.fetch?.bind(globalThis), storage = typeof window === "undefined" ? undefined : window.localStorage } = {}) {
   let snapshot = Object.freeze({ status: "loading", source: "remote", user: null, organizations: [], activeOrganizationId: null, errorCode: null });
   let loading = null;
   const listeners = new Set();

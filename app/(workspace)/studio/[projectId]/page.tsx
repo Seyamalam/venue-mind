@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { StudioRoute } from "@/components/routes/workspace-routes";
+import { StudioRoute } from "@/components/routes/studio-route";
 
 export const metadata: Metadata = { title: "Studio" };
 
