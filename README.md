@@ -39,6 +39,8 @@ Open the URL printed by Vite. Use ChatGPT's in-app browser, or Chrome with WebMC
 
 ## Verify
 
+Verification runs locally; this repository intentionally has no GitHub Actions workflows.
+
 ```bash
 npm run build
 npm test
