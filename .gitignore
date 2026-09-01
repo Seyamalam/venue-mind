@@ -1,5 +1,6 @@
 node_modules/
 dist/
+packages/sdk/schemas/
 output/
 tmp/
 .venuemind-mcp/

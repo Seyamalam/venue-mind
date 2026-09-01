@@ -1,0 +1,67 @@
+#!/usr/bin/env node
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { compileFromFile } from "json-schema-to-typescript";
+import { compile } from "json-schema-to-typescript";
+import { VENUE_TOOL_CONTRACT_VERSION, venueToolContracts } from "../src/contracts/venue-contracts.js";
+
+const root = path.resolve(new URL("../", import.meta.url).pathname);
+const schemaDirectory = path.join(root, "public/schemas");
+const outputDirectory = path.join(root, "packages/sdk/src/generated");
+const schemas = [
+  ["project-record", "VenueMindProjectRecord"],
+  ["planner-snapshot", "VenueMindPlannerSnapshot"],
+  ["validation-result", "VenueMindValidationResult"],
+  ["activity-ledger", "VenueMindActivityLedger"],
+  ["venue-error", "VenueMindError"],
+  ["plan-export", "VenueMindPlanExport"],
+];
+
+const venueMindResolver = {
+  order: 1,
+  canRead: /^https:\/\/venuemind\.dev\/schemas\//,
+  async read(file) {
+    const filename = new URL(file.url).pathname.split("/").at(-1);
+    return readFile(path.join(schemaDirectory, filename), "utf8");
+  },
+};
+
+await mkdir(outputDirectory, { recursive: true });
+for (const [filename] of schemas) {
+  const source = path.join(schemaDirectory, `${filename}.schema.json`);
+  const output = await compileFromFile(source, {
+    cwd: schemaDirectory,
+    bannerComment: "/* Generated from VenueMind canonical JSON Schemas. Do not edit. */",
+    style: { singleQuote: false, semi: true, tabWidth: 2 },
+    $refOptions: { resolve: { venueMind: venueMindResolver } },
+  });
+  await writeFile(path.join(outputDirectory, `${filename}.ts`), output);
+}
+
+const toolInputMapSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  title: "VenueMind Tool Input Map",
+  type: "object",
+  required: venueToolContracts.map(({ name }) => name),
+  properties: Object.fromEntries(venueToolContracts.map(({ name, inputSchema }) => [name, inputSchema])),
+  additionalProperties: false,
+};
+const toolInputMap = await compile(toolInputMapSchema, "VenueMindToolInputMap", {
+  bannerComment: "/* Generated from VenueMind canonical tool contracts. Do not edit. */",
+  style: { singleQuote: false, semi: true, tabWidth: 2 },
+});
+await writeFile(path.join(outputDirectory, "tool-inputs.ts"), toolInputMap);
+await writeFile(path.join(outputDirectory, "tool-metadata.ts"), [
+  "/* Generated from VenueMind canonical tool contracts. Do not edit. */",
+  `export const VENUE_TOOL_CONTRACT_VERSION = ${JSON.stringify(VENUE_TOOL_CONTRACT_VERSION)} as const;`,
+  `export const VENUE_TOOL_NAMES = ${JSON.stringify(venueToolContracts.map(({ name }) => name), null, 2)} as const;`,
+  "export type VenueToolName = typeof VENUE_TOOL_NAMES[number];",
+  "",
+].join("\n"));
+
+const index = `${schemas.map(([filename, type]) => `export type { ${type} } from "./${filename}.js";`).join("\n")}
+export type { VenueMindToolInputMap } from "./tool-inputs.js";
+export { VENUE_TOOL_CONTRACT_VERSION, VENUE_TOOL_NAMES } from "./tool-metadata.js";
+export type { VenueToolName } from "./tool-metadata.js";
+`;
+await writeFile(path.join(outputDirectory, "index.ts"), index);

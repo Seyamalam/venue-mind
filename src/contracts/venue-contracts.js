@@ -1496,6 +1496,22 @@ const persistedProposalSchema = {
   additionalProperties: true,
 };
 
+export const planExportSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/plan-export.schema.json",
+  title: "VenueMind Plan Export",
+  type: "object",
+  required: ["format", "filename", "mimeType", "encoding", "content"],
+  properties: {
+    format: { enum: ["json", "text", "svg", "pdf", "pdf-emergency", "csv", "csv-objects", "csv-inventory", "csv-staffing", "svg-post-map", "csv-production", "svg-production", "csv-catering-stations", "csv-replenishment", "audit"] },
+    filename: { type: "string", minLength: 1 },
+    mimeType: { type: "string", minLength: 1 },
+    encoding: { enum: ["utf8", "base64"] },
+    content: { type: "string" },
+  },
+  additionalProperties: false,
+};
+
 export const plannerSnapshotSchema = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://venuemind.dev/schemas/planner-snapshot.schema.json",
