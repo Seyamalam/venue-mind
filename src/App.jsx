@@ -23,9 +23,10 @@ import {
 import { summitForwardPlan } from "./domain/summit-forward.js";
 import { createEmptyVenuePlan } from "./domain/empty-project.js";
 import { createVenuePlanner, validateVenueState } from "./domain/venue-planner.js";
-import { verifyActivityLedger } from "./domain/activity-ledger.js";
+import { stableFingerprint, verifyActivityLedger } from "./domain/activity-ledger.js";
 import { createRunbookCommandBus } from "./domain/runbook-command-bus.js";
 import { createOccupancyCommandBus } from "./domain/occupancy-command-bus.js";
+import { createIncidentCommandBus } from "./domain/incident-command-bus.js";
 import { createHumanPrincipal } from "./domain/authorization.js";
 import { venueError } from "./domain/errors.js";
 import { createProjectStore } from "./persistence/project-store.js";
@@ -35,6 +36,9 @@ import { synchronizeRunbook } from "./persistence/runbook-sync.js";
 import { createOccupancyStore } from "./persistence/occupancy-store.js";
 import { createOccupancyRemote } from "./persistence/occupancy-remote.js";
 import { synchronizeOccupancy } from "./persistence/occupancy-sync.js";
+import { createIncidentStore } from "./persistence/incident-store.js";
+import { createIncidentRemote } from "./persistence/incident-remote.js";
+import { synchronizeIncidents } from "./persistence/incident-sync.js";
 import { registerVenueTools } from "./webmcp/register-venue-tools.js";
 import { VENUE_TOOL_AUTHORIZATION_SCOPES, VENUE_TOOL_CONTRACT_VERSION, venueToolContracts } from "./contracts/venue-contracts.js";
 import { exportProjectPackage } from "./interchange/venue-package.js";
@@ -75,6 +79,8 @@ const loadRunbookPanel = () => import("./RunbookPanel.jsx").then((module) => ({ 
 const LazyRunbookPanel = lazy(loadRunbookPanel);
 const loadOccupancyPanel = () => import("./OccupancyPanel.jsx").then((module) => ({ default: module.OccupancyPanel }));
 const LazyOccupancyPanel = lazy(loadOccupancyPanel);
+const loadIncidentPanel = () => import("./IncidentPanel.jsx").then((module) => ({ default: module.IncidentPanel }));
+const LazyIncidentPanel = lazy(loadIncidentPanel);
 
 const studioSessionId = `studio-session-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 const commandMetadata = (type) => {
@@ -93,7 +99,7 @@ const projectRecordMetadataFor = (record) => ({
   lastOpenedAt: record.lastOpenedAt ?? null,
 });
 
-function ToolRegistration({ planner, projectStore, projectId, organizationId, occupancyOperations, onLifecycle, navigate }) {
+function ToolRegistration({ planner, projectStore, projectId, organizationId, occupancyOperations, incidentOperations, onLifecycle, navigate }) {
   useEffect(() => {
     const modelContext = document.modelContext;
     if (typeof modelContext?.registerTool !== "function") {
@@ -117,7 +123,7 @@ function ToolRegistration({ planner, projectStore, projectId, organizationId, oc
             return opened;
           },
         };
-        await registerVenueTools(modelContext, planner, controller.signal, { projectId, organizationId, projectOperations, occupancyOperations, onLifecycle });
+        await registerVenueTools(modelContext, planner, controller.signal, { projectId, organizationId, projectOperations, occupancyOperations, incidentOperations, onLifecycle });
       } catch {
         // registerVenueTools publishes the terminal failure state.
       }
@@ -125,7 +131,7 @@ function ToolRegistration({ planner, projectStore, projectId, organizationId, oc
 
     register();
     return () => controller.abort();
-  }, [navigate, occupancyOperations, onLifecycle, organizationId, planner, projectId, projectStore]);
+  }, [incidentOperations, navigate, occupancyOperations, onLifecycle, organizationId, planner, projectId, projectStore]);
   return null;
 }
 
@@ -187,6 +193,9 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   const occupancyStore = useMemo(() => createOccupancyStore({ organizationId, projectId }), [organizationId, projectId]);
   const occupancyRemote = useMemo(() => createOccupancyRemote({ organizationId }), [organizationId]);
   const occupancyBus = useMemo(() => createOccupancyCommandBus(), [projectId]);
+  const incidentStore = useMemo(() => createIncidentStore({ organizationId, projectId }), [organizationId, projectId]);
+  const incidentRemote = useMemo(() => createIncidentRemote({ organizationId }), [organizationId]);
+  const incidentBus = useMemo(() => createIncidentCommandBus(), [projectId]);
   const plannerState = useSyncExternalStore(planner.subscribe, planner.getSnapshot, planner.getSnapshot);
   const changes = plannerState.proposal.changes;
   const proposalState = plannerState.proposal.status;
@@ -257,12 +266,24 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   const [occupancyMonitor, setOccupancyMonitor] = useState(null);
   const [occupancyProjection, setOccupancyProjection] = useState(null);
   const [occupancySyncState, setOccupancySyncState] = useState({ state: "offline", pendingCount: 0, lastSyncedAt: null });
+  const [incidentOpen, setIncidentOpen] = useState(false);
+  const [incidentMounted, setIncidentMounted] = useState(false);
+  const [incidentRegister, setIncidentRegister] = useState(null);
+  const [incidentSyncState, setIncidentSyncState] = useState({ state: "offline", pendingCount: 0, lastSyncedAt: null });
+  const [selectedIncidentId, setSelectedIncidentId] = useState(null);
+  const incidentClientSequence = useRef(0);
   const occupancyOperationsRef = useRef({});
   const occupancyOperations = useMemo(() => Object.freeze({
     inspectLiveOccupancy: (...args) => occupancyOperationsRef.current.inspectLiveOccupancy(...args),
     ingestOccupancySignal: (...args) => occupancyOperationsRef.current.ingestOccupancySignal(...args),
     refreshLiveOccupancy: (...args) => occupancyOperationsRef.current.refreshLiveOccupancy(...args),
     exportLiveOccupancy: (...args) => occupancyOperationsRef.current.exportLiveOccupancy(...args),
+  }), []);
+  const incidentOperationsRef = useRef({});
+  const incidentOperations = useMemo(() => Object.freeze({
+    inspectIncidents: (...args) => incidentOperationsRef.current.inspectIncidents(...args),
+    reportIncident: (...args) => incidentOperationsRef.current.reportIncident(...args),
+    exportIncidentRecord: (...args) => incidentOperationsRef.current.exportIncidentRecord(...args),
   }), []);
   const runbookClientSequence = useRef(0);
   const runbookBus = useMemo(() => createRunbookCommandBus({ onChange: (next) => {
@@ -298,6 +319,10 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
       })),
     };
   }, [runbook, runbookBus, runbookEvidenceDrafts, runbookSyncState.pendingCount]);
+  const incidentView = useMemo(() => (incidentRegister?.incidents ?? []).map((incident) => ({ ...incident, syncState: incidentSyncState.pendingCount > 0 ? "local" : "synced" })), [incidentRegister, incidentSyncState.pendingCount]);
+  const incidentHandoffs = useMemo(() => incidentView.flatMap((incident) => incident.handoffs.map((handoff) => ({ ...handoff, incidentId: incident.id }))), [incidentView]);
+  const incidentOwnerOptions = useMemo(() => (plannerState.plan.staffing?.roles ?? []).map((role) => ({ id: role.id, label: role.label ?? role.name ?? role.id, owner: { roleId: role.id } })), [plannerState.plan.staffing?.roles]);
+  const incidentObjectOptions = useMemo(() => plannerState.plan.objects.map((object) => ({ id: object.id, label: object.label ?? object.id })), [plannerState.plan.objects]);
 
   const activeChange = useMemo(() => changes.find((change) => change.number === selectedChange) ?? changes[0] ?? null, [changes, selectedChange]);
   const activeCapacityDelta = useMemo(() => capacityEvidence.changeDeltas.find((delta) => delta.changeId === activeChange?.id) ?? null, [activeChange, capacityEvidence.changeDeltas]);
@@ -365,6 +390,29 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
     });
     return () => { active = false; };
   }, [occupancyBus, occupancyRemote, occupancyStore, projectId]);
+
+  useEffect(() => {
+    let active = true;
+    void incidentStore.hydrate().then(async ({ register: cached, outbox, recovery }) => {
+      if (!active) return;
+      incidentClientSequence.current = Math.max(0, ...outbox.map((entry) => entry.command.clientSequence));
+      if (recovery) setIncidentSyncState({ state: "recovery", pendingCount: outbox.length, lastSyncedAt: null });
+      if (!cached) return;
+      incidentBus.hydrate(cached);
+      setIncidentRegister(cached);
+      setIncidentSyncState({ state: outbox.length ? "offline" : "syncing", pendingCount: outbox.length, lastSyncedAt: cached.updatedAt });
+      try {
+        const result = await synchronizeIncidents({ projectId, registerId: cached.id, store: incidentStore, remote: incidentRemote });
+        if (!active) return;
+        incidentBus.hydrate(result.register);
+        setIncidentRegister(result.register);
+        setIncidentSyncState(result.syncState);
+      } catch {
+        if (active) setIncidentSyncState({ state: "offline", pendingCount: (await incidentStore.listOutbox()).length, lastSyncedAt: cached.updatedAt });
+      }
+    });
+    return () => { active = false; };
+  }, [incidentBus, incidentRemote, incidentStore, projectId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1061,6 +1109,139 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
     }
   };
 
+  const incidentMetadata = (type, expectedIncidentRevision, actorType = "human", input = {}) => {
+    const identity = input.idempotencyKey ?? (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+    return {
+      operationId: `incident-operation-${identity}`,
+      idempotencyKey: identity,
+      correlationId: input.correlationId ?? `studio-incident-${identity}`,
+      ...(expectedIncidentRevision == null ? {} : { expectedIncidentRevision }),
+      clientId: `studio-${projectId}`,
+      clientSequence: ++incidentClientSequence.current,
+      actorType,
+      actorId: actorType === "agent" ? "webmcp-agent" : studioActorId,
+      source: actorType === "agent" ? "webmcp" : "studio",
+      sessionId: studioSessionId,
+      committedAt: new Date().toISOString(),
+    };
+  };
+
+  const ensureIncidentRegister = async () => {
+    const cached = incidentBus.getSnapshot();
+    if (cached) return cached;
+    if (!runbook) throw venueError("INCIDENT_BASELINE_INVALID", { reason: "runbook-required" });
+    try {
+      const result = await incidentRemote.create(projectId, { runbookVersionId: runbook.versionId });
+      incidentBus.hydrate(result.register);
+      await incidentStore.saveRegister(result.register);
+      setIncidentRegister(result.register);
+      setIncidentSyncState({ state: "online", pendingCount: 0, lastSyncedAt: result.register.updatedAt });
+      return result.register;
+    } catch (remoteError) {
+      const result = incidentBus.execute({ type: "create_incident_register", projectId, runbook, createdAt: new Date().toISOString(), createdBy: studioActorId, actorType: "human" });
+      await incidentStore.saveRegister(result.register);
+      setIncidentRegister(result.register);
+      setIncidentSyncState({ state: "offline", pendingCount: 0, lastSyncedAt: null });
+      if (!result.register) throw remoteError;
+      return result.register;
+    }
+  };
+
+  const applyIncidentCommand = async (command) => {
+    const result = incidentBus.execute(command);
+    if (!result.duplicate) await incidentStore.enqueue(command);
+    await incidentStore.saveRegister(result.register);
+    setIncidentRegister(result.register);
+    const pendingCount = (await incidentStore.listOutbox()).length;
+    setIncidentSyncState((current) => ({ ...current, state: "offline", pendingCount }));
+    return result;
+  };
+
+  const handleIncidentSync = async () => {
+    const candidate = incidentBus.getSnapshot();
+    if (!candidate || !runbook) return null;
+    const pendingCount = (await incidentStore.listOutbox()).length;
+    setIncidentSyncState((current) => ({ ...current, state: "syncing", pendingCount }));
+    try {
+      await incidentRemote.create(projectId, { runbookVersionId: runbook.versionId });
+      const result = await synchronizeIncidents({ projectId, registerId: candidate.id, store: incidentStore, remote: incidentRemote });
+      incidentBus.hydrate(result.register);
+      setIncidentRegister(result.register);
+      setIncidentSyncState(result.syncState);
+      notify(result.syncState.state === "online" ? "INCIDENTS SYNCED" : "INCIDENT CONFLICT");
+      return result;
+    } catch (error) {
+      const remaining = (await incidentStore.listOutbox()).length;
+      setIncidentSyncState({ state: "offline", pendingCount: remaining, lastSyncedAt: candidate.updatedAt });
+      notify(error.code === "INCIDENT_API_UNAVAILABLE" ? "INCIDENTS LOCAL" : (error.code ?? "INCIDENT SYNC FAILED"));
+      return null;
+    }
+  };
+
+  const handleIncidentCreate = async ({ owner, ...input }, actorType = "human") => {
+    try {
+      await ensureIncidentRegister();
+      const identity = input.idempotencyKey ?? (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+      const incidentId = `incident-${stableFingerprint("studio-incident-id", { projectId, identity }).slice(-16)}`;
+      const report = await applyIncidentCommand({ type: "report_incident", incidentId, severity: input.severity, category: input.category, summaryCode: input.summaryCode, location: input.location, relatedRefs: input.relatedRefs ?? [], ...incidentMetadata("report", null, actorType, { ...input, idempotencyKey: identity }) });
+      if (owner && actorType === "human") await applyIncidentCommand({ type: "set_incident_owner", incidentId, owner, ...incidentMetadata("owner", report.incident.revision) });
+      setSelectedIncidentId(incidentId);
+      notify("INCIDENT CREATED · LOCAL");
+      void handleIncidentSync();
+      return report;
+    } catch (error) {
+      notify(error.code ?? "INCIDENT BLOCKED");
+      if (actorType === "agent") throw error;
+      return null;
+    }
+  };
+
+  const handleIncidentAction = async (type, input) => {
+    try {
+      const result = await applyIncidentCommand({ type, ...input, ...incidentMetadata(type, input.expectedIncidentRevision) });
+      notify(`${type.replaceAll("_", " ").toUpperCase()} · LOCAL`);
+      void handleIncidentSync();
+      return result;
+    } catch (error) {
+      notify(error.code ?? "INCIDENT ACTION BLOCKED");
+      return null;
+    }
+  };
+
+  const handleIncidentAttach = async ({ incidentId, file }) => {
+    const candidate = incidentBus.getSnapshot();
+    if (!candidate || incidentSyncState.state !== "online") return null;
+    try {
+      const result = await incidentRemote.attach(projectId, candidate.id, incidentId, file);
+      incidentBus.hydrate(result.register);
+      await incidentStore.saveRegister(result.register);
+      setIncidentRegister(result.register);
+      setIncidentSyncState({ state: "online", pendingCount: 0, lastSyncedAt: result.register.updatedAt });
+      notify("EVIDENCE ATTACHED");
+      return result;
+    } catch (error) {
+      notify(error.code ?? "ATTACHMENT BLOCKED");
+      return null;
+    }
+  };
+
+  const handleIncidentExport = async () => {
+    const candidate = incidentBus.getSnapshot();
+    const incidentId = selectedIncidentId ?? candidate?.incidents?.[0]?.id;
+    if (!candidate || !incidentId) return null;
+    try {
+      const artifact = incidentSyncState.state === "online"
+        ? (await incidentRemote.export(projectId, candidate.id, incidentId)).artifact
+        : incidentBus.execute({ type: "export_incident_record", incidentId, exportedAt: new Date().toISOString() });
+      downloadExport(artifact);
+      notify("INCIDENT EXPORT READY");
+      return artifact;
+    } catch (error) {
+      notify(error.code ?? "INCIDENT EXPORT FAILED");
+      return null;
+    }
+  };
+
   const handleRunScenario = async (scenario, branchId) => {
     notify("SIM RUNNING");
     try {
@@ -1114,6 +1295,19 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
     },
   };
 
+  incidentOperationsRef.current = {
+    inspectIncidents: async (input = {}) => {
+      const register = await ensureIncidentRegister();
+      if (input.incidentId) return { register, incident: incidentBus.execute({ type: "inspect_incident", incidentId: input.incidentId }) };
+      return { register, incidents: incidentBus.execute({ type: "inspect_incidents", status: input.status, severity: input.severity, category: input.category }).slice(0, input.limit ?? 50) };
+    },
+    reportIncident: async (input) => handleIncidentCreate(input, "agent"),
+    exportIncidentRecord: async ({ incidentId }) => {
+      await ensureIncidentRegister();
+      return incidentBus.execute({ type: "export_incident_record", incidentId, exportedAt: new Date().toISOString() });
+    },
+  };
+
   return (
     <div className="app-shell">
       <ToolRegistration
@@ -1122,6 +1316,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
         projectId={projectId}
         organizationId={organizationId}
         occupancyOperations={occupancyOperations}
+        incidentOperations={incidentOperations}
         onLifecycle={setWebMcpLifecycle}
         navigate={navigate}
       />
@@ -1162,13 +1357,14 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           </Popover>
           <HeaderButton className="history-button" ariaLabel="Open plan history" onPointerEnter={loadHistoryPanel} onFocus={loadHistoryPanel} onClick={() => { setHistoryMounted(true); setHistoryOpen((open) => !open); }}>Plan v{plannerState.plan.version}<span className={`save-indicator is-${persistenceStatus.toLowerCase()}`}>{persistenceStatus}</span><CaretDown size={14} /></HeaderButton>
           <HeaderButton className={`edit-button ${editorOpen ? "is-active" : ""}`} ariaLabel="Toggle plan editor" onClick={() => setEditorOpen((open) => !open)}>{editorOpen ? "REVIEW" : "EDIT"}</HeaderButton>
-          <HeaderButton className={`comments-button ${commentsOpen ? "is-active" : ""}`} ariaLabel="Open comments" onPointerEnter={loadCommentsPanel} onFocus={loadCommentsPanel} onClick={() => { setCommentsMounted(true); setSimulationOpen(false); setRunbookOpen(false); setOccupancyOpen(false); setCommentsOpen((open) => !open); }}><ChatCircle size={17} /> {plannerState.comments.filter((comment) => comment.status === "open").length}</HeaderButton>
+          <HeaderButton className={`comments-button ${commentsOpen ? "is-active" : ""}`} ariaLabel="Open comments" onPointerEnter={loadCommentsPanel} onFocus={loadCommentsPanel} onClick={() => { setCommentsMounted(true); setSimulationOpen(false); setRunbookOpen(false); setOccupancyOpen(false); setIncidentOpen(false); setCommentsOpen((open) => !open); }}><ChatCircle size={17} /> {plannerState.comments.filter((comment) => comment.status === "open").length}</HeaderButton>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild><HeaderButton className={`simulation-button ${simulationOpen || runbookOpen || occupancyOpen ? "is-active" : ""}`} ariaLabel="Open operations" onPointerEnter={() => { loadRunbookPanel(); loadScenarioPanel(); loadOccupancyPanel(); }} onFocus={() => { loadRunbookPanel(); loadScenarioPanel(); loadOccupancyPanel(); }}>OPS <CaretDown size={14} /></HeaderButton></DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild><HeaderButton className={`simulation-button ${simulationOpen || runbookOpen || occupancyOpen || incidentOpen ? "is-active" : ""}`} ariaLabel="Open operations" onPointerEnter={() => { loadRunbookPanel(); loadScenarioPanel(); loadOccupancyPanel(); loadIncidentPanel(); }} onFocus={() => { loadRunbookPanel(); loadScenarioPanel(); loadOccupancyPanel(); loadIncidentPanel(); }}>OPS <CaretDown size={14} /></HeaderButton></DropdownMenuTrigger>
             <DropdownMenuContent className="export-menu" align="end" sideOffset={8} aria-label="Operational modes">
-              <DropdownMenuItem className="export-menu-item" onPointerEnter={loadRunbookPanel} onFocus={loadRunbookPanel} onSelect={() => { setRunbookMounted(true); setRunbookOpen(true); setCommentsOpen(false); setSimulationOpen(false); setOccupancyOpen(false); }}><b>RUNBOOK</b><span>{runbook ? runbook.tasks.filter((task) => task.status !== "completed").length : 0}</span></DropdownMenuItem>
-              <DropdownMenuItem className="export-menu-item" onPointerEnter={loadScenarioPanel} onFocus={loadScenarioPanel} onSelect={() => { setSimulationMounted(true); setSimulationOpen(true); setCommentsOpen(false); setRunbookOpen(false); setOccupancyOpen(false); }}><b>SIM</b><span>{plannerState.scenarioRuns.filter((run) => run.status === "completed").length}</span></DropdownMenuItem>
-              <DropdownMenuItem className="export-menu-item" onPointerEnter={loadOccupancyPanel} onFocus={loadOccupancyPanel} onSelect={() => { setOccupancyMounted(true); setOccupancyOpen(true); setCommentsOpen(false); setRunbookOpen(false); setSimulationOpen(false); }}><b>OCCUPANCY</b><span>{occupancyMonitor?.activeAlerts.length ?? 0}</span></DropdownMenuItem>
+              <DropdownMenuItem className="export-menu-item" onPointerEnter={loadRunbookPanel} onFocus={loadRunbookPanel} onSelect={() => { setRunbookMounted(true); setRunbookOpen(true); setCommentsOpen(false); setSimulationOpen(false); setOccupancyOpen(false); setIncidentOpen(false); }}><b>RUNBOOK</b><span>{runbook ? runbook.tasks.filter((task) => task.status !== "completed").length : 0}</span></DropdownMenuItem>
+              <DropdownMenuItem className="export-menu-item" onPointerEnter={loadScenarioPanel} onFocus={loadScenarioPanel} onSelect={() => { setSimulationMounted(true); setSimulationOpen(true); setCommentsOpen(false); setRunbookOpen(false); setOccupancyOpen(false); setIncidentOpen(false); }}><b>SIM</b><span>{plannerState.scenarioRuns.filter((run) => run.status === "completed").length}</span></DropdownMenuItem>
+              <DropdownMenuItem className="export-menu-item" onPointerEnter={loadOccupancyPanel} onFocus={loadOccupancyPanel} onSelect={() => { setOccupancyMounted(true); setOccupancyOpen(true); setCommentsOpen(false); setRunbookOpen(false); setSimulationOpen(false); setIncidentOpen(false); }}><b>OCCUPANCY</b><span>{occupancyMonitor?.activeAlerts.length ?? 0}</span></DropdownMenuItem>
+              <DropdownMenuItem className="export-menu-item" onPointerEnter={loadIncidentPanel} onFocus={loadIncidentPanel} onSelect={() => { setIncidentMounted(true); setIncidentOpen(true); setCommentsOpen(false); setRunbookOpen(false); setSimulationOpen(false); setOccupancyOpen(false); }}><b>INCIDENTS</b><span>{incidentView.filter((incident) => ["open", "mitigating"].includes(incident.status)).length}</span></DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button className="icon-button" variant="ghost" size="icon" type="button" onClick={handleUndo} aria-label="Undo"><ArrowCounterClockwise size={22} /></Button>
@@ -1389,6 +1585,27 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
         onAcknowledge={(input) => { void handleOccupancyAcknowledge(input); }}
         onSync={() => { void handleOccupancySync(); }}
         onExport={() => { void handleOccupancyExport(); }}
+      /></Suspense>}
+      {incidentMounted && <Suspense fallback={incidentOpen ? <div className="panel-loading is-side" role="status">INCIDENTS</div> : null}><LazyIncidentPanel
+        open={incidentOpen}
+        incidents={incidentView}
+        handoffs={incidentHandoffs}
+        ledger={incidentRegister?.ledger ?? []}
+        ownerOptions={incidentOwnerOptions}
+        objectOptions={incidentObjectOptions}
+        syncState={incidentSyncState}
+        online={incidentSyncState.state === "online"}
+        onClose={() => setIncidentOpen(false)}
+        onCreate={(input) => { void handleIncidentCreate(input); }}
+        onSelectIncident={setSelectedIncidentId}
+        onSelectAnchor={(anchor) => notify(anchor.kind === "plan-object" ? anchor.planObjectId : `${anchor.point.x},${anchor.point.y}`)}
+        onAcknowledge={(input) => { void handleIncidentAction("acknowledge_incident", input); }}
+        onEscalate={(input) => { void handleIncidentAction("escalate_incident", input); }}
+        onResolve={(input) => { void handleIncidentAction("transition_incident_status", input); }}
+        onCreateHandoff={(input) => { void handleIncidentAction("handoff_incident", input); }}
+        onAttach={(input) => { void handleIncidentAttach(input); }}
+        onSync={() => { void (incidentRegister ? handleIncidentSync() : ensureIncidentRegister().then(() => handleIncidentSync()).catch((error) => notify(error.code ?? "INCIDENTS BLOCKED"))); }}
+        onExport={() => { void handleIncidentExport(); }}
       /></Suspense>}
       <Sheet open={comparisonOpen && Boolean(branchComparison)} onOpenChange={(open) => { if (!open) setComparisonOpen(false); }}>
       {branchComparison && <SheetContent className="branch-comparison !h-auto !gap-0 !p-0 sm:!max-w-none" side="left" showOverlay={false} showCloseButton={false} aria-label="Proposal Branch comparison">

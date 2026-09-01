@@ -930,3 +930,84 @@ button:focus-visible, textarea:focus-visible { outline: 3px solid rgba(104, 69, 
 @media (pointer: coarse) {
   .runbook-panel :is([data-slot="button"], [data-slot="select-trigger"], [data-slot="tabs-trigger"]) { min-height: 44px; }
 }
+
+/* Event Day incidents stay compact and keep the Plan canvas operable. */
+.incident-panel { position: fixed; top: 88px; right: 16px; bottom: 16px; width: min(480px, calc(100vw - 32px)); max-width: none; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--hairline); border-radius: 12px; background: rgba(253, 252, 249, .99); box-shadow: 0 24px 65px rgba(45, 38, 23, .2); backdrop-filter: blur(18px); color: var(--ink); }
+.incident-heading { min-height: 60px; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 9px; padding: 12px 14px; border-bottom: 1px solid var(--hairline); }
+.incident-heading [data-slot="sheet-title"] { font-size: 11px; letter-spacing: .11em; }
+.incident-heading-counts, .incident-actions { display: flex; align-items: center; gap: 5px; }
+.incident-heading-counts [data-slot="badge"], .incident-actions [data-slot="badge"] { font-size: 7px; letter-spacing: .05em; }
+.incident-actions { min-height: 43px; padding: 7px 13px; background: var(--paper); }
+.incident-actions [data-slot="button"] { min-height: 28px; font-size: 8px; font-weight: 800; }
+.incident-actions [data-slot="badge"] { margin-right: auto; }
+.incident-sync { gap: 4px; }
+.incident-tabs { min-height: 0; flex: 1; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 0; }
+.incident-tabs-list { width: auto; height: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; border-radius: 0; border-bottom: 1px solid var(--hairline); background: transparent; padding: 8px 10px; }
+.incident-tabs-list [data-slot="tabs-trigger"] { min-width: 0; height: 32px; gap: 4px; padding-inline: 6px; font-size: 8px; letter-spacing: .06em; }
+.incident-tabs-list [data-slot="tabs-trigger"] svg { display: none; }
+.incident-tab-content { min-height: 0; margin: 0; overflow: hidden; }
+.incident-tab-content[data-state="active"] { display: flex; flex-direction: column; }
+.incident-new { min-height: 0; overflow: auto; display: grid; align-content: start; gap: 12px; padding: 13px 14px 24px; }
+.incident-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.incident-field-grid [data-slot="field"], .incident-handoff-form [data-slot="field"] { min-width: 0; gap: 5px; }
+.incident-field-grid [data-slot="field-label"], .incident-handoff-form [data-slot="field-label"] { color: var(--muted-foreground); font-size: 8px; font-weight: 850; letter-spacing: .07em; }
+.incident-field-grid :is([data-slot="select-trigger"], [data-slot="input"], [data-slot="textarea"]), .incident-handoff-form :is([data-slot="select-trigger"], [data-slot="input"]) { width: 100%; min-width: 0; box-shadow: none; font-size: 9px; }
+.incident-summary-field, .incident-anchor-field { grid-column: 1 / -1; }
+.incident-summary-field [data-slot="textarea"] { min-height: 84px; resize: vertical; }
+.incident-anchor-field [data-slot="toggle-group"] { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+.incident-anchor-field [data-slot="toggle-group-item"] { font-size: 8px; font-weight: 800; }
+.incident-point-fields { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; }
+.incident-new > [data-slot="button"] { justify-self: end; min-width: 112px; font-size: 8px; font-weight: 850; }
+.incident-scroll { min-height: 0; flex: 1; }
+.incident-scroll [data-slot="scroll-area-viewport"] { padding: 10px 13px 20px; }
+.incident-list, .incident-handoff-list, .incident-ledger-list { display: grid; gap: 8px; }
+.incident-row, .incident-handoff, .incident-ledger { min-width: 0; display: grid; gap: 8px; border: 1px solid var(--hairline); border-radius: 9px; background: var(--paper); padding: 10px; }
+.incident-row.is-local { border-style: dashed; }
+.incident-row.is-critical { border-color: var(--destructive); }
+.incident-row > header, .incident-handoff > header, .incident-ledger > header { min-width: 0; display: flex; align-items: center; gap: 5px; }
+.incident-row > header [data-slot="badge"] { font-size: 7px; letter-spacing: .04em; }
+.incident-row > header time, .incident-handoff > header time { margin-left: auto; color: var(--muted-foreground); font: 700 8px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.incident-select { width: 100%; height: auto; min-height: 0; justify-content: stretch; padding: 0; text-align: left; white-space: normal; box-shadow: none; }
+.incident-select > span { width: 100%; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 8px; }
+.incident-select strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.incident-select code, .incident-ledger code { color: var(--muted-foreground); font-size: 7px; }
+.incident-meta { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; color: var(--muted-foreground); font-size: 7px; font-weight: 800; letter-spacing: .04em; }
+.incident-meta > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.incident-meta [data-slot="button"] { min-width: 0; height: 24px; max-width: 150px; overflow: hidden; font-size: 7px; text-overflow: ellipsis; }
+.incident-row > footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
+.incident-row > footer [data-slot="button"] { min-height: 28px; font-size: 8px; font-weight: 800; }
+.incident-attach[aria-disabled="true"] { pointer-events: none; opacity: .48; }
+.incident-handoff-view { min-height: 0; flex: 1; display: flex; flex-direction: column; }
+.incident-handoff-form { display: grid; gap: 10px; padding: 12px 13px; background: #f8f6ff; }
+.incident-handoff-form [data-slot="field-group"] { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.incident-handoff-form > [data-slot="button"] { justify-self: end; font-size: 8px; font-weight: 850; }
+.incident-handoff > header strong, .incident-ledger > header strong { min-width: 0; overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.incident-handoff > p { margin: 0; font-size: 9px; font-weight: 750; }
+.incident-handoff > div { display: flex; flex-wrap: wrap; gap: 4px; }
+.incident-handoff [data-slot="badge"] { font-size: 7px; }
+.incident-ledger > header b { margin-left: auto; font-size: 8px; }
+.incident-ledger > footer { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 7px; color: var(--muted-foreground); font-size: 8px; }
+.incident-ledger > footer span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.incident-empty { min-height: 180px; border: 0; border-radius: 0; }
+.incident-empty [data-slot="empty-title"] { font-size: 11px; letter-spacing: .09em; }
+
+@media (max-width: 880px) {
+  .incident-panel { inset: 10px !important; width: auto !important; height: auto !important; }
+}
+
+@media (max-width: 440px) {
+  .incident-panel { inset: 0 !important; width: 100vw !important; max-width: 100vw !important; height: 100dvh !important; border-radius: 0; }
+  .incident-heading { grid-template-columns: minmax(0, 1fr) auto; }
+  .incident-heading-counts { display: none; }
+  .incident-field-grid, .incident-handoff-form [data-slot="field-group"] { grid-template-columns: minmax(0, 1fr); }
+  .incident-summary-field, .incident-anchor-field { grid-column: auto; }
+  .incident-point-fields { grid-template-columns: 1fr 1fr; }
+  .incident-point-fields [data-slot="button"] { grid-column: 1 / -1; }
+  .incident-new > [data-slot="button"], .incident-handoff-form > [data-slot="button"] { width: 100%; }
+  .incident-row > footer { display: grid; grid-template-columns: 1fr 1fr; }
+  .incident-row > footer [data-slot="button"] { width: 100%; }
+}
+
+@media (pointer: coarse) {
+  .incident-panel :is([data-slot="button"], [data-slot="select-trigger"], [data-slot="tabs-trigger"], [data-slot="toggle-group-item"], [data-slot="input"]) { min-height: 44px; }
+}
