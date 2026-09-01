@@ -628,29 +628,6 @@ line.editor-object.is-selected { stroke: var(--violet) !important; }
 .toast { position: fixed; left: 50%; bottom: 24px; z-index: 40; transform: translateX(-50%); min-width: 260px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 15px; border-radius: 8px; background: #262724; color: white; font-size: 12px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22); }
 .toast svg { color: #bcb0ff; }
 button:focus-visible, textarea:focus-visible { outline: 3px solid rgba(104, 69, 232, 0.24); outline-offset: 2px; }
-.shared-review-state { min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: 9px; color: var(--violet); font-size: 9px; letter-spacing: .12em; }
-.shared-review { min-height: 100vh; background: #f6f4ee; }
-.shared-review > header { height: 64px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--hairline); background: #fbfaf7; padding: 0 5vw; }
-.shared-review > header span { display: flex; align-items: center; gap: 7px; }
-.shared-review > header code { color: var(--violet); font-size: 8px; }
-.shared-review-heading { display: grid; grid-template-columns: 1fr auto auto; align-items: end; gap: 30px; padding: 42px 7vw 26px; }
-.shared-review-heading span { display: grid; gap: 5px; }
-.shared-review-heading small { color: #777873; font-size: 7px; font-weight: 850; letter-spacing: .1em; }
-.shared-review-heading h1 { margin: 0; font-size: clamp(28px, 4vw, 52px); letter-spacing: -.055em; }
-.shared-review-heading b { font-size: 15px; }
-.shared-review-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 0 7vw 50px; }
-.shared-review-grid article { min-height: 280px; border: 1px solid #dcd8cf; border-radius: 12px; background: #fbfaf7; padding: 18px; }
-.shared-review-grid article > div { display: flex; align-items: center; gap: 7px; border-bottom: 1px solid #e0ddd5; padding-bottom: 12px; color: var(--violet); font-size: 9px; letter-spacing: .08em; }
-.shared-review-grid article > div span { margin-left: auto; }
-.shared-review-grid dl { display: grid; grid-template-columns: 90px 1fr; gap: 12px; margin-top: 24px; }
-.shared-review-grid dt { color: #858680; font-size: 7px; font-weight: 850; }
-.shared-review-grid dd { margin: 0; font-size: 11px; font-weight: 700; }
-.shared-review-grid article > code { display: block; margin: 13px 0; color: #7163ae; font-size: 8px; }
-.shared-review-grid ul { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
-.shared-review-grid li { display: grid; gap: 2px; border-radius: 6px; background: #f0ecff; padding: 8px; }
-.shared-review-grid li b { font-size: 9px; }
-.shared-review-grid li small { color: #7163ae; font: 650 7px ui-monospace, SFMono-Regular, Menlo, monospace; }
-
 @media (max-width: 1150px) {
   .topbar { grid-template-columns: 210px 1fr auto; }
   .status-separator, .status-button > span:nth-of-type(3), .icon-button-muted { display: none; }
@@ -686,5 +663,3 @@ button:focus-visible, textarea:focus-visible { outline: 3px solid rgba(104, 69, 
 /* Organization identity stays compact in the operational chrome. */
 .organization-select { max-width: 128px; border: 0; border-left: 1px solid var(--line, #ddd8cf); background: transparent; padding: 0 12px; color: inherit; font: inherit; font-size: 10px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
 .organization-settings-link { width: 28px; height: 28px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid var(--line, #ddd8cf); border-radius: 50%; color: inherit; text-decoration: none; font-size: 9px; font-weight: 800; }
-.workspace-gate { min-height: 100vh; display: grid; place-content: center; gap: 8px; background: #f8f7f3; color: #171717; text-align: center; letter-spacing: .12em; }
-.workspace-gate code { color: #6845e8; font-size: 10px; }

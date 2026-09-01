@@ -6,7 +6,6 @@ import {
   ChatCircle,
   CircleNotch,
   Clock,
-  ClockCounterClockwise,
   Columns,
   DownloadSimple,
   Eye,
@@ -15,7 +14,6 @@ import {
   ListBullets,
   MapPin,
   PersonSimple,
-  Plus,
   PresentationChart,
   Sparkle,
   UsersThree,
@@ -37,9 +35,8 @@ import { SharingControls } from "./SharingControls.jsx";
 import { browserNavigate, navigateInternalLink } from "./navigation.js";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
-import { Sheet, SheetContent, SheetTitle } from "../components/ui/sheet";
-import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "../components/ui/toggle-group";
+import "./styles.css";
 
 const briefIcons = {
   accessibility: Wheelchair,
@@ -55,6 +52,8 @@ const briefIcons = {
 const LazyPlanEditor = lazy(() => import("./PlanEditor.jsx").then((module) => ({ default: module.PlanEditor })));
 const LazyCommentsPanel = lazy(() => import("./CommentsPanel.jsx").then((module) => ({ default: module.CommentsPanel })));
 const LazyScenarioPanel = lazy(() => import("./ScenarioPanel.jsx").then((module) => ({ default: module.ScenarioPanel })));
+const loadHistoryPanel = () => import("./HistoryPanel.jsx").then((module) => ({ default: module.HistoryPanel }));
+const LazyHistoryPanel = lazy(loadHistoryPanel);
 
 const studioSessionId = `studio-session-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 const commandMetadata = (type) => {
@@ -182,7 +181,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
   const [toast, setToast] = useState("");
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [historyTab, setHistoryTab] = useState("versions");
+  const [historyMounted, setHistoryMounted] = useState(false);
   const [persistenceStatus, setPersistenceStatus] = useState("SYNC");
   const [legacyBriefMigration, setLegacyBriefMigration] = useState(null);
   const [legacyBriefReviewOpen, setLegacyBriefReviewOpen] = useState(false);
@@ -805,7 +804,7 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
             </PopoverContent>
             </div>
           </Popover>
-          <HeaderButton className="history-button" ariaLabel="Open plan history" onClick={() => setHistoryOpen((open) => !open)}>Plan v{plannerState.plan.version}<span className={`save-indicator is-${persistenceStatus.toLowerCase()}`}>{persistenceStatus}</span><CaretDown size={14} /></HeaderButton>
+          <HeaderButton className="history-button" ariaLabel="Open plan history" onPointerEnter={loadHistoryPanel} onFocus={loadHistoryPanel} onClick={() => { setHistoryMounted(true); setHistoryOpen((open) => !open); }}>Plan v{plannerState.plan.version}<span className={`save-indicator is-${persistenceStatus.toLowerCase()}`}>{persistenceStatus}</span><CaretDown size={14} /></HeaderButton>
           <HeaderButton className={`edit-button ${editorOpen ? "is-active" : ""}`} ariaLabel="Toggle plan editor" onClick={() => setEditorOpen((open) => !open)}>{editorOpen ? "REVIEW" : "EDIT"}</HeaderButton>
           <HeaderButton className={`comments-button ${commentsOpen ? "is-active" : ""}`} ariaLabel="Open comments" onClick={() => { setSimulationOpen(false); setCommentsOpen((open) => !open); }}><ChatCircle size={17} /> {plannerState.comments.filter((comment) => comment.status === "open").length}</HeaderButton>
           <HeaderButton className={`simulation-button ${simulationOpen ? "is-active" : ""}`} ariaLabel="Open simulations" onClick={() => { setCommentsOpen(false); setSimulationOpen((open) => !open); }}>SIM {plannerState.scenarioRuns.filter((run) => run.status === "completed").length}</HeaderButton>
@@ -974,35 +973,39 @@ export function App({ projectId = "project-summit-forward", organizationId = "or
           {analysisOpen && <div className="analysis-drawer"><div><Wheelchair size={18} /><span><strong>Route graph</strong><small>{accessEvidence.minimumClearWidthM} m · {accessEvidence.graphFingerprint}</small></span></div><div><UsersThree size={18} /><span><strong>Accessible seats</strong><small>{accessEvidence.accessibleSeatSampleIds.length} samples · {accessEvidence.blockedAccessibleSeatSampleIds.length} blocked</small></span></div><div><MapPin size={18} /><span><strong>Door clearance</strong><small>{accessEvidence.doorClearanceZones.length} zones · {accessEvidence.obstructedDoorObjectIds.length} blocked</small></span></div><div><UsersThree size={18} /><span><strong>Occupancy</strong><small>{capacityEvidence.placedCapacity} placed · {capacityEvidence.operationalLoad}/{capacityEvidence.venueMaximum} load</small></span></div><div><PersonSimple size={18} /><span><strong>Circulation</strong><small>{circulationEvidence.shortestExitPaths.length} paths · {circulationEvidence.peakCongestionIndex} peak</small></span></div><div><Eye size={18} /><span><strong>Sightlines</strong><small>{sightlineEvidence.sampledSeatIds.length} rays · {sightlineEvidence.blockedSampleIds.length} blocked</small></span></div><button type="button" onClick={() => setAnalysisOpen(false)} aria-label="Close analysis"><X size={18} /></button></div>}
         </section>
       </main>
-      <Sheet open={historyOpen} onOpenChange={(open) => { setHistoryOpen(open); if (!open) setComparisonOpen(false); }} modal={false}>
-        <SheetContent className="history-drawer" side="right" showOverlay={false} showCloseButton={false} aria-label="Plan history">
-          <div className="history-heading"><div><span className="eyebrow">Plan control</span><SheetTitle asChild><strong>v{plannerState.plan.version}</strong></SheetTitle></div><button type="button" onClick={() => { setHistoryOpen(false); setComparisonOpen(false); }} aria-label="Close plan history"><X size={18} /></button></div>
-          <Tabs className="history-tabs-shell" value={historyTab} onValueChange={setHistoryTab}>
-          <TabsList className="history-tabs" aria-label="Plan control views">
-            <TabsTrigger value="versions"><ClockCounterClockwise size={15} /> Versions</TabsTrigger>
-            <TabsTrigger value="ledger"><ListBullets size={15} /> Ledger</TabsTrigger>
-            <TabsTrigger value="branches"><GitBranch size={15} /> Branches</TabsTrigger>
-            <TabsTrigger value="locks"><MapPin size={15} /> Locks</TabsTrigger>
-          </TabsList>
-
-          {historyTab === "versions" && <div className="history-list">{versionEvents.map((entry) => {
-            const version = entry.details.toVersion ?? entry.details.version ?? plannerState.plan.version;
-            return <div className="history-row" key={entry.id}><span className="history-node" /><div><strong>v{version}</strong><small>{entry.type}</small></div><time>{entry.occurredAt.slice(11, 16)}</time></div>;
-          })}</div>}
-
-          {historyTab === "ledger" && <div className="history-list">{plannerState.ledger.slice().reverse().map((entry) => <div className="ledger-row" key={entry.id}><span className={`actor-badge is-${entry.actor}`}>{entry.actor === "agent" ? "AI" : entry.actor === "human" ? "HU" : "SY"}</span><div><strong>{entry.type}</strong><small>#{String(entry.sequence).padStart(3, "0")}</small></div><time>{entry.occurredAt.slice(11, 16)}</time></div>)}</div>}
-
-          {historyTab === "branches" && <div className="branch-panel">
-            <div className="branch-compare-controls"><label><span>A</span><select aria-label="Comparison branch A" value={compareLeftBranchId} onChange={(event) => setCompareLeftBranchId(event.target.value)}>{activeBranches.map((branch) => <option value={branch.id} key={branch.id}>{branch.name}</option>)}</select></label><label><span>B</span><select aria-label="Comparison branch B" value={compareRightBranchId} onChange={(event) => setCompareRightBranchId(event.target.value)}>{activeBranches.map((branch) => <option value={branch.id} key={branch.id}>{branch.name}</option>)}</select></label><button type="button" disabled={activeBranches.length < 2 || compareLeftBranchId === compareRightBranchId} onClick={handleCompareBranches}><Columns size={14} /> Compare</button></div>
-            <div className="branch-list">{branches.map((branch) => <div className={`branch-entry ${branch.active ? "active" : ""} ${branch.archived ? "is-archived" : ""}`} key={branch.id}><button type="button" className={`branch-card ${branch.active ? "active" : ""}`} disabled={branch.archived} onClick={() => handleSwitchBranch(branch.id)}><span><GitBranch size={15} /><strong>{branch.name}</strong></span><span className={`branch-status is-${branch.stale ? "fail" : branch.validationStatus}`}>{branch.archived ? "ARCH" : branch.decisionStatus ? branch.decisionStatus.toUpperCase() : branch.stale ? "STALE" : branch.validationStatus.toUpperCase()}</span><small>{branch.changedItems} CHG · {branch.revisionCount} REV</small><b>v{branch.baseVersion}</b></button><div className="branch-actions"><select aria-label={`${branch.name} revision`} value={branchRevisionSelections[branch.id] ?? branch.proposalId} onChange={(event) => setBranchRevisionSelections((current) => ({ ...current, [branch.id]: event.target.value }))}>{branch.revisions.toReversed().map((revision) => <option key={revision.proposalId} value={revision.proposalId}>R{revision.revision}{revision.current ? "·" : ""}</option>)}</select><button type="button" onClick={() => handleDuplicateBranch(branch.id)}>DUP</button><button type="button" onClick={() => handleBranchArchive(branch)}>{branch.archived ? "RST" : "ARC"}</button>{branch.stale && !branch.archived && <button type="button" onClick={() => handleRebaseBranch(branch.id)}>RBS</button>}</div></div>)}</div>
-            {activeBranch && <div className="branch-meta"><input key={`${activeBranch.id}-${activeBranch.name}`} aria-label="Branch name" defaultValue={activeBranch.name} onBlur={(event) => handleBranchMetadata(activeBranch, { name: event.currentTarget.value })} /><textarea key={`${activeBranch.id}-${activeBranch.notes}`} aria-label="Branch notes" placeholder="NOTES" defaultValue={activeBranch.notes} onBlur={(event) => handleBranchMetadata(activeBranch, { notes: event.currentTarget.value })} /></div>}
-            <button className="new-branch" type="button" onClick={handleCreateBranch}><Plus size={16} /> New branch</button>
-          </div>}
-
-          {historyTab === "locks" && <div className="lock-panel"><form className="lock-form" onSubmit={handleAddLock}><select aria-label="Lock object" value={lockObjectId} onChange={(event) => setLockObjectId(event.target.value)}>{plannerState.plan.objects.map((object) => <option key={object.id} value={object.id}>{object.label}</option>)}</select><select aria-label="Lock type" value={lockType} onChange={(event) => setLockType(event.target.value)}>{["position", "rotation", "dimension", "deletion", "role"].map((type) => <option key={type}>{type}</option>)}</select><input aria-label="Lock reason code" value={lockReason} onChange={(event) => setLockReason(event.target.value)} required /><button type="submit">Add lock</button></form><div className="lock-list">{activeLocks.map((lock) => <div className={`lock-row is-${lock.source}`} key={lock.id}><span><strong>{lock.label}</strong><small>{lock.objectId}</small></span><b>{lock.type.toUpperCase()}</b><em>{lock.source === "project" ? "PROJECT" : "TEMPLATE"}</em>{lock.source === "project" && <button type="button" onClick={() => handleReleaseLock(lock.id)}>Release</button>}</div>)}</div></div>}
-          </Tabs>
-        </SheetContent>
-      </Sheet>
+      {historyMounted && <Suspense fallback={historyOpen ? <div className="panel-loading is-side" role="status">HISTORY</div> : null}><LazyHistoryPanel
+        open={historyOpen}
+        version={plannerState.plan.version}
+        versionEvents={versionEvents}
+        ledger={plannerState.ledger}
+        activeBranches={activeBranches}
+        branches={branches}
+        activeBranch={activeBranch}
+        compareLeftBranchId={compareLeftBranchId}
+        compareRightBranchId={compareRightBranchId}
+        branchRevisionSelections={branchRevisionSelections}
+        planObjects={plannerState.plan.objects}
+        activeLocks={activeLocks}
+        lockObjectId={lockObjectId}
+        lockType={lockType}
+        lockReason={lockReason}
+        onClose={() => { setHistoryOpen(false); setComparisonOpen(false); }}
+        onCompareLeftChange={setCompareLeftBranchId}
+        onCompareRightChange={setCompareRightBranchId}
+        onCompareBranches={handleCompareBranches}
+        onSwitchBranch={handleSwitchBranch}
+        onRevisionChange={(branchId, proposalId) => setBranchRevisionSelections((current) => ({ ...current, [branchId]: proposalId }))}
+        onDuplicateBranch={handleDuplicateBranch}
+        onBranchArchive={handleBranchArchive}
+        onRebaseBranch={handleRebaseBranch}
+        onBranchMetadata={handleBranchMetadata}
+        onCreateBranch={handleCreateBranch}
+        onLockObjectChange={setLockObjectId}
+        onLockTypeChange={setLockType}
+        onLockReasonChange={setLockReason}
+        onAddLock={handleAddLock}
+        onReleaseLock={handleReleaseLock}
+      /></Suspense>}
       {commentsOpen && <Suspense fallback={<div className="panel-loading is-side" role="status">COMMENTS</div>}><LazyCommentsPanel state={plannerState} selectedCommentId={selectedCommentId} onAdd={handleAddComment} onEdit={handleEditComment} onStatus={handleCommentStatus} onClose={() => setCommentsOpen(false)} /></Suspense>}
       {simulationOpen && <Suspense fallback={<div className="panel-loading is-side" role="status">SIM</div>}><LazyScenarioPanel branches={branches} runs={plannerState.scenarioRuns} onClose={() => { setSimulationOpen(false); setSimulationOverlay(null); }} onRun={handleRunScenario} onCompare={(leftRunId, rightRunId) => planner.execute({ type: "compare_simulations", leftRunId, rightRunId })} onExport={handleExportSimulation} onOverlayChange={setSimulationOverlay} onPreviewOption={handlePreviewQueueOption} /></Suspense>}
       {comparisonOpen && branchComparison && <aside className="branch-comparison" aria-label="Proposal Branch comparison">

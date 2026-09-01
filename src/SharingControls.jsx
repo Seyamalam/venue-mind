@@ -1,14 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
-import { Bell, LinkSimple, Copy, X } from "@phosphor-icons/react";
-import { Checkbox } from "../components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { Bell, LinkSimple } from "@phosphor-icons/react";
+import { Popover, PopoverTrigger } from "../components/ui/popover";
 
-const EVENT_OPTIONS = Object.freeze([
-  ["review_requested", "REVIEW"],
-  ["adjustment_requested", "ADJUST"],
-  ["approval_completed", "APPROVE"],
-  ["conflict_detected", "CONFLICT"],
-]);
+const loadSharingPanels = () => import("./SharingPanels.jsx");
+const LazySharePopoverPanel = lazy(() => loadSharingPanels().then((module) => ({ default: module.SharePopoverPanel })));
+const LazyNotificationPopoverPanel = lazy(() => loadSharingPanels().then((module) => ({ default: module.NotificationPopoverPanel })));
 const json = async (response) => {
   if (!(response.headers.get("content-type") ?? "").includes("application/json")) throw Object.assign(new Error("API_UNAVAILABLE"), { code: "API_UNAVAILABLE" });
   const body = await response.json();
@@ -21,6 +17,8 @@ const headers = (organizationId, extra = {}) => ({ "x-venuemind-organization-id"
 export function SharingControls({ projectId, organizationId, proposalId, canManage = false }) {
   const [shareOpen, setShareOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [shareMounted, setShareMounted] = useState(false);
+  const [notificationMounted, setNotificationMounted] = useState(false);
   const [links, setLinks] = useState([]);
   const [scope, setScope] = useState("reviewer");
   const [days, setDays] = useState(7);
@@ -48,27 +46,19 @@ export function SharingControls({ projectId, organizationId, proposalId, canMana
   const revoke = async (id) => { await run(async () => { await json(await fetch(`/api/projects/${encodeURIComponent(projectId)}/share-links/${encodeURIComponent(id)}/revoke`, { method: "POST", credentials: "same-origin", headers: headers(organizationId) })); await loadLinks(); }); };
   const savePreferences = async (next) => { const previous = preferences; setPreferences(next); const saved = await run(async () => json(await fetch("/api/notification-preferences", { method: "PUT", credentials: "same-origin", headers: headers(organizationId, { "content-type": "application/json" }), body: JSON.stringify(next) }))); if (!saved) setPreferences(previous); };
   const toggleEvent = (eventType, enabled) => void savePreferences({ ...preferences, eventTypes: enabled ? [...new Set([...preferences.eventTypes, eventType])] : preferences.eventTypes.filter((item) => item !== eventType) });
+  const markRead = async (notificationId) => { await fetch(`/api/notifications/${encodeURIComponent(notificationId)}/read`, { method: "POST", credentials: "same-origin", headers: headers(organizationId) }); await loadNotifications(); };
 
   return <>
-    {canManage && <Popover open={shareOpen} onOpenChange={setShareOpen}>
+    {canManage && <Popover open={shareOpen} onOpenChange={(open) => { if (open) setShareMounted(true); setShareOpen(open); }}>
       <div className="share-control">
-        <PopoverTrigger asChild><button className="header-button compact-control" type="button" aria-label="Share Project"><LinkSimple size={16} /> SHARE</button></PopoverTrigger>
-        <PopoverContent className="share-popover" align="end" sideOffset={8}>
-          <header><b>SHARE</b><code>{status}</code><button type="button" onClick={() => setShareOpen(false)} aria-label="Close sharing"><X size={13} /></button></header>
-          <div className="share-create"><select aria-label="Share scope" value={scope} onChange={(event) => setScope(event.target.value)}><option value="reviewer">REVIEWER</option><option value="read-only">READ ONLY</option></select><select aria-label="Share expiry" value={days} onChange={(event) => setDays(Number(event.target.value))}><option value={1}>1D</option><option value={7}>7D</option><option value={30}>30D</option></select><button type="button" onClick={create}>CREATE</button></div>
-          {createdUrl && <div className="share-result"><code>{createdUrl}</code><button type="button" onClick={() => navigator.clipboard?.writeText(createdUrl)}><Copy size={12} /></button></div>}
-          <div className="share-links">{links.map((link) => <div key={link.id}><span><b>{link.scope.toUpperCase()}</b><small>{link.status.toUpperCase()} · {link.proposalId ?? "PROJECT"}</small></span>{link.status === "active" && <button type="button" onClick={() => revoke(link.id)}>REVOKE</button>}</div>)}</div>
-        </PopoverContent>
+        <PopoverTrigger asChild><button className="header-button compact-control" type="button" aria-label="Share Project" onPointerEnter={loadSharingPanels} onFocus={loadSharingPanels}><LinkSimple size={16} /> SHARE</button></PopoverTrigger>
+        {shareMounted && <Suspense fallback={null}><LazySharePopoverPanel status={status} scope={scope} days={days} createdUrl={createdUrl} links={links} onScopeChange={setScope} onDaysChange={setDays} onCreate={create} onCopy={() => navigator.clipboard?.writeText(createdUrl)} onRevoke={revoke} onClose={() => setShareOpen(false)} /></Suspense>}
       </div>
     </Popover>}
-    <Popover open={notificationOpen} onOpenChange={setNotificationOpen}>
+    <Popover open={notificationOpen} onOpenChange={(open) => { if (open) setNotificationMounted(true); setNotificationOpen(open); }}>
       <div className="notification-control">
-        <PopoverTrigger asChild><button className="header-button compact-control" type="button" aria-label="Notifications"><Bell size={16} /> {notifications.filter((item) => !item.readAt).length}</button></PopoverTrigger>
-        <PopoverContent className="notification-popover" align="end" sideOffset={8}>
-          <header><b>NOTIFY</b><code>{status}</code><span><label>APP <Checkbox className="size-[11px]" checked={preferences.inAppEnabled} onCheckedChange={(checked) => void savePreferences({ ...preferences, inAppEnabled: checked === true })} /></label><label>EMAIL <Checkbox className="size-[11px]" checked={preferences.emailEnabled} onCheckedChange={(checked) => void savePreferences({ ...preferences, emailEnabled: checked === true })} /></label></span></header>
-          <div className="notification-events">{EVENT_OPTIONS.map(([eventType, label]) => <label key={eventType}>{label}<Checkbox className="size-[11px]" checked={preferences.eventTypes.includes(eventType)} onCheckedChange={(checked) => toggleEvent(eventType, checked === true)} /></label>)}</div>
-          <div>{notifications.map((item) => <button key={item.id} type="button" className={item.readAt ? "is-read" : ""} onClick={async () => { await fetch(`/api/notifications/${encodeURIComponent(item.id)}/read`, { method: "POST", credentials: "same-origin", headers: headers(organizationId) }); await loadNotifications(); }}><b>{item.eventType.replaceAll("_", " ").toUpperCase()}</b><small>{item.refs.planVersion ?? item.refs.proposalId ?? item.refs.conflictCode ?? `R${item.refs.revision}`}</small></button>)}</div>
-        </PopoverContent>
+        <PopoverTrigger asChild><button className="header-button compact-control" type="button" aria-label="Notifications" onPointerEnter={loadSharingPanels} onFocus={loadSharingPanels}><Bell size={16} /> {notifications.filter((item) => !item.readAt).length}</button></PopoverTrigger>
+        {notificationMounted && <Suspense fallback={null}><LazyNotificationPopoverPanel status={status} preferences={preferences} notifications={notifications} onSavePreferences={savePreferences} onToggleEvent={toggleEvent} onMarkRead={markRead} /></Suspense>}
       </div>
     </Popover>
   </>;
