@@ -75,7 +75,7 @@
     {
       "version": 8,
       "name": "event_day_runbooks",
-      "checksum": "08f20ad78e5a8d7d0bd461eeae854d119be5621a37186b7eeac70b30a306504b",
+      "checksum": "60c2ced659cdc107b6fb8d5eb0d80d70074f7a7cc903596404d435d7a4d3158b",
       "destructive": false,
       "requiresProjectExport": false,
       "source": "/db/migrations/0008_event_day_runbooks.sql",

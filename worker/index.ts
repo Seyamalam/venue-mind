@@ -10,6 +10,9 @@ import { createShareToken, hashShareToken, safeNotification, shareLinkStatus, SH
 import { createVenuePlanner } from "../src/domain/venue-planner.js";
 import { createHumanPrincipal } from "../src/domain/authorization.js";
 import { createLegacyBriefAttestationProof, inspectLegacyBriefMigration } from "../src/domain/legacy-brief-migration.js";
+import { transitionRunbookTask } from "../src/domain/event-day-runbook.js";
+import { createD1RunbookRepository, RunbookClientSequenceConflict, RunbookIdempotencyConflict, RunbookTransitionConflict } from "./runbook-repository.ts";
+import { browserCommandToPersistenceInput, browserRunbookToPersistenceInput, repositoryRunbookToBrowserSnapshot } from "./runbook-http.ts";
 
 export { createD1AccountRepository, createMemoryAccountRepository } from "./account-repository.ts";
 export { createSitesIdentityProvider, createStaticIdentityProvider } from "./authentication.ts";
@@ -17,11 +20,13 @@ export { applyDatabaseMigrations, inspectDatabaseIntegrity, planDatabaseMigratio
 export { createD1CollaborationRepository, createMemoryCollaborationRepository } from "./collaboration-repository.ts";
 export { createD1SharingRepository, createMemorySharingRepository } from "./sharing-repository.ts";
 export { drainNotificationEmail } from "./email-delivery.ts";
+export { createD1RunbookRepository } from "./runbook-repository.ts";
 
 type ProjectRepository = ReturnType<typeof createD1ProjectRepository>;
 type AccountRepository = ReturnType<typeof createD1AccountRepository>;
 type CollaborationRepository = ReturnType<typeof createD1CollaborationRepository>;
 type SharingRepository = ReturnType<typeof createD1SharingRepository>;
+type RunbookRepository = ReturnType<typeof createD1RunbookRepository>;
 type EmailDelivery = { send: (message: { idempotencyKey: string; to: string; bodyCode: string; refs: Record<string, string | number> }) => Promise<{ delivered: boolean; providerMessageId?: string }> };
 type WorkerEnv = { ASSETS: { fetch: (request: Request) => Promise<Response> }; DB: unknown; EMAIL_DELIVERY?: EmailDelivery };
 type WorkerOptions = {
@@ -29,6 +34,7 @@ type WorkerOptions = {
   createAccountRepository?: (db: unknown) => AccountRepository;
   createCollaborationRepository?: (db: unknown) => CollaborationRepository;
   createSharingRepository?: (db: unknown) => SharingRepository;
+  createRunbookRepository?: (db: unknown) => RunbookRepository;
   identityProvider?: IdentityProvider;
   emailDelivery?: EmailDelivery;
   secureCookies?: boolean;
@@ -72,6 +78,7 @@ export function createWorker(options: WorkerOptions = {}) {
   const identityProvider = options.identityProvider ?? createSitesIdentityProvider();
   const secureCookies = options.secureCookies ?? true;
   const clock = options.clock ?? (() => new Date().toISOString());
+  const runbookRepositoryFactory = options.createRunbookRepository ?? ((db) => createD1RunbookRepository(db as never, { clock }));
 
   const appendShareLedger = async (env: WorkerEnv, organizationId: string, actorUserId: string, sessionId: string, record: ProjectRecord, command: Record<string, unknown>) => {
     const projects = projectRepositoryFactory(env.DB);
@@ -260,6 +267,7 @@ export function createWorker(options: WorkerOptions = {}) {
 
       const projects = projectRepositoryFactory(env.DB);
       const sharing = sharingRepositoryFactory(env.DB);
+      const runbooks = runbookRepositoryFactory(env.DB);
       const notifyOrganization = async (eventType: string, record: ProjectRecord, refs: Record<string, string | number>, excludeUserId: string | null = account.user.id) => {
         const recipients = await sharing.notificationRecipients(organization.id, eventType, excludeUserId);
         for (const recipient of recipients) {
@@ -267,6 +275,83 @@ export function createWorker(options: WorkerOptions = {}) {
           await sharing.addNotification(notification, { inAppEnabled: recipient.inAppEnabled, recipientEmail: recipient.emailEnabled ? recipient.email : null });
         }
       };
+      const canWriteRunbooks = ["planner", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
+      const runbookCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks$/);
+      const runbookItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)$/);
+      const runbookSyncMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)\/transitions:sync$/);
+      if (runbookCollectionMatch && request.method === "POST") {
+        if (!canWriteRunbooks) return apiError(403, "RUNBOOK_WRITE_DENIED", "Runbook write role required");
+        const projectId = decodeURIComponent(runbookCollectionMatch[1]);
+        if (!await projects.get(organization.id, projectId)) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let body: unknown;
+        try { body = await readBody(request); }
+        catch (cause) { return apiError(cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400, "RUNBOOK_INVALID", "Runbook payload is invalid"); }
+        try {
+          const envelope = body && typeof body === "object" && !Array.isArray(body) ? body as Record<string, unknown> : null;
+          const input = browserRunbookToPersistenceInput(envelope?.runbook ?? body, account.user.id);
+          const existing = await runbooks.getRunbook(organization.id, projectId, input.id);
+          const stored = await runbooks.createRunbook(organization.id, projectId, input);
+          return respond({ status: existing ? "already-applied" : "created", runbook: repositoryRunbookToBrowserSnapshot(stored) }, { status: existing ? 200 : 201 });
+        } catch (cause) {
+          const error = cause as { code?: string; message?: string; details?: unknown };
+          if (error.code === "RUNBOOK_ID_CONFLICT") return apiError(409, error.code, error.message ?? "Runbook version conflicts with stored content", error.details);
+          if (cause instanceof TypeError) return apiError(400, "RUNBOOK_INVALID", cause.message);
+          throw cause;
+        }
+      }
+      if (runbookSyncMatch && request.method === "POST") {
+        if (!canWriteRunbooks) return apiError(403, "RUNBOOK_WRITE_DENIED", "Runbook write role required");
+        const projectId = decodeURIComponent(runbookSyncMatch[1]);
+        const runbookVersionId = decodeURIComponent(runbookSyncMatch[2]);
+        if (!await projects.get(organization.id, projectId)) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let body: { commands?: unknown[] };
+        try { body = await readBody(request); }
+        catch (cause) { return apiError(cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400, "RUNBOOK_SYNC_INVALID", "Runbook sync payload is invalid"); }
+        if (!Array.isArray(body.commands) || body.commands.length > 100) return apiError(400, "RUNBOOK_SYNC_INVALID", "Runbook sync commands are invalid");
+        let current = await runbooks.getRunbook(organization.id, projectId, runbookVersionId);
+        if (!current) return apiError(404, "RUNBOOK_NOT_FOUND", "Runbook not found");
+        const acknowledgements: Array<Record<string, unknown>> = [];
+        for (const candidate of body.commands) {
+          const command = candidate && typeof candidate === "object" && !Array.isArray(candidate) ? candidate as Record<string, unknown> : {};
+          const identity = { idempotencyKey: typeof command.idempotencyKey === "string" ? command.idempotencyKey : null, operationId: typeof command.operationId === "string" ? command.operationId : null };
+          try {
+            const storedCommand = browserCommandToPersistenceInput(command, current, account.user.id, account.session.id);
+            const existing = current.receipts.some((receipt) => receipt.idempotencyKey === storedCommand.idempotencyKey);
+            if (!existing) {
+              transitionRunbookTask(repositoryRunbookToBrowserSnapshot(current), {
+                ...command,
+                type: "transition_runbook_task",
+                runbookVersionId,
+                actorType: "human",
+                actorId: account.user.id,
+                source: "studio",
+                sessionId: account.session.id,
+              }, { committedAt: clock() });
+            }
+            const applied = await runbooks.applyTransitionBatch(organization.id, projectId, runbookVersionId, [storedCommand]);
+            current = applied.runbook;
+            acknowledgements.push({ ...identity, ...applied.results[0], status: existing ? "already-applied" : "applied" });
+          } catch (cause) {
+            const error = cause as { code?: string; message?: string; details?: unknown };
+            if (cause instanceof RunbookIdempotencyConflict || cause instanceof RunbookTransitionConflict || cause instanceof RunbookClientSequenceConflict || ["IDEMPOTENCY_KEY_CONFLICT", "RUNBOOK_TASK_REVISION_CONFLICT"].includes(error.code ?? "")) {
+              acknowledgements.push({ ...identity, status: "conflict", code: error.code ?? "RUNBOOK_TRANSITION_CONFLICT", details: error.details });
+              continue;
+            }
+            if (cause instanceof TypeError || error.code?.startsWith("RUNBOOK_") || error.code === "IDEMPOTENCY_KEY_REQUIRED") {
+              acknowledgements.push({ ...identity, status: "rejected", code: error.code ?? "RUNBOOK_COMMAND_INVALID", details: error.details, message: error.message });
+              continue;
+            }
+            throw cause;
+          }
+        }
+        return respond({ acknowledgements, runbook: repositoryRunbookToBrowserSnapshot(current) });
+      }
+      if (runbookItemMatch && request.method === "GET") {
+        const projectId = decodeURIComponent(runbookItemMatch[1]);
+        const runbookVersionId = decodeURIComponent(runbookItemMatch[2]);
+        const runbook = await runbooks.getRunbook(organization.id, projectId, runbookVersionId);
+        return runbook ? respond({ runbook: repositoryRunbookToBrowserSnapshot(runbook) }) : apiError(404, "RUNBOOK_NOT_FOUND", "Runbook not found");
+      }
       if (url.pathname === "/api/notifications" && request.method === "GET") return respond({ notifications: await sharing.listNotifications(account.user.id, organization.id) });
       if (url.pathname === "/api/notification-preferences" && request.method === "GET") return respond(await sharing.preferences(account.user.id));
       if (url.pathname === "/api/notification-preferences" && request.method === "PUT") {

@@ -108,8 +108,10 @@ const transition = (overrides = {}) => ({
   actorId: "user-owner",
   source: "studio",
   sessionId: "session-owner",
-  deviceId: "device-a",
-  deviceOccurredAt: "2026-09-01T09:59:58.000Z",
+  reasonCode: "operator-started",
+  clientId: "device-a",
+  clientSequence: 1,
+  clientOccurredAt: "2026-09-01T09:59:58.000Z",
   evidence: [
     { code: "stage-check", ref: "photo://stage-ready" },
     { code: "access-check", ref: "checklist://accessible-route" },
@@ -135,6 +137,11 @@ test("Runbook repository creates and reads one frozen tenant-scoped baseline", a
     { id: "task-stage", status: "pending", taskRevision: 0 },
   ]);
   assert.equal(await repository.getRunbook("org-bravo", "project-alpha", "runbook-fixture"), null);
+  assert.deepEqual(await repository.createRunbook("org-alpha", "project-alpha", structuredClone(runbookInput)), created);
+  await assert.rejects(
+    () => repository.createRunbook("org-alpha", "project-alpha", { ...runbookInput, sourcePlanFingerprint: "plan-different" }),
+    (error) => error.code === "RUNBOOK_ID_CONFLICT",
+  );
   await assert.rejects(
     () => repository.createRunbook("org-bravo", "project-alpha", { ...runbookInput, id: "runbook-forged" }),
     (error) => error.code === "RUNBOOK_PROJECT_SCOPE_INVALID",
@@ -148,7 +155,7 @@ test("Runbook transition batches atomically persist projections, receipts, and a
 
   const commands = [
     transition(),
-    transition({ id: "transition-doors-ready", taskId: "task-doors", toStatus: "ready", idempotencyKey: "offline-doors-ready", correlationId: "corr-doors-ready" }),
+    transition({ id: "transition-doors-ready", taskId: "task-doors", toStatus: "ready", clientSequence: 2, idempotencyKey: "offline-doors-ready", correlationId: "corr-doors-ready" }),
   ];
   const applied = await repository.applyTransitionBatch("org-alpha", "project-alpha", "runbook-fixture", commands);
   assert.deepEqual(applied.results.map((item) => item.status), ["applied", "applied"]);
@@ -167,6 +174,23 @@ test("Runbook transition batches atomically persist projections, receipts, and a
   ]);
   assert.equal(applied.runbook.ledger[1].previousHash, applied.runbook.ledger[0].hash);
   assert.equal(applied.runbook.ledgerHeadHash, applied.runbook.ledger[1].hash);
+  assert.deepEqual({
+    reasonCode: applied.runbook.transitions[0].reasonCode,
+    clientId: applied.runbook.transitions[0].clientId,
+    clientSequence: applied.runbook.transitions[0].clientSequence,
+    clientOccurredAt: applied.runbook.transitions[0].clientOccurredAt,
+  }, {
+    reasonCode: "operator-started",
+    clientId: "device-a",
+    clientSequence: 1,
+    clientOccurredAt: "2026-09-01T09:59:58.000Z",
+  });
+  assert.equal(applied.runbook.ledger[0].details.reasonCode, "operator-started");
+  assert.equal(applied.runbook.ledger[0].details.clientSequence, 1);
+
+  const creationRetryAfterTransitions = await repository.createRunbook("org-alpha", "project-alpha", structuredClone(runbookInput));
+  assert.equal(creationRetryAfterTransitions.sequence, 2);
+  assert.equal(creationRetryAfterTransitions.tasks.find((task) => task.id === "task-stage").status, "in-progress");
 
   const retried = await repository.applyTransitionBatch("org-alpha", "project-alpha", "runbook-fixture", commands);
   assert.deepEqual(retried.results, applied.results);
@@ -182,7 +206,7 @@ test("Runbook transition batches accept ordered transitions for the same task", 
 
   const applied = await repository.applyTransitionBatch("org-alpha", "project-alpha", "runbook-fixture", [
     transition(),
-    transition({ id: "transition-stage-completed", expectedTaskRevision: 1, fromStatus: "in-progress", toStatus: "completed", idempotencyKey: "offline-stage-completed", correlationId: "corr-stage-completed" }),
+    transition({ id: "transition-stage-completed", expectedTaskRevision: 1, fromStatus: "in-progress", toStatus: "completed", clientSequence: 2, idempotencyKey: "offline-stage-completed", correlationId: "corr-stage-completed" }),
   ]);
   assert.equal(applied.runbook.tasks.find((task) => task.id === "task-stage").status, "completed");
   assert.equal(applied.runbook.tasks.find((task) => task.id === "task-stage").taskRevision, 2);
@@ -203,8 +227,8 @@ test("Runbook idempotency conflicts and stale batches leave every durable surfac
 
   await assert.rejects(
     () => repository.applyTransitionBatch("org-alpha", "project-alpha", "runbook-fixture", [
-      transition({ id: "transition-doors-ready", taskId: "task-doors", toStatus: "ready", idempotencyKey: "offline-doors-ready" }),
-      transition({ id: "transition-stage-stale", expectedTaskRevision: 0, fromStatus: "pending", toStatus: "completed", idempotencyKey: "offline-stage-stale" }),
+      transition({ id: "transition-doors-ready", taskId: "task-doors", toStatus: "ready", clientSequence: 2, idempotencyKey: "offline-doors-ready" }),
+      transition({ id: "transition-stage-stale", expectedTaskRevision: 0, fromStatus: "pending", toStatus: "completed", clientSequence: 3, idempotencyKey: "offline-stage-stale" }),
     ]),
     (error) => error instanceof RunbookTransitionConflict && error.code === "RUNBOOK_TASK_REVISION_CONFLICT",
   );

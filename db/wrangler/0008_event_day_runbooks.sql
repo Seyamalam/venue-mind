@@ -50,8 +50,10 @@ CREATE TABLE event_day_runbook_transitions (
   actor_id TEXT NOT NULL CHECK (length(actor_id) > 0),
   source TEXT NOT NULL CHECK (source IN ('studio', 'webmcp', 'mcp', 'system', 'agent-tool')),
   session_id TEXT NOT NULL CHECK (length(session_id) > 0),
-  device_id TEXT,
-  device_occurred_at TEXT,
+  reason_code TEXT CHECK (reason_code IS NULL OR length(reason_code) > 0),
+  client_id TEXT NOT NULL CHECK (length(client_id) > 0),
+  client_sequence INTEGER NOT NULL CHECK (client_sequence >= 1),
+  client_occurred_at TEXT NOT NULL CHECK (length(client_occurred_at) > 0),
   accepted_at TEXT NOT NULL,
   evidence_json TEXT NOT NULL CHECK (json_valid(evidence_json) AND json_type(evidence_json) = 'array'),
   idempotency_key TEXT NOT NULL CHECK (length(idempotency_key) > 0),
@@ -59,6 +61,7 @@ CREATE TABLE event_day_runbook_transitions (
   correlation_id TEXT NOT NULL CHECK (length(correlation_id) > 0),
   UNIQUE (runbook_id, runbook_sequence),
   UNIQUE (runbook_id, idempotency_key),
+  UNIQUE (runbook_id, client_id, client_sequence),
   UNIQUE (runbook_id, id, organization_id, project_id),
   FOREIGN KEY (runbook_id, task_id, organization_id, project_id) REFERENCES event_day_runbook_tasks(runbook_id, id, organization_id, project_id) ON DELETE CASCADE
 );
@@ -143,4 +146,4 @@ END;
 CREATE TRIGGER reject_event_day_runbook_receipt_delete BEFORE DELETE ON event_day_runbook_receipts BEGIN
   SELECT RAISE(ABORT, 'RUNBOOK_RECEIPT_APPEND_ONLY');
 END;
-INSERT INTO schema_migrations (version, name, checksum, applied_at, adopted) VALUES (8, 'event_day_runbooks', '08f20ad78e5a8d7d0bd461eeae854d119be5621a37186b7eeac70b30a306504b', CURRENT_TIMESTAMP, 0);
+INSERT INTO schema_migrations (version, name, checksum, applied_at, adopted) VALUES (8, 'event_day_runbooks', '60c2ced659cdc107b6fb8d5eb0d80d70074f7a7cc903596404d435d7a4d3158b', CURRENT_TIMESTAMP, 0);

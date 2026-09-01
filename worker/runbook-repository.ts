@@ -51,8 +51,10 @@ export type RunbookTransitionInput = {
   actorId: string;
   source: "studio" | "webmcp" | "mcp" | "system" | "agent-tool";
   sessionId: string;
-  deviceId?: string | null;
-  deviceOccurredAt?: string | null;
+  reasonCode?: string | null;
+  clientId: string;
+  clientSequence: number;
+  clientOccurredAt: string;
   evidence?: RunbookEvidenceReference[];
   idempotencyKey: string;
   correlationId?: string | null;
@@ -117,6 +119,13 @@ export class RunbookTransitionConflict extends RunbookRepositoryError {
   }
 }
 
+export class RunbookClientSequenceConflict extends RunbookRepositoryError {
+  constructor(details: Record<string, unknown>) {
+    super("RUNBOOK_CLIENT_SEQUENCE_CONFLICT", "Runbook client sequence was already used by another command", details);
+    this.name = "RunbookClientSequenceConflict";
+  }
+}
+
 const mapRunbook = (row: RunbookRow) => ({
   id: String(row.id),
   organizationId: String(row.organization_id),
@@ -161,8 +170,10 @@ const mapTransition = (row: RunbookRow) => ({
   actorId: String(row.actor_id),
   source: String(row.source),
   sessionId: String(row.session_id),
-  deviceId: row.device_id == null ? null : String(row.device_id),
-  deviceOccurredAt: row.device_occurred_at == null ? null : String(row.device_occurred_at),
+  reasonCode: row.reason_code == null ? null : String(row.reason_code),
+  clientId: String(row.client_id),
+  clientSequence: Number(row.client_sequence),
+  clientOccurredAt: String(row.client_occurred_at),
   acceptedAt: String(row.accepted_at),
   evidence: parse(row.evidence_json),
   idempotencyKey: String(row.idempotency_key),
@@ -232,6 +243,7 @@ const normalizeRunbook = (input: EventDayRunbookInput) => {
 
 const normalizeTransition = (input: RunbookTransitionInput) => {
   if (!Number.isSafeInteger(input.expectedTaskRevision) || input.expectedTaskRevision < 0) throw new TypeError("Runbook transition expectedTaskRevision must be a non-negative integer");
+  if (!Number.isSafeInteger(input.clientSequence) || input.clientSequence < 1) throw new TypeError("Runbook transition clientSequence must be a positive integer");
   if (!["human", "agent", "system"].includes(input.actorType)) throw new TypeError("Runbook transition actorType is invalid");
   if (!["studio", "webmcp", "mcp", "system", "agent-tool"].includes(input.source)) throw new TypeError("Runbook transition source is invalid");
   return {
@@ -244,27 +256,54 @@ const normalizeTransition = (input: RunbookTransitionInput) => {
     actorId: text(input.actorId, "transition actor ID"),
     source: input.source,
     sessionId: text(input.sessionId, "transition session ID"),
-    deviceId: input.deviceId == null ? null : text(input.deviceId, "transition device ID"),
-    deviceOccurredAt: input.deviceOccurredAt == null ? null : text(input.deviceOccurredAt, "transition device time"),
+    reasonCode: input.reasonCode == null ? null : text(input.reasonCode, "transition reason code"),
+    clientId: text(input.clientId, "transition client ID"),
+    clientSequence: input.clientSequence,
+    clientOccurredAt: text(input.clientOccurredAt, "transition client time"),
     evidence: evidence(input.evidence),
     idempotencyKey: text(input.idempotencyKey, "transition idempotency key"),
     correlationId: input.correlationId == null ? null : text(input.correlationId, "transition correlation ID"),
   };
 };
 
-const transitionFingerprint = (input: ReturnType<typeof normalizeTransition>) => stableFingerprint("runbook-command", {
-  id: input.id,
+const transitionFingerprint = (runbookId: string, input: ReturnType<typeof normalizeTransition>) => stableFingerprint("runbook-command", {
+  runbookVersionId: runbookId,
   taskId: input.taskId,
   expectedTaskRevision: input.expectedTaskRevision,
-  fromStatus: input.fromStatus,
   toStatus: input.toStatus,
+  reasonCode: input.reasonCode,
+  evidence: input.evidence,
+  clientId: input.clientId,
+  clientSequence: input.clientSequence,
+  clientOccurredAt: input.clientOccurredAt,
   actorType: input.actorType,
   actorId: input.actorId,
   source: input.source,
   sessionId: input.sessionId,
-  deviceId: input.deviceId,
-  deviceOccurredAt: input.deviceOccurredAt,
-  evidence: input.evidence,
+});
+
+const creationFingerprint = (value: {
+  id: string;
+  schemaVersion: number;
+  sourcePlanId: string;
+  sourcePlanVersion: string;
+  sourcePlanFingerprint: string;
+  sourceValidationId: string | null;
+  sourceValidationFingerprint: string | null;
+  sourceActivityLedgerHeadHash: string;
+  definition: Record<string, unknown>;
+  tasks: Array<{ id: string; phaseId: string; ownerRole: string | null; status: string; definition: Record<string, unknown> }>;
+}) => stableFingerprint("runbook-creation", {
+  id: value.id,
+  schemaVersion: value.schemaVersion,
+  sourcePlanId: value.sourcePlanId,
+  sourcePlanVersion: value.sourcePlanVersion,
+  sourcePlanFingerprint: value.sourcePlanFingerprint,
+  sourceValidationId: value.sourceValidationId,
+  sourceValidationFingerprint: value.sourceValidationFingerprint,
+  sourceActivityLedgerHeadHash: value.sourceActivityLedgerHeadHash,
+  definition: value.definition,
+  tasks: [...value.tasks].sort((left, right) => left.id.localeCompare(right.id)),
 });
 
 export function createD1RunbookRepository(db: D1Database, { clock = () => new Date().toISOString(), maximumBatchSize = 100 } = {}) {
@@ -293,18 +332,47 @@ export function createD1RunbookRepository(db: D1Database, { clock = () => new Da
       const tenantId = text(organizationId, "Organization ID");
       const ownerProjectId = text(projectId, "Project ID");
       const value = normalizeRunbook(input);
+      const isExactCreation = (stored: NonNullable<Awaited<ReturnType<typeof getRunbook>>>) => {
+        const initialStatus = new Map<string, string>();
+        for (const transition of stored.transitions) if (!initialStatus.has(transition.taskId)) initialStatus.set(transition.taskId, transition.fromStatus);
+        return creationFingerprint({
+          ...stored,
+          tasks: stored.tasks.map((task) => ({
+            id: task.id,
+            phaseId: task.phaseId,
+            ownerRole: task.ownerRole,
+            status: initialStatus.get(task.id) ?? task.status,
+            definition: task.definition,
+          })),
+        }) === creationFingerprint(value);
+      };
       const project = await db.prepare("SELECT id FROM projects WHERE id=? AND organization_id=?").bind(ownerProjectId, tenantId).first<{ id: string }>();
       if (!project) throw new RunbookRepositoryError("RUNBOOK_PROJECT_SCOPE_INVALID", "Runbook Project is unavailable in this Organization", { projectId: ownerProjectId });
       const existing = await db.prepare("SELECT id FROM event_day_runbooks WHERE id=?").bind(value.id).first<{ id: string }>();
-      if (existing) throw new RunbookRepositoryError("RUNBOOK_ID_CONFLICT", "Runbook ID already exists", { runbookId: value.id });
+      if (existing) {
+        const stored = await getRunbook(tenantId, ownerProjectId, value.id);
+        if (stored && isExactCreation(stored)) return stored;
+        throw new RunbookRepositoryError("RUNBOOK_ID_CONFLICT", "Runbook ID already exists", { runbookId: value.id });
+      }
       const statements = [
         db.prepare("INSERT INTO event_day_runbooks (id,organization_id,project_id,schema_version,source_plan_id,source_plan_version,source_plan_fingerprint,source_validation_id,source_validation_fingerprint,source_activity_ledger_head_hash,definition_json,frozen_by,frozen_at,updated_at,sequence,ledger_head_hash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,?)")
           .bind(value.id, tenantId, ownerProjectId, value.schemaVersion, value.sourcePlanId, value.sourcePlanVersion, value.sourcePlanFingerprint, value.sourceValidationId, value.sourceValidationFingerprint, value.sourceActivityLedgerHeadHash, json(value.definition), value.frozenBy, value.frozenAt, value.frozenAt, value.sourceActivityLedgerHeadHash),
         ...value.tasks.map((task) => db.prepare("INSERT INTO event_day_runbook_tasks (runbook_id,id,organization_id,project_id,phase_id,owner_role,definition_json,status,task_revision,last_transition_id,updated_at) VALUES (?,?,?,?,?,?,?,?,0,NULL,?)")
           .bind(value.id, task.id, tenantId, ownerProjectId, task.phaseId, task.ownerRole, json(task.definition), task.status, value.frozenAt)),
       ];
-      await db.batch(statements);
-      return await getRunbook(tenantId, ownerProjectId, value.id);
+      try {
+        await db.batch(statements);
+      } catch (cause) {
+        const message = cause instanceof Error ? cause.message : String(cause);
+        if (/UNIQUE constraint failed: event_day_runbooks\.id/.test(message)) {
+          const stored = await getRunbook(tenantId, ownerProjectId, value.id);
+          if (stored && isExactCreation(stored)) return stored;
+        }
+        throw cause;
+      }
+      const stored = await getRunbook(tenantId, ownerProjectId, value.id);
+      if (!stored) throw new RunbookRepositoryError("RUNBOOK_PERSISTENCE_FAILED", "Runbook was not readable after creation", { runbookId: value.id });
+      return stored;
     },
 
     getRunbook,
@@ -330,7 +398,7 @@ export function createD1RunbookRepository(db: D1Database, { clock = () => new Da
       let previousHash = current.ledgerHeadHash;
 
       for (const command of normalized) {
-        const inputFingerprint = transitionFingerprint(command);
+        const inputFingerprint = transitionFingerprint(id, command);
         const existingReceipt = existingReceipts.get(command.idempotencyKey);
         if (existingReceipt) {
           if (existingReceipt.inputFingerprint !== inputFingerprint) throw new RunbookIdempotencyConflict({ runbookId: id, idempotencyKey: command.idempotencyKey });
@@ -362,31 +430,34 @@ export function createD1RunbookRepository(db: D1Database, { clock = () => new Da
         const ledgerEntryId = `${id}-ledger-${String(sequence).padStart(6, "0")}`;
         const receiptId = `${id}-receipt-${command.id}`;
         const details = {
-          runbookId: id,
+          runbookVersionId: id,
+          sourcePlanVersion: current.sourcePlanVersion,
           taskId: command.taskId,
-          transitionId: command.id,
           fromStatus: command.fromStatus,
           toStatus: command.toStatus,
-          taskRevision,
-          deviceId: command.deviceId,
-          deviceOccurredAt: command.deviceOccurredAt,
-          evidence: command.evidence,
-          correlationId,
+          fromTaskRevision: command.expectedTaskRevision,
+          toTaskRevision: taskRevision,
+          transitionId: command.id,
+          receiptId,
           idempotencyKey: command.idempotencyKey,
           inputFingerprint,
+          reasonCode: command.reasonCode,
+          clientId: command.clientId,
+          clientSequence: command.clientSequence,
+          clientOccurredAt: command.clientOccurredAt,
+          evidence: command.evidence,
+          correlationId,
         };
         const ledgerPayload = {
           id: ledgerEntryId,
           schemaVersion: 1,
-          runbookId: id,
-          transitionId: command.id,
           sequence,
           type: "runbook.task_transitioned",
           actorType: command.actorType,
           actorId: command.actorId,
           source: command.source,
           sessionId: command.sessionId,
-          occurredAt: acceptedAt,
+          committedAt: acceptedAt,
           details,
           previousHash,
         };
@@ -404,8 +475,8 @@ export function createD1RunbookRepository(db: D1Database, { clock = () => new Da
         };
 
         statements.push(
-          db.prepare("INSERT INTO event_day_runbook_transitions (id,runbook_id,task_id,organization_id,project_id,runbook_sequence,expected_task_revision,task_revision,from_status,to_status,actor_type,actor_id,source,session_id,device_id,device_occurred_at,accepted_at,evidence_json,idempotency_key,input_fingerprint,correlation_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-            .bind(command.id, id, command.taskId, tenantId, ownerProjectId, sequence, command.expectedTaskRevision, taskRevision, command.fromStatus, command.toStatus, command.actorType, command.actorId, command.source, command.sessionId, command.deviceId, command.deviceOccurredAt, acceptedAt, json(command.evidence), command.idempotencyKey, inputFingerprint, correlationId),
+          db.prepare("INSERT INTO event_day_runbook_transitions (id,runbook_id,task_id,organization_id,project_id,runbook_sequence,expected_task_revision,task_revision,from_status,to_status,actor_type,actor_id,source,session_id,reason_code,client_id,client_sequence,client_occurred_at,accepted_at,evidence_json,idempotency_key,input_fingerprint,correlation_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+            .bind(command.id, id, command.taskId, tenantId, ownerProjectId, sequence, command.expectedTaskRevision, taskRevision, command.fromStatus, command.toStatus, command.actorType, command.actorId, command.source, command.sessionId, command.reasonCode, command.clientId, command.clientSequence, command.clientOccurredAt, acceptedAt, json(command.evidence), command.idempotencyKey, inputFingerprint, correlationId),
           db.prepare("INSERT INTO event_day_runbook_ledger (id,runbook_id,transition_id,organization_id,project_id,schema_version,sequence,event_type,actor_type,actor_id,source,session_id,occurred_at,details_json,previous_hash,hash) VALUES (?,?,?,?,?,1,?,'runbook.task_transitioned',?,?,?,?,?,?,?,?)")
             .bind(ledgerEntryId, id, command.id, tenantId, ownerProjectId, sequence, command.actorType, command.actorId, command.source, command.sessionId, acceptedAt, json(details), previousHash, hash),
           db.prepare("UPDATE event_day_runbook_tasks SET status=?,task_revision=?,last_transition_id=?,updated_at=? WHERE runbook_id=? AND id=? AND organization_id=? AND project_id=? AND task_revision=? AND status=?")
@@ -427,13 +498,18 @@ export function createD1RunbookRepository(db: D1Database, { clock = () => new Da
         } catch (cause) {
           const message = cause instanceof Error ? cause.message : String(cause);
           if (/RUNBOOK_(?:TASK_REVISION|SEQUENCE)_CONFLICT/.test(message)) throw new RunbookTransitionConflict({ runbookId: id, reason: "concurrent-transition" });
+          if (/UNIQUE constraint failed: event_day_runbook_transitions\.runbook_id, event_day_runbook_transitions\.client_id, event_day_runbook_transitions\.client_sequence/.test(message)) {
+            throw new RunbookClientSequenceConflict({ runbookId: id, reason: "concurrent-client-sequence" });
+          }
           if (/UNIQUE constraint failed: event_day_runbook_(?:transitions|receipts)\.runbook_id, event_day_runbook_(?:transitions|receipts)\.idempotency_key/.test(message)) {
             throw new RunbookIdempotencyConflict({ runbookId: id, reason: "concurrent-idempotency-key" });
           }
           throw cause;
         }
       }
-      return { results, runbook: await getRunbook(tenantId, ownerProjectId, id) };
+      const stored = await getRunbook(tenantId, ownerProjectId, id);
+      if (!stored) throw new RunbookRepositoryError("RUNBOOK_PERSISTENCE_FAILED", "Runbook was not readable after transition persistence", { runbookId: id });
+      return { results, runbook: stored };
     },
   });
 }
