@@ -8,6 +8,7 @@ import { normalizePlanningEffect } from "../src/domain/planning-effects.js";
 import { duplicateProjectRecord } from "../src/domain/project-lifecycle.js";
 import { summitForwardPlan } from "../src/domain/summit-forward.js";
 import { createVenuePlanner, validateVenueState } from "../src/domain/venue-planner.js";
+import { createHumanPrincipal } from "../src/domain/authorization.js";
 import { calendarWebhookEventSchema, eventBriefSchema, planningEffectSchema } from "../src/contracts/venue-contracts.js";
 import { calendarEventAdapter } from "../src/integrations/adapters/calendar-event-adapter.js";
 import { createAdapterRuntime } from "../src/integrations/runtime.js";
@@ -57,6 +58,9 @@ const plannerFor = (fixture) => {
   planner.execute({ type: "approve_proposal", proposalId: proposal.id, baseVersion: proposal.baseVersion, actor: "human", idempotencyKey: "accept-calendar-test-baseline" });
   return planner;
 };
+
+const legacyAdminAuthorization = { principal: createHumanPrincipal({ id: "user-admin-1", roles: ["organization-administrator"] }) };
+const legacyAdminProof = (brief, suffix = "1") => ({ source: "authenticated-human-attestation", brief: structuredClone(brief), attestationId: `attestation-legacy-brief-${suffix}`, actorId: "user-admin-1", actorRole: "organization-administrator" });
 
 test("Calendar Event import retains complete sanitized source evidence and maps the external Event to a stable Project", async () => {
   const result = await runtimeFor(attendanceFixture).execute(calendarEventAdapter, "import", structuredClone(attendanceFixture), authorization);
@@ -250,7 +254,7 @@ test("Activity Ledger replay rejects accepted Brief tampering at command and res
   assert.throws(() => plannerFor(metadataFixture).execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEDGER_INTEGRITY_FAILED" && error.details.replay.replayedBriefFingerprint !== error.details.replay.currentBriefFingerprint);
 });
 
-test("resealed legacy ledgers without accepted Brief proof fail closed", () => {
+test("resealed legacy ledgers without accepted Brief proof require explicit attestation", () => {
   const source = plannerFor(metadataFixture);
   const snapshot = structuredClone(source.getSnapshot());
   snapshot.ledger = sealActivityLedger(snapshot.ledger.map((entry) => {
@@ -261,10 +265,31 @@ test("resealed legacy ledgers without accepted Brief proof fail closed", () => {
     return { ...entry, details };
   }));
   snapshot.brief.attendeeTarget = 399;
-  assert.throws(() => plannerFor(metadataFixture).execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEDGER_INTEGRITY_FAILED" && error.details.replay?.status === "fail");
+  assert.throws(() => plannerFor(metadataFixture).execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEGACY_BRIEF_ATTESTATION_REQUIRED" && error.details.reason === "accepted-brief-proof-missing");
 });
 
-test("unsealed legacy migration pins the exact trusted initial Brief", () => {
+test("sealed legacy ledgers migrate accepted Brief proof only from an authenticated administrator", () => {
+  const source = plannerFor(metadataFixture);
+  const snapshot = structuredClone(source.getSnapshot());
+  snapshot.ledger = sealActivityLedger(snapshot.ledger.map((entry) => {
+    const details = structuredClone(entry.details);
+    delete details.acceptedBrief;
+    delete details.briefFingerprint;
+    delete details.briefMigrationProof;
+    return { ...entry, details };
+  }));
+  const seed = planFor(metadataFixture);
+  const restored = createVenuePlanner(seed, { projectId: metadataFixture.projectId, legacyBriefProof: legacyAdminProof(seed.brief), authorization: legacyAdminAuthorization });
+  restored.execute({ type: "restore_snapshot", snapshot });
+  const migrated = restored.getSnapshot();
+  assert.equal(migrated.ledger.findLast((entry) => entry.type === "schema.migrated")?.details.migrationId, "activity-ledger-v1-accepted-brief-proof");
+  assert.equal(restored.execute({ type: "replay_history" }).status, "pass");
+  const secondRestore = plannerFor(metadataFixture);
+  secondRestore.execute({ type: "restore_snapshot", snapshot: migrated });
+  assert.equal(secondRestore.getSnapshot().ledger.filter((entry) => entry.details?.migrationId === "activity-ledger-v1-accepted-brief-proof").length, 1);
+});
+
+test("unsealed legacy migration pins the exact explicitly trusted Brief", () => {
   const source = plannerFor(metadataFixture);
   const snapshot = structuredClone(source.getSnapshot());
   snapshot.ledger = snapshot.ledger.map((entry) => {
@@ -274,10 +299,52 @@ test("unsealed legacy migration pins the exact trusted initial Brief", () => {
     const { hash: _hash, previousHash: _previousHash, schemaVersion: _schemaVersion, ...legacy } = entry;
     return { ...legacy, details };
   });
-  const restored = plannerFor(metadataFixture);
+  const seed = planFor(metadataFixture);
+  const restored = createVenuePlanner(seed, { projectId: metadataFixture.projectId, legacyBriefProof: legacyAdminProof(seed.brief, "unsealed"), authorization: legacyAdminAuthorization });
   restored.execute({ type: "restore_snapshot", snapshot });
-  const proof = restored.getSnapshot().ledger.filter((entry) => entry.details?.acceptedPlan).at(-1).details.briefMigrationProof;
-  assert.deepEqual(proof, { source: "trusted-initial-brief", briefFingerprint: fingerprintEventBrief(restored.getSnapshot().brief) });
+  const proof = restored.getSnapshot().ledger.at(-1).details.briefMigrationProof;
+  assert.equal(proof.source, "authenticated-human-attestation");
+  assert.equal(proof.briefFingerprint, fingerprintEventBrief(restored.getSnapshot().brief));
+});
+
+test("snapshot-derived planner seeds cannot launder a modified legacy Brief", () => {
+  const source = plannerFor(metadataFixture);
+  const snapshot = structuredClone(source.getSnapshot());
+  snapshot.ledger = sealActivityLedger(snapshot.ledger.map((entry) => {
+    const details = structuredClone(entry.details);
+    delete details.acceptedBrief;
+    delete details.briefFingerprint;
+    delete details.briefMigrationProof;
+    return { ...entry, details };
+  }));
+  snapshot.brief.attendeeTarget = 417;
+  const snapshotSeed = { ...snapshot.plan, brief: snapshot.brief, proposal: snapshot.proposal };
+  const restored = createVenuePlanner(snapshotSeed, { projectId: metadataFixture.projectId });
+  assert.throws(() => restored.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEGACY_BRIEF_ATTESTATION_REQUIRED");
+});
+
+test("human legacy Brief attestation is bound to administrator identity and the exact Brief", () => {
+  const source = plannerFor(metadataFixture);
+  source.execute({ type: "update_event_brief", brief: { ...source.getSnapshot().brief, attendeeTarget: 420 }, actor: "human", idempotencyKey: "legacy-attested-update" });
+  const snapshot = structuredClone(source.getSnapshot());
+  snapshot.ledger = sealActivityLedger(snapshot.ledger.map((entry) => {
+    const details = structuredClone(entry.details);
+    delete details.acceptedBrief;
+    delete details.briefFingerprint;
+    delete details.briefMigrationProof;
+    return { ...entry, details };
+  }));
+  const seed = planFor(metadataFixture);
+  const proof = { source: "authenticated-human-attestation", brief: snapshot.brief, attestationId: "attestation-legacy-brief-1", actorId: "user-admin-1", actorRole: "organization-administrator" };
+  const restored = createVenuePlanner(seed, { projectId: metadataFixture.projectId, legacyBriefProof: proof, authorization: legacyAdminAuthorization });
+  restored.execute({ type: "restore_snapshot", snapshot });
+  assert.equal(restored.getSnapshot().brief.attendeeTarget, 420);
+  assert.deepEqual(restored.getSnapshot().ledger.at(-1).details.briefMigrationProof, { source: "authenticated-human-attestation", briefFingerprint: fingerprintEventBrief(snapshot.brief), attestationId: "attestation-legacy-brief-1", actorId: "user-admin-1", actorRole: "organization-administrator" });
+
+  const mismatched = createVenuePlanner(seed, { projectId: metadataFixture.projectId, legacyBriefProof: { ...proof, brief: seed.brief }, authorization: legacyAdminAuthorization });
+  assert.throws(() => mismatched.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEDGER_INTEGRITY_FAILED" && error.details.migration?.reason === "accepted-brief-proof-mismatch");
+  const agentAttestation = createVenuePlanner(seed, { projectId: metadataFixture.projectId, legacyBriefProof: { ...proof, actorRole: "planner" }, authorization: legacyAdminAuthorization });
+  assert.throws(() => agentAttestation.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEGACY_BRIEF_ATTESTATION_REQUIRED" && error.details.reason === "accepted-brief-attestation-invalid");
 });
 
 test("restore normalizes active and historical Planning Effects with one stable error", async () => {
@@ -427,19 +494,28 @@ test("calendar webhooks enforce the exact published event-type enum", async () =
 
 test("calendar organizer runtime and schema require the same exact non-contact fields", async () => {
   const organizerSchema = calendarWebhookEventSchema.properties.event.properties.organizer;
+  const contactValues = ["owner@example.com", "+1 (415) 555-0101", "+1 415 555 0101", "415/555/0101", "415–555–0101", "415—555—0101", "415−555−0101", "415​555​0101", "tel:+14155550101", "https://example.com/contact", "www.example.com", "discord:venue-owner", "Discord venue-owner", "slack U123ABC", "owner＠example․com", "@venue-owner"];
+  const legitimateLabels = ["Hotel: Operations", "Node.js Foundation", "Expo 2026-2027", "Expo 2026/2027/2028", "St.Thomas Events", "Signal: Operations"];
   assert.deepEqual(organizerSchema.required, ["displayName", "organization", "role"]);
   assert.equal(organizerSchema.additionalProperties, false);
-  for (const field of organizerSchema.required) assert.equal(new RegExp(organizerSchema.properties[field].pattern).test("owner@example.com"), false);
+  for (const field of organizerSchema.required) for (const value of contactValues) assert.equal(new RegExp(organizerSchema.properties[field].pattern).test(value), false, `${field}: ${value}`);
+  for (const field of organizerSchema.required) for (const value of legitimateLabels) assert.equal(new RegExp(organizerSchema.properties[field].pattern).test(value), true, `${field}: ${value}`);
 
   for (const organizer of [
     { displayName: "Summit Operations", organization: "Forward Events" },
-    { displayName: "owner@example.com", organization: "Forward Events", role: "Event organizer" },
+    ...contactValues.map((displayName) => ({ displayName, organization: "Forward Events", role: "Event organizer" })),
   ]) {
     const input = structuredClone(attendanceFixture);
     input.event.organizer = organizer;
     const result = await runtimeFor(attendanceFixture).execute(calendarEventAdapter, "import", input, authorization);
     assert.equal(result.status, "dead-lettered");
     assert.equal(result.deadLetter.terminalCode, "ADAPTER_SOURCE_INVALID");
+  }
+  for (const displayName of legitimateLabels) {
+    const input = structuredClone(attendanceFixture);
+    input.event.organizer = { displayName, organization: "Forward Events", role: "Event organizer" };
+    const result = await runtimeFor(attendanceFixture).execute(calendarEventAdapter, "import", input, authorization);
+    assert.equal(result.status, "succeeded");
   }
   const extra = structuredClone(attendanceFixture);
   extra.event.organizer.email = "owner@example.com";

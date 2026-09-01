@@ -294,6 +294,11 @@
     "message": "Activity Ledger integrity failed.",
     "remediation": "Restore an untampered snapshot or recover the last verified Project record."
   },
+  "LEGACY_BRIEF_ATTESTATION_REQUIRED": {
+    "code": "LEGACY_BRIEF_ATTESTATION_REQUIRED",
+    "message": "Legacy Event Brief requires trusted human attestation.",
+    "remediation": "Have an organization owner or administrator review and attest the legacy Event Brief before migration."
+  },
   "VENUE_INTERNAL_ERROR": {
     "code": "VENUE_INTERNAL_ERROR",
     "message": "VenueMind could not complete the operation.",

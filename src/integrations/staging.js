@@ -1,6 +1,7 @@
 import { fingerprintEventBrief, fingerprintPlan } from "../domain/activity-ledger.js";
 import { assertPlanningEffectBinding, normalizePlanningEffect } from "../domain/planning-effects.js";
 import { AdapterContractError, assertIsoTimestamp, normalizeAdapterChange, normalizeExternalReference, normalizeSyncCursor, sha256Checksum } from "./contracts.js";
+import { isNonContactLabel } from "./privacy.js";
 
 const clone = (value) => structuredClone(value);
 
@@ -148,7 +149,7 @@ export async function createAdapterStagingBatch(definition, input, options = {})
     if (typeof descriptive.location?.label !== "string" || !descriptive.location.label) fail("ADAPTER_SOURCE_INVALID", "Source record location label is required");
     for (const field of ["displayName", "organization", "role"]) {
       const value = descriptive.organizer?.[field];
-      if (typeof value !== "string" || !value || value.includes("@")) fail("ADAPTER_SOURCE_INVALID", "Organizer metadata must contain exact labels and no contact PII", { field });
+      if (!isNonContactLabel(value)) fail("ADAPTER_SOURCE_INVALID", "Organizer metadata must contain exact labels and no contact PII", { field });
     }
     return Object.freeze({ external, synchronizedAt: record.synchronizedAt, descriptive: clone(descriptive) });
   });

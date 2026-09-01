@@ -60,6 +60,7 @@ export const errorCatalog = Object.freeze({
   TOOL_PAYLOAD_TOO_LARGE: define("TOOL_PAYLOAD_TOO_LARGE", "Tool payload exceeds its published size limit.", "Reduce the requested geometry or export payload and retry within the published byte limit."),
   TOOL_CALL_CANCELLED: define("TOOL_CALL_CANCELLED", "Tool call was cancelled.", "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."),
   LEDGER_INTEGRITY_FAILED: define("LEDGER_INTEGRITY_FAILED", "Activity Ledger integrity failed.", "Restore an untampered snapshot or recover the last verified Project record."),
+  LEGACY_BRIEF_ATTESTATION_REQUIRED: define("LEGACY_BRIEF_ATTESTATION_REQUIRED", "Legacy Event Brief requires trusted human attestation.", "Have an organization owner or administrator review and attest the legacy Event Brief before migration."),
   VENUE_INTERNAL_ERROR: define("VENUE_INTERNAL_ERROR", "VenueMind could not complete the operation.", "Retry once; if the error persists, inspect the server log with the correlation ID."),
 });
 

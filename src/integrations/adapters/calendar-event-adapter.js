@@ -1,5 +1,6 @@
 import { AdapterContractError, createSyncCursor, defineAdapter, sha256Checksum } from "../contracts.js";
 import { createVenueAdapter } from "../runtime.js";
+import { isNonContactLabel } from "../privacy.js";
 import { normalizeEventSchedule } from "../../domain/event-schedule.js";
 
 const clone = (value) => structuredClone(value);
@@ -49,7 +50,7 @@ const normalizeEvent = (event) => {
   if (typeof event.location.label !== "string" || !event.location.label) fail("Calendar event location label is required");
   for (const field of ["displayName", "organization", "role"]) {
     const value = event.organizer[field];
-    if (typeof value !== "string" || !value || value.includes("@")) fail("Calendar organizer metadata must contain exact non-contact labels", { field });
+    if (!isNonContactLabel(value)) fail("Calendar organizer metadata must contain exact non-contact labels", { field });
   }
   return Object.freeze({
     externalId: event.externalId,

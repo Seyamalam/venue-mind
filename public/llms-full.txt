@@ -1408,6 +1408,7 @@ Every stable VenueMind error code, user-safe message, and actionable remediation
 | TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
 | TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
 | LEDGER_INTEGRITY_FAILED | Activity Ledger integrity failed. | Restore an untampered snapshot or recover the last verified Project record. |
+| LEGACY_BRIEF_ATTESTATION_REQUIRED | Legacy Event Brief requires trusted human attestation. | Have an organization owner or administrator review and attest the legacy Event Brief before migration. |
 | VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
 
 ## Error envelope
@@ -1889,6 +1890,7 @@ The active Event Brief and exact requirement-to-evidence coverage.
 | attendeeTarget | Published result field. |
 | occupancyMode | Published result field. |
 | schedule | Published result field. |
+| planningEffectBindings | Published result field. |
 | requirements[] | Published result field. |
 | coverage | Published result field. |
 | coverageMatrix | Published result field. |
@@ -1896,6 +1898,8 @@ The active Event Brief and exact requirement-to-evidence coverage.
 | summary | Published result field. |
 
 - Stable ID: id
+- Stable ID: planningEffectBindings.*.targetRequirementId
+- Stable ID: planningEffectBindings.*.affectedConstraintIds[]
 - Stable ID: requirements[].id
 - Stable ID: coverageMatrix[].constraintId
 
@@ -3648,11 +3652,13 @@ Replay verification from accepted transitions to current Plan and Event Brief tr
 | currentBriefFingerprint | Published result field. |
 | ledgerHeadHash | Published result field. |
 | lockedObjectViolations[] | Published result field. |
+| truthFingerprintViolations[] | Published result field. |
 
 - Stable ID: transitions[].ledgerEntryId
 - Stable ID: transitions[].planVersion
 - Stable ID: briefTransitions[].ledgerEntryId
 - Stable ID: lockedObjectViolations[].objectId
+- Stable ID: truthFingerprintViolations[].ledgerEntryId
 
 ## Errors
 
@@ -4379,6 +4385,7 @@ The active Event Brief and exact requirement-to-evidence coverage.
 | attendeeTarget | Published result field. |
 | occupancyMode | Published result field. |
 | schedule | Published result field. |
+| planningEffectBindings | Published result field. |
 | requirements[] | Published result field. |
 | coverage | Published result field. |
 | coverageMatrix | Published result field. |
@@ -4386,6 +4393,8 @@ The active Event Brief and exact requirement-to-evidence coverage.
 | summary | Published result field. |
 
 - Stable ID: id
+- Stable ID: planningEffectBindings.*.targetRequirementId
+- Stable ID: planningEffectBindings.*.affectedConstraintIds[]
 - Stable ID: requirements[].id
 - Stable ID: coverageMatrix[].constraintId
 
@@ -4888,11 +4897,13 @@ Replay verification from accepted transitions to current Plan and Event Brief tr
 | currentBriefFingerprint | Published result field. |
 | ledgerHeadHash | Published result field. |
 | lockedObjectViolations[] | Published result field. |
+| truthFingerprintViolations[] | Published result field. |
 
 - Stable ID: transitions[].ledgerEntryId
 - Stable ID: transitions[].planVersion
 - Stable ID: briefTransitions[].ledgerEntryId
 - Stable ID: lockedObjectViolations[].objectId
+- Stable ID: truthFingerprintViolations[].ledgerEntryId
 
 ## Applicable errors
 

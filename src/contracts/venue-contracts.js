@@ -2,6 +2,7 @@ import { errorCatalog } from "../domain/errors.js";
 import { RFC3339_INSTANT_PATTERN_SOURCE } from "../domain/event-schedule.js";
 import { CANONICAL_UTC_TIMESTAMP_PATTERN_SOURCE } from "../domain/timestamps.js";
 import { CALENDAR_WEBHOOK_EVENT_TYPES } from "../integrations/adapters/calendar-event-adapter.js";
+import { NON_CONTACT_LABEL_PATTERN_SOURCE } from "../integrations/privacy.js";
 
 const emptyObject = { type: "object", properties: {}, additionalProperties: false };
 const mutationMetadataProperties = {
@@ -908,7 +909,7 @@ export const calendarWebhookEventSchema = {
       type: "object",
       required: ["externalId", "sourceVersion", "title", "startAt", "endAt", "timezone", "location", "attendanceTarget", "organizer"],
       properties: {
-        externalId: { type: "string", minLength: 1 }, sourceVersion: { type: "string", minLength: 1 }, title: { type: "string", minLength: 1 }, startAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, endAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, timezone: { type: "string", minLength: 1 }, location: { type: "object", required: ["label"], properties: { label: { type: "string", minLength: 1 } }, additionalProperties: false }, attendanceTarget: { type: "integer", minimum: 0 }, organizer: { type: "object", required: ["displayName", "organization", "role"], properties: { displayName: { type: "string", minLength: 1, pattern: "^[^@]+$" }, organization: { type: "string", minLength: 1, pattern: "^[^@]+$" }, role: { type: "string", minLength: 1, pattern: "^[^@]+$" } }, additionalProperties: false },
+        externalId: { type: "string", minLength: 1 }, sourceVersion: { type: "string", minLength: 1 }, title: { type: "string", minLength: 1 }, startAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, endAt: { type: "string", format: "date-time", pattern: RFC3339_INSTANT_PATTERN_SOURCE }, timezone: { type: "string", minLength: 1 }, location: { type: "object", required: ["label"], properties: { label: { type: "string", minLength: 1 } }, additionalProperties: false }, attendanceTarget: { type: "integer", minimum: 0 }, organizer: { type: "object", required: ["displayName", "organization", "role"], properties: { displayName: { type: "string", minLength: 1, pattern: NON_CONTACT_LABEL_PATTERN_SOURCE }, organization: { type: "string", minLength: 1, pattern: NON_CONTACT_LABEL_PATTERN_SOURCE }, role: { type: "string", minLength: 1, pattern: NON_CONTACT_LABEL_PATTERN_SOURCE } }, additionalProperties: false },
       },
       additionalProperties: false,
     },

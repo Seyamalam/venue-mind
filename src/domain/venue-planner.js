@@ -122,7 +122,41 @@ const enrichProposal = (proposal, fallbackProposal) => {
   };
 };
 
-const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackProposal) => {
+const normalizeLegacyBriefProof = (proof, snapshotBrief, authorization) => {
+  if (!proof) throw venueError("LEGACY_BRIEF_ATTESTATION_REQUIRED", { reason: "accepted-brief-proof-missing", briefFingerprint: fingerprintEventBrief(snapshotBrief) });
+  const source = proof.source;
+  if (source !== "authenticated-human-attestation") throw venueError("LEGACY_BRIEF_ATTESTATION_REQUIRED", { reason: "accepted-brief-proof-source-invalid" });
+  const principal = authorization?.principal;
+  const allowedRoles = ["venue-administrator", "organization-administrator"];
+  if (!proof.attestationId || !proof.actorId || !allowedRoles.includes(proof.actorRole)
+    || principal?.type !== "human" || principal.id !== proof.actorId || !principal.roles?.includes(proof.actorRole)) {
+    throw venueError("LEGACY_BRIEF_ATTESTATION_REQUIRED", { reason: "accepted-brief-attestation-invalid" });
+  }
+  const brief = normalizeEventBrief(proof.brief);
+  const trustedBriefFingerprint = fingerprintEventBrief(brief);
+  const snapshotBriefFingerprint = fingerprintEventBrief(snapshotBrief);
+  if (trustedBriefFingerprint !== snapshotBriefFingerprint) throw venueError("LEDGER_INTEGRITY_FAILED", { migration: { status: "fail", reason: "accepted-brief-proof-mismatch", trustedBriefFingerprint, snapshotBriefFingerprint } }, "Legacy Activity Ledger proof does not match the Event Brief under review.");
+  return {
+    brief,
+    fingerprint: trustedBriefFingerprint,
+    evidence: {
+      source,
+      briefFingerprint: trustedBriefFingerprint,
+      ...(proof.attestationId ? { attestationId: proof.attestationId } : {}),
+      ...(proof.actorId ? { actorId: proof.actorId } : {}),
+      ...(proof.actorRole ? { actorRole: proof.actorRole } : {}),
+      ...(proof.challengeId ? { challengeId: proof.challengeId } : {}),
+      ...(proof.projectRevision !== undefined ? { projectRevision: proof.projectRevision } : {}),
+      ...(proof.legacyLedgerHeadHash ? { legacyLedgerHeadHash: proof.legacyLedgerHeadHash } : {}),
+      ...(proof.planSha256 ? { planSha256: proof.planSha256 } : {}),
+      ...(proof.briefSha256 ? { briefSha256: proof.briefSha256 } : {}),
+      ...(proof.reason ? { reason: proof.reason } : {}),
+      ...(proof.idempotencyKey ? { idempotencyKey: proof.idempotencyKey } : {}),
+    },
+  };
+};
+
+const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackProposal, legacyBriefProof = null, authorization = TRUSTED_LOCAL_AUTHORIZATION) => {
   const normalized = clone(snapshot);
   const originalEmergencyObjectIds = new Set((normalized.plan.objects ?? [])
     .filter((object) => ["fire_exit", "assembly_point", "emergency_access_lane", "fire_equipment", "first_aid", "command_post"].includes(object.kind) || object.emergency)
@@ -137,6 +171,8 @@ const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackPropos
   let migratedOperationalGeometry = false;
   const migratedTypedLocks = normalized.plan.objects.some((object) => !Array.isArray(object.locks));
   let migratedAccessibilityInfrastructure = false;
+  let migratedAcceptedBriefProof = false;
+  let acceptedBriefMigrationProof = null;
   if (normalized.plan.id === fallbackPlan.id && fallbackPlan.constraints.some((constraint) => SPATIAL_EVALUATORS.has(constraint.evaluator))) {
     const fallbackSpatialChangeIds = new Set((fallbackProposal?.changes ?? []).filter((change) => change.spatialEffects?.length).map((change) => change.id));
     const missingSpatialChangeEvidence = (snapshot.proposal?.changes ?? []).some((change) => fallbackSpatialChangeIds.has(change.id) && !change.spatialEffects?.length);
@@ -256,14 +292,19 @@ const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackPropos
   normalized.projectLocks = normalizeProjectLocks(normalized.projectLocks ?? [], normalized.plan);
   const legacyLedger = normalized.ledger.every((entry) => !entry.hash && !entry.previousHash && !entry.schemaVersion);
   if (legacyLedger) {
-    const trustedBriefFingerprint = fingerprintEventBrief(fallbackBrief);
-    const snapshotBriefFingerprint = fingerprintEventBrief(normalized.brief);
-    if (trustedBriefFingerprint !== snapshotBriefFingerprint) throw venueError("LEDGER_INTEGRITY_FAILED", { migration: { status: "fail", reason: "legacy-brief-proof-required", trustedBriefFingerprint, snapshotBriefFingerprint } }, "Legacy Activity Ledger cannot establish accepted Event Brief truth.");
+    const proof = normalizeLegacyBriefProof(legacyBriefProof, normalized.brief, authorization);
     normalized.ledger = normalized.ledger.map((entry) => {
       const version = entry.details?.acceptedPlan?.version ?? entry.details?.toVersion ?? entry.details?.version;
       const acceptedPlan = entry.details?.acceptedPlan ?? (version === fallbackPlan.version ? fallbackPlan : version === normalized.plan.version ? normalized.plan : null);
-      return acceptedPlan ? { ...entry, details: { ...entry.details, acceptedPlan: clone(acceptedPlan), planFingerprint: fingerprintPlan(acceptedPlan), acceptedBrief: clone(fallbackBrief), briefFingerprint: trustedBriefFingerprint, briefMigrationProof: { source: "trusted-initial-brief", briefFingerprint: trustedBriefFingerprint } } } : entry;
+      return acceptedPlan ? { ...entry, details: { ...entry.details, acceptedPlan: clone(acceptedPlan), planFingerprint: fingerprintPlan(acceptedPlan) } } : entry;
     });
+    acceptedBriefMigrationProof = proof.evidence;
+    migratedAcceptedBriefProof = true;
+  } else if (normalized.ledger.every((entry) => !entry.details?.acceptedBrief && !entry.details?.briefFingerprint)) {
+    const integrity = verifyActivityLedger(normalized.ledger);
+    if (integrity.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { integrity });
+    acceptedBriefMigrationProof = normalizeLegacyBriefProof(legacyBriefProof, normalized.brief, authorization).evidence;
+    migratedAcceptedBriefProof = true;
   }
   normalized.ledger = normalizeActivityLedger(normalized.ledger);
   const evidencedProjectLockIds = new Set(normalized.projectLocks.filter((lock) => normalized.ledger.some((entry) => entry.type === "object.lock_added"
@@ -287,9 +328,12 @@ const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackPropos
     ...(migratedAccessibilityInfrastructure ? [{ id: "project-schema-v8-to-v9-accessibility-infrastructure", fromModel: "basic-accessibility-evidence", toModel: "accessible-sightlines-door-clearance-and-ramps" }] : []),
     ...(migratedSimulationFramework ? [{ id: "project-schema-v9-to-v10-simulation-framework", fromModel: "no-simulation-state", toModel: "versioned-scenarios-and-runs" }] : []),
     ...(migratedEmergencyPlanning ? [{ id: "project-schema-v10-emergency-planning", fromModel: "basic-egress-evidence", toModel: "reviewed-emergency-planning" }] : []),
+    ...(migratedAcceptedBriefProof ? [{ id: "activity-ledger-v1-accepted-brief-proof", fromModel: "plan-only-accepted-truth", toModel: "plan-and-brief-accepted-truth" }] : []),
   ];
   for (const migration of migrations) {
-    normalized.ledger = sealActivityLedger([...normalized.ledger, createActivityEntry(normalized.ledger.length + 1, "schema.migrated", "system", {
+    const briefProofMigration = migration.id === "activity-ledger-v1-accepted-brief-proof";
+    const humanAttestation = briefProofMigration && acceptedBriefMigrationProof?.source === "authenticated-human-attestation";
+    normalized.ledger = sealActivityLedger([...normalized.ledger, createActivityEntry(normalized.ledger.length + 1, "schema.migrated", humanAttestation ? "human" : "system", {
       migrationId: migration.id,
       fromModel: migration.fromModel,
       toModel: migration.toModel,
@@ -299,7 +343,8 @@ const normalizeSnapshot = (snapshot, fallbackPlan, fallbackBrief, fallbackPropos
       planFingerprint: fingerprintPlan(normalized.plan),
       acceptedBrief: clone(normalized.brief),
       briefFingerprint: fingerprintEventBrief(normalized.brief),
-    }, { source: "system", sessionId: "schema-migration" })]);
+      ...(briefProofMigration ? { briefMigrationProof: clone(acceptedBriefMigrationProof) } : {}),
+    }, { actorId: humanAttestation ? acceptedBriefMigrationProof.actorId : "system", actorType: humanAttestation ? "human" : "system", source: humanAttestation ? "studio" : "system", sessionId: humanAttestation ? `legacy-brief-${acceptedBriefMigrationProof.attestationId}` : "schema-migration" })]);
   }
   const replay = replayActivityLedger(normalized.ledger, normalized.plan, normalized.brief);
   if (replay.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { replay }, "Activity Ledger does not reproduce accepted Plan and Event Brief truth.");
@@ -389,7 +434,7 @@ const formatExport = (state) => {
   ].join("\n");
 };
 
-export function createVenuePlanner(initialPlan, { authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, projectId = null, approvalPolicy, adapterPlanningBindings = {} } = {}) {
+export function createVenuePlanner(initialPlan, { authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, projectId = null, approvalPolicy, adapterPlanningBindings = {}, legacyBriefProof = null } = {}) {
   const durableInitialPlan = Object.keys(adapterPlanningBindings).length && initialPlan?.brief?.planningEffectBindings === undefined
     ? { ...clone(initialPlan), brief: { ...clone(initialPlan.brief), planningEffectBindings: clone(adapterPlanningBindings) } }
     : initialPlan;
@@ -612,7 +657,7 @@ export function createVenuePlanner(initialPlan, { authorization: defaultAuthoriz
     }
 
     if (command.type === "restore_snapshot") {
-      const snapshot = normalizeSnapshot(command.snapshot, fallbackPlan, fallbackBrief, fallbackProposal);
+      const snapshot = normalizeSnapshot(command.snapshot, fallbackPlan, fallbackBrief, fallbackProposal, legacyBriefProof, defaultAuthorization);
       if (!snapshot?.plan?.id || !snapshot?.plan?.version || !snapshot?.proposal?.id || !Array.isArray(snapshot?.ledger)) {
         throw venueError("SNAPSHOT_INVALID");
       }

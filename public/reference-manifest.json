@@ -95,6 +95,7 @@
         "attendeeTarget",
         "occupancyMode",
         "schedule",
+        "planningEffectBindings",
         "requirements[]",
         "coverage",
         "coverageMatrix",
@@ -103,6 +104,8 @@
       ],
       "stableIds": [
         "id",
+        "planningEffectBindings.*.targetRequirementId",
+        "planningEffectBindings.*.affectedConstraintIds[]",
         "requirements[].id",
         "coverageMatrix[].constraintId"
       ]
@@ -918,13 +921,15 @@
         "replayedBriefFingerprint",
         "currentBriefFingerprint",
         "ledgerHeadHash",
-        "lockedObjectViolations[]"
+        "lockedObjectViolations[]",
+        "truthFingerprintViolations[]"
       ],
       "stableIds": [
         "transitions[].ledgerEntryId",
         "transitions[].planVersion",
         "briefTransitions[].ledgerEntryId",
-        "lockedObjectViolations[].objectId"
+        "lockedObjectViolations[].objectId",
+        "truthFingerprintViolations[].ledgerEntryId"
       ]
     },
     {
@@ -1273,6 +1278,7 @@
         "attendeeTarget",
         "occupancyMode",
         "schedule",
+        "planningEffectBindings",
         "requirements[]",
         "coverage",
         "coverageMatrix",
@@ -1281,6 +1287,8 @@
       ],
       "stableIds": [
         "id",
+        "planningEffectBindings.*.targetRequirementId",
+        "planningEffectBindings.*.affectedConstraintIds[]",
         "requirements[].id",
         "coverageMatrix[].constraintId"
       ]
@@ -1541,13 +1549,15 @@
         "replayedBriefFingerprint",
         "currentBriefFingerprint",
         "ledgerHeadHash",
-        "lockedObjectViolations[]"
+        "lockedObjectViolations[]",
+        "truthFingerprintViolations[]"
       ],
       "stableIds": [
         "transitions[].ledgerEntryId",
         "transitions[].planVersion",
         "briefTransitions[].ledgerEntryId",
-        "lockedObjectViolations[].objectId"
+        "lockedObjectViolations[].objectId",
+        "truthFingerprintViolations[].ledgerEntryId"
       ]
     },
     {
