@@ -69,6 +69,11 @@ export const errorCatalog = Object.freeze({
   RUNBOOK_TRANSITION_INVALID: define("RUNBOOK_TRANSITION_INVALID", "Runbook task transition is invalid.", "Use a published task transition and supply a reason-coded human reopen for terminal work."),
   RUNBOOK_DEPENDENCIES_INCOMPLETE: define("RUNBOOK_DEPENDENCIES_INCOMPLETE", "Runbook task dependencies are incomplete.", "Complete every dependency before starting this task."),
   RUNBOOK_EVIDENCE_REQUIRED: define("RUNBOOK_EVIDENCE_REQUIRED", "Runbook task evidence is incomplete.", "Attach every required structured evidence code before completing the task."),
+  OCCUPANCY_BASELINE_INVALID: define("OCCUPANCY_BASELINE_INVALID", "Live Occupancy baseline is invalid.", "Create the monitor from one active Event Day Runbook with canonical Plan capacity and event-target evidence."),
+  OCCUPANCY_SIGNAL_INVALID: define("OCCUPANCY_SIGNAL_INVALID", "Aggregate Occupancy Signal is invalid.", "Send one bounded aggregate-only signal for the check-in total, venue, or a stable Occupancy Zone."),
+  OCCUPANCY_PRIVACY_REJECTED: define("OCCUPANCY_PRIVACY_REJECTED", "Occupancy input contains prohibited person-level data.", "Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion."),
+  OCCUPANCY_SIGNAL_OUT_OF_ORDER: define("OCCUPANCY_SIGNAL_OUT_OF_ORDER", "Occupancy Signal is older than the accepted source state.", "Refresh the source cursor and send a newer source version and observed instant."),
+  OCCUPANCY_REVISION_CONFLICT: define("OCCUPANCY_REVISION_CONFLICT", "Live Occupancy monitor revision conflict.", "Refresh the monitor and retry only if the aggregate transition is still required."),
   LEGACY_BRIEF_ATTESTATION_REQUIRED: define("LEGACY_BRIEF_ATTESTATION_REQUIRED", "Legacy Event Brief requires trusted human attestation.", "Have an organization owner or administrator review and attest the legacy Event Brief before migration."),
   VENUE_INTERNAL_ERROR: define("VENUE_INTERNAL_ERROR", "VenueMind could not complete the operation.", "Retry once; if the error persists, inspect the server log with the correlation ID."),
 });

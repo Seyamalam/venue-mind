@@ -212,6 +212,22 @@ _Avoid_: Attendee accommodation, disability record, accessibility note
 An event-day count by source-namespaced Ticket Class at one timestamp. It contains no scan, barcode, order, payment, device, or attendee identity record.
 _Avoid_: Check-in event, attendee timeline, scan log
 
+**Live Occupancy Monitor**:
+A Runbook-bound operational aggregate that reconciles aggregate Check-in and Occupancy Signals against the frozen Plan, event target, and simulation assumptions.
+_Avoid_: attendee tracker, live Plan, analytics dashboard
+
+**Occupancy Signal**:
+A source-versioned aggregate count for the event check-in total, whole venue, or one stable Occupancy Zone at one observed instant, with bounded confidence and no person-level record.
+_Avoid_: attendee location, scan event, sensor payload
+
+**Occupancy Alert**:
+A typed, deterministic stale-source, conflicting-feed, warning-threshold, or exceeded-capacity state for one Live Occupancy scope.
+_Avoid_: notification, free-form incident, Constraint failure
+
+**Occupancy Incident Ledger**:
+The append-only hash-chained record of accepted Occupancy Signals and Occupancy Alert openings and resolutions for one Live Occupancy Monitor.
+_Avoid_: Activity Ledger, Runbook Ledger, mutable alert history
+
 **Ticket Occupancy Reconciliation**:
 Deterministic evidence comparing Ticket Class totals and zone allocations with the Project attendee target and Occupancy Zone limits.
 _Avoid_: Capacity Validation, attendee manifest, admission approval
