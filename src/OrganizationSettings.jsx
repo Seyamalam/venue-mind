@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, DownloadSimple, Plus, SignOut, Trash, UserPlus } from "@phosphor-icons/react";
 import { ORGANIZATION_ROLES } from "./domain/accounts.js";
 import { browserNavigate, navigateInternalLink } from "./navigation.js";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../components/ui/alert-dialog";
 import "./organization-settings.css";
 
 const downloadJson = (value, filename) => {
@@ -23,6 +24,8 @@ export function OrganizationSettings({ organizationId, account, accountStore, na
   const [inviteToken, setInviteToken] = useState("");
   const [newName, setNewName] = useState("");
   const [newSlug, setNewSlug] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [status, setStatus] = useState("SYNC");
 
   const refresh = async () => {
@@ -54,10 +57,7 @@ export function OrganizationSettings({ organizationId, account, accountStore, na
   const changeRole = async (userId, nextRole) => { await accountStore.setMembershipRoles(userId, [nextRole]); await refresh(); };
   const remove = async (userId) => { await accountStore.removeMembership(userId); await refresh(); };
   const exportAccount = async () => downloadJson(await accountStore.exportAccount(), `venuemind-account-${account.user.id}.json`);
-  const deleteAccount = async () => {
-    if (window.prompt("TYPE DELETE", "") !== "DELETE") return;
-    await accountStore.deleteAccount();
-  };
+  const deleteAccount = async () => { await accountStore.deleteAccount(); };
 
   return <div className="organization-shell">
     <header><a href="/projects" onClick={(event) => navigateInternalLink(event, navigate, "/projects")}><ArrowLeft size={15} /> PROJECTS</a><strong>VenueMind</strong><span>{status}</span></header>
@@ -71,7 +71,7 @@ export function OrganizationSettings({ organizationId, account, accountStore, na
 
         <article><div className="settings-heading"><span>NEW ORGANIZATION</span><Plus size={18} /></div><form onSubmit={createOrganization}><input required placeholder="NAME" value={newName} onChange={(event) => setNewName(event.target.value)} /><input required pattern="[a-z0-9][a-z0-9-]{1,62}" placeholder="SLUG" value={newSlug} onChange={(event) => setNewSlug(event.target.value.toLowerCase())} /><button type="submit">CREATE</button></form></article>
 
-        <article><div className="settings-heading"><span>ACCOUNT</span><code>{account.user.email}</code></div><div className="account-actions"><button type="button" onClick={exportAccount}><DownloadSimple size={16} />EXPORT</button><button type="button" onClick={() => accountStore.revokeSession()}><SignOut size={16} />SIGN OUT</button><button className="danger" type="button" onClick={deleteAccount}><Trash size={16} />DELETE</button></div></article>
+        <article><div className="settings-heading"><span>ACCOUNT</span><code>{account.user.email}</code></div><div className="account-actions"><button type="button" onClick={exportAccount}><DownloadSimple size={16} />EXPORT</button><button type="button" onClick={() => accountStore.revokeSession()}><SignOut size={16} />SIGN OUT</button><AlertDialog open={deleteOpen} onOpenChange={(open) => { setDeleteOpen(open); if (!open) setDeleteConfirmation(""); }}><AlertDialogTrigger asChild><button className="danger" type="button"><Trash size={16} />DELETE</button></AlertDialogTrigger><AlertDialogContent className="account-delete-dialog"><AlertDialogHeader><AlertDialogTitle>DELETE ACCOUNT</AlertDialogTitle><AlertDialogDescription>TYPE DELETE</AlertDialogDescription></AlertDialogHeader><input aria-label="Delete confirmation" autoComplete="off" placeholder="DELETE" value={deleteConfirmation} onChange={(event) => setDeleteConfirmation(event.target.value)} /><AlertDialogFooter><AlertDialogCancel>CANCEL</AlertDialogCancel><AlertDialogAction variant="destructive" disabled={deleteConfirmation !== "DELETE"} onClick={deleteAccount}>DELETE</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div></article>
       </section>
 
       <section className="audit-table"><div className="settings-heading"><span>AUDIT</span><strong>{events.length}</strong></div>{events.map((event) => <div key={event.id}><code>{event.occurredAt}</code><strong>{event.type.toUpperCase()}</strong><span>{event.actorUserId}</span><code>{event.fingerprint.slice(0, 16)}</code></div>)}</section>
