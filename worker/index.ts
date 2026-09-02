@@ -41,7 +41,6 @@ import {
 } from "../src/domain/live-occupancy.ts";
 import { createIncidentCommandBus } from "../src/domain/incident-command-bus.ts";
 import { createD1IncidentRepository, IncidentRegisterConflict } from "./incident-repository.ts";
-import { createIncidentAttachmentService, IncidentAttachmentError } from "./incident-attachments.ts";
 import { venueError } from "../src/domain/errors.ts";
 import { isLocalProjectRecord } from "../src/domain/project-types.ts";
 import type {
@@ -70,7 +69,6 @@ export { drainNotificationEmail } from "./email-delivery.ts";
 export { createD1RunbookRepository } from "./runbook-repository.ts";
 export { createD1OccupancyRepository } from "./occupancy-repository.ts";
 export { createD1IncidentRepository } from "./incident-repository.ts";
-export { createIncidentAttachmentService } from "./incident-attachments.ts";
 
 type ProjectRepository = ReturnType<typeof createD1ProjectRepository>;
 type AccountRepository = ReturnType<typeof createD1AccountRepository>;
@@ -79,7 +77,6 @@ type SharingRepository = ReturnType<typeof createD1SharingRepository>;
 type RunbookRepository = ReturnType<typeof createD1RunbookRepository>;
 type OccupancyRepository = ReturnType<typeof createD1OccupancyRepository>;
 type IncidentRepository = ReturnType<typeof createD1IncidentRepository>;
-type IncidentAttachmentService = ReturnType<typeof createIncidentAttachmentService>;
 type EmailDelivery = {
   send: (message: {
     idempotencyKey: string;
@@ -88,7 +85,7 @@ type EmailDelivery = {
     refs: NotificationRefs;
   }) => Promise<{ delivered: boolean; providerMessageId?: string }>;
 };
-type WorkerEnv = CloudflareEnv & { EMAIL_DELIVERY?: EmailDelivery; INCIDENT_EVIDENCE: R2Bucket };
+type WorkerEnv = CloudflareEnv & { EMAIL_DELIVERY?: EmailDelivery };
 type WorkerOptions = {
   createProjectRepository?: (db: D1Database) => ProjectRepository;
   createAccountRepository?: (db: D1Database) => AccountRepository;
@@ -97,7 +94,6 @@ type WorkerOptions = {
   createRunbookRepository?: (db: D1Database) => RunbookRepository;
   createOccupancyRepository?: (db: D1Database) => OccupancyRepository;
   createIncidentRepository?: (db: D1Database) => IncidentRepository;
-  createIncidentAttachmentService?: (bucket: R2Bucket) => IncidentAttachmentService;
   identityProvider?: IdentityProvider;
   emailDelivery?: EmailDelivery;
   secureCookies?: boolean;
@@ -534,8 +530,6 @@ export function createWorker(options: WorkerOptions = {}) {
     options.createRunbookRepository ?? ((db) => createD1RunbookRepository(db, { clock }));
   const occupancyRepositoryFactory = options.createOccupancyRepository ?? createD1OccupancyRepository;
   const incidentRepositoryFactory = options.createIncidentRepository ?? createD1IncidentRepository;
-  const incidentAttachmentServiceFactory =
-    options.createIncidentAttachmentService ?? ((bucket) => createIncidentAttachmentService({ bucket, clock }));
 
   const appendShareLedger = async (
     env: WorkerEnv,
@@ -884,7 +878,6 @@ export function createWorker(options: WorkerOptions = {}) {
       const canWriteRunbooks = hasRole(organization.roles, RUNBOOK_WRITE_ROLES);
       const canWriteOccupancy = canWriteRunbooks;
       const canWriteIncidents = hasRole(organization.roles, INCIDENT_WRITE_ROLES);
-      const canAccessIncidentAttachments = hasRole(organization.roles, INCIDENT_WRITE_ROLES);
       const canExportIncidents = hasRole(organization.roles, INCIDENT_EXPORT_ROLES);
       const runbookCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks$/);
       const runbookItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)$/);
@@ -1208,12 +1201,6 @@ export function createWorker(options: WorkerOptions = {}) {
         /^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/incidents\/([^/]+)\/export$/,
       );
       const incidentExportMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/export$/);
-      const incidentAttachmentMatch = url.pathname.match(
-        /^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/incidents\/([^/]+)\/attachments$/,
-      );
-      const incidentAttachmentItemMatch = url.pathname.match(
-        /^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/incidents\/([^/]+)\/attachments\/([^/]+)$/,
-      );
       const incidentItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)$/);
       if (incidentCollectionMatch && request.method === "POST") {
         if (!canWriteIncidents) return apiError(403, "INCIDENT_WRITE_DENIED", "Incident write role required");
@@ -1295,8 +1282,6 @@ export function createWorker(options: WorkerOptions = {}) {
             operationId: typeof command.operationId === "string" ? command.operationId : null,
           };
           try {
-            if (command.type === "attach_incident_evidence")
-              throw venueError("INCIDENT_ATTACHMENT_INVALID", { reason: "multipart-upload-required" });
             const emergencyAuthorityRole =
               command.type === "record_incident_emergency_action"
                 ? ((current.baseline?.emergencyPlan?.authorizedReviewerRoles ?? []).find(
@@ -1363,123 +1348,6 @@ export function createWorker(options: WorkerOptions = {}) {
           }
         }
         return respond({ acknowledgements, register: current });
-      }
-      if (incidentAttachmentMatch && request.method === "POST") {
-        if (!canWriteIncidents) return apiError(403, "INCIDENT_ATTACHMENT_DENIED", "Incident attachment role required");
-        const projectId = pathCapture(incidentAttachmentMatch, 1);
-        const registerId = pathCapture(incidentAttachmentMatch, 2);
-        const incidentId = pathCapture(incidentAttachmentMatch, 3);
-        const current = await incidents.get(organization.id, projectId, registerId);
-        const incident = current?.incidents?.find((candidate: { id?: string }) => candidate.id === incidentId);
-        if (!current || !incident)
-          return apiError(
-            404,
-            !current ? "INCIDENT_REGISTER_NOT_FOUND" : "INCIDENT_NOT_FOUND",
-            !current ? "Incident Register not found" : "Incident not found",
-          );
-        let uploaded: Awaited<ReturnType<IncidentAttachmentService["upload"]>> | null = null;
-        try {
-          const form = await request.formData();
-          const file = form.get("file");
-          if (!(file instanceof File))
-            throw new IncidentAttachmentError("INCIDENT_ATTACHMENT_INVALID", "Attachment file is required");
-          const service = incidentAttachmentServiceFactory(env.INCIDENT_EVIDENCE);
-          uploaded = await service.upload({
-            incidentId,
-            filename: file.name,
-            mimeType: file.type,
-            content: file,
-            existingAttachments: incident.attachments,
-          });
-          const bus = createIncidentCommandBus({ initialRegister: current });
-          const resultValue: unknown = bus.execute({
-            type: "attach_incident_evidence",
-            incidentId,
-            expectedIncidentRevision: incident.revision,
-            attachment: {
-              id: uploaded.id,
-              kind: uploaded.mimeType === "application/pdf" ? "document" : "photo",
-              status: "available",
-              contentType: uploaded.mimeType,
-              byteLength: uploaded.byteLength,
-              sha256: uploaded.sha256,
-              uploadedBy: account.user.id,
-              uploadedAt: uploaded.createdAt,
-            },
-            idempotencyKey: `attach-${uploaded.id}`,
-            actorType: "human",
-            actorId: account.user.id,
-            source: "studio",
-            sessionId: account.session.id,
-            committedAt: clock(),
-          });
-          if (!isIncidentMutationResult(resultValue))
-            throw venueError("INCIDENT_INVALID", { reason: "attachment-result-invalid" });
-          const result = resultValue;
-          await incidents.put(organization.id, projectId, result.register, current.revision);
-          return respond(
-            {
-              status: "attached",
-              register: result.register,
-              incident: result.incident,
-              attachment: result.incident.attachments.at(-1),
-            },
-            { status: 201 },
-          );
-        } catch (cause) {
-          if (uploaded) await env.INCIDENT_EVIDENCE.delete(`private/${uploaded.id}`);
-          const error = errorInfo(cause);
-          if (cause instanceof IncidentRegisterConflict)
-            return apiError(409, cause.code, error.message ?? "Incident Register revision conflict", error.details);
-          if (cause instanceof IncidentAttachmentError || error.code?.startsWith("INCIDENT_ATTACHMENT"))
-            return apiError(
-              400,
-              error.code ?? "INCIDENT_ATTACHMENT_INVALID",
-              error.message ?? "Incident attachment is invalid",
-              error.details,
-            );
-          throw cause;
-        }
-      }
-      if (incidentAttachmentItemMatch && request.method === "GET") {
-        if (!canAccessIncidentAttachments)
-          return apiError(403, "INCIDENT_ATTACHMENT_DENIED", "Incident attachment role required");
-        const projectId = pathCapture(incidentAttachmentItemMatch, 1);
-        const registerId = pathCapture(incidentAttachmentItemMatch, 2);
-        const incidentId = pathCapture(incidentAttachmentItemMatch, 3);
-        const attachmentId = pathCapture(incidentAttachmentItemMatch, 4);
-        const current = await incidents.get(organization.id, projectId, registerId);
-        const incident = current?.incidents?.find((candidate: { id?: string }) => candidate.id === incidentId);
-        const attachment = incident?.attachments?.find((candidate: { id?: string }) => candidate.id === attachmentId);
-        if (!current || !incident || !attachment)
-          return apiError(404, "INCIDENT_ATTACHMENT_NOT_FOUND", "Incident attachment not found");
-        const extension =
-          attachment.contentType === "application/pdf"
-            ? "pdf"
-            : attachment.contentType === "image/png"
-              ? "png"
-              : attachment.contentType === "image/webp"
-                ? "webp"
-                : "jpg";
-        try {
-          return await incidentAttachmentServiceFactory(env.INCIDENT_EVIDENCE).download({
-            id: attachment.id,
-            incidentId,
-            filename: `${attachment.id}.${extension}`,
-            mimeType: attachment.contentType,
-            byteLength: attachment.byteLength,
-            sha256: attachment.sha256,
-            createdAt: attachment.uploadedAt,
-          });
-        } catch (cause) {
-          const error = errorInfo(cause);
-          return apiError(
-            error.code === "INCIDENT_ATTACHMENT_NOT_FOUND" ? 404 : 409,
-            error.code ?? "INCIDENT_ATTACHMENT_UNAVAILABLE",
-            error.message ?? "Incident attachment unavailable",
-            error.details,
-          );
-        }
       }
       if ((incidentNestedExportMatch || incidentExportMatch) && request.method === "GET") {
         if (!canExportIncidents) return apiError(403, "INCIDENT_EXPORT_DENIED", "Incident export role required");

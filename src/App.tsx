@@ -2530,57 +2530,6 @@ export function App({
     }
   };
 
-  const handleIncidentAttach = async ({ incidentId, file }: { incidentId: string; file: File }) => {
-    const candidate = incidentBus.getSnapshot();
-    if (!candidate || incidentSyncState.state !== "online") return null;
-    try {
-      const result = await incidentRemote.attach(projectId, candidate.id, incidentId, file);
-      incidentBus.hydrate(result.register);
-      await incidentStore.saveRegister(result.register);
-      setIncidentRegister(result.register);
-      setIncidentSyncState({ state: "online", pendingCount: 0, lastSyncedAt: result.register.updatedAt });
-      notify("EVIDENCE ATTACHED");
-      return result;
-    } catch (error) {
-      notify(errorCode(error, "ATTACHMENT BLOCKED"));
-      return null;
-    }
-  };
-
-  const handleIncidentDownloadAttachment = async ({
-    incidentId,
-    attachmentId,
-  }: {
-    incidentId: string;
-    attachmentId: string;
-  }) => {
-    const candidate = incidentBus.getSnapshot();
-    if (!candidate || incidentSyncState.state !== "online") return null;
-    try {
-      const response = await incidentRemote.download(projectId, candidate.id, incidentId, attachmentId);
-      if (!response.ok)
-        throw Object.assign(new Error("Incident attachment download failed"), {
-          code: "INCIDENT_ATTACHMENT_DOWNLOAD_FAILED",
-        });
-      const blob = await response.blob();
-      const disposition = response.headers.get("content-disposition") ?? "";
-      const filename = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';]+)/i)?.[1] ?? attachmentId;
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = decodeURIComponent(filename);
-      document.body.append(anchor);
-      anchor.click();
-      anchor.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 0);
-      notify("EVIDENCE READY");
-      return blob;
-    } catch (error) {
-      notify(errorCode(error, "EVIDENCE DOWNLOAD FAILED"));
-      return null;
-    }
-  };
-
   const handleIncidentExport = async () => {
     const candidate = incidentBus.getSnapshot();
     const incidentId = selectedIncidentId ?? candidate?.incidents?.[0]?.id;
@@ -4087,7 +4036,6 @@ export function App({
             ownerOptions={incidentOwnerOptions}
             objectOptions={incidentObjectOptions}
             syncState={incidentSyncState}
-            online={incidentSyncState.state === "online"}
             onClose={() => setIncidentOpen(false)}
             onCreate={(input) => {
               void handleIncidentCreate(input);
@@ -4111,12 +4059,6 @@ export function App({
             }}
             onCreateHandoff={(input) => {
               void handleIncidentAction("handoff_incident", input);
-            }}
-            onAttach={(input) => {
-              void handleIncidentAttach(input);
-            }}
-            onDownloadAttachment={(input) => {
-              void handleIncidentDownloadAttachment(input);
             }}
             onDiscardConflicts={() => {
               void handleIncidentDiscardConflicts();

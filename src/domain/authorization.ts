@@ -38,7 +38,6 @@ export const VENUE_PERMISSIONS = [
   "incident.read",
   "incident.report",
   "incident.manage",
-  "incident.attachment",
   "incident.emergency-act",
   "incident.export",
   "export.plan",
@@ -72,7 +71,6 @@ const planner: readonly VenuePermission[] = [
   "occupancy.write",
   "incident.report",
   "incident.manage",
-  "incident.attachment",
   "export.plan",
 ];
 const reviewer: readonly VenuePermission[] = [
@@ -89,7 +87,6 @@ const safetyOfficer: readonly VenuePermission[] = [
     ...viewer,
     "incident.report",
     "incident.manage",
-    "incident.attachment",
     "incident.emergency-act",
     "incident.export",
     "audit.read",

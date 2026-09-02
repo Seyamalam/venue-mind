@@ -35,19 +35,7 @@ test("Incident Studio is a non-modal prop-driven operational surface", async () 
     assert.match(source, new RegExp(`<TabsTrigger value="${view}">`));
   for (const field of ["SEVERITY", "CATEGORY", "OWNER", "SUMMARY", "ANCHOR"])
     assert.match(source, new RegExp(`>\\s*${field}\\s*<`));
-  for (const action of [
-    "ACK",
-    "ESCALATE",
-    "EMERGENCY",
-    "MITIGATE",
-    "RESOLVE",
-    "CLOSE",
-    "REOPEN",
-    "HANDOFF",
-    "ATTACH",
-    "GET",
-    "DISCARD",
-  ])
+  for (const action of ["ACK", "ESCALATE", "EMERGENCY", "MITIGATE", "RESOLVE", "CLOSE", "REOPEN", "HANDOFF", "DISCARD"])
     assert.match(source, new RegExp(`>\\s*${action}\\s*<`));
   for (const callback of [
     "onCreate",
@@ -58,8 +46,6 @@ test("Incident Studio is a non-modal prop-driven operational surface", async () 
     "onEmergencyAction",
     "onResolve",
     "onCreateHandoff",
-    "onAttach",
-    "onDownloadAttachment",
     "onDiscardConflicts",
     "onSync",
     "onExport",
@@ -82,11 +68,15 @@ test("Incident Studio is a non-modal prop-driven operational surface", async () 
   assert.match(source, /openActionCodes: \["CONTINUE_RESPONSE"\]/);
   assert.match(source, /incident\.location\?\.kind === "plan-object"/);
   assert.doesNotMatch(source, /<(button|select|textarea)\b/);
+  assert.doesNotMatch(source, /type="file"|onAttach|onDownloadAttachment/);
   assert.doesNotMatch(source, /Get started|You can|Please |Create an incident to|Track incidents/i);
 
   assert.match(styles, /\.incident-panel \{[^}]*width: min\(480px, calc\(100vw - 32px\)\)/s);
   assert.match(styles, /@media \(max-width: 440px\) \{[^}]*\.incident-panel \{[^}]*width: 100vw !important;/s);
-  assert.match(styles, /@media \(pointer: coarse\) \{[^}]*\.incident-panel :is\([^}]*min-height: 44px;/s);
+  assert.match(
+    styles,
+    /@media \(pointer: coarse\)\s*\{\s*\.incident-panel\s*:is\([\s\S]*?\)\s*\{\s*min-height:\s*44px;/,
+  );
 });
 
 test("Incident Studio is lazy-wired through OPS, recovery, shared tools, and human actions", async () => {
@@ -109,8 +99,7 @@ test("Incident Studio is lazy-wired through OPS, recovery, shared tools, and hum
     "handoff_incident",
   ])
     assert.match(source, new RegExp(command));
-  assert.match(source, /incidentRemote\.attach/);
-  assert.match(source, /incidentRemote\.download/);
+  assert.doesNotMatch(source, /incidentRemote\.(attach|download)/);
   assert.match(source, /incidentStore\.discardConflicts/);
   assert.match(source, /incidentRemote\.export/);
 });

@@ -62,7 +62,6 @@
           "incident.read",
           "incident.report",
           "incident.manage",
-          "incident.attachment",
           "incident.emergency-act",
           "incident.export",
           "export.plan",

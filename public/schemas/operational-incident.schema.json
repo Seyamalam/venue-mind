@@ -16,7 +16,6 @@
     "location",
     "owner",
     "relatedRefs",
-    "attachments",
     "handoffs",
     "emergencyActions",
     "timestamps"
@@ -142,13 +141,6 @@
         "type": "object"
       },
       "maxItems": 50
-    },
-    "attachments": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      },
-      "maxItems": 8
     },
     "handoffs": {
       "type": "array",

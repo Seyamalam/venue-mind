@@ -4,13 +4,11 @@ import type { VenueErrorCode, VenueErrorDetails } from "./errors.ts";
 import type {
   AcknowledgeIncidentCommand,
   ActorType,
-  AttachIncidentEvidenceCommand,
   ClassifyIncidentCommand,
   CreateIncidentRegisterCommand,
   EscalateIncidentCommand,
   ExportIncidentRecordCommand,
   HandoffIncidentCommand,
-  IncidentAttachment,
   IncidentCategory,
   IncidentCommandContext,
   IncidentEscalationLevel,
@@ -336,7 +334,6 @@ export function reportIncident(
     location,
     owner: null,
     relatedRefs,
-    attachments: [],
     handoffs: [],
     emergencyActions: [],
     timestamps: { reportedAt: acceptedAt, updatedAt: acceptedAt },
@@ -809,76 +806,6 @@ export function recordIncidentEmergencyAction(
   });
 }
 
-const ATTACHMENT_KEYS = new Set([
-  "id",
-  "kind",
-  "status",
-  "contentType",
-  "byteLength",
-  "sha256",
-  "widthPx",
-  "heightPx",
-  "uploadedBy",
-  "uploadedAt",
-]);
-export function attachIncidentEvidence(
-  register: IncidentRegister,
-  command: AttachIncidentEvidenceCommand,
-  { committedAt = new Date().toISOString() }: { committedAt?: string } = {},
-): IncidentMutationResult {
-  return mutateIncident(register, command, {
-    operation: "attach_incident_evidence",
-    eventType: "incident.attachment_attached",
-    committedAt,
-    mutate: (incident, at, actor) => {
-      assertMutable(incident);
-      const input = command.attachment;
-      const expectedKind = input?.contentType === "application/pdf" ? "document" : "photo";
-      if (
-        !input ||
-        typeof input !== "object" ||
-        Array.isArray(input) ||
-        Object.keys(input).some((key) => !ATTACHMENT_KEYS.has(key)) ||
-        input.kind !== expectedKind ||
-        input.status !== "available" ||
-        !["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(input.contentType) ||
-        !Number.isInteger(input.byteLength) ||
-        input.byteLength < 1 ||
-        input.byteLength > 5 * 1024 * 1024 ||
-        typeof input.sha256 !== "string" ||
-        !/^[a-f0-9]{64}$/.test(input.sha256) ||
-        input.uploadedBy !== actor.actorId ||
-        Date.parse(input.uploadedAt) > Date.parse(at)
-      )
-        fail("INCIDENT_ATTACHMENT_INVALID", { incidentId: incident.id, reason: "attachment-metadata-invalid" });
-      if (incident.attachments.some((attachment) => attachment.id === input.id))
-        fail("INCIDENT_ATTACHMENT_INVALID", {
-          incidentId: incident.id,
-          reason: "attachment-id-conflict",
-          attachmentId: input.id,
-        });
-      for (const dimension of [input.widthPx, input.heightPx])
-        if (dimension != null && (!Number.isInteger(dimension) || dimension < 1 || dimension > 50_000))
-          fail("INCIDENT_ATTACHMENT_INVALID", { incidentId: incident.id, reason: "attachment-dimension-invalid" });
-      const attachment: IncidentAttachment = {
-        id: text(input.id, "attachment-id-required"),
-        kind: expectedKind,
-        status: "available",
-        contentType: input.contentType,
-        byteLength: input.byteLength,
-        sha256: input.sha256,
-        ...(input.widthPx ? { widthPx: input.widthPx } : {}),
-        ...(input.heightPx ? { heightPx: input.heightPx } : {}),
-        uploadedBy: input.uploadedBy,
-        uploadedAt: instant(input.uploadedAt, "attachment-uploaded-at-invalid"),
-        attachedAt: at,
-      };
-      incident.attachments.push(attachment);
-      return attachment;
-    },
-  });
-}
-
 export function inspectIncident(
   register: IncidentRegister,
   { incidentId }: Pick<InspectIncidentCommand, "incidentId">,
@@ -944,7 +871,6 @@ export function exportIncidentRecord(
       attendeeRecordsStored: false,
       contactRecordsStored: false,
       medicalNarrativeStored: false,
-      attachmentBytesIncluded: false,
     },
   };
   return {

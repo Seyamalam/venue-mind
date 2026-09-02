@@ -1,4 +1,4 @@
-import type { IncidentAttachment, IncidentRegister, OperationalIncident } from "../domain/operational-types.ts";
+import type { IncidentRegister, OperationalIncident } from "../domain/operational-types.ts";
 import type { IncidentAcknowledgement, IncidentOutboxCommand } from "./incident-store.ts";
 
 export interface IncidentExportArtifact {
@@ -7,11 +7,10 @@ export interface IncidentExportArtifact {
   readonly content: string;
 }
 export interface IncidentRemoteResult {
-  readonly status?: "created" | "already-applied" | "attached";
+  readonly status?: "created" | "already-applied";
   readonly register: IncidentRegister;
   readonly acknowledgements?: readonly IncidentAcknowledgement[];
   readonly incident?: OperationalIncident;
-  readonly attachment?: IncidentAttachment;
 }
 export interface IncidentExportResult {
   readonly artifact: IncidentExportArtifact;
@@ -56,15 +55,7 @@ const isIncident = (value: unknown): value is OperationalIncident =>
   typeof value["id"] === "string" &&
   typeof value["revision"] === "number" &&
   typeof value["status"] === "string" &&
-  Array.isArray(value["attachments"]) &&
   Array.isArray(value["handoffs"]);
-const isAttachment = (value: unknown): value is IncidentAttachment =>
-  isObject(value) &&
-  typeof value["id"] === "string" &&
-  (value["kind"] === "photo" || value["kind"] === "document") &&
-  typeof value["contentType"] === "string" &&
-  typeof value["byteLength"] === "number" &&
-  typeof value["sha256"] === "string";
 const isAcknowledgement = (value: unknown): value is IncidentAcknowledgement =>
   isObject(value) &&
   typeof value["idempotencyKey"] === "string" &&
@@ -88,18 +79,14 @@ const decodeResult = (value: unknown): IncidentRemoteResult => {
   const incident = value["incident"];
   if (incident !== undefined && !isIncident(incident))
     throw new IncidentRemoteError("Invalid Incident payload", "INCIDENT_RESPONSE_INVALID", 502, {});
-  const attachment = value["attachment"];
-  if (attachment !== undefined && !isAttachment(attachment))
-    throw new IncidentRemoteError("Invalid Incident attachment", "INCIDENT_RESPONSE_INVALID", 502, {});
   const status = value["status"];
-  if (status !== undefined && status !== "created" && status !== "already-applied" && status !== "attached")
+  if (status !== undefined && status !== "created" && status !== "already-applied")
     throw new IncidentRemoteError("Invalid Incident status", "INCIDENT_RESPONSE_INVALID", 502, {});
   return {
     register: value["register"],
     ...(status !== undefined ? { status } : {}),
     ...(Array.isArray(acknowledgements) ? { acknowledgements } : {}),
     ...(isIncident(incident) ? { incident } : {}),
-    ...(isAttachment(attachment) ? { attachment } : {}),
   };
 };
 const decodeExport = (value: unknown): IncidentExportResult => {
@@ -186,22 +173,6 @@ export function createIncidentRemote({
     },
     async export(projectId: string, registerId: string, incidentId: string) {
       return parse(await request(`${incident(projectId, registerId, incidentId)}/export`), decodeExport);
-    },
-    async attach(projectId: string, registerId: string, incidentId: string, file: Blob) {
-      if (typeof Blob === "undefined" || !(file instanceof Blob))
-        throw new TypeError("Incident attachment must be a File or Blob");
-      const body = new FormData();
-      const fileName = typeof File !== "undefined" && file instanceof File && file.name ? file.name : "evidence";
-      body.append("file", file, fileName);
-      return parse(
-        await request(`${incident(projectId, registerId, incidentId)}/attachments`, { method: "POST", body }),
-        decodeResult,
-      );
-    },
-    async download(projectId: string, registerId: string, incidentId: string, attachmentId: string) {
-      return request(
-        `${incident(projectId, registerId, incidentId)}/attachments/${requiredId(attachmentId, "Attachment ID")}`,
-      );
     },
   });
 }

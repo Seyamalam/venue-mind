@@ -470,25 +470,10 @@ export const errorCatalog = Object.freeze({
     "Emergency Action Invocation is invalid.",
     "Use an approved action, scenario, and object reference from the frozen Emergency Plan.",
   ),
-  INCIDENT_ATTACHMENT_INVALID: define(
-    "INCIDENT_ATTACHMENT_INVALID",
-    "Incident Attachment is invalid.",
-    "Upload one allowlisted bounded file whose declared type, signature, and checksum agree.",
-  ),
-  INCIDENT_ATTACHMENT_NOT_FOUND: define(
-    "INCIDENT_ATTACHMENT_NOT_FOUND",
-    "Incident Attachment is unavailable.",
-    "Refresh the incident and retry with an available attachment ID.",
-  ),
-  INCIDENT_ATTACHMENT_UNAVAILABLE: define(
-    "INCIDENT_ATTACHMENT_UNAVAILABLE",
-    "Incident Attachment storage is unavailable.",
-    "Retry when the authenticated private evidence store is available.",
-  ),
   INCIDENT_HUMAN_REQUIRED: define(
     "INCIDENT_HUMAN_REQUIRED",
     "This Incident transition requires a human operator.",
-    "Ask an authorized human operator to acknowledge, manage, hand off, attach evidence, or record emergency action.",
+    "Ask an authorized human operator to acknowledge, manage, hand off, or record an emergency action.",
   ),
   INCIDENT_LEDGER_INTEGRITY_FAILED: define(
     "INCIDENT_LEDGER_INTEGRITY_FAILED",

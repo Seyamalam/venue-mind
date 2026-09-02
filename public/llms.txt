@@ -98,7 +98,7 @@ VenueMind lets agents inspect accepted Plans, preview non-destructive Proposals,
 - venue.export_live_occupancy: Export the verified aggregate-only Live Occupancy audit artifact with baseline, observations, Alerts, receipts, and hash-chained incident Ledger.
 - venue.inspect_incidents: Inspect the Runbook-bound Incident Register or one stable Operational Incident with structured severity, category, owner, location, acknowledgement, escalation, evidence, and ordered ledger state.
 - venue.report_incident: Report one structured Operational Incident against an object or coordinate in the frozen accepted Plan without claiming acknowledgement, escalation, ownership, resolution, or emergency authority.
-- venue.export_incident_record: Export one verified post-event Operational Incident record with frozen Plan and Emergency Plan provenance, transitions, structured handoffs, attachment checksums, receipts, and hash-chained ledger evidence.
+- venue.export_incident_record: Export one verified post-event Operational Incident record with frozen Plan and Emergency Plan provenance, transitions, structured handoffs, receipts, and hash-chained ledger evidence.
 - venue.export_audit_package: Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.
 - venue.export_plan: Export the validated Plan as JSON, compact text, layered SVG, print-ready plan or emergency PDF, object, inventory, staffing, production, catering, or replenishment CSV, staffing or production SVG, or a portable audit package.
 

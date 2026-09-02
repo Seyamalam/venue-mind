@@ -2431,7 +2431,6 @@ export const operationalIncidentSchema = {
     "location",
     "owner",
     "relatedRefs",
-    "attachments",
     "handoffs",
     "emergencyActions",
     "timestamps",
@@ -2449,7 +2448,6 @@ export const operationalIncidentSchema = {
     location: incidentLocationContextSchema,
     owner: { type: ["object", "null"] },
     relatedRefs: { type: "array", items: { type: "object" }, maxItems: 50 },
-    attachments: { type: "array", items: { type: "object" }, maxItems: 8 },
     handoffs: { type: "array", items: { type: "object" } },
     emergencyActions: { type: "array", items: { type: "object" } },
     timestamps: { type: "object" },
@@ -3274,7 +3272,7 @@ const baseVenueToolContracts = [
   {
     name: "venue.export_incident_record",
     description:
-      "Export one verified post-event Operational Incident record with frozen Plan and Emergency Plan provenance, transitions, structured handoffs, attachment checksums, receipts, and hash-chained ledger evidence.",
+      "Export one verified post-event Operational Incident record with frozen Plan and Emergency Plan provenance, transitions, structured handoffs, receipts, and hash-chained ledger evidence.",
     annotations: { readOnlyHint: true },
     inputSchema: {
       type: "object",

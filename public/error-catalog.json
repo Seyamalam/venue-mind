@@ -464,25 +464,10 @@
     "message": "Emergency Action Invocation is invalid.",
     "remediation": "Use an approved action, scenario, and object reference from the frozen Emergency Plan."
   },
-  "INCIDENT_ATTACHMENT_INVALID": {
-    "code": "INCIDENT_ATTACHMENT_INVALID",
-    "message": "Incident Attachment is invalid.",
-    "remediation": "Upload one allowlisted bounded file whose declared type, signature, and checksum agree."
-  },
-  "INCIDENT_ATTACHMENT_NOT_FOUND": {
-    "code": "INCIDENT_ATTACHMENT_NOT_FOUND",
-    "message": "Incident Attachment is unavailable.",
-    "remediation": "Refresh the incident and retry with an available attachment ID."
-  },
-  "INCIDENT_ATTACHMENT_UNAVAILABLE": {
-    "code": "INCIDENT_ATTACHMENT_UNAVAILABLE",
-    "message": "Incident Attachment storage is unavailable.",
-    "remediation": "Retry when the authenticated private evidence store is available."
-  },
   "INCIDENT_HUMAN_REQUIRED": {
     "code": "INCIDENT_HUMAN_REQUIRED",
     "message": "This Incident transition requires a human operator.",
-    "remediation": "Ask an authorized human operator to acknowledge, manage, hand off, attach evidence, or record emergency action."
+    "remediation": "Ask an authorized human operator to acknowledge, manage, hand off, or record an emergency action."
   },
   "INCIDENT_LEDGER_INTEGRITY_FAILED": {
     "code": "INCIDENT_LEDGER_INTEGRITY_FAILED",

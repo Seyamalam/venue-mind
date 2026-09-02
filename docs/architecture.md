@@ -30,43 +30,42 @@ flowchart LR
   RUNBUS --> RUNSTORE[Runbook repository / IndexedDB outbox]
   INCBUS --> INCLEDGER[Incident Ledger]
   INCBUS --> INCSTORE[D1 Incident Register / IndexedDB outbox]
-  INCBUS --> R2[Private R2 evidence]
   PROJECTS --> API
   PROJECTS --> LOCAL[Organization-scoped browser recovery cache]
 ```
 
 ## Source map
 
-| Responsibility | Authoritative source |
-| --- | --- |
-| Commands, tools, schemas, examples, and tool-to-command mapping | `src/contracts/venue-contracts.ts` |
-| Command execution and versioned planner state | `src/domain/venue-planner.ts` |
-| Deterministic Constraint registry | `src/domain/constraint-engine.ts` |
-| Human Roles, Agent Grants, permissions, and Approval policy | `src/domain/authorization.ts` |
-| Users, Organizations, Memberships, invitations, and Sessions | `src/domain/accounts.ts` and `worker/account-repository.ts` |
-| Trusted hosting identity Adapter | `worker/authentication.ts` |
-| Stable errors and remediation | `src/domain/errors.ts` |
-| Ledger sealing, verification, and replay | `src/domain/activity-ledger.ts` |
-| Canonical UTC and RFC3339 timestamp validation | `src/domain/timestamps.ts` and `src/domain/event-schedule.ts` |
-| Tool authorization and dispatch | `src/tools/venue-tool-service.ts` |
-| Browser registration and bounded results | `src/webmcp/` |
-| Standalone MCP resources, prompts, progress, and stdio | `packages/mcp-server/src/` |
-| Browser Project persistence and recovery | `src/persistence/project-store.ts` |
-| Event Day Runbook domain, command bus, and anchored ledger | `src/domain/event-day-runbook.ts` and `src/domain/runbook-command-bus.ts` |
-| Browser Runbook cache and offline outbox | `src/persistence/runbook-store.ts` |
-| Runbook audit exports | `src/interchange/runbook-exports.ts` |
-| Incident domain, command bus, and anchored ledger | `src/domain/incidents.ts` and `src/domain/incident-command-bus.ts` |
-| Browser Incident cache and ordered outbox | `src/persistence/incident-store.ts` |
-| Organization-scoped Worker API and Project repository | `worker/index.ts` and `worker/project-repository.ts` |
-| Share Links, pending-operation reconciliation, Notification Preferences, notifications, and leased email outbox | `src/domain/sharing.ts` and `worker/sharing-repository.ts` |
-| Numbered database migrations, integrity, backup, and restore | `db/migrations/`, `worker/database-migrations.ts`, and `scripts/database-maintenance.mjs` |
-| Interchange and operational exports | `src/interchange/` |
-| External adapter contracts, Proposal staging, aggregate registration reconciliation, idempotency, durable webhook receipt, retry, and secret boundaries | `src/integrations/` |
-| Calendar event normalization and Event-to-Project mapping | `src/integrations/adapters/calendar-event-adapter.ts` |
-| Registration and ticketing aggregate normalization | `src/integrations/adapters/registration-ticketing-adapter.ts` |
-| Operational Resource Snapshot reconciliation and explicit substitution preview | `src/domain/operational-resources.ts` and `src/integrations/adapters/operational-resource-adapter.ts` |
-| Canonical docs registry | `src/docs/` |
-| Generated public artifacts | `scripts/generate-*.mjs` and `public/` |
+| Responsibility                                                                                                                                          | Authoritative source                                                                                  |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Commands, tools, schemas, examples, and tool-to-command mapping                                                                                         | `src/contracts/venue-contracts.ts`                                                                    |
+| Command execution and versioned planner state                                                                                                           | `src/domain/venue-planner.ts`                                                                         |
+| Deterministic Constraint registry                                                                                                                       | `src/domain/constraint-engine.ts`                                                                     |
+| Human Roles, Agent Grants, permissions, and Approval policy                                                                                             | `src/domain/authorization.ts`                                                                         |
+| Users, Organizations, Memberships, invitations, and Sessions                                                                                            | `src/domain/accounts.ts` and `worker/account-repository.ts`                                           |
+| Trusted hosting identity Adapter                                                                                                                        | `worker/authentication.ts`                                                                            |
+| Stable errors and remediation                                                                                                                           | `src/domain/errors.ts`                                                                                |
+| Ledger sealing, verification, and replay                                                                                                                | `src/domain/activity-ledger.ts`                                                                       |
+| Canonical UTC and RFC3339 timestamp validation                                                                                                          | `src/domain/timestamps.ts` and `src/domain/event-schedule.ts`                                         |
+| Tool authorization and dispatch                                                                                                                         | `src/tools/venue-tool-service.ts`                                                                     |
+| Browser registration and bounded results                                                                                                                | `src/webmcp/`                                                                                         |
+| Standalone MCP resources, prompts, progress, and stdio                                                                                                  | `packages/mcp-server/src/`                                                                            |
+| Browser Project persistence and recovery                                                                                                                | `src/persistence/project-store.ts`                                                                    |
+| Event Day Runbook domain, command bus, and anchored ledger                                                                                              | `src/domain/event-day-runbook.ts` and `src/domain/runbook-command-bus.ts`                             |
+| Browser Runbook cache and offline outbox                                                                                                                | `src/persistence/runbook-store.ts`                                                                    |
+| Runbook audit exports                                                                                                                                   | `src/interchange/runbook-exports.ts`                                                                  |
+| Incident domain, command bus, and anchored ledger                                                                                                       | `src/domain/incidents.ts` and `src/domain/incident-command-bus.ts`                                    |
+| Browser Incident cache and ordered outbox                                                                                                               | `src/persistence/incident-store.ts`                                                                   |
+| Organization-scoped Worker API and Project repository                                                                                                   | `worker/index.ts` and `worker/project-repository.ts`                                                  |
+| Share Links, pending-operation reconciliation, Notification Preferences, notifications, and leased email outbox                                         | `src/domain/sharing.ts` and `worker/sharing-repository.ts`                                            |
+| Numbered database migrations, integrity, backup, and restore                                                                                            | `db/migrations/`, `worker/database-migrations.ts`, and `scripts/database-maintenance.mjs`             |
+| Interchange and operational exports                                                                                                                     | `src/interchange/`                                                                                    |
+| External adapter contracts, Proposal staging, aggregate registration reconciliation, idempotency, durable webhook receipt, retry, and secret boundaries | `src/integrations/`                                                                                   |
+| Calendar event normalization and Event-to-Project mapping                                                                                               | `src/integrations/adapters/calendar-event-adapter.ts`                                                 |
+| Registration and ticketing aggregate normalization                                                                                                      | `src/integrations/adapters/registration-ticketing-adapter.ts`                                         |
+| Operational Resource Snapshot reconciliation and explicit substitution preview                                                                          | `src/domain/operational-resources.ts` and `src/integrations/adapters/operational-resource-adapter.ts` |
+| Canonical docs registry                                                                                                                                 | `src/docs/`                                                                                           |
+| Generated public artifacts                                                                                                                              | `scripts/generate-*.mjs` and `public/`                                                                |
 
 ## Supervised planning flow
 
@@ -104,7 +103,7 @@ sequenceDiagram
 - `VenuePlanner.execute` is the only planning mutation boundary.
 - The Runbook command bus is a separate operational mutation boundary bound immutably to accepted Plan evidence; it never writes the Project planning snapshot.
 - The Incident command bus is a Runbook-bound operational boundary. Every mutation advances one Incident revision and appends one transition, receipt, and globally ordered ledger entry with actor, timestamp, and frozen-Plan location.
-- Incident metadata is tenant-scoped in D1. Evidence bytes are private in R2 and never enter the aggregate, ledger, export, WebMCP, or MCP result.
+- Incident records are tenant-scoped in D1. VenueMind does not accept or store uploaded files.
 - `createVenueToolService` is the common authorization and dispatch boundary for WebMCP and MCP.
 - `venueToolContracts` is the public agent contract registry; agent-only behavior does not live in registration adapters.
 - `evaluators` in the Constraint engine is the deterministic evidence registry.

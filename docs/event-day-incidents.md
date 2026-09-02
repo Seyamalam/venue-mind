@@ -7,7 +7,7 @@ VenueMind stores one Incident Register for each active Event Day Runbook Version
 1. Create or load the register for the active Runbook Version.
 2. Report an Operational Incident with severity, category, fixed summary code, and a Plan-object or in-room coordinate anchor.
 3. Assign an operational role and acknowledge the Incident.
-4. Escalate, relocate, hand off, attach private evidence, or record an authorized emergency action as conditions change.
+4. Escalate, relocate, hand off, or record an authorized emergency action as conditions change.
 5. Resolve only after acknowledgement and ownership; close after review. Reopening is human-only and reason-coded.
 6. Export the verified Incident record after the event.
 
@@ -15,13 +15,11 @@ Every accepted mutation increments the Incident and register revisions and appen
 
 ## Authority
 
-Agents can inspect the register, report a new structured Incident, and export one verified record. Agents cannot acknowledge, escalate, own, hand off, attach evidence, record emergency actions, resolve, close, or reopen an Incident. Those operations require an authenticated human role in VenueMind Studio.
+Agents can inspect the register, report a new structured Incident, and export one verified record. Agents cannot acknowledge, escalate, own, hand off, record emergency actions, resolve, close, or reopen an Incident. Those operations require an authenticated human role in VenueMind Studio.
 
-## Evidence storage
+## Storage profile
 
-JPEG, PNG, WebP, and PDF evidence is limited to five MiB per object and eight objects per Incident. The API validates actual bytes and media signatures, generates the private object key, computes SHA-256, and stores bytes in a private Cloudflare R2 bucket. D1 stores only the Incident aggregate and checksummed metadata. Public tools, ledgers, and exports never include object keys or evidence bytes.
-
-Downloads are authenticated, integrity-checked against R2 metadata, returned with `private, no-store`, forced attachment disposition, `nosniff`, and a sandbox content-security policy.
+The current deployment stores structured Incident data in D1 and does not accept file uploads. This keeps the production stack available without an object-storage billing activation.
 
 ## Recovery and conflicts
 

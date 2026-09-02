@@ -63,4 +63,4 @@ Reconnect sends the original commands in client sequence order. The server retur
 
 Each active Runbook Version owns one separate Incident Register. Its immutable baseline freezes accepted Plan, Validation, Approval, Emergency Plan, and Runbook ledger provenance. Browser recovery stores the register projection and ordered command outbox by Organization and Project. D1 is authoritative when reachable; exact retries leave the outbox and revision conflicts remain recoverable.
 
-Incident evidence upload is online-only. Validated bytes are written to a private R2 object first, then checksummed metadata is appended through the ordinary Incident command and D1 revision check. A failed aggregate write triggers compensating object deletion. Downloads require authenticated Project access and revalidate aggregate metadata against the private object before returning bytes. See `docs/event-day-incidents.md` and ADR 0028.
+Incident registers contain structured operational records only. File upload and object storage are intentionally outside the current deployment profile, so D1 remains the sole Cloudflare storage dependency. See `docs/event-day-incidents.md` and ADR 0028.

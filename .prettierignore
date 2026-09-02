@@ -2,6 +2,7 @@
 .vercel
 .wrangler
 dist
+docs/reference
 node_modules
 public
 packages/sdk/src/generated

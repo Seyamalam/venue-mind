@@ -98,8 +98,11 @@ test("Runbook panel is viewport-safe and preserves coarse-pointer targets", asyn
   assert.match(styles, /\.runbook-panel \{[^}]*width: min\(420px, calc\(100vw - 32px\)\)/s);
   assert.match(
     styles,
-    /@media \(max-width: 880px\) \{\s*\.runbook-panel \{ inset: 10px !important; width: auto !important; \}/s,
+    /@media \(max-width: 880px\)\s*\{\s*\.runbook-panel\s*\{\s*inset:\s*10px !important;\s*width:\s*auto !important;\s*\}/,
   );
-  assert.match(styles, /@media \(pointer: coarse\) \{\s*\.runbook-panel :is\([^}]*min-height: 44px;/s);
-  assert.match(styles, /\.runbook-task-list \{ min-height: 0; flex: 1; \}/);
+  assert.match(
+    styles,
+    /@media \(pointer: coarse\)\s*\{\s*\.runbook-panel\s*:is\([\s\S]*?\)\s*\{\s*min-height:\s*44px;/,
+  );
+  assert.match(styles, /\.runbook-task-list\s*\{[^}]*min-height:\s*0;[^}]*flex:\s*1;/s);
 });

@@ -43,19 +43,6 @@ export interface IncidentOwner {
   readonly staffPostObjectId?: string;
   readonly assignmentId?: string;
 }
-export interface IncidentAttachment {
-  readonly id: string;
-  readonly kind: "photo" | "document";
-  readonly status: "available";
-  readonly contentType: "image/jpeg" | "image/png" | "image/webp" | "application/pdf";
-  readonly byteLength: number;
-  readonly sha256: string;
-  readonly widthPx?: number;
-  readonly heightPx?: number;
-  readonly uploadedBy: string;
-  readonly uploadedAt: string;
-  readonly attachedAt: string;
-}
 export interface IncidentHandoff {
   readonly id: string;
   readonly fromOwner: IncidentOwner;
@@ -98,7 +85,6 @@ export interface OperationalIncident {
   location: IncidentLocation;
   owner: IncidentOwner | null;
   relatedRefs: IncidentRelatedRef[];
-  attachments: IncidentAttachment[];
   handoffs: IncidentHandoff[];
   emergencyActions: IncidentEmergencyAction[];
   timestamps: {
@@ -271,10 +257,6 @@ export interface RecordIncidentEmergencyActionCommand extends IncidentMutationCo
   readonly scenarioDefinitionId?: string;
   readonly authorityRole: string;
 }
-export interface AttachIncidentEvidenceCommand extends IncidentMutationCommand {
-  readonly type: "attach_incident_evidence";
-  readonly attachment: Omit<IncidentAttachment, "attachedAt">;
-}
 export interface InspectIncidentCommand {
   readonly type: "inspect_incident";
   readonly incidentId: string;
@@ -301,7 +283,6 @@ export type IncidentCommand =
   | TransitionIncidentStatusCommand
   | HandoffIncidentCommand
   | RecordIncidentEmergencyActionCommand
-  | AttachIncidentEvidenceCommand
   | InspectIncidentCommand
   | InspectIncidentsCommand
   | ExportIncidentRecordCommand;

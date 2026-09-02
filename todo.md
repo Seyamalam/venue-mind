@@ -849,7 +849,7 @@ Completion gate:
 
 - [x] Add issue severity, category, location, owner, status, and timestamps.
 - [x] Anchor incidents to Plan objects or coordinates.
-- [x] Add photos or attachments behind secure storage controls.
+- [ ] Add file evidence only after a zero-cost object-storage path is available.
 - [x] Add escalation and acknowledgement states.
 - [x] Add structured handoffs.
 - [x] Link emergency actions to the approved emergency Plan Version.

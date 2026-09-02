@@ -1,6 +1,5 @@
 import {
   acknowledgeIncident,
-  attachIncidentEvidence,
   classifyIncident,
   createIncidentRegister,
   escalateIncident,
@@ -100,9 +99,7 @@ export function createIncidentCommandBus({
                         ? handoffIncident(current, command, commitOptions)
                         : command.type === "record_incident_emergency_action"
                           ? recordIncidentEmergencyAction(current, command, commitOptions)
-                          : command.type === "attach_incident_evidence"
-                            ? attachIncidentEvidence(current, command, commitOptions)
-                            : fail("COMMAND_UNSUPPORTED", { commandType: "unknown" });
+                          : fail("COMMAND_UNSUPPORTED", { commandType: "unknown" });
       if (!result.duplicate) {
         const transition = result.register.transitions.at(-1);
         if (!transition) return fail("INCIDENT_LEDGER_INTEGRITY_FAILED", { reason: "transition-missing" });

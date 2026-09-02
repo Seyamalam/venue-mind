@@ -4,7 +4,6 @@ import {
   Check,
   Download,
   LocateFixed,
-  Paperclip,
   Plus,
   Radio,
   RefreshCw,
@@ -76,8 +75,6 @@ export type IncidentEmergencyActionContext = {
   authorityRole: string;
   targetObjectIds: readonly string[];
 };
-export type IncidentAttachmentInput = { incidentId: string; expectedIncidentRevision: number; file: File };
-export type IncidentAttachmentDownloadInput = { incidentId: string; attachmentId: string };
 
 const SEVERITIES = Object.freeze([
   { id: "critical", label: "CRITICAL" },
@@ -136,11 +133,6 @@ const stamp = (value: string | number | Date | null | undefined) => {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.valueOf())) return value instanceof Date ? "INVALID DATE" : String(value);
   return new Intl.DateTimeFormat("en", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(parsed);
-};
-const fileSize = (bytes: unknown) => {
-  const value = Number(bytes);
-  if (!Number.isFinite(value) || value < 0) return "—";
-  return value < 1024 ? `${value} B` : `${Math.ceil(value / 1024)} KB`;
 };
 
 type IncidentSelectProps = {
@@ -356,40 +348,8 @@ function IncidentNewView({ ownerOptions, objectOptions, onCreate, onSelectAnchor
   );
 }
 
-function AttachmentAction({
-  incident,
-  online,
-  onAttach,
-}: {
-  incident: IncidentView;
-  online: boolean;
-  onAttach?: ((input: IncidentAttachmentInput) => unknown) | undefined;
-}) {
-  const disabled = !online || !onAttach;
-  return (
-    <Button asChild variant="outline" size="sm">
-      <label className="incident-attach" aria-disabled={disabled}>
-        <Paperclip data-icon="inline-start" />
-        <span>ATTACH</span>
-        <Input
-          className="sr-only"
-          type="file"
-          accept="image/jpeg,image/png,image/webp,application/pdf"
-          disabled={disabled}
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (file) onAttach?.({ incidentId: incident.id, expectedIncidentRevision: incident.revision, file });
-            event.target.value = "";
-          }}
-        />
-      </label>
-    </Button>
-  );
-}
-
 type IncidentIssuesViewProps = {
   incidents: IncidentView[];
-  online: boolean;
   onSelectIncident?: ValueCallback | undefined;
   onSelectAnchor?: ((anchor: IncidentLocationInput) => unknown) | undefined;
   onAcknowledge?: ((input: IncidentActionInput) => unknown) | undefined;
@@ -398,13 +358,10 @@ type IncidentIssuesViewProps = {
   onEmergencyAction?: ((input: IncidentActionInput) => unknown) | undefined;
   emergencyActionContext?: IncidentEmergencyActionContext | undefined;
   onHandoff?: ValueCallback | null | undefined;
-  onAttach?: ((input: IncidentAttachmentInput) => unknown) | undefined;
-  onDownloadAttachment?: ((input: IncidentAttachmentDownloadInput) => unknown) | undefined;
 };
 
 function IncidentIssuesView({
   incidents,
-  online,
   onSelectIncident,
   onSelectAnchor,
   onAcknowledge,
@@ -413,8 +370,6 @@ function IncidentIssuesView({
   onEmergencyAction,
   emergencyActionContext,
   onHandoff,
-  onAttach,
-  onDownloadAttachment,
 }: IncidentIssuesViewProps) {
   if (!incidents.length)
     return (
@@ -496,27 +451,6 @@ function IncidentIssuesView({
                   {anchorLabel}
                 </Button>
               </div>
-              {Boolean(incident.attachments.length) && (
-                <div className="incident-attachments" role="list" aria-label={`Attachments for ${incident.id}`}>
-                  {incident.attachments.map((attachment) => (
-                    <div key={attachment.id} role="listitem">
-                      <span>
-                        <Paperclip aria-hidden="true" />
-                        {label(attachment.kind)} · {fileSize(attachment.byteLength)}
-                      </span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="xs"
-                        disabled={!online || !onDownloadAttachment}
-                        onClick={() => onDownloadAttachment?.({ incidentId: incident.id, attachmentId: attachment.id })}
-                      >
-                        GET
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
               <footer>
                 {incident.acknowledgement?.status === "pending" && (
                   <Button
@@ -660,7 +594,6 @@ function IncidentIssuesView({
                   <RefreshCw data-icon="inline-start" />
                   <span>HANDOFF</span>
                 </Button>
-                <AttachmentAction incident={incident} online={online} onAttach={onAttach} />
               </footer>
             </article>
           );
@@ -831,7 +764,6 @@ export type IncidentPanelProps = {
   ownerOptions?: IncidentOwnerOption[];
   objectOptions?: OptionView[];
   syncState?: { state: string; pendingCount: number; lastSyncedAt?: string | null };
-  online?: boolean;
   onClose?: VoidCallback;
   onCreate?: (input: NewIncidentInput) => unknown;
   onSelectIncident?: ValueCallback;
@@ -842,8 +774,6 @@ export type IncidentPanelProps = {
   emergencyActionContext?: IncidentEmergencyActionContext;
   onEmergencyAction?: (input: IncidentActionInput) => unknown;
   onCreateHandoff?: (input: IncidentActionInput) => unknown;
-  onAttach?: (input: IncidentAttachmentInput) => unknown;
-  onDownloadAttachment?: (input: IncidentAttachmentDownloadInput) => unknown;
   onDiscardConflicts?: VoidCallback;
   onSync?: VoidCallback;
   onExport?: VoidCallback;
@@ -857,7 +787,6 @@ export function IncidentPanel({
   ownerOptions = [],
   objectOptions = [],
   syncState = { state: "offline", pendingCount: 0 },
-  online = syncState.state === "online",
   onClose,
   onCreate,
   onSelectIncident,
@@ -868,8 +797,6 @@ export function IncidentPanel({
   emergencyActionContext,
   onEmergencyAction,
   onCreateHandoff,
-  onAttach,
-  onDownloadAttachment,
   onDiscardConflicts,
   onSync,
   onExport,
@@ -970,7 +897,6 @@ export function IncidentPanel({
           <TabsContent className="incident-tab-content" value="issues">
             <IncidentIssuesView
               incidents={incidents}
-              online={online}
               onSelectIncident={onSelectIncident}
               onSelectAnchor={onSelectAnchor}
               onAcknowledge={onAcknowledge}
@@ -979,8 +905,6 @@ export function IncidentPanel({
               emergencyActionContext={emergencyActionContext}
               onEmergencyAction={onEmergencyAction}
               onHandoff={onCreateHandoff ? openHandoff : null}
-              onAttach={onAttach}
-              onDownloadAttachment={onDownloadAttachment}
             />
           </TabsContent>
           <TabsContent className="incident-tab-content" value="handoff">

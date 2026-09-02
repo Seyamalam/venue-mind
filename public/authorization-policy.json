@@ -34,7 +34,6 @@
     "incident.read",
     "incident.report",
     "incident.manage",
-    "incident.attachment",
     "incident.emergency-act",
     "incident.export",
     "export.plan",
@@ -69,7 +68,6 @@
       "occupancy.write",
       "incident.report",
       "incident.manage",
-      "incident.attachment",
       "export.plan"
     ],
     "reviewer": [
@@ -112,7 +110,6 @@
       "incident.read",
       "incident.report",
       "incident.manage",
-      "incident.attachment",
       "incident.emergency-act",
       "incident.export",
       "audit.read"
@@ -132,7 +129,6 @@
       "occupancy.write",
       "incident.report",
       "incident.manage",
-      "incident.attachment",
       "export.plan",
       "proposal.review",
       "incident.export",
@@ -163,7 +159,6 @@
       "incident.read",
       "incident.report",
       "incident.manage",
-      "incident.attachment",
       "incident.emergency-act",
       "incident.export",
       "export.plan",
