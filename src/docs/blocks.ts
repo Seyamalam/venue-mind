@@ -51,25 +51,32 @@ export type DocsPage = Readonly<{
 
 export type TutorialDocsPage = DocsPage & Readonly<{ tutorial: DocsTutorialMetadata }>;
 
-export type PublishedDocsPage = DocsPage & Readonly<{
-  description: string;
-  canonicalPath: string;
-  audience: readonly string[];
-  compatibility: readonly string[];
-  lastReviewedVersion: string;
-}>;
+export type PublishedDocsPage = DocsPage &
+  Readonly<{
+    description: string;
+    canonicalPath: string;
+    audience: readonly string[];
+    compatibility: readonly string[];
+    lastReviewedVersion: string;
+  }>;
 
 export const code = (value: string, language = "text"): DocBlock => ({ type: "code", language, value });
 export const prose = (value: string): DocBlock => ({ type: "prose", value });
 export const bullets = (...items: string[]): DocBlock => ({ type: "bullets", items });
 export const steps = (...items: string[]): DocBlock => ({ type: "steps", items });
 export const links = (...items: DocLink[]): DocBlock => ({ type: "links", items });
-export const table = (columns: readonly DocTableColumn[], rows: readonly DocTableRow[]): DocBlock => ({ type: "table", columns, rows });
+export const table = (columns: readonly DocTableColumn[], rows: readonly DocTableRow[]): DocBlock => ({
+  type: "table",
+  columns,
+  rows,
+});
 
 export function blockText(block: DocBlock): string {
   if (block.type === "prose" || block.type === "code") return block.value;
   if (block.type === "bullets" || block.type === "steps") return block.items.join(" ");
   if (block.type === "links") return block.items.map((item) => item.label).join(" ");
-  if (block.type === "table") return [block.columns.map((column) => column.label).join(" "), ...block.rows.map((row) => block.columns.map((column) => String(row[column.key] ?? "")).join(" "))].join(" ");
-  return "";
+  return [
+    block.columns.map((column) => column.label).join(" "),
+    ...block.rows.map((row) => block.columns.map((column) => String(row[column.key] ?? "")).join(" ")),
+  ].join(" ");
 }

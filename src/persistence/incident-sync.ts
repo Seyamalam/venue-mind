@@ -1,32 +1,48 @@
-const lastSyncedAt = (register: any) => register?.updatedAt ?? null;
+import type { IncidentRegister } from "../domain/operational-types.ts";
+import type { IncidentRemote } from "./incident-remote.ts";
+import type { IncidentStore } from "./incident-store.ts";
 
-export async function synchronizeIncidents({ projectId, registerId, store, remote }: any) {
-  if (typeof projectId !== "string" || !projectId.trim() || typeof registerId !== "string" || !registerId.trim()) {
+interface SynchronizeIncidentsOptions {
+  readonly projectId: string;
+  readonly registerId: string;
+  readonly store: IncidentStore;
+  readonly remote: IncidentRemote;
+}
+
+const lastSyncedAt = (register: IncidentRegister) => register.updatedAt;
+
+export async function synchronizeIncidents({ projectId, registerId, store, remote }: SynchronizeIncidentsOptions) {
+  if (!projectId.trim() || !registerId.trim())
     throw new TypeError("Incident sync requires Project and Incident Register IDs");
-  }
-  if (!store || !remote) throw new TypeError("Incident sync requires store and remote adapters");
-
   const pending = await store.listOutbox();
   if (!pending.length) {
     const loaded = await remote.get(projectId, registerId);
     await store.saveRegister(loaded.register);
-    return { ...loaded, syncState: { state: "online", pendingCount: 0, lastSyncedAt: lastSyncedAt(loaded.register) } };
+    return {
+      ...loaded,
+      acknowledgements: loaded.acknowledgements ?? [],
+      syncState: { state: "online" as const, pendingCount: 0, lastSyncedAt: lastSyncedAt(loaded.register) },
+    };
   }
-
-  await store.markAttempted(pending.map((entry: any) => entry.idempotencyKey));
-  const result = await remote.sync(projectId, registerId, pending.map((entry: any) => entry.command));
+  await store.markAttempted(pending.map((entry) => entry.idempotencyKey));
+  const result = await remote.sync(
+    projectId,
+    registerId,
+    pending.map((entry) => entry.command),
+  );
+  const acknowledgements = result.acknowledgements ?? [];
   await store.saveRegister(result.register);
-  const acknowledgement = await store.acknowledge(result.acknowledgements);
+  const acknowledgement = await store.acknowledge(acknowledgements);
   const remaining = await store.listOutbox();
-  const conflict = result.acknowledgements.some((item: any) => item.status === "conflict" || item.status === "rejected");
+  const conflict = acknowledgements.some((item) => item.status === "conflict" || item.status === "rejected");
   return {
     ...result,
+    acknowledgements,
     acknowledgement,
     syncState: {
-      state: conflict ? "conflict" : "online",
+      state: conflict ? ("conflict" as const) : ("online" as const),
       pendingCount: remaining.length,
       lastSyncedAt: lastSyncedAt(result.register),
     },
   };
 }
-

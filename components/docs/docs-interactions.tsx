@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import { MagnifyingGlassIcon as MagnifyingGlass } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import type { SearchEntry } from "@/components/docs/docs-search-palette";
 import { searchDocs } from "@/src/docs/search.ts";
@@ -12,8 +12,42 @@ type SearchPayload = {
   entries: SearchEntry[];
 };
 
-const loadDocsSearchPalette = () => import("@/components/docs/docs-search-palette")
-  .then((module) => module.DocsSearchPalette);
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const decodeSearchEntry = (value: unknown): SearchEntry => {
+  if (
+    !isRecord(value) ||
+    typeof value["id"] !== "string" ||
+    typeof value["pageSlug"] !== "string" ||
+    typeof value["pageTitle"] !== "string" ||
+    typeof value["sectionTitle"] !== "string" ||
+    typeof value["href"] !== "string" ||
+    typeof value["text"] !== "string" ||
+    typeof value["order"] !== "number"
+  ) {
+    throw new TypeError("Invalid documentation search entry");
+  }
+  return {
+    id: value["id"],
+    pageSlug: value["pageSlug"],
+    pageTitle: value["pageTitle"],
+    sectionTitle: value["sectionTitle"],
+    href: value["href"],
+    text: value["text"],
+    order: value["order"],
+  };
+};
+
+const decodeSearchPayload = (value: unknown): SearchPayload => {
+  if (!isRecord(value) || typeof value["schemaVersion"] !== "number" || !Array.isArray(value["entries"])) {
+    throw new TypeError("Invalid documentation search index");
+  }
+  return { schemaVersion: value["schemaVersion"], entries: value["entries"].map(decodeSearchEntry) };
+};
+
+const loadDocsSearchPalette = () =>
+  import("@/components/docs/docs-search-palette").then((module) => module.DocsSearchPalette);
 
 const LazyDocsSearchPalette = dynamic(loadDocsSearchPalette, {
   ssr: false,
@@ -27,7 +61,7 @@ export function DocsSearch() {
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState<SearchEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
-  const results = useMemo(() => searchDocs(index ?? [], query) as SearchEntry[], [index, query]);
+  const results = useMemo(() => searchDocs(index ?? [], query), [index, query]);
 
   useEffect(() => {
     if (!open || index || failed) return;
@@ -35,9 +69,9 @@ export function DocsSearch() {
     fetch("/docs-search.json", { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error(`Search index request failed: ${response.status}`);
-        return response.json() as Promise<SearchPayload>;
+        return response.json();
       })
-      .then((payload) => setIndex(payload.entries))
+      .then((payload: unknown) => setIndex(decodeSearchPayload(payload).entries))
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
         setFailed(true);
@@ -55,7 +89,8 @@ export function DocsSearch() {
   useEffect(() => {
     const openFromKeyboard = (event: KeyboardEvent) => {
       const target = event.target;
-      const isTyping = target instanceof HTMLElement && (target.matches("input, textarea, select") || target.isContentEditable);
+      const isTyping =
+        target instanceof HTMLElement && (target.matches("input, textarea, select") || target.isContentEditable);
       if ((event.key === "/" && !isTyping) || ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k")) {
         event.preventDefault();
         setQuery("");
@@ -79,10 +114,16 @@ export function DocsSearch() {
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={openSearch}
-        onFocus={() => { void loadDocsSearchPalette(); }}
-        onPointerEnter={() => { void loadDocsSearchPalette(); }}
+        onFocus={() => {
+          void loadDocsSearchPalette();
+        }}
+        onPointerEnter={() => {
+          void loadDocsSearchPalette();
+        }}
       >
-        <MagnifyingGlass size={15} /><span>Search docs</span><kbd>⌘ K</kbd>
+        <MagnifyingGlass size={15} />
+        <span>Search docs</span>
+        <kbd>⌘ K</kbd>
       </Button>
       {hasOpened && (
         <LazyDocsSearchPalette

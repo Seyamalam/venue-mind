@@ -1,20 +1,45 @@
-export async function synchronizeRunbook({ projectId, runbook, store, remote, clock = () => new Date().toISOString() }: any) {
-  if (!projectId || !runbook?.versionId || !store || !remote) throw new TypeError("Runbook synchronization requires project, Runbook, store, and remote");
+import type { EventDayRunbook } from "../domain/operational-types.ts";
+import type { RunbookRemote } from "./runbook-remote.ts";
+import type { RunbookAcknowledgement, createRunbookStore } from "./runbook-store.ts";
+
+interface SynchronizeRunbookOptions {
+  readonly projectId: string;
+  readonly runbook: EventDayRunbook;
+  readonly store: ReturnType<typeof createRunbookStore>;
+  readonly remote: RunbookRemote;
+  readonly clock?: () => string;
+}
+
+export async function synchronizeRunbook({
+  projectId,
+  runbook,
+  store,
+  remote,
+  clock = () => new Date().toISOString(),
+}: SynchronizeRunbookOptions) {
+  if (!projectId || !runbook?.versionId || !store || !remote)
+    throw new TypeError("Runbook synchronization requires project, Runbook, store, and remote");
   const created = await remote.create(projectId, runbook);
   const pending = await store.listOutbox(runbook.versionId);
-  let acknowledgements: any = [];
+  let acknowledgements: readonly RunbookAcknowledgement[] = [];
   let authoritative = created.runbook ?? runbook;
 
   if (pending.length) {
-    const keys = pending.map((entry: any) => entry.idempotencyKey);
+    const keys = pending.map((entry) => entry.idempotencyKey);
     await store.markAttempted(runbook.versionId, keys);
-    const result = await remote.sync(projectId, runbook.versionId, pending.map((entry: any) => entry.command));
+    const result = await remote.sync(
+      projectId,
+      runbook.versionId,
+      pending.map((entry) => entry.command),
+    );
     acknowledgements = result.acknowledgements ?? result.results ?? [];
     authoritative = result.runbook ?? authoritative;
   }
 
   const reconciliation = await store.acknowledge(runbook.versionId, acknowledgements, { runbook: authoritative });
-  const conflictCount = reconciliation.outbox.filter((entry: any) => ["conflict", "rejected"].includes(entry.syncStatus)).length;
+  const conflictCount = reconciliation.outbox.filter((entry) =>
+    ["conflict", "rejected"].includes(entry.syncStatus),
+  ).length;
   return {
     runbook: authoritative,
     acknowledgements,

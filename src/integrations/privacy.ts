@@ -5,13 +5,15 @@ export const NON_CONTACT_LABEL_PATTERN_SOURCE = `^(?![\\s\\S]*${CONTACT_SHAPE_PA
 const nonContactLabelPattern = new RegExp(NON_CONTACT_LABEL_PATTERN_SOURCE);
 const defaultIgnorableCodePointPattern = /\p{Default_Ignorable_Code_Point}/gu;
 
-const canonicalContactText = (value: any) => value
-  .normalize("NFKC")
-  .replace(/[\u2024\uFF61]/g, ".")
-  .replace(/[\u2010-\u2015\u2212]/g, "-")
-  .replace(defaultIgnorableCodePointPattern, "")
-  .replace(/\s/g, " ");
+const canonicalContactText = (value: string): string =>
+  value
+    .normalize("NFKC")
+    .replace(/[\u2024\uFF61]/g, ".")
+    .replace(/[\u2010-\u2015\u2212]/g, "-")
+    .replace(defaultIgnorableCodePointPattern, "")
+    .replace(/\s/g, " ");
 
-export const isNonContactLabel = (value: any) => typeof value === "string"
-  && nonContactLabelPattern.test(value)
-  && nonContactLabelPattern.test(canonicalContactText(value));
+export const isNonContactLabel = (value: unknown): value is string =>
+  typeof value === "string" &&
+  nonContactLabelPattern.test(value) &&
+  nonContactLabelPattern.test(canonicalContactText(value));

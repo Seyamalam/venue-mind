@@ -6194,11 +6194,11 @@ Execute Recover Unsynchronized Branch through the shared VenueMind planner bound
 | sourceRevision | integer \| null | no | — | ≥ 1 | Published contract field. |
 | remoteRevision | integer \| null | no | — | ≥ 1 | Published contract field. |
 | actor | const "human" | yes | — | — | Claimed action source; policy verifies it against the principal. |
-| actorId | string | no | — | min 1 chars | Authenticated or local stable actor identity. |
 | idempotencyKey | string | yes | — | min 1 chars | Unique retry key for this semantic command. |
 | correlationId | string | no | — | min 1 chars | Optional caller correlation identifier. |
 | source | studio \| webmcp \| mcp \| system \| agent-tool | no | — | — | Surface that submitted the command. |
 | sessionId | string | no | — | min 1 chars | Calling session identity. |
+| actorId | string | no | — | min 1 chars | Authenticated or local stable actor identity. |
 
 ```json
 {
@@ -6255,11 +6255,11 @@ Execute Record Share Link Created through the shared VenueMind planner boundary.
 | proposalId | string \| null | no | — | — | Stable Proposal ID. |
 | expiresAt | string | yes | — | format date-time | Published contract field. |
 | actor | const "human" | yes | — | — | Claimed action source; policy verifies it against the principal. |
-| actorId | string | no | — | min 1 chars | Authenticated or local stable actor identity. |
 | idempotencyKey | string | yes | — | min 1 chars | Unique retry key for this semantic command. |
 | correlationId | string | no | — | min 1 chars | Optional caller correlation identifier. |
 | source | studio \| webmcp \| mcp \| system \| agent-tool | no | — | — | Surface that submitted the command. |
 | sessionId | string | no | — | min 1 chars | Calling session identity. |
+| actorId | string | no | — | min 1 chars | Authenticated or local stable actor identity. |
 
 ```json
 {
@@ -6315,11 +6315,11 @@ Execute Record Share Link Revoked through the shared VenueMind planner boundary.
 | shareLinkId | string | yes | — | min 1 chars | Published contract field. |
 | reasonCode | string | no | — | min 1 chars | Published contract field. |
 | actor | const "human" | yes | — | — | Claimed action source; policy verifies it against the principal. |
-| actorId | string | no | — | min 1 chars | Authenticated or local stable actor identity. |
 | idempotencyKey | string | yes | — | min 1 chars | Unique retry key for this semantic command. |
 | correlationId | string | no | — | min 1 chars | Optional caller correlation identifier. |
 | source | studio \| webmcp \| mcp \| system \| agent-tool | no | — | — | Surface that submitted the command. |
 | sessionId | string | no | — | min 1 chars | Calling session identity. |
+| actorId | string | no | — | min 1 chars | Authenticated or local stable actor identity. |
 
 ```json
 {

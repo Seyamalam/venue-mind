@@ -4,30 +4,66 @@ import { analyzeCateringPlan } from "./catering-planning.ts";
 import { analyzeEmergencyPlan, emergencyChangeObjectIds } from "./emergency-planning.ts";
 import { venueError } from "./errors.ts";
 import { detectLockConflicts } from "./locks.ts";
+import type { ConstraintWaiver, VenueConstraint, VenuePlan, VenueProposal } from "./geometry.ts";
+import type { EventBrief } from "./event-brief.ts";
+import type { ObjectLock } from "./locks.ts";
+import type { PlanningChange } from "./planning-effects.ts";
 
 export const VALIDATION_ENGINE_VERSION = "2.7.0";
 
-const clone: any = (value: any) => JSON.parse(JSON.stringify(value));
+const clone = <T>(value: T): T => structuredClone(value);
+const isUnknownArray = (value: unknown): value is unknown[] => Array.isArray(value);
 
-const stableStringify: any = (value: any) => {
+const stableStringify = (value: unknown): string => {
   if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
   if (value && typeof value === "object") {
-    return `{${Object.keys(value).sort().map((key: any) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+    return `{${Object.entries(value)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => `${JSON.stringify(key)}:${stableStringify(entry)}`)
+      .join(",")}}`;
   }
   return JSON.stringify(value);
 };
 
-const hash: any = (prefix: any, value: any) => {
-  const input: any = stableStringify(value);
-  let result: any = 0x811c9dc5;
-  for (let index: any = 0; index < input.length; index += 1) {
+const hash = (prefix: string, value: unknown): string => {
+  const input = stableStringify(value);
+  let result = 0x811c9dc5;
+  for (let index = 0; index < input.length; index += 1) {
     result ^= input.charCodeAt(index);
     result = Math.imul(result, 0x01000193);
   }
   return `${prefix}-${(result >>> 0).toString(16).padStart(8, "0")}`;
 };
 
-const metricConstraint: any = ({ id, checkId, label, category, metric, comparator, threshold, unit, remediation }: any) => ({
+interface MetricConstraintInput {
+  id: string;
+  checkId: string;
+  label: string;
+  category: string;
+  metric: string;
+  comparator: "gte" | "lte";
+  threshold: number;
+  unit: string;
+  remediation: string;
+}
+interface DefaultConstraintOptions {
+  protectedObjectIds?: string[];
+  accessibleRouteMinWidthFt?: number;
+  attendeeCapacityMin?: number;
+  sightlineCoverageMin?: number;
+  peakCongestionMax?: number;
+}
+const metricConstraint = ({
+  id,
+  checkId,
+  label,
+  category,
+  metric,
+  comparator,
+  threshold,
+  unit,
+  remediation,
+}: MetricConstraintInput): VenueConstraint => ({
   id,
   checkId,
   evaluator: comparator === "gte" ? "minimum_metric" : "maximum_metric",
@@ -39,7 +75,7 @@ const metricConstraint: any = ({ id, checkId, label, category, metric, comparato
   remediation,
 });
 
-export function createDefaultConstraintRegistry(options: any = {}) {
+export function createDefaultConstraintRegistry(options: DefaultConstraintOptions = {}): VenueConstraint[] {
   return [
     {
       id: "constraint-protected-objects",
@@ -99,44 +135,189 @@ export function createDefaultConstraintRegistry(options: any = {}) {
   ];
 }
 
-export function normalizeConstraints(constraints: any) {
-  if (!Array.isArray(constraints)) throw venueError("CONSTRAINT_INVALID", { field: "constraints" }, "Constraints must be a current registry array");
-  const registry: any = constraints;
-  const ids: any = new Set();
-  return registry.map((constraint: any) => {
-    if (!constraint?.id || !constraint?.checkId || !constraint?.evaluator) throw venueError("CONSTRAINT_INVALID", { constraintId: constraint?.id ?? null }, "Constraint requires stable IDs and an evaluator");
-    if (ids.has(constraint.id)) throw venueError("CONSTRAINT_DUPLICATE", { constraintId: constraint.id }, `Duplicate Constraint ID: ${constraint.id}`);
+export function normalizeConstraints(constraints: readonly VenueConstraint[]): VenueConstraint[] {
+  if (!isUnknownArray(constraints))
+    throw venueError("CONSTRAINT_INVALID", { field: "constraints" }, "Constraints must be a current registry array");
+  const registry = constraints;
+  const ids = new Set();
+  return registry.map((constraint) => {
+    if (!constraint?.id || !constraint?.checkId || !constraint?.evaluator)
+      throw venueError(
+        "CONSTRAINT_INVALID",
+        { constraintId: constraint?.id ?? null },
+        "Constraint requires stable IDs and an evaluator",
+      );
+    if (ids.has(constraint.id))
+      throw venueError(
+        "CONSTRAINT_DUPLICATE",
+        { constraintId: constraint.id },
+        `Duplicate Constraint ID: ${constraint.id}`,
+      );
     ids.add(constraint.id);
-    if (!constraint.category || !["error", "warning"].includes(constraint.severity)) throw venueError("CONSTRAINT_INVALID", { constraintId: constraint.id }, `Invalid Constraint metadata: ${constraint.id}`);
-    if (constraint.severity === "error" && constraint.waivable === true) throw venueError("CONSTRAINT_INVALID", { constraintId: constraint.id, field: "waivable" }, `Hard Constraint cannot be waivable: ${constraint.id}`);
-    if (constraint.severity === "warning" && constraint.waivable === false) throw venueError("CONSTRAINT_INVALID", { constraintId: constraint.id, field: "waivable" }, `Warning Constraint must be waivable: ${constraint.id}`);
-    return clone({ ...constraint, waivable: constraint.severity === "warning", scope: constraint.scope ?? { kind: "plan" } });
+    if (!constraint.category || !["error", "warning"].includes(constraint.severity))
+      throw venueError(
+        "CONSTRAINT_INVALID",
+        { constraintId: constraint.id },
+        `Invalid Constraint metadata: ${constraint.id}`,
+      );
+    if (constraint.severity === "error" && constraint.waivable === true)
+      throw venueError(
+        "CONSTRAINT_INVALID",
+        { constraintId: constraint.id, field: "waivable" },
+        `Hard Constraint cannot be waivable: ${constraint.id}`,
+      );
+    if (constraint.severity === "warning" && constraint.waivable === false)
+      throw venueError(
+        "CONSTRAINT_INVALID",
+        { constraintId: constraint.id, field: "waivable" },
+        `Warning Constraint must be waivable: ${constraint.id}`,
+      );
+    return clone({
+      ...constraint,
+      waivable: constraint.severity === "warning",
+      scope: constraint.scope ?? { kind: "plan" },
+    });
   });
 }
 
-const applyEffects: any = (metrics: any, changes: any) => changes.reduce(
-  (next: any, change: any) => ({ ...next, ...change.effects }),
-  { ...metrics },
-);
-
-const evaluateMetric: any = (constraint: any, candidateMetrics: any) => {
-  const { metric, comparator, threshold, unit } = constraint.parameters;
-  const actual: any = candidateMetrics[metric];
-  if (!Number.isFinite(actual) || !Number.isFinite(threshold)) throw venueError("CONSTRAINT_EVIDENCE_INVALID", { constraintId: constraint.id, metric }, `Constraint ${constraint.id} requires numeric metric evidence`);
-  const passes: any = comparator === "gte" ? actual >= threshold : actual <= threshold;
-  return { passes, actual, threshold, unit, metric, comparator, affectedObjectIds: [] };
+type MetricValues = Record<string, number | boolean>;
+const applyEffects = (metrics: MetricValues, changes: readonly PlanningChange[]): MetricValues => {
+  const next = { ...metrics };
+  for (const change of changes) {
+    for (const [key, value] of Object.entries(change.effects ?? {})) {
+      if (typeof value === "number" || typeof value === "boolean") next[key] = value;
+    }
+  }
+  return next;
 };
 
-const evaluators: any = {
+export interface ConstraintState {
+  plan: VenuePlan;
+  brief: EventBrief | null;
+  proposal: VenueProposal | null;
+  projectLocks?: ObjectLock[];
+}
+type SpatialAnalysis = ReturnType<typeof analyzeSpatialPlan>;
+interface EvaluatorContext {
+  changes: PlanningChange[];
+  state: ConstraintState;
+  spatialEvidence: SpatialAnalysis["evidence"];
+  productionEvidence: ProductionEvidence;
+  cateringEvidence: CateringEvidence;
+  emergencyEvidence: ReturnType<typeof analyzeEmergencyPlan>;
+}
+interface EvaluationResult {
+  applicable?: boolean;
+  passes: boolean;
+  actual: number | null;
+  threshold: number;
+  unit: string;
+  metric: string;
+  comparator: "gte" | "lte";
+  affectedObjectIds: string[];
+  details?: object;
+}
+type ConstraintEvaluator = (
+  constraint: VenueConstraint,
+  candidateMetrics: MetricValues,
+  context: EvaluatorContext,
+) => EvaluationResult;
+interface ProductionEvidenceItem {
+  status: string;
+  projectorObjectId?: string;
+  screenObjectId?: string | null;
+  rays?: Array<{ blockedByObjectIds: string[] }>;
+  seatingObjectId?: string;
+  cameraObjectId?: string;
+  targetObjectId?: string | null;
+  blockedByObjectIds?: string[];
+  controlObjectId?: string;
+  cableObjectId?: string;
+  routeObjectId?: string;
+  utilityObjectId?: string;
+  connectedObjectIds?: string[];
+  riggingPointObjectId?: string;
+  suspendedObjectIds?: string[];
+}
+export interface ProductionEvidence {
+  throwDistanceChecks: ProductionEvidenceItem[];
+  screenVisibility: ProductionEvidenceItem[];
+  speakerCoverage: ProductionEvidenceItem[];
+  cameraChecks: ProductionEvidenceItem[];
+  controlSightlines: ProductionEvidenceItem[];
+  cableCrossings: ProductionEvidenceItem[];
+  circuits: ProductionEvidenceItem[];
+  unpoweredObjectIds: string[];
+  rigging: ProductionEvidenceItem[];
+  unresolvedRiggingObjectIds: string[];
+  summary: { status: string; failedChecks: number };
+}
+interface CateringEvidenceItem {
+  status: string;
+  stationObjectId?: string;
+  queueZoneObjectId?: string | null;
+  conflictObjectId?: string | null;
+  serviceObjectId?: string;
+  otherObjectId?: string;
+  routeObjectId?: string;
+  sourceObjectId?: string | null;
+  targetObjectIds?: string[];
+  crossingObjectIds?: string[];
+  missingEndpointIds?: Array<string | null>;
+  placedObjectIds?: string[];
+}
+export interface CateringEvidence {
+  phaseCapacity: Array<{ stations: CateringEvidenceItem[] }>;
+  queueConflicts: CateringEvidenceItem[];
+  separationChecks: CateringEvidenceItem[];
+  accessibleServicePoints: CateringEvidenceItem[];
+  replenishmentRoutes: CateringEvidenceItem[];
+  inventory: CateringEvidenceItem[];
+  invalidStationReferences: Array<string | null>;
+  summary: {
+    status: string;
+    minimumPhaseServiceCapacityPersons: number;
+    queueRiskCount: number;
+    circulationConflictCount: number;
+    uncontrolledCirculationConflictCount: number;
+    separationFailures: number;
+    accessibleServicePoints: number;
+    missingSupportObjects: number;
+    inventoryShortages: number;
+  };
+}
+const requiredNumber = (value: number | undefined, constraint: VenueConstraint, field: string): number => {
+  if (typeof value !== "number" || !Number.isFinite(value))
+    throw venueError("CONSTRAINT_INVALID", { constraintId: constraint.id, field });
+  return value;
+};
+const evaluateMetric: ConstraintEvaluator = (constraint, candidateMetrics) => {
+  const { metric, comparator, threshold, unit } = constraint.parameters;
+  if (!metric || !comparator || !unit) throw venueError("CONSTRAINT_INVALID", { constraintId: constraint.id });
+  const actual = candidateMetrics[metric];
+  const requiredThreshold = requiredNumber(threshold, constraint, "threshold");
+  if (typeof actual !== "number" || !Number.isFinite(actual))
+    throw venueError(
+      "CONSTRAINT_EVIDENCE_INVALID",
+      { constraintId: constraint.id, metric },
+      `Constraint ${constraint.id} requires numeric metric evidence`,
+    );
+  const passes = comparator === "gte" ? actual >= requiredThreshold : actual <= requiredThreshold;
+  return { passes, actual, threshold: requiredThreshold, unit, metric, comparator, affectedObjectIds: [] };
+};
+
+const evaluators: Record<string, ConstraintEvaluator> = {
   minimum_metric: evaluateMetric,
   maximum_metric: evaluateMetric,
-  protected_objects_unchanged: (constraint: any, _candidateMetrics: any, context: any) => {
-    const protectedIds: any = new Set(constraint.parameters.objectIds);
-    const protectedTargetObjectIds: any = context.changes
-      .flatMap((change: any) => change.targetObjectIds ?? [])
-      .filter((id: any) => protectedIds.has(id));
-    const lockConflicts: any = detectLockConflicts(context.state.plan, context.changes, context.state.projectLocks ?? []);
-    const affectedObjectIds: any = [...new Set([...protectedTargetObjectIds, ...lockConflicts.map((conflict: any) => conflict.objectId)])].sort();
+  protected_objects_unchanged: (constraint, _candidateMetrics, context) => {
+    const protectedIds = new Set(constraint.parameters.objectIds ?? []);
+    const protectedTargetObjectIds = context.changes
+      .flatMap((change) => change.targetObjectIds ?? [])
+      .filter((id) => protectedIds.has(id));
+    const lockConflicts = detectLockConflicts(context.state.plan, context.changes, context.state.projectLocks ?? []);
+    const affectedObjectIds = [
+      ...new Set([...protectedTargetObjectIds, ...lockConflicts.map((conflict) => conflict.objectId)]),
+    ].sort();
     return {
       passes: affectedObjectIds.length === 0,
       actual: affectedObjectIds.length,
@@ -148,9 +329,9 @@ const evaluators: any = {
       details: { lockConflicts },
     };
   },
-  accessible_route_graph: (constraint: any, _candidateMetrics: any, context: any) => {
-    const access: any = context.spatialEvidence.accessibility;
-    const threshold: any = constraint.parameters.minimumWidthM;
+  accessible_route_graph: (constraint, _candidateMetrics, context) => {
+    const access = context.spatialEvidence.accessibility;
+    const threshold = requiredNumber(constraint.parameters.minimumWidthM, constraint, "minimumWidthM");
     return {
       passes: access.connected && access.minimumClearWidthM >= threshold,
       actual: access.minimumClearWidthM,
@@ -162,91 +343,145 @@ const evaluators: any = {
       details: access,
     };
   },
-  turning_clearance: (constraint: any, _candidateMetrics: any, context: any) => {
-    const access: any = context.spatialEvidence.accessibility;
-    const threshold: any = constraint.parameters.minimumDiameterM;
-    return { passes: access.turningClearanceM >= threshold, actual: access.turningClearanceM, threshold, unit: "m", metric: "turningClearanceM", comparator: "gte", affectedObjectIds: access.routeObjectIds, details: access };
-  },
-  accessible_seating: (constraint: any, _candidateMetrics: any, context: any) => {
-    const access: any = context.spatialEvidence.accessibility;
-    const threshold: any = constraint.parameters.minimumSeats;
-    const companionPass: any = !constraint.parameters.requireCompanionAdjacency || access.companionAdjacencySatisfied;
-    return { passes: access.accessibleSeats >= threshold && access.seatingDistributed && companionPass, actual: access.accessibleSeats, threshold, unit: "seats", metric: "accessibleSeats", comparator: "gte", affectedObjectIds: access.accessibleSeatingSections.map((section: any) => section.objectId), details: access };
-  },
-  accessible_seating_sightlines: (constraint: any, _candidateMetrics: any, context: any) => {
-    const access: any = context.spatialEvidence.accessibility;
-    const threshold: any = constraint.parameters.minimumCoverageRatio;
-    const sectionThreshold: any = constraint.parameters.minimumSectionCoverageRatio ?? threshold;
-    const failingSections: any = access.accessibleSeatSightlineSections.filter((section: any) => section.sampleIds.length === 0 || section.coverageRatio < sectionThreshold).map((section: any) => section.objectId);
+  turning_clearance: (constraint, _candidateMetrics, context) => {
+    const access = context.spatialEvidence.accessibility;
+    const threshold = requiredNumber(constraint.parameters.minimumDiameterM, constraint, "minimumDiameterM");
     return {
-      passes: access.accessibleSeatSampleIds.length > 0 && access.accessibleSeatSightlineCoverageRatio >= threshold && failingSections.length === 0,
+      passes: access.turningClearanceM >= threshold,
+      actual: access.turningClearanceM,
+      threshold,
+      unit: "m",
+      metric: "turningClearanceM",
+      comparator: "gte",
+      affectedObjectIds: access.routeObjectIds,
+      details: access,
+    };
+  },
+  accessible_seating: (constraint, _candidateMetrics, context) => {
+    const access = context.spatialEvidence.accessibility;
+    const threshold = requiredNumber(constraint.parameters.minimumSeats, constraint, "minimumSeats");
+    const companionPass = !constraint.parameters.requireCompanionAdjacency || access.companionAdjacencySatisfied;
+    return {
+      passes: access.accessibleSeats >= threshold && access.seatingDistributed && companionPass,
+      actual: access.accessibleSeats,
+      threshold,
+      unit: "seats",
+      metric: "accessibleSeats",
+      comparator: "gte",
+      affectedObjectIds: access.accessibleSeatingSections.map((section) => section.objectId),
+      details: access,
+    };
+  },
+  accessible_seating_sightlines: (constraint, _candidateMetrics, context) => {
+    const access = context.spatialEvidence.accessibility;
+    const threshold = requiredNumber(constraint.parameters.minimumCoverageRatio, constraint, "minimumCoverageRatio");
+    const sectionThreshold = constraint.parameters.minimumSectionCoverageRatio ?? threshold;
+    const failingSections = access.accessibleSeatSightlineSections
+      .filter((section) => section.sampleIds.length === 0 || section.coverageRatio < sectionThreshold)
+      .map((section) => section.objectId);
+    return {
+      passes:
+        access.accessibleSeatSampleIds.length > 0 &&
+        access.accessibleSeatSightlineCoverageRatio >= threshold &&
+        failingSections.length === 0,
       actual: access.accessibleSeatSightlineCoverageRatio,
       threshold,
       unit: "ratio",
       metric: "accessibleSeatSightlineCoverage",
       comparator: "gte",
       affectedObjectIds: failingSections,
-      details: { sampleIds: access.accessibleSeatSampleIds, blockedSampleIds: access.blockedAccessibleSeatSampleIds, sections: access.accessibleSeatSightlineSections, missingSampleSectionIds: access.missingAccessibleSeatSampleSectionIds },
+      details: {
+        sampleIds: access.accessibleSeatSampleIds,
+        blockedSampleIds: access.blockedAccessibleSeatSampleIds,
+        sections: access.accessibleSeatSightlineSections,
+        missingSampleSectionIds: access.missingAccessibleSeatSampleSectionIds,
+      },
     };
   },
-  door_clearance: (constraint: any, _candidateMetrics: any, context: any) => {
-    const access: any = context.spatialEvidence.accessibility;
-    const threshold: any = constraint.parameters.minimumClearWidthM;
-    const obstructingObjectIds: any = [...new Set(access.doorClearanceZones.flatMap((zone: any) => zone.obstructingObjectIds))].sort();
+  door_clearance: (constraint, _candidateMetrics, context) => {
+    const access = context.spatialEvidence.accessibility;
+    const threshold = requiredNumber(constraint.parameters.minimumClearWidthM, constraint, "minimumClearWidthM");
+    const obstructingObjectIds = [
+      ...new Set(access.doorClearanceZones.flatMap((zone) => zone.obstructingObjectIds)),
+    ].sort();
     return {
       applicable: access.accessibleDoorObjectIds.length > 0,
-      passes: access.accessibleDoorObjectIds.length > 0 && access.minimumDoorClearWidthM >= threshold && access.obstructedDoorObjectIds.length === 0,
+      passes:
+        access.accessibleDoorObjectIds.length > 0 &&
+        access.minimumDoorClearWidthM >= threshold &&
+        access.obstructedDoorObjectIds.length === 0,
       actual: access.minimumDoorClearWidthM,
       threshold,
       unit: "m",
       metric: "minimumDoorClearWidthM",
       comparator: "gte",
       affectedObjectIds: [...new Set([...access.obstructedDoorObjectIds, ...obstructingObjectIds])].sort(),
-      details: { doorObjectIds: access.accessibleDoorObjectIds, obstructedDoorObjectIds: access.obstructedDoorObjectIds, clearanceZones: access.doorClearanceZones },
+      details: {
+        doorObjectIds: access.accessibleDoorObjectIds,
+        obstructedDoorObjectIds: access.obstructedDoorObjectIds,
+        clearanceZones: access.doorClearanceZones,
+      },
     };
   },
-  temporary_ramp: (constraint: any, _candidateMetrics: any, context: any) => {
-    const access: any = context.spatialEvidence.accessibility;
-    const failing: any = access.ramps.filter((ramp: any) => ramp.status === "fail");
+  temporary_ramp: (constraint, _candidateMetrics, context) => {
+    const access = context.spatialEvidence.accessibility;
+    const failing = access.ramps.filter((ramp) => ramp.status === "fail");
     return {
       applicable: access.ramps.length > 0,
       passes: access.ramps.length > 0 && failing.length === 0,
-      actual: access.ramps.length ? Math.min(...access.ramps.map((ramp: any) => ramp.slopeRatio)) : null,
-      threshold: constraint.parameters.minimumSlopeRatio,
+      actual: access.ramps.length ? Math.min(...access.ramps.map((ramp) => ramp.slopeRatio)) : null,
+      threshold: requiredNumber(constraint.parameters.minimumSlopeRatio, constraint, "minimumSlopeRatio"),
       unit: "run-per-rise",
       metric: "minimumRampSlopeRatio",
       comparator: "gte",
-      affectedObjectIds: failing.map((ramp: any) => ramp.objectId),
+      affectedObjectIds: failing.map((ramp) => ramp.objectId),
       details: { ramps: access.ramps, policy: access.rampPolicy },
     };
   },
-  occupancy_capacity: (constraint: any, _candidateMetrics: any, context: any) => {
-    const capacity: any = context.spatialEvidence.capacity;
-    const threshold: any = constraint.parameters.minimumAttendeeCapacity;
-    const maximumLoad: any = constraint.parameters.maximumOperationalLoad;
-    const sectionViolations: any = capacity.sectionCapacities.filter((section: any) => section.status !== "within-limit");
-    const zoneViolations: any = capacity.zoneCapacities.filter((zone: any) => zone.status !== "within-limit");
+  occupancy_capacity: (constraint, _candidateMetrics, context) => {
+    const capacity = context.spatialEvidence.capacity;
+    const threshold = requiredNumber(
+      constraint.parameters.minimumAttendeeCapacity,
+      constraint,
+      "minimumAttendeeCapacity",
+    );
+    const maximumLoad = requiredNumber(
+      constraint.parameters.maximumOperationalLoad,
+      constraint,
+      "maximumOperationalLoad",
+    );
+    const sectionViolations = capacity.sectionCapacities.filter((section) => section.status !== "within-limit");
+    const zoneViolations = capacity.zoneCapacities.filter((zone) => zone.status !== "within-limit");
     return {
-      passes: capacity.effectiveCapacity >= threshold
-        && capacity.operationalLoad <= maximumLoad
-        && sectionViolations.length === 0
-        && zoneViolations.length === 0,
+      passes:
+        capacity.effectiveCapacity >= threshold &&
+        capacity.operationalLoad <= maximumLoad &&
+        sectionViolations.length === 0 &&
+        zoneViolations.length === 0,
       actual: capacity.effectiveCapacity,
       threshold,
       unit: "attendees",
       metric: "effectiveCapacity",
       comparator: "gte",
-      affectedObjectIds: [...new Set([
-        ...sectionViolations.map((section: any) => section.objectId),
-        ...zoneViolations.flatMap((zone: any) => zone.sectionObjectIds),
-        ...(capacity.effectiveCapacity < threshold || capacity.operationalLoad > maximumLoad ? capacity.sectionCapacities.map((section: any) => section.objectId) : []),
-      ])].sort(),
+      affectedObjectIds: [
+        ...new Set([
+          ...sectionViolations.map((section) => section.objectId),
+          ...zoneViolations.flatMap((zone) => zone.sectionObjectIds),
+          ...(capacity.effectiveCapacity < threshold || capacity.operationalLoad > maximumLoad
+            ? capacity.sectionCapacities.map((section) => section.objectId)
+            : []),
+        ]),
+      ].sort(),
       details: { ...capacity, sectionViolations, zoneViolations },
     };
   },
-  circulation_graph: (constraint: any, _candidateMetrics: any, context: any) => {
-    const circulation: any = context.spatialEvidence.circulation;
-    const threshold: any = constraint.parameters.maximumCongestionIndex;
+  circulation_graph: (constraint, _candidateMetrics, context) => {
+    const circulation = context.spatialEvidence.circulation;
+    const threshold = requiredNumber(
+      constraint.parameters.maximumCongestionIndex,
+      constraint,
+      "maximumCongestionIndex",
+    );
     return {
       passes: circulation.connected && circulation.peakCongestionIndex <= threshold,
       actual: circulation.peakCongestionIndex,
@@ -254,23 +489,34 @@ const evaluators: any = {
       unit: "index",
       metric: "peakCongestionIndex",
       comparator: "lte",
-      affectedObjectIds: [...new Set([
-        ...circulation.disconnectedOccupiedObjectIds,
-        ...circulation.blockingObjectIds,
-        ...circulation.obstructedExitObjectIds,
-        ...circulation.exitApproachZones.flatMap((zone: any) => zone.obstructingObjectIds),
-      ])].sort(),
+      affectedObjectIds: [
+        ...new Set([
+          ...circulation.disconnectedOccupiedObjectIds,
+          ...circulation.blockingObjectIds,
+          ...circulation.obstructedExitObjectIds,
+          ...circulation.exitApproachZones.flatMap((zone) => zone.obstructingObjectIds),
+        ]),
+      ].sort(),
       details: circulation,
     };
   },
-  sightline_raycast: (constraint: any, _candidateMetrics: any, context: any) => {
-    const sightlines: any = context.spatialEvidence.sightlines;
-    const threshold: any = constraint.parameters.minimumCoverageRatio;
-    const maximumDistance: any = constraint.parameters.maximumViewingDistanceM;
-    const maximumBlockedSectionRatio: any = constraint.parameters.maximumBlockedSectionRatio ?? 1;
-    const failingSectionIds: any = sightlines.sectionSummaries.filter((section: any) => section.blockedRatio > maximumBlockedSectionRatio).map((section: any) => section.objectId);
+  sightline_raycast: (constraint, _candidateMetrics, context) => {
+    const sightlines = context.spatialEvidence.sightlines;
+    const threshold = requiredNumber(constraint.parameters.minimumCoverageRatio, constraint, "minimumCoverageRatio");
+    const maximumDistance = requiredNumber(
+      constraint.parameters.maximumViewingDistanceM,
+      constraint,
+      "maximumViewingDistanceM",
+    );
+    const maximumBlockedSectionRatio = constraint.parameters.maximumBlockedSectionRatio ?? 1;
+    const failingSectionIds = sightlines.sectionSummaries
+      .filter((section) => section.blockedRatio > maximumBlockedSectionRatio)
+      .map((section) => section.objectId);
     return {
-      passes: sightlines.coverageRatio >= threshold && sightlines.maximumViewingDistanceM <= maximumDistance && failingSectionIds.length === 0,
+      passes:
+        sightlines.coverageRatio >= threshold &&
+        sightlines.maximumViewingDistanceM <= maximumDistance &&
+        failingSectionIds.length === 0,
       actual: sightlines.coverageRatio,
       threshold,
       unit: "ratio",
@@ -280,20 +526,34 @@ const evaluators: any = {
       details: sightlines,
     };
   },
-  production_readiness: (constraint: any, _candidateMetrics: any, context: any) => {
-    const production: any = context.productionEvidence;
-    const failedObjectIds: any = [
-      ...production.throwDistanceChecks.filter((item: any) => item.status === "fail").flatMap((item: any) => [item.projectorObjectId, item.screenObjectId]),
-      ...production.screenVisibility.filter((item: any) => item.status === "fail").flatMap((item: any) => [item.screenObjectId, ...item.rays.flatMap((ray: any) => ray.blockedByObjectIds)]),
-      ...production.speakerCoverage.filter((item: any) => item.status === "fail").map((item: any) => item.seatingObjectId),
-      ...production.cameraChecks.filter((item: any) => item.status === "fail").flatMap((item: any) => [item.cameraObjectId, item.targetObjectId, ...item.blockedByObjectIds]),
-      ...production.controlSightlines.filter((item: any) => item.status === "fail").flatMap((item: any) => [item.controlObjectId, item.targetObjectId, ...item.blockedByObjectIds]),
-      ...production.cableCrossings.filter((item: any) => item.status === "fail").flatMap((item: any) => [item.cableObjectId, item.routeObjectId]),
-      ...production.circuits.filter((item: any) => item.status === "fail").flatMap((item: any) => [item.utilityObjectId, ...item.connectedObjectIds]),
+  production_readiness: (constraint, _candidateMetrics, context) => {
+    const production = context.productionEvidence;
+    const failedObjectIds = [
+      ...production.throwDistanceChecks
+        .filter((item) => item.status === "fail")
+        .flatMap((item) => [item.projectorObjectId, item.screenObjectId]),
+      ...production.screenVisibility
+        .filter((item) => item.status === "fail")
+        .flatMap((item) => [item.screenObjectId, ...(item.rays ?? []).flatMap((ray) => ray.blockedByObjectIds)]),
+      ...production.speakerCoverage.filter((item) => item.status === "fail").map((item) => item.seatingObjectId),
+      ...production.cameraChecks
+        .filter((item) => item.status === "fail")
+        .flatMap((item) => [item.cameraObjectId, item.targetObjectId, ...(item.blockedByObjectIds ?? [])]),
+      ...production.controlSightlines
+        .filter((item) => item.status === "fail")
+        .flatMap((item) => [item.controlObjectId, item.targetObjectId, ...(item.blockedByObjectIds ?? [])]),
+      ...production.cableCrossings
+        .filter((item) => item.status === "fail")
+        .flatMap((item) => [item.cableObjectId, item.routeObjectId]),
+      ...production.circuits
+        .filter((item) => item.status === "fail")
+        .flatMap((item) => [item.utilityObjectId, ...(item.connectedObjectIds ?? [])]),
       ...production.unpoweredObjectIds,
-      ...production.rigging.filter((item: any) => item.status === "fail").flatMap((item: any) => [item.riggingPointObjectId, ...item.suspendedObjectIds]),
+      ...production.rigging
+        .filter((item) => item.status === "fail")
+        .flatMap((item) => [item.riggingPointObjectId, ...(item.suspendedObjectIds ?? [])]),
       ...production.unresolvedRiggingObjectIds,
-    ].filter(Boolean);
+    ].filter((id): id is string => typeof id === "string");
     return {
       passes: production.summary.status === "pass",
       actual: production.summary.failedChecks,
@@ -305,20 +565,41 @@ const evaluators: any = {
       details: production,
     };
   },
-  catering_readiness: (constraint: any, _candidateMetrics: any, context: any) => {
-    const catering: any = context.cateringEvidence;
-    const affectedObjectIds: any = [
-      ...catering.phaseCapacity.flatMap((phase: any) => phase.stations.filter((item: any) => item.status === "fail").map((item: any) => item.stationObjectId)),
-      ...catering.queueConflicts.flatMap((item: any) => [item.stationObjectId, item.queueZoneObjectId, item.conflictObjectId]),
-      ...catering.separationChecks.filter((item: any) => item.status === "fail").flatMap((item: any) => [item.serviceObjectId, item.otherObjectId]),
-      ...catering.accessibleServicePoints.filter((item: any) => item.status === "fail").map((item: any) => item.stationObjectId),
-      ...catering.replenishmentRoutes.filter((item: any) => item.status === "fail").flatMap((item: any) => [item.routeObjectId, item.sourceObjectId, ...item.targetObjectIds, ...item.crossingObjectIds, ...item.missingEndpointIds]),
-      ...catering.inventory.filter((item: any) => item.status === "warning").flatMap((item: any) => item.placedObjectIds),
+  catering_readiness: (constraint, _candidateMetrics, context) => {
+    const catering = context.cateringEvidence;
+    const affectedObjectIds = [
+      ...catering.phaseCapacity.flatMap((phase) =>
+        phase.stations.filter((item) => item.status === "fail").map((item) => item.stationObjectId),
+      ),
+      ...catering.queueConflicts.flatMap((item) => [
+        item.stationObjectId,
+        item.queueZoneObjectId,
+        item.conflictObjectId,
+      ]),
+      ...catering.separationChecks
+        .filter((item) => item.status === "fail")
+        .flatMap((item) => [item.serviceObjectId, item.otherObjectId]),
+      ...catering.accessibleServicePoints.filter((item) => item.status === "fail").map((item) => item.stationObjectId),
+      ...catering.replenishmentRoutes
+        .filter((item) => item.status === "fail")
+        .flatMap((item) => [
+          item.routeObjectId,
+          item.sourceObjectId,
+          ...(item.targetObjectIds ?? []),
+          ...(item.crossingObjectIds ?? []),
+          ...(item.missingEndpointIds ?? []),
+        ]),
+      ...catering.inventory.filter((item) => item.status === "warning").flatMap((item) => item.placedObjectIds ?? []),
       ...catering.invalidStationReferences,
-    ].filter(Boolean);
+    ].filter((id): id is string => typeof id === "string");
     return {
       passes: catering.summary.status === "pass",
-      actual: catering.summary.queueRiskCount + catering.summary.uncontrolledCirculationConflictCount + catering.summary.separationFailures + catering.summary.missingSupportObjects + catering.summary.inventoryShortages,
+      actual:
+        catering.summary.queueRiskCount +
+        catering.summary.uncontrolledCirculationConflictCount +
+        catering.summary.separationFailures +
+        catering.summary.missingSupportObjects +
+        catering.summary.inventoryShortages,
       threshold: 0,
       unit: "checks",
       metric: "cateringFailedChecks",
@@ -327,8 +608,8 @@ const evaluators: any = {
       details: catering,
     };
   },
-  emergency_readiness: (constraint: any, _candidateMetrics: any, context: any) => {
-    const emergency: any = context.emergencyEvidence;
+  emergency_readiness: (constraint, _candidateMetrics, context) => {
+    const emergency = context.emergencyEvidence;
     return {
       passes: emergency.summary.status === "pass",
       actual: emergency.summary.structuralFailures,
@@ -336,22 +617,74 @@ const evaluators: any = {
       unit: "checks",
       metric: "emergencyStructuralFailures",
       comparator: "lte",
-      affectedObjectIds: [...new Set(emergency.structuralFailures.flatMap((failure: any) => failure.affectedObjectIds))].sort(),
+      affectedObjectIds: [
+        ...new Set(emergency.structuralFailures.flatMap((failure) => failure.affectedObjectIds)),
+      ].sort(),
       details: emergency,
     };
   },
 };
 
-const statusFor: any = (passes: any, severity: any, applicable: any = true) => !applicable ? "not-applicable" : passes ? "pass" : severity === "warning" ? "warning" : "fail";
+export type ValidationCheckStatus = "not-applicable" | "pass" | "warning" | "fail";
+export interface ValidationCheck {
+  id: string;
+  constraintId: string;
+  evaluator: string;
+  label: string;
+  category: string;
+  severity: "error" | "warning";
+  waivable: boolean;
+  scope: object;
+  status: ValidationCheckStatus;
+  actual: number | null;
+  threshold: number | null;
+  unit: string | null;
+  evidence: {
+    comparator: string | null;
+    metric: string | null;
+    actual: number | null;
+    threshold: number | null;
+    unit: string | null;
+    affectedObjectIds: string[];
+    details?: object | null;
+  };
+  remediation: string;
+  waiver: ConstraintWaiver | null;
+}
+export interface ValidationResult {
+  validationId: string;
+  inputFingerprint: string;
+  engineVersion: string;
+  evaluatedPlanVersion: string;
+  evaluatedProposalId: string | null;
+  status: "pass" | "fail";
+  checks: ValidationCheck[];
+  candidateMetrics: MetricValues;
+  candidateGeometryFingerprint: string | undefined;
+  spatialEvidence: SpatialAnalysis["evidence"];
+  productionEvidence: ProductionEvidence;
+  cateringEvidence: CateringEvidence;
+  emergencyEvidence: ReturnType<typeof analyzeEmergencyPlan>;
+  evidenceFamilyFingerprints: Record<string, string>;
+  emergencyReviewRequired: boolean;
+  emergencyChangedObjectIds: string[];
+  authorizedEmergencyReviewerRoles: string[];
+  blockingIssues: number;
+  waivedWarnings: number;
+  unwaivedWarnings: number;
+  unresolvedIssues: number;
+}
+const statusFor = (passes: boolean, severity: "error" | "warning", applicable = true): ValidationCheckStatus =>
+  !applicable ? "not-applicable" : passes ? "pass" : severity === "warning" ? "warning" : "fail";
 
-const validationInputValue: any = (state: any) => ({
-        engineVersion: VALIDATION_ENGINE_VERSION,
+const validationInputValue = (state: ConstraintState): object => ({
+  engineVersion: VALIDATION_ENGINE_VERSION,
   plan: {
     id: state.plan.id,
     version: state.plan.version,
     attendeeTarget: state.plan.event?.attendeeTarget ?? null,
     spatial: state.plan.spatial,
-    objects: state.plan.objects.map(({ label: _label, ...object }: any) => object),
+    objects: state.plan.objects.map(({ label: _label, ...object }) => object),
     accessibilityPolicy: state.plan.accessibilityPolicy ?? null,
     productionPolicy: state.plan.productionPolicy ?? null,
     cateringPolicy: state.plan.cateringPolicy ?? null,
@@ -362,21 +695,42 @@ const validationInputValue: any = (state: any) => ({
   },
   brief: state.brief ? { attendeeTarget: state.brief.attendeeTarget, occupancyMode: state.brief.occupancyMode } : null,
   projectLocks: state.projectLocks ?? [],
-  proposal: state.proposal ? {
-    id: state.proposal.id,
-    revision: state.proposal.revision,
-    status: state.proposal.status,
-    changes: state.proposal.changes.map(({ id, targetObjectIds, targetRequirementIds, effects, spatialEffects, planningEffects }: any) => ({ id, targetObjectIds, targetRequirementIds, effects, spatialEffects, planningEffects })),
-  } : null,
+  proposal: state.proposal
+    ? {
+        id: state.proposal.id,
+        revision: state.proposal.revision,
+        status: state.proposal.status,
+        changes: state.proposal.changes.map(
+          ({ id, targetObjectIds, targetRequirementIds, effects, spatialEffects, planningEffects }) => ({
+            id,
+            targetObjectIds,
+            targetRequirementIds,
+            effects,
+            spatialEffects,
+            planningEffects,
+          }),
+        ),
+      }
+    : null,
 });
 
-const computeValidation: any = (state: any, analyzeSpatial: any, inputFingerprint: any) => {
-  const changes: any = state.proposal?.status === "review" ? state.proposal.changes : [];
-  const spatial: any = analyzeSpatial({ plan: state.plan, changes, brief: state.brief, projectLocks: state.projectLocks ?? [] });
-  const productionEvidence: any = analyzeProductionPlan(spatial.candidatePlan);
-  const cateringEvidence: any = analyzeCateringPlan(spatial.candidatePlan);
-  const emergencyEvidence: any = analyzeEmergencyPlan(spatial.candidatePlan);
-  const evidenceFamilyFingerprints: any = {
+type AnalyzeSpatial = typeof analyzeSpatialPlan;
+const computeValidation = (
+  state: ConstraintState,
+  analyzeSpatial: AnalyzeSpatial,
+  inputFingerprint: string,
+): ValidationResult => {
+  const changes = state.proposal?.status === "review" ? state.proposal.changes : [];
+  const spatial = analyzeSpatial({
+    plan: state.plan,
+    changes,
+    brief: state.brief,
+    projectLocks: state.projectLocks ?? [],
+  });
+  const productionEvidence: ProductionEvidence = analyzeProductionPlan(spatial.candidatePlan);
+  const cateringEvidence: CateringEvidence = analyzeCateringPlan(spatial.candidatePlan);
+  const emergencyEvidence = analyzeEmergencyPlan(spatial.candidatePlan);
+  const evidenceFamilyFingerprints = {
     accessibility: hash("evidence-accessibility", spatial.evidence.accessibility),
     capacity: hash("evidence-capacity", spatial.evidence.capacity),
     catering: hash("evidence-catering", cateringEvidence),
@@ -386,9 +740,50 @@ const computeValidation: any = (state: any, analyzeSpatial: any, inputFingerprin
     production: hash("evidence-production", productionEvidence),
     sightlines: hash("evidence-sightlines", spatial.evidence.sightlines),
   };
-  const candidateMetrics: any = { ...applyEffects(state.plan.metrics, changes), ...spatial.metrics };
-  const checks: any = state.plan.constraints.map((constraint: any) => {
-    if (constraint.enabled === false) {
+  const candidateMetrics = { ...applyEffects(state.plan.metrics, changes), ...spatial.metrics };
+  const checks: ValidationCheck[] = state.plan.constraints
+    .map((constraint): ValidationCheck => {
+      if (constraint.enabled === false) {
+        return {
+          id: constraint.checkId,
+          constraintId: constraint.id,
+          evaluator: constraint.evaluator,
+          label: constraint.label,
+          category: constraint.category,
+          severity: constraint.severity,
+          waivable: constraint.waivable ?? constraint.severity === "warning",
+          scope: clone(constraint.scope ?? { kind: "plan" }),
+          status: "not-applicable",
+          actual: null,
+          threshold: constraint.parameters?.threshold ?? null,
+          unit: constraint.parameters?.unit ?? null,
+          evidence: {
+            comparator: constraint.parameters?.comparator ?? null,
+            metric: constraint.parameters?.metric ?? null,
+            actual: null,
+            threshold: constraint.parameters?.threshold ?? null,
+            unit: constraint.parameters?.unit ?? null,
+            affectedObjectIds: [],
+          },
+          remediation: constraint.remediation,
+          waiver: null,
+        };
+      }
+      const evaluate = evaluators[constraint.evaluator];
+      if (!evaluate)
+        throw venueError(
+          "CONSTRAINT_EVALUATOR_UNSUPPORTED",
+          { constraintId: constraint.id, evaluator: constraint.evaluator },
+          `Unsupported Constraint evaluator: ${constraint.evaluator}`,
+        );
+      const result = evaluate(constraint, candidateMetrics, {
+        changes,
+        state,
+        spatialEvidence: spatial.evidence,
+        productionEvidence,
+        cateringEvidence,
+        emergencyEvidence,
+      });
       return {
         id: constraint.checkId,
         constraintId: constraint.id,
@@ -396,57 +791,33 @@ const computeValidation: any = (state: any, analyzeSpatial: any, inputFingerprin
         label: constraint.label,
         category: constraint.category,
         severity: constraint.severity,
-        waivable: constraint.waivable,
-        scope: clone(constraint.scope),
-        status: "not-applicable",
-        actual: null,
-        threshold: constraint.parameters?.threshold ?? null,
-        unit: constraint.parameters?.unit ?? null,
+        waivable: constraint.waivable ?? constraint.severity === "warning",
+        scope: clone(constraint.scope ?? { kind: "plan" }),
+        status: statusFor(result.passes, constraint.severity, result.applicable),
+        actual: result.actual,
+        threshold: result.threshold,
+        unit: result.unit,
         evidence: {
-          comparator: constraint.parameters?.comparator ?? null,
-          metric: constraint.parameters?.metric ?? null,
-          actual: null,
-          threshold: constraint.parameters?.threshold ?? null,
-          unit: constraint.parameters?.unit ?? null,
-          affectedObjectIds: [],
+          comparator: result.comparator,
+          metric: result.metric,
+          actual: result.actual,
+          threshold: result.threshold,
+          unit: result.unit,
+          affectedObjectIds: result.affectedObjectIds,
+          details: result.details ?? null,
         },
         remediation: constraint.remediation,
         waiver: null,
       };
-    }
-    const evaluate: any = evaluators[constraint.evaluator];
-    if (!evaluate) throw venueError("CONSTRAINT_EVALUATOR_UNSUPPORTED", { constraintId: constraint.id, evaluator: constraint.evaluator }, `Unsupported Constraint evaluator: ${constraint.evaluator}`);
-    const result: any = evaluate(constraint, candidateMetrics, { changes, state, spatialEvidence: spatial.evidence, productionEvidence, cateringEvidence, emergencyEvidence });
-    return {
-      id: constraint.checkId,
-      constraintId: constraint.id,
-      evaluator: constraint.evaluator,
-      label: constraint.label,
-      category: constraint.category,
-      severity: constraint.severity,
-      waivable: constraint.waivable,
-      scope: clone(constraint.scope),
-      status: statusFor(result.passes, constraint.severity, result.applicable),
-      actual: result.actual,
-      threshold: result.threshold,
-      unit: result.unit,
-      evidence: {
-        comparator: result.comparator,
-        metric: result.metric,
-        actual: result.actual,
-        threshold: result.threshold,
-        unit: result.unit,
-        affectedObjectIds: result.affectedObjectIds,
-        details: result.details ?? null,
-      },
-      remediation: constraint.remediation,
-      waiver: null,
-    };
-  }).sort((left: any, right: any) => left.severity.localeCompare(right.severity)
-    || left.category.localeCompare(right.category)
-    || left.id.localeCompare(right.id));
-  const blockingIssues: any = checks.filter((check: any) => check.status === "fail" && check.severity === "error").length;
-  const unresolvedIssues: any = checks.filter((check: any) => ["warning", "fail"].includes(check.status)).length;
+    })
+    .sort(
+      (left, right) =>
+        left.severity.localeCompare(right.severity) ||
+        left.category.localeCompare(right.category) ||
+        left.id.localeCompare(right.id),
+    );
+  const blockingIssues = checks.filter((check) => check.status === "fail" && check.severity === "error").length;
+  const unresolvedIssues = checks.filter((check) => ["warning", "fail"].includes(check.status)).length;
   return {
     validationId: hash("validation", inputFingerprint),
     inputFingerprint,
@@ -463,51 +834,70 @@ const computeValidation: any = (state: any, analyzeSpatial: any, inputFingerprin
     emergencyEvidence,
     evidenceFamilyFingerprints,
     emergencyReviewRequired: emergencyChangeObjectIds(state.plan, changes).length > 0,
-    emergencyChangedObjectIds: emergencyChangeObjectIds(state.plan, changes),
+    emergencyChangedObjectIds: emergencyChangeObjectIds(state.plan, changes).filter(
+      (id): id is string => typeof id === "string",
+    ),
     authorizedEmergencyReviewerRoles: emergencyEvidence.emergencyPlan.authorizedReviewerRoles,
     blockingIssues,
     waivedWarnings: 0,
-    unwaivedWarnings: checks.filter((check: any) => check.status === "warning").length,
+    unwaivedWarnings: checks.filter((check) => check.status === "warning").length,
     unresolvedIssues,
   };
 };
 
-const applyWarningWaivers: any = (result: any, state: any) => {
-  const waivers: any = [...(state.proposal?.waivers ?? []), ...(state.plan.waivers ?? [])];
-  const activeWaiver: any = (check: any) => waivers.find((waiver: any) => waiver.constraintId === check.constraintId
-    && ((waiver.proposalId === state.proposal?.id
-      && waiver.baseVersion === state.plan.version
-      && waiver.validationInputFingerprint === result.inputFingerprint)
-      || waiver.acceptedPlanVersion === state.plan.version)) ?? null;
-  const checks: any = result.checks.map((check: any) => check.status === "warning" ? { ...check, waiver: clone(activeWaiver(check)) } : check);
-  const waivedWarnings: any = checks.filter((check: any) => check.status === "warning" && check.waiver).length;
-  const unwaivedWarnings: any = checks.filter((check: any) => check.status === "warning" && !check.waiver).length;
+const applyWarningWaivers = (result: ValidationResult, state: ConstraintState): ValidationResult => {
+  const waivers = [...(state.proposal?.waivers ?? []), ...(state.plan.waivers ?? [])];
+  const activeWaiver = (check: ValidationCheck): ConstraintWaiver | null =>
+    waivers.find(
+      (waiver) =>
+        waiver.constraintId === check.constraintId &&
+        ((waiver.proposalId === state.proposal?.id &&
+          waiver.baseVersion === state.plan.version &&
+          waiver.validationInputFingerprint === result.inputFingerprint) ||
+          waiver.acceptedPlanVersion === state.plan.version),
+    ) ?? null;
+  const checks = result.checks.map((check) =>
+    check.status === "warning" ? { ...check, waiver: clone(activeWaiver(check)) } : check,
+  );
+  const waivedWarnings = checks.filter((check) => check.status === "warning" && check.waiver).length;
+  const unwaivedWarnings = checks.filter((check) => check.status === "warning" && !check.waiver).length;
   return {
     ...result,
     checks,
     waivedWarnings,
     unwaivedWarnings,
-    unresolvedIssues: result.checks.filter((check: any) => check.status === "fail").length + unwaivedWarnings,
+    unresolvedIssues: result.checks.filter((check) => check.status === "fail").length + unwaivedWarnings,
   };
 };
 
-export function createValidationEngine({ maxEntries = 128, analyzeSpatial = analyzeSpatialPlan }: any = {}) {
-  if (!Number.isInteger(maxEntries) || maxEntries < 1) throw new Error("Validation cache maxEntries must be a positive integer");
-  const cache: any = new Map();
+export interface ValidationEngine {
+  validate(state: ConstraintState): ValidationResult;
+  clear(): void;
+}
+export function createValidationEngine({
+  maxEntries = 128,
+  analyzeSpatial = analyzeSpatialPlan,
+}: { maxEntries?: number; analyzeSpatial?: AnalyzeSpatial } = {}): ValidationEngine {
+  if (!Number.isInteger(maxEntries) || maxEntries < 1)
+    throw new Error("Validation cache maxEntries must be a positive integer");
+  const cache = new Map<string, { serializedInput: string; result: ValidationResult }>();
   return Object.freeze({
-    validate(state: any) {
-      const inputValue: any = validationInputValue(state);
-      const serializedInput: any = stableStringify(inputValue);
-      const inputFingerprint: any = hash("input", inputValue);
-      const cached: any = cache.get(inputFingerprint);
+    validate(state: ConstraintState): ValidationResult {
+      const inputValue = validationInputValue(state);
+      const serializedInput = stableStringify(inputValue);
+      const inputFingerprint = hash("input", inputValue);
+      const cached = cache.get(inputFingerprint);
       if (cached?.serializedInput === serializedInput) {
         cache.delete(inputFingerprint);
         cache.set(inputFingerprint, cached);
         return applyWarningWaivers(clone(cached.result), state);
       }
-      const result: any = computeValidation(state, analyzeSpatial, inputFingerprint);
+      const result = computeValidation(state, analyzeSpatial, inputFingerprint);
       cache.set(inputFingerprint, { serializedInput, result: clone(result) });
-      if (cache.size > maxEntries) cache.delete(cache.keys().next().value);
+      if (cache.size > maxEntries) {
+        const oldestKey = cache.keys().next().value;
+        if (oldestKey) cache.delete(oldestKey);
+      }
       return applyWarningWaivers(clone(result), state);
     },
     clear() {
@@ -516,6 +906,7 @@ export function createValidationEngine({ maxEntries = 128, analyzeSpatial = anal
   });
 }
 
-const defaultValidationEngine: any = createValidationEngine();
+const defaultValidationEngine = createValidationEngine();
 
-export const validateConstraints = (state: any) => defaultValidationEngine.validate(state);
+export const validateConstraints = (state: ConstraintState): ValidationResult =>
+  defaultValidationEngine.validate(state);

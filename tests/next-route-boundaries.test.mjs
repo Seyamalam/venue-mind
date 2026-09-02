@@ -12,9 +12,16 @@ test("App Router segments own error and loading boundaries", async () => {
     "app/docs/error.tsx",
     "app/share/error.tsx",
     "app/(workspace)/settings/[[...section]]/loading.tsx",
-  ]) await access(new URL(path, root));
+  ])
+    await access(new URL(path, root));
 
-  for (const path of ["app/global-error.tsx", "app/(workspace)/error.tsx", "app/(workspace)/studio/[projectId]/error.tsx", "app/docs/error.tsx", "app/share/error.tsx"]) {
+  for (const path of [
+    "app/global-error.tsx",
+    "app/(workspace)/error.tsx",
+    "app/(workspace)/studio/[projectId]/error.tsx",
+    "app/docs/error.tsx",
+    "app/share/error.tsx",
+  ]) {
     assert.match(await read(path), /from "@\/components\/ui\/button"/);
   }
 });
@@ -27,7 +34,7 @@ test("private workspaces and docs publish route-owned metadata", async () => {
     read("app/(workspace)/settings/[[...section]]/page.tsx"),
     read("app/(workspace)/studio/[projectId]/page.tsx"),
   ]);
-  assert.match(rootLayout, /process\.env\.VENUEMIND_PUBLIC_ORIGIN/);
+  assert.match(rootLayout, /process\.env(?:\.VENUEMIND_PUBLIC_ORIGIN|\["VENUEMIND_PUBLIC_ORIGIN"\])/);
   assert.match(docsLayout, /%s · VenueMind Docs/);
   assert.match(docsPage, /openGraph:/);
   assert.match(docsPage, /twitter:/);

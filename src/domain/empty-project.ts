@@ -1,9 +1,13 @@
 import { createDefaultConstraintRegistry } from "./constraint-engine.ts";
 
-const safeId: any = (value: any) => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "untitled";
+const safeId = (value: string): string =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "untitled";
 
-export function createEmptyVenuePlan({ projectId, name = "Untitled event" }: any) {
-  const projectToken: any = safeId(projectId);
+export function createEmptyVenuePlan({ projectId, name = "Untitled event" }: { projectId: string; name?: string }) {
+  const projectToken = safeId(projectId);
   return {
     id: `plan-${projectToken}`,
     version: "1.0",
@@ -38,7 +42,12 @@ export function createEmptyVenuePlan({ projectId, name = "Untitled event" }: any
       coordinateSystem: { origin: "southwest", xAxis: "east", yAxis: "north", rotationDirection: "clockwise" },
       precision: { distance: 3, angle: 1 },
       roomBoundary: {
-        outer: [{ x: 0, y: 0 }, { x: 24, y: 0 }, { x: 24, y: 16 }, { x: 0, y: 16 }],
+        outer: [
+          { x: 0, y: 0 },
+          { x: 24, y: 0 },
+          { x: 24, y: 16 },
+          { x: 0, y: 16 },
+        ],
         holes: [],
       },
     },

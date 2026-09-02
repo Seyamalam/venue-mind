@@ -1,17 +1,23 @@
-const clone = (value: any) => structuredClone(value);
+const clone = <Value>(value: Value): Value => structuredClone(value);
 
-export function createMemoryProcessedBatchStore() {
-  const batches: any = new Map();
+export interface ProcessedBatchStore<Value> {
+  get(idempotencyKey: string): Promise<Value | null>;
+  putIfAbsent(idempotencyKey: string, value: Value): Promise<Readonly<{ inserted: boolean; value: Value }>>;
+  list(): Value[];
+}
+
+export function createMemoryProcessedBatchStore<Value = object>(): Readonly<ProcessedBatchStore<Value>> {
+  const batches = new Map<string, Value>();
   return Object.freeze({
-    async get(idempotencyKey: any) {
+    get(idempotencyKey: string) {
       const value = batches.get(idempotencyKey);
-      return value ? clone(value) : null;
+      return Promise.resolve(value ? clone(value) : null);
     },
-    async putIfAbsent(idempotencyKey: any, value: any) {
+    putIfAbsent(idempotencyKey: string, value: Value) {
       const existing = batches.get(idempotencyKey);
-      if (existing) return { inserted: false, value: clone(existing) };
+      if (existing) return Promise.resolve({ inserted: false, value: clone(existing) });
       batches.set(idempotencyKey, clone(value));
-      return { inserted: true, value: clone(value) };
+      return Promise.resolve({ inserted: true, value: clone(value) });
     },
     list() {
       return [...batches.values()].map(clone);

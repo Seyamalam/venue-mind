@@ -1,19 +1,35 @@
-import type { FormEvent, ReactNode, SyntheticEvent } from "react";
+import type { ReactNode, SyntheticEvent } from "react";
+import type { AccountSnapshot, AccountUser, createAccountStore } from "./auth/account-store";
+import type { VenueComment } from "./domain/comments";
+import type { VenuePlan, VenueProposal } from "./domain/geometry";
+import type { ProposalBranch } from "./domain/venue-planner";
+import type { BrowserModelContext } from "./webmcp/register-venue-tools";
 
-/** Permissive UI boundary while domain records gain dedicated public interfaces. */
-export type DomainRecord = Record<string, any>;
+export type DomainScalar = string | number | boolean | null;
+export type DomainValue = DomainScalar | DomainRecord | DomainList;
+export type DomainRecord = { readonly [field: string]: DomainValue };
 export type DomainList = DomainRecord[];
 export type ValueOption = { value: string; label: string };
 export type VoidCallback = () => void;
 export type ValueCallback<T = string> = (value: T) => void;
-export type AsyncValueCallback<T = string> = (value: T) => Promise<unknown> | unknown;
-export type FormHandler = (event: FormEvent<HTMLFormElement>) => void;
+export type AsyncValueCallback<T = string, R = void> = (value: T) => Promise<R> | R;
 export type PinEvent = SyntheticEvent<SVGGElement>;
-export type CommentsState = DomainRecord & { comments: DomainList; branches: DomainList; plan: DomainRecord; proposal: DomainRecord };
+export type CommentsState = {
+  comments: VenueComment[];
+  branches: ProposalBranch[];
+  plan: VenuePlan;
+  proposal: VenueProposal;
+};
+
+export type ReadyAccountSnapshot = Readonly<AccountSnapshot> & {
+  readonly status: "ready";
+  readonly user: AccountUser;
+  readonly activeOrganizationId: string;
+};
 
 export type WorkspaceRenderContext = {
-  account: DomainRecord;
-  accountStore: DomainRecord;
+  account: ReadyAccountSnapshot;
+  accountStore: ReturnType<typeof createAccountStore>;
   organizationId: string;
 };
 
@@ -23,6 +39,6 @@ export type WorkspaceGateProps = {
 
 declare global {
   interface Document {
-    modelContext?: DomainRecord;
+    modelContext?: BrowserModelContext;
   }
 }

@@ -2,20 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { ArrowRight } from "@phosphor-icons/react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Command,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { ArrowRightIcon as ArrowRight } from "@phosphor-icons/react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Command, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 export type SearchEntry = {
   id: string;
@@ -26,6 +15,8 @@ export type SearchEntry = {
   text: string;
   order: number;
 };
+
+const isDocsRoute = (href: string): href is Route => /^\/docs(?:[/?#]|$)/u.test(href);
 
 type DocsSearchPaletteProps = {
   open: boolean;
@@ -54,7 +45,8 @@ export function DocsSearchPalette({
 
   const selectResult = (result: SearchEntry) => {
     onSelect();
-    router.push(result.href as Route);
+    if (!isDocsRoute(result.href)) throw new TypeError("Documentation search result has an invalid route");
+    router.push(result.href);
   };
 
   return (
@@ -79,10 +71,22 @@ export function DocsSearchPalette({
             placeholder="Search tools, concepts, workflows…"
             aria-label="Search documentation"
           />
-          <CommandList id="docs-search-results" className="docs-search-results" aria-label="Documentation search results">
+          <CommandList
+            id="docs-search-results"
+            className="docs-search-results"
+            aria-label="Documentation search results"
+          >
             {!query && loading && <div className="docs-search-empty">Loading documentation index</div>}
             {!query && failed && <div className="docs-search-empty">Search index unavailable</div>}
-            {!query && !loading && !failed && <div className="docs-search-empty"><span>Search all pages and headings</span><kbd>↑↓</kbd><span>navigate</span><kbd>↵</kbd><span>open</span></div>}
+            {!query && !loading && !failed && (
+              <div className="docs-search-empty">
+                <span>Search all pages and headings</span>
+                <kbd>↑↓</kbd>
+                <span>navigate</span>
+                <kbd>↵</kbd>
+                <span>open</span>
+              </div>
+            )}
             {query && !loading && !results.length && <div className="docs-search-empty">No matching documentation</div>}
             {results.map((result) => (
               <CommandItem
@@ -91,7 +95,10 @@ export function DocsSearchPalette({
                 className="docs-search-result"
                 onSelect={() => selectResult(result)}
               >
-                <span><strong>{result.sectionTitle}</strong><small>{result.pageTitle}</small></span>
+                <span>
+                  <strong>{result.sectionTitle}</strong>
+                  <small>{result.pageTitle}</small>
+                </span>
                 <ArrowRight size={15} />
               </CommandItem>
             ))}

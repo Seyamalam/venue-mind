@@ -1,42 +1,86 @@
 import { fingerprintPlan } from "./activity-ledger.ts";
 import { createVenuePlanner } from "./venue-planner.ts";
+import type { ProjectProvenance } from "./project-types.ts";
+import type { PlanningEffectBindings } from "./event-brief.ts";
+import type { PlanningChange } from "./planning-effects.ts";
+import type { PlannerSnapshot } from "./venue-planner.ts";
+import type { VenuePlanDocument } from "./geometry.ts";
 
-const clone: any = (value: any) => JSON.parse(JSON.stringify(value));
-const tokenFor: any = (projectId: any) => projectId.replace(/^project-/, "").replace(/[^a-zA-Z0-9-]/g, "-");
+interface LifecycleProjectRecord {
+  id: string;
+  name: string;
+  activePlanId: string;
+  schemaVersion: 10;
+  snapshot: PlannerSnapshot;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt: string | null;
+  deletedAt: string | null;
+  recoveryUntil: string | null;
+  pinned: boolean;
+  lastOpenedAt: string | null;
+  provenance?: ProjectProvenance;
+}
 
-export function duplicateProjectRecord(source: any, {
-  projectId,
-  name,
-  clock = () => new Date().toISOString(),
-}: any = {}) {
-  if (!source?.snapshot?.plan || !source.snapshot.brief || !source.snapshot.proposal) throw new Error("Source Project requires a complete planner snapshot");
+const clone = <T>(value: T): T => structuredClone(value);
+const tokenFor = (projectId: string): string => projectId.replace(/^project-/, "").replace(/[^a-zA-Z0-9-]/g, "-");
+
+export function duplicateProjectRecord(
+  source: LifecycleProjectRecord,
+  {
+    projectId,
+    name,
+    clock = () => new Date().toISOString(),
+  }: { projectId?: string; name?: string; clock?: () => string } = {},
+): LifecycleProjectRecord {
+  if (!source?.snapshot?.plan || !source.snapshot.brief || !source.snapshot.proposal)
+    throw new Error("Source Project requires a complete planner snapshot");
   if (!projectId || projectId === source.id) throw new Error("Duplicate Project requires a new stable Project ID");
-  const normalizedName: any = name?.trim();
+  const normalizedName = name?.trim();
   if (!normalizedName) throw new Error("Duplicate Project requires a name");
-  const token: any = tokenFor(projectId);
-  const sourcePlan: any = clone(source.snapshot.plan);
-  const sourceBrief: any = clone(source.snapshot.brief);
-  const sourceProposal: any = clone(source.snapshot.proposal);
-  const changeIds: any = new Map(sourceProposal.changes.map((change: any, index: any) => [change.id, `chg-${token}-${String(index + 1).padStart(3, "0")}`]));
-  const requirementIds: any = new Map(sourceBrief.requirements.map((requirement: any, index: any) => [requirement.id, `req-${token}-${String(index + 1).padStart(3, "0")}`]));
-  const remapRequirementId: any = (id: any) => requirementIds.get(id) ?? id;
-  const briefId: any = `brief-${token}`;
-  const planningEffectBindings: any = sourceBrief.planningEffectBindings === undefined ? undefined : Object.fromEntries(Object.entries(sourceBrief.planningEffectBindings).map(([operation, binding]: any) => [operation, { ...binding, targetRequirementId: remapRequirementId(binding.targetRequirementId) }]));
-  const remapChange: any = (change: any) => ({
+  const token = tokenFor(projectId);
+  const sourcePlan = clone(source.snapshot.plan);
+  const sourceBrief = clone(source.snapshot.brief);
+  const sourceProposal = clone(source.snapshot.proposal);
+  const changeIds = new Map(
+    sourceProposal.changes.map((change, index) => [change.id, `chg-${token}-${String(index + 1).padStart(3, "0")}`]),
+  );
+  const requirementIds = new Map(
+    sourceBrief.requirements.map((requirement, index) => [
+      requirement.id,
+      `req-${token}-${String(index + 1).padStart(3, "0")}`,
+    ]),
+  );
+  const remapRequirementId = (id: string): string => requirementIds.get(id) ?? id;
+  const briefId = `brief-${token}`;
+  const planningEffectBindings: PlanningEffectBindings | undefined =
+    sourceBrief.planningEffectBindings === undefined
+      ? undefined
+      : Object.fromEntries(
+          Object.entries(sourceBrief.planningEffectBindings).map(([operation, binding]) => [
+            operation,
+            { ...binding, targetRequirementId: remapRequirementId(binding.targetRequirementId) },
+          ]),
+        );
+  const remapChange = (change: PlanningChange): PlanningChange => ({
     ...change,
-    id: changeIds.get(change.id),
-    ...(Array.isArray(change.targetRequirementIds) ? { targetRequirementIds: change.targetRequirementIds.map(remapRequirementId) } : {}),
-    ...(Array.isArray(change.planningEffects) ? {
-      planningEffects: change.planningEffects.map((effect: any) => ({
-        ...effect,
-        targetBriefId: briefId,
-        targetRequirementId: remapRequirementId(effect.targetRequirementId),
-        requirement: { ...effect.requirement, id: remapRequirementId(effect.requirement.id) },
-      })),
-    } : {}),
+    id: changeIds.get(change.id) ?? change.id,
+    ...(change.targetRequirementIds
+      ? { targetRequirementIds: change.targetRequirementIds.map(remapRequirementId) }
+      : {}),
+    ...(change.planningEffects
+      ? {
+          planningEffects: change.planningEffects.map((effect) => ({
+            ...effect,
+            targetBriefId: briefId,
+            targetRequirementId: remapRequirementId(effect.targetRequirementId),
+            requirement: { ...effect.requirement, id: remapRequirementId(effect.requirement.id) },
+          })),
+        }
+      : {}),
     lineage: { duplicatedFromChangeId: change.id, duplicatedFromProjectId: source.id },
   });
-  const plan: any = {
+  const plan: VenuePlanDocument = {
     ...sourcePlan,
     id: `plan-${token}`,
     version: "1.0",
@@ -45,7 +89,10 @@ export function duplicateProjectRecord(source: any, {
       ...sourceBrief,
       id: briefId,
       eventName: normalizedName,
-      requirements: sourceBrief.requirements.map((requirement: any) => ({ ...requirement, id: requirementIds.get(requirement.id) })),
+      requirements: sourceBrief.requirements.map((requirement) => ({
+        ...requirement,
+        id: requirementIds.get(requirement.id) ?? requirement.id,
+      })),
       ...(planningEffectBindings !== undefined ? { planningEffectBindings } : {}),
     },
     proposal: {
@@ -56,8 +103,8 @@ export function duplicateProjectRecord(source: any, {
       changes: sourceProposal.changes.map(remapChange),
     },
   };
-  const planner: any = createVenuePlanner(plan);
-  const createdAt: any = clock();
+  const planner = createVenuePlanner(plan);
+  const createdAt = clock();
   return {
     id: projectId,
     name: normalizedName,

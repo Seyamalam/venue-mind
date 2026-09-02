@@ -1,26 +1,313 @@
-import { normalizePlanGeometry } from "./geometry.ts";
+import {
+  normalizePlanGeometry,
+  type VenueObject,
+  type VenuePlan,
+  type VenuePlanDocument,
+  type VenueProposal,
+} from "./geometry.ts";
 import { normalizeConstraints, validateConstraints } from "./constraint-engine.ts";
-import { createActivityEntry, fingerprintEventBrief, fingerprintPlan, replayActivityLedger, sealActivityLedger, stableFingerprint, verifyActivityLedger } from "./activity-ledger.ts";
+import {
+  createActivityEntry,
+  fingerprintEventBrief,
+  fingerprintPlan,
+  replayActivityLedger,
+  sealActivityLedger,
+  stableFingerprint,
+  verifyActivityLedger,
+  type ActivityLedgerEntry,
+} from "./activity-ledger.ts";
 import { detectProposalConflicts } from "./proposal-conflicts.ts";
-import { eventBriefWithCoverage, normalizeEventBrief } from "./event-brief.ts";
+import { eventBriefWithCoverage, normalizeEventBrief, type EventBrief } from "./event-brief.ts";
 import { materializeSpatialPlan } from "./spatial-analysis.ts";
 import { compareProposalBranches } from "./proposal-comparison.ts";
-import { venueError } from "./errors.ts";
-import { assertNoLockConflicts, detectLockConflicts, LOCK_TYPES, normalizeProjectLocks } from "./locks.ts";
+import { VenueError, venueError, type VenueErrorCode, type VenueErrorDetails } from "./errors.ts";
+import { assertNoLockConflicts, detectLockConflicts, normalizeProjectLocks } from "./locks.ts";
 import { applyApprovedTemplateBinding, createRoomTemplateUpdateProposal } from "./template-updates.ts";
 import { evaluateInventoryAvailability, listVenueTemplates } from "./venue-templates.ts";
-import { buildEditingChange, measureObjects } from "./editing-commands.ts";
+import { buildEditingChange, measureObjects, type EditingCommand, type EditingOperation } from "./editing-commands.ts";
 import { createComment, editComment, listComments, normalizeComments, setCommentStatus } from "./comments.ts";
 import { createPlanExport } from "../interchange/plan-exports.ts";
-import { compareSimulationResults, createScenarioRunner, exportSimulationRun, normalizeScenarioDefinition, scenarioDefinitionFingerprint, scenarioInputFingerprint, SIMULATION_ENGINE_VERSION } from "./scenario-engine.ts";
+import {
+  compareSimulationResults,
+  createScenarioRunner,
+  exportSimulationRun,
+  normalizeScenarioDefinition,
+  scenarioDefinitionFingerprint,
+  scenarioInputFingerprint,
+  SIMULATION_ENGINE_VERSION,
+  type ScenarioDefinition as EngineScenarioDefinition,
+} from "./scenario-engine.ts";
 import { assertVenueCommand, TRUSTED_LOCAL_AUTHORIZATION } from "./authorization.ts";
-import { assertPlanningEffectBinding, materializeEventBrief, normalizeProposalPlanningEffects, planningEvidenceInvalidations } from "./planning-effects.ts";
+import {
+  assertPlanningEffectBinding,
+  materializeEventBrief,
+  normalizeProposalPlanningEffects,
+  planningEvidenceInvalidations,
+} from "./planning-effects.ts";
+import type { PlanningChange } from "./planning-effects.ts";
+import type { ObjectLock } from "./locks.ts";
+import type { VenueComment } from "./comments.ts";
+import type { ApprovalPolicy, VenuePrincipal } from "./authorization.ts";
 
-const clone: any = (value: any) => JSON.parse(JSON.stringify(value));
+export interface PlannerCommand {
+  type: string;
+  actor?: string | undefined;
+  actorId?: string | undefined;
+  source?: string | undefined;
+  sessionId?: string | undefined;
+  idempotencyKey?: string | undefined;
+  correlationId?: string | undefined;
+  planId?: string | undefined;
+  proposalId?: string | undefined;
+  baseVersion?: string | undefined;
+  branchId?: string | undefined;
+  leftBranchId?: string | undefined;
+  rightBranchId?: string | undefined;
+  leftRunId?: string | undefined;
+  rightRunId?: string | undefined;
+  runId?: string | undefined;
+  changeId?: string | undefined;
+  conflictId?: string | undefined;
+  constraintId?: string | undefined;
+  constraintIds?: readonly string[] | undefined;
+  objectId?: string | undefined;
+  objectIds?: readonly string[] | undefined;
+  lockId?: string | undefined;
+  lockType?: string | undefined;
+  shareLinkId?: string | undefined;
+  templateId?: string | undefined;
+  toVersion?: string | undefined;
+  validationId?: string | undefined;
+  comparisonId?: string | undefined;
+  chosenBranchId?: string | undefined;
+  rejectedBranchIds?: readonly string[] | undefined;
+  name?: string | undefined;
+  notes?: string | undefined;
+  note?: string | undefined;
+  strategy?: string | undefined;
+  goal?: string | undefined;
+  instruction?: string | undefined;
+  reasonCode?: string | undefined;
+  status?: string | undefined;
+  category?: string | undefined;
+  severity?: string | undefined;
+  scope?: string | undefined;
+  format?: string | undefined;
+  query?: string | undefined;
+  outcome?: string | undefined;
+  kinds?: readonly string[] | undefined;
+  layers?: readonly string[] | undefined;
+  limit?: number | undefined;
+  includeSpatialEvidence?: boolean | undefined;
+  includeDensityFrames?: boolean | undefined;
+  locked?: boolean | undefined;
+  expiresAt?: string | null | undefined;
+  sourceRevision?: number | undefined;
+  remoteRevision?: number | undefined;
+  filters?: object | undefined;
+  edit?: object | undefined;
+  emergencyReview?:
+    | {
+        reviewerId?: string | undefined;
+        reviewerRole?: string | undefined;
+        assumptionsAccepted?: boolean | undefined;
+        note?: string | undefined;
+      }
+    | undefined;
+  anchor?: object | undefined;
+  body?: string | undefined;
+  mentions?: readonly string[] | undefined;
+  decisionRelevant?: boolean | undefined;
+  commentId?: string | undefined;
+  authorId?: string | undefined;
+  brief?: unknown;
+  snapshot?: unknown;
+  proposal?: VenueProposal | undefined;
+  scenario?: unknown;
+  manualChange?: PlanningChange | undefined;
+}
+export type PlannerReadCommand =
+  | { type: "inspect_layout" }
+  | { type: "validate_layout" }
+  | { type: "get_project_brief" }
+  | { type: "list_branches" }
+  | { type: "detect_conflicts"; branchId?: string }
+  | { type: "compare_branches"; leftBranchId: string; rightBranchId: string }
+  | { type: "list_comments"; filters?: object }
+  | { type: "list_scenarios" }
+  | { type: "list_scenario_runs" }
+  | { type: "get_scenario_result"; runId: string };
+export type PlannerReadResult<C extends PlannerReadCommand> = C["type"] extends "inspect_layout"
+  ? ReturnType<typeof inspection>
+  : C["type"] extends "validate_layout"
+    ? ReturnType<typeof validateVenueState>
+    : C["type"] extends "get_project_brief"
+      ? ReturnType<typeof eventBriefWithCoverage>
+      : C["type"] extends "list_branches"
+        ? Array<{
+            id: string;
+            name: string;
+            notes: string;
+            strategy: string;
+            archived: boolean;
+            decisionStatus: string | null;
+            proposalId: string;
+            baseVersion?: string;
+            status?: string;
+            changedItems: number;
+          }>
+        : C["type"] extends "detect_conflicts"
+          ? ReturnType<typeof detectProposalConflicts>
+          : C["type"] extends "compare_branches"
+            ? ReturnType<typeof compareProposalBranches>
+            : C["type"] extends "list_comments"
+              ? VenueComment[]
+              : C["type"] extends "list_scenarios"
+                ? ScenarioDefinition[]
+                : C["type"] extends "list_scenario_runs"
+                  ? ScenarioRun[]
+                  : C["type"] extends "get_scenario_result"
+                    ? ScenarioRun
+                    : never;
+export interface PlannerExecutionOptions {
+  authorization?: { principal: VenuePrincipal; projectId?: string; approvalPolicy?: ApprovalPolicy };
+  projectId?: string;
+}
+interface PlannerFactoryOptions {
+  authorization?: { principal: VenuePrincipal; projectId?: string; approvalPolicy?: ApprovalPolicy };
+  projectId?: string | null;
+  approvalPolicy?: ApprovalPolicy;
+  adapterPlanningBindings?: NonNullable<EventBrief["planningEffectBindings"]>;
+  operationalResourceFreshnessVerifier?:
+    | ((input: {
+        projectId: string | null;
+        proposalId: string;
+        planVersion: string;
+        snapshotId: string;
+        snapshotChecksum: string;
+      }) => { snapshotId: string; snapshotChecksum: string } | null)
+    | null;
+}
+interface OperationalResourceEvidence {
+  kind: string;
+  sourceId: string;
+  sourceChecksum: string;
+}
+const isOperationalResourceEvidence = (value: unknown): value is OperationalResourceEvidence =>
+  value !== null &&
+  typeof value === "object" &&
+  "kind" in value &&
+  typeof value.kind === "string" &&
+  "sourceId" in value &&
+  typeof value.sourceId === "string" &&
+  "sourceChecksum" in value &&
+  typeof value.sourceChecksum === "string";
 
-const now: any = () => new Date().toISOString();
+export interface ProposalBranch {
+  id: string;
+  name: string;
+  notes: string;
+  strategy: string;
+  proposal: VenueProposal;
+  revisions: VenueProposal[];
+  archived: boolean;
+  decisionStatus: string | null;
+  createdAt: string;
+  createdBy: string;
+}
+export interface CommandReceipt {
+  id: string;
+  idempotencyKey: string;
+  commandType: string;
+  inputFingerprint: string;
+  correlationId: string;
+  actor: string;
+  resultIds: Record<string, string>;
+  occurredAt: string;
+  result?: object;
+  error?: { code: VenueErrorCode; message: string; remediation: string; details: VenueErrorDetails };
+}
+export type ScenarioDefinition = EngineScenarioDefinition;
+export interface ScenarioRun {
+  id: string;
+  scenarioId: string;
+  scenarioFingerprint: string;
+  scenarioSnapshot: ScenarioDefinition;
+  model: ScenarioDefinition["model"];
+  branchId: string;
+  planId: string;
+  planVersion: string;
+  geometryFingerprint?: string;
+  inputFingerprint: string;
+  engineVersion: string;
+  status: "queued" | "running" | "completed" | "cancelled" | "failed";
+  progress: number;
+  completedPhaseIds: string[];
+  partialResult: object | null;
+  result: object | null;
+  startedAt: string;
+  completedAt: string | null;
+  cancellationReason: string | null;
+  cacheHit?: boolean;
+}
+export interface PlannerEditHistory {
+  undo: Array<{ change: PlanningChange; proposalId: string }>;
+  redo: Array<{ change: PlanningChange; proposalId: string }>;
+}
+export interface PlannerSnapshot {
+  projectId?: string;
+  plan: VenuePlan;
+  brief: EventBrief;
+  proposal: VenueProposal;
+  activeBranchId: string;
+  branches: ProposalBranch[];
+  ledger: ActivityLedgerEntry[];
+  receipts: CommandReceipt[];
+  projectLocks: ObjectLock[];
+  editHistory: PlannerEditHistory;
+  comments: VenueComment[];
+  scenarios: ScenarioDefinition[];
+  scenarioRuns: ScenarioRun[];
+}
+export type PlannerState = PlannerSnapshot;
+export interface VenuePlanner {
+  getSnapshot(): PlannerSnapshot;
+  getProjectId(): string | null;
+  getAdapterProjectContext(): {
+    projectId: string;
+    brief: EventBrief;
+    constraints: VenuePlan["constraints"];
+    planningEffectBindings: NonNullable<EventBrief["planningEffectBindings"]>;
+  } | null;
+  subscribe(listener: () => void): () => void;
+  execute<C extends PlannerReadCommand>(command: C, options?: PlannerExecutionOptions): PlannerReadResult<C>;
+  execute(command: PlannerCommand, options?: PlannerExecutionOptions): object | Promise<object>;
+  cancelActive(reason?: string): boolean;
+  recordAuthorizationDenial(input: object): string | null;
+}
 
-const MUTATING_COMMANDS: any = new Set([
+const clone = <T>(value: T): T => structuredClone(value);
+const isPlannerSnapshot = (value: unknown): value is PlannerSnapshot => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const record = value as Partial<PlannerSnapshot>;
+  return Boolean(
+    record.plan &&
+    record.brief &&
+    record.proposal &&
+    typeof record.activeBranchId === "string" &&
+    Array.isArray(record.branches) &&
+    Array.isArray(record.ledger) &&
+    Array.isArray(record.receipts) &&
+    Array.isArray(record.projectLocks) &&
+    Array.isArray(record.comments) &&
+    Array.isArray(record.scenarios) &&
+    Array.isArray(record.scenarioRuns),
+  );
+};
+
+const now = () => new Date().toISOString();
+
+const MUTATING_COMMANDS = new Set([
   "preview_revision",
   "request_adjustment",
   "revert_change",
@@ -50,155 +337,363 @@ const MUTATING_COMMANDS: any = new Set([
   "set_comment_status",
 ]);
 
-const commandFingerprint: any = (command: any) => {
-  const semanticInput: any = Object.fromEntries(Object.entries(command).filter(([key]: any) => !["idempotencyKey", "correlationId"].includes(key)));
+const commandFingerprint = (command: PlannerCommand): string => {
+  const semanticInput = Object.fromEntries(
+    Object.entries(command).filter(([key]) => !["idempotencyKey", "correlationId"].includes(key)),
+  );
   return stableFingerprint("command", semanticInput);
 };
 
-const publicReceipt: any = ({ result: _result, ...receipt }: any) => clone(receipt);
+const isEditingOperation = (value: string): value is EditingOperation =>
+  value === "apply-layout" ||
+  value === "move" ||
+  value === "rotate" ||
+  value === "resize" ||
+  value === "delete" ||
+  value === "group" ||
+  value === "ungroup" ||
+  value === "edit-zone-vertices" ||
+  value === "align" ||
+  value === "distribute" ||
+  value === "duplicate" ||
+  value === "paste" ||
+  value === "place" ||
+  value === "create-zone";
+const isEditingCommand = (value: object | undefined): value is EditingCommand => {
+  if (!value || !("operation" in value) || typeof value.operation !== "string") return false;
+  return isEditingOperation(value.operation);
+};
+const isLockType = (value: string | undefined): value is ObjectLock["type"] =>
+  value === "position" || value === "rotation" || value === "dimension" || value === "deletion" || value === "role";
 
-const resultIds: any = (result: any) => Object.fromEntries(Object.entries(result ?? {}).filter(([key, value]: any) => key.endsWith("Id") && typeof value === "string"));
+const publicReceipt = ({ result: _result, ...receipt }: CommandReceipt): Omit<CommandReceipt, "result"> =>
+  clone(receipt);
 
-const incrementVersion: any = (version: any) => {
+const resultIds = (result: object | null | undefined): Record<string, string> =>
+  Object.fromEntries(
+    Object.entries(result ?? {}).filter(
+      (entry): entry is [string, string] => entry[0].endsWith("Id") && typeof entry[1] === "string",
+    ),
+  );
+
+const incrementVersion = (version: string): string => {
   const [major, minor] = version.split(".").map(Number);
-  return `${major}.${minor + 1}`;
+  return `${major ?? 0}.${(minor ?? 0) + 1}`;
 };
 
-const createInitialState: any = (initialPlan: any) => {
-  const source: any = clone(initialPlan);
+const createInitialState = (initialPlan: VenuePlanDocument): PlannerSnapshot => {
+  const source = clone(initialPlan);
   const { proposal: proposalTemplate, brief: briefTemplate, ...rawPlan } = source;
-  const geometryPlan: any = normalizePlanGeometry(rawPlan);
-  const plan: any = {
+  const geometryPlan = normalizePlanGeometry(rawPlan);
+  const plan: VenuePlan = {
     ...geometryPlan,
     emergencyReviews: Array.isArray(geometryPlan.emergencyReviews) ? geometryPlan.emergencyReviews : [],
     constraints: normalizeConstraints(geometryPlan.constraints),
   };
-  const proposal: any = {
-    ...proposalTemplate,
-    baseVersion: plan.version,
-    status: "review",
-    validation: null,
-    waivers: [],
-  };
-  const brief: any = normalizeEventBrief(briefTemplate);
+  const proposal = normalizeProposalPlanningEffects(
+    {
+      ...proposalTemplate,
+      baseVersion: plan.version,
+      revision: proposalTemplate.revision ?? 1,
+      status: "review",
+      goal: proposalTemplate.goal ?? "",
+      validation: null,
+      waivers: [],
+    },
+    "proposal",
+  );
+  const brief = normalizeEventBrief(briefTemplate);
   assertNoLockConflicts(plan, proposal.changes);
   return {
     plan,
     brief,
     proposal,
     activeBranchId: "branch-balanced",
-    branches: [{ id: "branch-balanced", name: "Balanced", notes: "", strategy: "balanced", proposal: clone(proposal), revisions: [], archived: false, decisionStatus: null, createdAt: now(), createdBy: "agent" }],
+    branches: [
+      {
+        id: "branch-balanced",
+        name: "Balanced",
+        notes: "",
+        strategy: "balanced",
+        proposal: clone(proposal),
+        revisions: [],
+        archived: false,
+        decisionStatus: null,
+        createdAt: now(),
+        createdBy: "agent",
+      },
+    ],
     projectLocks: [],
     comments: [],
     scenarios: [],
     scenarioRuns: [],
     editHistory: { undo: [], redo: [] },
-    ledger: sealActivityLedger([createActivityEntry(1, "plan.opened", "human", { planId: plan.id, version: plan.version, beforePlanVersion: plan.version, afterPlanVersion: plan.version, acceptedPlan: clone(plan), planFingerprint: fingerprintPlan(plan), acceptedBrief: clone(brief), briefFingerprint: fingerprintEventBrief(brief) }, { source: "studio", sessionId: "session-initial" })]),
+    ledger: sealActivityLedger([
+      createActivityEntry(
+        1,
+        "plan.opened",
+        "human",
+        {
+          planId: plan.id,
+          version: plan.version,
+          beforePlanVersion: plan.version,
+          afterPlanVersion: plan.version,
+          acceptedPlan: clone(plan),
+          planFingerprint: fingerprintPlan(plan),
+          acceptedBrief: clone(brief),
+          briefFingerprint: fingerprintEventBrief(brief),
+        },
+        { source: "studio", sessionId: "session-initial" },
+      ),
+    ]),
     receipts: [],
   };
 };
 
-const SNAPSHOT_FIELDS: any = Object.freeze(["plan", "brief", "proposal", "activeBranchId", "branches", "ledger", "receipts", "projectLocks", "editHistory", "comments", "scenarios", "scenarioRuns"]);
-const sameValue: any = (left: any, right: any) => JSON.stringify(left) === JSON.stringify(right);
+const SNAPSHOT_FIELDS = Object.freeze([
+  "plan",
+  "brief",
+  "proposal",
+  "activeBranchId",
+  "branches",
+  "ledger",
+  "receipts",
+  "projectLocks",
+  "editHistory",
+  "comments",
+  "scenarios",
+  "scenarioRuns",
+] as const satisfies readonly (keyof PlannerSnapshot)[]);
+const canonicalValue = (value: unknown): string => {
+  if (Array.isArray(value)) return `[${value.map(canonicalValue).join(",")}]`;
+  if (value && typeof value === "object")
+    return `{${Object.entries(value)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => `${JSON.stringify(key)}:${canonicalValue(entry)}`)
+      .join(",")}}`;
+  return JSON.stringify(value) ?? "null";
+};
+const sameValue = (left: object | null, right: object | null): boolean =>
+  canonicalValue(left) === canonicalValue(right);
 
-const restoreSnapshot: any = (snapshot: any) => {
-  const restored: any = clone(snapshot);
-  const fail: any = (reason: any, details: any = {}) => {
-    throw venueError("SNAPSHOT_INVALID", { reason, requiredProjectSchemaVersion: 10, ...details }, "Use a canonical Project schema 10 snapshot.");
+const restoreSnapshot = (snapshot: PlannerSnapshot): PlannerSnapshot => {
+  const restored = clone(snapshot);
+  const fail = (reason: string, details: object = {}): never => {
+    throw venueError(
+      "SNAPSHOT_INVALID",
+      { reason, requiredProjectSchemaVersion: 10, ...details },
+      "Use a canonical Project schema 10 snapshot.",
+    );
   };
   if (!restored || typeof restored !== "object" || Array.isArray(restored)) fail("snapshot-object-required");
-  const unknownFields: any = Object.keys(restored).filter((field: any) => !SNAPSHOT_FIELDS.includes(field));
-  const missingFields: any = SNAPSHOT_FIELDS.filter((field: any) => restored[field] === undefined || restored[field] === null);
-  if (unknownFields.length || missingFields.length) fail("snapshot-shape-invalid", { unknownFields: unknownFields.sort(), missingFields });
-  if (!restored.plan?.id || !restored.plan?.version || !restored.plan?.spatial || !Array.isArray(restored.plan.objects) || !Array.isArray(restored.plan.constraints)) fail("plan-shape-invalid");
-  if (restored.plan.objects.some((object: any) => !object?.id || !object.footprint || !object.layer || !Number.isFinite(object.elevationM) || !Array.isArray(object.locks))) fail("plan-object-shape-invalid");
-  if (!restored.brief?.id || !Object.hasOwn(restored.brief, "schedule") || !Array.isArray(restored.brief.requirements)) fail("brief-shape-invalid");
-  if (!restored.proposal?.id || !Array.isArray(restored.proposal.changes) || !Array.isArray(restored.proposal.waivers)) fail("proposal-shape-invalid");
-  if (!restored.activeBranchId || !Array.isArray(restored.branches) || restored.branches.length === 0 || !restored.branches.some((branch: any) => branch.id === restored.activeBranchId)) fail("branch-shape-invalid");
-  if (restored.branches.some((branch: any) => !branch?.id || !branch.proposal || !Array.isArray(branch.revisions) || typeof branch.notes !== "string" || typeof branch.archived !== "boolean" || !Object.hasOwn(branch, "decisionStatus"))) fail("branch-shape-invalid");
-  if (!Array.isArray(restored.ledger) || restored.ledger.length === 0 || !Array.isArray(restored.receipts) || !Array.isArray(restored.projectLocks) || !Array.isArray(restored.comments) || !Array.isArray(restored.scenarios) || !Array.isArray(restored.scenarioRuns) || !Array.isArray(restored.editHistory?.undo) || !Array.isArray(restored.editHistory?.redo)) fail("collection-shape-invalid");
-  if (restored.ledger.some((entry: any) => entry.schemaVersion !== 1 || typeof entry.hash !== "string" || (entry.previousHash !== null && typeof entry.previousHash !== "string"))) fail("sealed-ledger-required");
+  const snapshotFields = new Set<string>(SNAPSHOT_FIELDS);
+  const unknownFields = Object.keys(restored).filter((field) => !snapshotFields.has(field));
+  const missingFields = SNAPSHOT_FIELDS.filter((field) => restored[field] === undefined || restored[field] === null);
+  if (unknownFields.length || missingFields.length)
+    fail("snapshot-shape-invalid", { unknownFields: unknownFields.sort(), missingFields });
+  if (
+    !restored.plan?.id ||
+    !restored.plan?.version ||
+    !restored.plan?.spatial ||
+    !Array.isArray(restored.plan.objects) ||
+    !Array.isArray(restored.plan.constraints)
+  )
+    fail("plan-shape-invalid");
+  if (
+    restored.plan.objects.some(
+      (object) =>
+        !object?.id ||
+        !object.footprint ||
+        !object.layer ||
+        !Number.isFinite(object.elevationM) ||
+        !Array.isArray(object.locks),
+    )
+  )
+    fail("plan-object-shape-invalid");
+  if (!restored.brief?.id || !Object.hasOwn(restored.brief, "schedule") || !Array.isArray(restored.brief.requirements))
+    fail("brief-shape-invalid");
+  if (!restored.proposal?.id || !Array.isArray(restored.proposal.changes) || !Array.isArray(restored.proposal.waivers))
+    fail("proposal-shape-invalid");
+  if (
+    !restored.activeBranchId ||
+    !Array.isArray(restored.branches) ||
+    restored.branches.length === 0 ||
+    !restored.branches.some((branch) => branch.id === restored.activeBranchId)
+  )
+    fail("branch-shape-invalid");
+  if (
+    restored.branches.some(
+      (branch) =>
+        !branch?.id ||
+        !branch.proposal ||
+        !Array.isArray(branch.revisions) ||
+        typeof branch.notes !== "string" ||
+        typeof branch.archived !== "boolean" ||
+        !Object.hasOwn(branch, "decisionStatus"),
+    )
+  )
+    fail("branch-shape-invalid");
+  if (
+    !Array.isArray(restored.ledger) ||
+    restored.ledger.length === 0 ||
+    !Array.isArray(restored.receipts) ||
+    !Array.isArray(restored.projectLocks) ||
+    !Array.isArray(restored.comments) ||
+    !Array.isArray(restored.scenarios) ||
+    !Array.isArray(restored.scenarioRuns) ||
+    !Array.isArray(restored.editHistory?.undo) ||
+    !Array.isArray(restored.editHistory?.redo)
+  )
+    fail("collection-shape-invalid");
+  if (
+    restored.ledger.some(
+      (entry) =>
+        entry.schemaVersion !== 1 ||
+        typeof entry.hash !== "string" ||
+        (entry.previousHash !== null && typeof entry.previousHash !== "string"),
+    )
+  )
+    fail("sealed-ledger-required");
 
-  let canonicalPlan: any;
-  let canonicalBrief: any;
-  let canonicalProposal: any;
-  let canonicalBranches: any;
+  let canonicalPlan;
+  let canonicalBrief;
+  let canonicalProposal;
+  let canonicalBranches;
   try {
     canonicalPlan = normalizePlanGeometry(restored.plan);
     canonicalPlan.constraints = normalizeConstraints(canonicalPlan.constraints);
     canonicalBrief = normalizeEventBrief(restored.brief);
     canonicalProposal = normalizeProposalPlanningEffects(restored.proposal, "proposal");
-    canonicalBranches = restored.branches.map((branch: any, branchIndex: any) => ({
+    canonicalBranches = restored.branches.map((branch, branchIndex) => ({
       ...branch,
       proposal: normalizeProposalPlanningEffects(branch.proposal, `branches[${branchIndex}].proposal`),
-      revisions: branch.revisions.map((proposal: any, revisionIndex: any) => normalizeProposalPlanningEffects(proposal, `branches[${branchIndex}].revisions[${revisionIndex}]`)),
+      revisions: branch.revisions.map((proposal, revisionIndex) =>
+        normalizeProposalPlanningEffects(proposal, `branches[${branchIndex}].revisions[${revisionIndex}]`),
+      ),
     }));
-    if (!sameValue(restored.plan, canonicalPlan) || !sameValue(restored.brief, canonicalBrief) || !sameValue(restored.proposal, canonicalProposal) || !sameValue(restored.branches, canonicalBranches)
-      || !sameValue(restored.comments, normalizeComments(restored.comments)) || !sameValue(restored.projectLocks, normalizeProjectLocks(restored.projectLocks, restored.plan))
-      || restored.scenarios.some((scenario: any) => !sameValue(scenario, normalizeScenarioDefinition(scenario)))) fail("non-canonical-value");
-  } catch (error: any) {
-    if (error?.code) throw error;
-    if (/Planning Effect invalid/i.test(error instanceof Error ? error.message : String(error))) throw venueError("PLANNING_EFFECT_INVALID", { cause: error instanceof Error ? error.message : String(error) }, "Persisted Planning Effect is not canonical.");
+    if (
+      !sameValue(restored.plan, canonicalPlan) ||
+      !sameValue(restored.brief, canonicalBrief) ||
+      !sameValue(restored.proposal, canonicalProposal) ||
+      !sameValue(restored.branches, canonicalBranches) ||
+      !sameValue(restored.comments, normalizeComments(restored.comments)) ||
+      !sameValue(restored.projectLocks, normalizeProjectLocks(restored.projectLocks, restored.plan)) ||
+      restored.scenarios.some((scenario) => !sameValue(scenario, normalizeScenarioDefinition(scenario)))
+    )
+      fail("non-canonical-value");
+  } catch (error) {
+    if (error instanceof VenueError) throw error;
+    if (/Planning Effect invalid/i.test(error instanceof Error ? error.message : String(error)))
+      throw venueError(
+        "PLANNING_EFFECT_INVALID",
+        { cause: error instanceof Error ? error.message : String(error) },
+        "Persisted Planning Effect is not canonical.",
+      );
     fail("non-canonical-value", { cause: error instanceof Error ? error.message : String(error) });
   }
 
-  const proposals: any = [restored.proposal, ...restored.branches.flatMap((branch: any) => [branch.proposal, ...branch.revisions])];
-  for (const proposal of proposals) for (const change of proposal.changes) for (const effect of change.planningEffects ?? []) {
-    if (!effect.source?.adapterId) continue;
-    try {
-      assertPlanningEffectBinding(effect, { brief: restored.brief, constraints: restored.plan.constraints });
-    } catch (error: any) {
-      throw venueError("PLANNING_EFFECT_INVALID", { operation: effect.operation, targetBriefId: effect.targetBriefId, targetRequirementId: effect.targetRequirementId }, "Persisted adapter Planning Effect is not bound to the server-owned Brief and Constraint registry.");
-    }
-  }
+  const proposals = [
+    restored.proposal,
+    ...restored.branches.flatMap((branch) => [branch.proposal, ...branch.revisions]),
+  ];
+  for (const proposal of proposals)
+    for (const change of proposal.changes)
+      for (const effect of change.planningEffects ?? []) {
+        if (!effect.source?.adapterId) continue;
+        try {
+          assertPlanningEffectBinding(effect, { brief: restored.brief, constraints: restored.plan.constraints });
+        } catch (_error) {
+          throw venueError(
+            "PLANNING_EFFECT_INVALID",
+            {
+              operation: effect.operation,
+              targetBriefId: effect.targetBriefId,
+              targetRequirementId: effect.targetRequirementId,
+            },
+            "Persisted adapter Planning Effect is not bound to the server-owned Brief and Constraint registry.",
+          );
+        }
+      }
 
-  const integrity: any = verifyActivityLedger(restored.ledger);
+  const integrity = verifyActivityLedger(restored.ledger);
   if (integrity.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { integrity });
-  const evidencedProjectLockIds: any = new Set(restored.projectLocks.filter((lock: any) => restored.ledger.some((entry: any) => entry.type === "object.lock_added"
-    && entry.details?.lockId === lock.id
-    && entry.details?.objectId === lock.objectId
-    && entry.details?.lockType === lock.type
-    && entry.details?.source === lock.source
-    && entry.details?.reasonCode === lock.reasonCode
-    && entry.details?.authorId === lock.authorId)).map((lock: any) => lock.id));
-  const assertProposalLocks: any = (proposal: any) => {
-    const conflicts: any = detectLockConflicts(restored.plan, proposal.changes, restored.projectLocks)
-      .filter((conflict: any) => conflict.source !== "project" || !evidencedProjectLockIds.has(conflict.lockId));
-    if (conflicts.length) throw venueError("LOCK_CONFLICT", { conflicts, objectIds: [...new Set(conflicts.map((conflict: any) => conflict.objectId))] });
+  const evidencedProjectLockIds = new Set(
+    restored.projectLocks
+      .filter((lock) =>
+        restored.ledger.some(
+          (entry) =>
+            entry.type === "object.lock_added" &&
+            entry.details?.lockId === lock.id &&
+            entry.details?.objectId === lock.objectId &&
+            entry.details?.lockType === lock.type &&
+            entry.details?.source === lock.source &&
+            entry.details?.reasonCode === lock.reasonCode &&
+            entry.details?.authorId === lock.authorId,
+        ),
+      )
+      .map((lock) => lock.id),
+  );
+  const assertProposalLocks = (proposal: VenueProposal): void => {
+    const conflicts = detectLockConflicts(restored.plan, proposal.changes, restored.projectLocks).filter(
+      (conflict) => conflict.source !== "project" || !evidencedProjectLockIds.has(conflict.lockId),
+    );
+    if (conflicts.length)
+      throw venueError("LOCK_CONFLICT", {
+        conflicts,
+        objectIds: [...new Set(conflicts.map((conflict) => conflict.objectId))],
+      });
   };
   assertProposalLocks(restored.proposal);
   for (const branch of restored.branches) assertProposalLocks(branch.proposal);
-  const replay: any = replayActivityLedger(restored.ledger, restored.plan, restored.brief);
-  if (replay.status !== "pass") throw venueError("LEDGER_INTEGRITY_FAILED", { replay }, "Activity Ledger does not reproduce accepted Plan and Event Brief truth.");
+  const replay = replayActivityLedger(restored.ledger, restored.plan, restored.brief);
+  if (replay.status !== "pass")
+    throw venueError(
+      "LEDGER_INTEGRITY_FAILED",
+      { replay },
+      "Activity Ledger does not reproduce accepted Plan and Event Brief truth.",
+    );
   return restored;
 };
 
-const syncActiveBranch: any = (state: any, proposal: any) => ({
+const syncActiveBranch = (state: PlannerSnapshot, proposal: VenueProposal): PlannerSnapshot => ({
   ...state,
   proposal,
-  branches: state.branches.map((branch: any) => {
+  branches: state.branches.map((branch) => {
     if (branch.id !== state.activeBranchId) return branch;
-    const revisions: any = [...(branch.revisions ?? [])];
-    if (branch.proposal?.id !== proposal.id && !revisions.some((revision: any) => revision.id === branch.proposal?.id)) revisions.push(clone(branch.proposal));
+    const revisions = [...(branch.revisions ?? [])];
+    if (branch.proposal?.id !== proposal.id && !revisions.some((revision) => revision.id === branch.proposal?.id))
+      revisions.push(clone(branch.proposal));
     return { ...branch, proposal: clone(proposal), revisions };
   }),
 });
 
-export const validateVenueState = (state: any) => {
-  const changes: any = state.proposal?.status === "review" ? state.proposal.changes : [];
-  const candidateBrief: any = materializeEventBrief(state.brief, changes);
-  const invalidations: any = planningEvidenceInvalidations(changes);
-  const knownConstraintIds: any = new Set(state.plan.constraints.map((constraint: any) => constraint.id));
-  const unknownConstraintIds: any = invalidations.affectedConstraintIds.filter((id: any) => !knownConstraintIds.has(id));
+type VenueValidationState = Omit<PlannerSnapshot, "proposal"> & { proposal: VenueProposal | null };
+export const validateVenueState = (state: VenueValidationState) => {
+  const changes = state.proposal?.status === "review" ? state.proposal.changes : [];
+  const candidateBrief = materializeEventBrief(state.brief, changes);
+  const invalidations = planningEvidenceInvalidations(changes);
+  const knownConstraintIds = new Set(state.plan.constraints.map((constraint) => constraint.id));
+  const unknownConstraintIds = invalidations.affectedConstraintIds.filter((id) => !knownConstraintIds.has(id));
   if (unknownConstraintIds.length) throw venueError("CONSTRAINT_NOT_FOUND", { constraintIds: unknownConstraintIds });
-  const validation: any = validateConstraints({ ...state, brief: candidateBrief });
-  const inventoryAvailability: any = evaluateInventoryAvailability(materializeSpatialPlan(state.plan, state.proposal?.changes ?? [], { projectLocks: state.projectLocks, allowLockConflicts: true }));
-  return { ...validation, planningEvidenceInvalidations: invalidations, inventoryAvailability, inventoryWarnings: inventoryAvailability.filter((item: any) => item.status === "warning").length };
+  const validation = validateConstraints({ ...state, brief: candidateBrief });
+  const inventoryAvailability = evaluateInventoryAvailability(
+    materializeSpatialPlan(state.plan, state.proposal?.changes ?? [], {
+      projectLocks: state.projectLocks,
+      allowLockConflicts: true,
+    }),
+  );
+  return {
+    ...validation,
+    planningEvidenceInvalidations: invalidations,
+    inventoryAvailability,
+    inventoryWarnings: inventoryAvailability.filter((item) => item.status === "warning").length,
+  };
 };
 
-const candidateBriefFor: any = (state: any) => materializeEventBrief(state.brief, state.proposal?.status === "review" ? state.proposal.changes : []);
+const candidateBriefFor = (state: PlannerSnapshot): EventBrief =>
+  materializeEventBrief(state.brief, state.proposal?.status === "review" ? state.proposal.changes : []);
 
-const inspection: any = (state: any) => ({
+const inspection = (state: PlannerSnapshot) => ({
   planId: state.plan.id,
   planVersion: state.plan.version,
   event: clone(state.plan.event),
@@ -212,32 +707,115 @@ const inspection: any = (state: any) => ({
   emergencyPlan: clone(state.plan.emergencyPlan ?? null),
   emergencyReviews: clone(state.plan.emergencyReviews ?? []),
   spatial: clone(state.plan.spatial),
-  spatialObjects: state.plan.objects.map(({ id, kind, label, layer, elevationM, footprint, locked, locks, door, exit, route, restriction, ramp, capacity, occupancy, placement, circulation, queue, staffPost, utility, rigging, productionZone, production, catering, emergency, templateRef, resourceBinding, templateOverrides, inventoryCount }: any) => ({ id, kind, label, layer, elevationM, footprint: clone(footprint), locked, locks: clone([...(locks ?? []), ...state.projectLocks.filter((lock: any) => lock.objectId === id)]), ...(templateRef ? { templateRef: clone(templateRef), templateOverrides: clone(templateOverrides ?? []) } : {}), ...(resourceBinding ? { resourceBinding: clone(resourceBinding) } : {}), ...(Number.isInteger(inventoryCount) ? { inventoryCount } : {}), ...(Number.isInteger(capacity) ? { capacity } : {}), ...(occupancy ? { occupancy: clone(occupancy) } : {}), ...(placement ? { placement: clone(placement) } : {}), ...(circulation ? { circulation: clone(circulation) } : {}), ...(queue ? { queue: clone(queue) } : {}), ...(staffPost ? { staffPost: clone(staffPost) } : {}), ...(production ? { production: clone(production) } : {}), ...(catering ? { catering: clone(catering) } : {}), ...(emergency ? { emergency: clone(emergency) } : {}), operational: clone({ ...(door ? { door } : {}), ...(exit ? { exit } : {}), ...(route ? { route } : {}), ...(restriction ? { restriction } : {}), ...(ramp ? { ramp } : {}), ...(utility ? { utility } : {}), ...(rigging ? { rigging } : {}), ...(productionZone ? { productionZone } : {}) }) })),
-  lockedObjects: state.plan.objects.map((object: any) => ({ ...object, effectiveLocks: [...(object.locks ?? []), ...state.projectLocks.filter((lock: any) => lock.objectId === object.id)].filter((lock: any) => lock.active) })).filter((object: any) => object.effectiveLocks.length).map(({ id, kind, label, effectiveLocks }: any) => ({ id, kind, label, locks: clone(effectiveLocks) })),
+  spatialObjects: state.plan.objects.map(
+    ({
+      id,
+      kind,
+      label,
+      layer,
+      elevationM,
+      footprint,
+      locked,
+      locks,
+      door,
+      exit,
+      route,
+      restriction,
+      ramp,
+      capacity,
+      occupancy,
+      placement,
+      circulation,
+      queue,
+      staffPost,
+      utility,
+      rigging,
+      productionZone,
+      production,
+      catering,
+      emergency,
+      templateRef,
+      resourceBinding,
+      templateOverrides,
+      inventoryCount,
+    }) => ({
+      id,
+      kind,
+      label,
+      layer,
+      elevationM,
+      footprint: clone(footprint),
+      locked,
+      locks: clone([...(locks ?? []), ...state.projectLocks.filter((lock) => lock.objectId === id)]),
+      ...(templateRef ? { templateRef: clone(templateRef), templateOverrides: clone(templateOverrides ?? []) } : {}),
+      ...(resourceBinding ? { resourceBinding: clone(resourceBinding) } : {}),
+      ...(Number.isInteger(inventoryCount) ? { inventoryCount } : {}),
+      ...(Number.isInteger(capacity) ? { capacity } : {}),
+      ...(occupancy ? { occupancy: clone(occupancy) } : {}),
+      ...(placement ? { placement: clone(placement) } : {}),
+      ...(circulation ? { circulation: clone(circulation) } : {}),
+      ...(queue ? { queue: clone(queue) } : {}),
+      ...(staffPost ? { staffPost: clone(staffPost) } : {}),
+      ...(production ? { production: clone(production) } : {}),
+      ...(catering ? { catering: clone(catering) } : {}),
+      ...(emergency ? { emergency: clone(emergency) } : {}),
+      operational: clone({
+        ...(door ? { door } : {}),
+        ...(exit ? { exit } : {}),
+        ...(route ? { route } : {}),
+        ...(restriction ? { restriction } : {}),
+        ...(ramp ? { ramp } : {}),
+        ...(utility ? { utility } : {}),
+        ...(rigging ? { rigging } : {}),
+        ...(productionZone ? { productionZone } : {}),
+      }),
+    }),
+  ),
+  lockedObjects: state.plan.objects
+    .map((object) => ({
+      ...object,
+      effectiveLocks: [
+        ...(object.locks ?? []),
+        ...state.projectLocks.filter((lock) => lock.objectId === object.id),
+      ].filter((lock) => lock.active),
+    }))
+    .filter((object) => object.effectiveLocks.length)
+    .map(({ id, kind, label, effectiveLocks }) => ({ id, kind, label, locks: clone(effectiveLocks) })),
   projectLocks: clone(state.projectLocks),
   comments: clone(state.comments),
   scenarios: clone(state.scenarios),
-  scenarioRuns: clone(state.scenarioRuns.map(({ partialResult: _partialResult, result: _result, ...run }: any) => run)),
+  scenarioRuns: clone(state.scenarioRuns.map(({ partialResult: _partialResult, result: _result, ...run }) => run)),
   constraints: clone(state.plan.constraints),
   metrics: clone(state.plan.metrics),
-  proposal: state.proposal ? {
-    id: state.proposal.id,
-    baseVersion: state.proposal.baseVersion,
-    revision: state.proposal.revision,
-    status: state.proposal.status,
-    goal: state.proposal.goal,
-    changedItems: state.proposal.changes.length,
-    templateUpdate: clone(state.proposal.templateUpdate ?? null),
-  } : null,
+  proposal: state.proposal
+    ? {
+        id: state.proposal.id,
+        baseVersion: state.proposal.baseVersion,
+        revision: state.proposal.revision,
+        status: state.proposal.status,
+        goal: state.proposal.goal,
+        changedItems: state.proposal.changes.length,
+        templateUpdate: clone(state.proposal.templateUpdate ?? null),
+      }
+    : null,
   activeBranchId: state.activeBranchId,
-  proposalBranches: state.branches.map((branch: any) => ({ id: branch.id, name: branch.name, strategy: branch.strategy, proposalId: branch.proposal.id })),
+  proposalBranches: state.branches.map((branch) => ({
+    id: branch.id,
+    name: branch.name,
+    strategy: branch.strategy,
+    proposalId: branch.proposal.id,
+  })),
   commandReceiptCount: state.receipts.length,
   ledgerIntegrity: verifyActivityLedger(state.ledger),
-  brief: eventBriefWithCoverage(candidateBriefFor(state), validateVenueState(state), validateVenueState({ ...state, proposal: null })),
+  brief: eventBriefWithCoverage(
+    candidateBriefFor(state),
+    validateVenueState(state),
+    validateVenueState({ ...state, proposal: null }),
+  ),
 });
 
-const formatExport: any = (state: any) => {
-  const validation: any = validateVenueState(state);
+const formatExport = (state: PlannerSnapshot): string => {
+  const validation = validateVenueState(state);
   const { accessibility, capacity, circulation, sightlines } = validation.spatialEvidence;
   return [
     `VenueMind · ${state.plan.event.name}`,
@@ -256,119 +834,203 @@ const formatExport: any = (state: any) => {
   ].join("\n");
 };
 
-export function createVenuePlanner(initialPlan: any, { authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, projectId = null, approvalPolicy, adapterPlanningBindings = {}, operationalResourceFreshnessVerifier = null }: any = {}) {
-  const durableInitialPlan: any = Object.keys(adapterPlanningBindings).length && initialPlan?.brief?.planningEffectBindings === undefined
-    ? { ...clone(initialPlan), brief: { ...clone(initialPlan.brief), planningEffectBindings: clone(adapterPlanningBindings) } }
-    : initialPlan;
-  const initialState: any = createInitialState(durableInitialPlan);
-  let state: any = initialState;
-  let undoStack: any[] = [];
-  let redoStack: any[] = [];
-  const listeners: any = new Set();
-  let transaction: any = null;
-  const scenarioRunner: any = createScenarioRunner();
-  const pendingScenarioCommands: any = new Map();
+export function createVenuePlanner(
+  initialPlan: VenuePlanDocument,
+  {
+    authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION,
+    projectId = null,
+    approvalPolicy,
+    adapterPlanningBindings = {},
+    operationalResourceFreshnessVerifier = null,
+  }: PlannerFactoryOptions = {},
+): VenuePlanner {
+  const durableInitialPlan =
+    Object.keys(adapterPlanningBindings).length && initialPlan?.brief?.planningEffectBindings === undefined
+      ? {
+          ...clone(initialPlan),
+          brief: { ...clone(initialPlan.brief), planningEffectBindings: clone(adapterPlanningBindings) },
+        }
+      : initialPlan;
+  const initialState = createInitialState(durableInitialPlan);
+  let state: PlannerSnapshot = initialState;
+  let undoStack: Array<{ plan: VenuePlan; brief: EventBrief }> = [];
+  let redoStack: Array<{ plan: VenuePlan; brief: EventBrief }> = [];
+  const listeners = new Set<() => void>();
+  let transaction: { nextState: PlannerSnapshot | null } | null = null;
+  const scenarioRunner = createScenarioRunner();
+  const pendingScenarioCommands = new Map<string, { inputFingerprint: string; promise: Promise<object> }>();
 
-  const verifyOperationalResourceFreshness: any = (proposal: any) => {
-    const evidence: any = proposal.changes
-      .map((change: any) => change.effects?.adapterEvidence)
-      .filter((item: any) => item?.kind === "operational-resource-substitution");
+  const verifyOperationalResourceFreshness = (proposal: VenueProposal): OperationalResourceEvidence[] => {
+    const evidence = proposal.changes
+      .map((change) => change.effects?.adapterEvidence)
+      .filter(
+        (item): item is OperationalResourceEvidence =>
+          isOperationalResourceEvidence(item) && item.kind === "operational-resource-substitution",
+      );
     if (evidence.length === 0) return [];
-    if (typeof operationalResourceFreshnessVerifier !== "function") throw venueError("OPERATIONAL_RESOURCE_FRESHNESS_REQUIRED", { proposalId: proposal.id, sourceIds: evidence.map((item: any) => item.sourceId) });
+    if (typeof operationalResourceFreshnessVerifier !== "function")
+      throw venueError("OPERATIONAL_RESOURCE_FRESHNESS_REQUIRED", {
+        proposalId: proposal.id,
+        sourceIds: evidence.map((item) => item.sourceId),
+      });
     for (const item of evidence) {
-      const latest: any = operationalResourceFreshnessVerifier({ projectId: projectId ?? state.projectId ?? null, proposalId: proposal.id, planVersion: state.plan.version, snapshotId: item.sourceId, snapshotChecksum: item.sourceChecksum });
-      if (latest && typeof latest.then === "function") throw venueError("OPERATIONAL_RESOURCE_FRESHNESS_REQUIRED", { proposalId: proposal.id, reason: "synchronous-verifier-required" });
-      const current: any = latest?.snapshotId === item.sourceId && latest?.snapshotChecksum === item.sourceChecksum;
-      if (!current) throw venueError("OPERATIONAL_RESOURCE_STALE", { proposalId: proposal.id, snapshotId: item.sourceId });
+      const latest = operationalResourceFreshnessVerifier({
+        projectId: projectId ?? state.projectId ?? null,
+        proposalId: proposal.id,
+        planVersion: state.plan.version,
+        snapshotId: item.sourceId,
+        snapshotChecksum: item.sourceChecksum,
+      });
+      const current = latest?.snapshotId === item.sourceId && latest?.snapshotChecksum === item.sourceChecksum;
+      if (!current)
+        throw venueError("OPERATIONAL_RESOURCE_STALE", { proposalId: proposal.id, snapshotId: item.sourceId });
     }
     return clone(evidence);
   };
 
-  const simulationBasisFingerprint: any = (value: any) => stableFingerprint("simulation-basis", {
-    planVersion: value.plan.version,
-    planGeometry: value.plan.spatial.fingerprint,
-    proposalId: value.proposal?.id ?? null,
-    proposalChanges: value.proposal?.changes ?? [],
-  });
+  const simulationBasisFingerprint = (value: PlannerSnapshot): string =>
+    stableFingerprint("simulation-basis", {
+      planVersion: value.plan.version,
+      planGeometry: value.plan.spatial.fingerprint,
+      proposalId: value.proposal?.id ?? null,
+      proposalChanges: value.proposal?.changes ?? [],
+    });
 
-  const getSnapshot: any = () => state;
-  const subscribe: any = (listener: any) => {
+  const getSnapshot = (): PlannerSnapshot => state;
+  const subscribe = (listener: () => void): (() => void) => {
     listeners.add(listener);
     return () => listeners.delete(listener);
   };
-  const publish: any = (nextState: any) => {
+  const publish = (nextState: PlannerSnapshot): void => {
     if (transaction) {
       transaction.nextState = nextState;
       return;
     }
-    if (scenarioRunner.getActive() && simulationBasisFingerprint(state) !== simulationBasisFingerprint(nextState)) scenarioRunner.cancelActive("proposal-changed");
+    if (scenarioRunner.getActive() && simulationBasisFingerprint(state) !== simulationBasisFingerprint(nextState))
+      scenarioRunner.cancelActive("proposal-changed");
     state = nextState;
-    listeners.forEach((listener: any) => listener());
+    listeners.forEach((listener) => listener());
   };
-  const appendLedger: any = (current: any, type: any, actor: any, details: any) => [
-    ...current.ledger,
-    createActivityEntry(current.ledger.length + 1, type, actor, details),
-  ];
+  const appendLedger = (
+    current: PlannerSnapshot,
+    type: string,
+    actor: string,
+    details: object,
+  ): ActivityLedgerEntry[] => [...current.ledger, createActivityEntry(current.ledger.length + 1, type, actor, details)];
 
-  const recordAuthorizationDenial: any = ({ error, actionType, source, sessionId }: any) => {
+  const recordAuthorizationDenial = ({
+    error,
+    actionType,
+    source,
+    sessionId,
+  }: {
+    error: VenueError;
+    actionType: string;
+    source?: string | undefined;
+    sessionId?: string | undefined;
+  }): string | null => {
     if (error?.code !== "AUTHORIZATION_DENIED") return null;
-    const denied: any = error.details;
-    const deniedActorType: any = ["human", "agent"].includes(denied.principal?.type) ? denied.principal.type : "system";
-    const deniedSource: any = ["studio", "webmcp", "mcp", "system", "agent-tool"].includes(source) ? source : deniedActorType === "agent" ? "agent-tool" : deniedActorType === "human" ? "studio" : "system";
-    const entry: any = createActivityEntry(state.ledger.length + 1, "authorization.denied", deniedActorType, {
-        policyDecisionId: denied.id,
-        permission: denied.permission,
-        reason: denied.reason,
+    const denied = error.details;
+    const principalValue = denied["principal"];
+    const principal =
+      principalValue && typeof principalValue === "object" ? (principalValue as { id?: string; type?: string }) : {};
+    const deniedActorType = principal.type === "human" || principal.type === "agent" ? principal.type : "system";
+    const deniedSource =
+      typeof source === "string" && ["studio", "webmcp", "mcp", "system", "agent-tool"].includes(source)
+        ? source
+        : deniedActorType === "agent"
+          ? "agent-tool"
+          : deniedActorType === "human"
+            ? "studio"
+            : "system";
+    const entry = createActivityEntry(
+      state.ledger.length + 1,
+      "authorization.denied",
+      deniedActorType,
+      {
+        policyDecisionId: denied["id"],
+        permission: denied["permission"],
+        reason: denied["reason"],
         actionType,
-        projectId: denied.projectId,
-        grantId: denied.grantId,
+        projectId: denied["projectId"],
+        grantId: denied["grantId"],
         beforePlanVersion: state.plan.version,
         afterPlanVersion: state.plan.version,
-      }, {
-        actorId: denied.principal?.id ?? "unknown",
+      },
+      {
+        actorId: principal.id ?? "unknown",
         actorType: deniedActorType,
         source: deniedSource,
         sessionId: sessionId ?? "session-unknown",
-      });
+      },
+    );
     publish({ ...state, ledger: sealActivityLedger([...state.ledger, entry]) });
     return entry.id;
   };
 
-  const authorize: any = (command: any, options: any = {}) => {
-    const authorization: any = options.authorization ?? defaultAuthorization;
+  const authorize = (command: PlannerCommand, options: PlannerExecutionOptions = {}) => {
+    const authorization = options.authorization ?? defaultAuthorization;
     try {
+      const effectiveApprovalPolicy = authorization?.approvalPolicy ?? approvalPolicy;
       return assertVenueCommand({
         command,
         ...authorization,
         projectId: options.projectId ?? authorization?.projectId ?? projectId,
-        approvalPolicy: authorization?.approvalPolicy ?? approvalPolicy,
+        ...(effectiveApprovalPolicy ? { approvalPolicy: effectiveApprovalPolicy } : {}),
       });
-    } catch (error: any) {
-      if (error?.code !== "AUTHORIZATION_DENIED") throw error;
-      recordAuthorizationDenial({ error, actionType: command.type, source: command.source, sessionId: command.sessionId });
+    } catch (error) {
+      if (!(error instanceof VenueError) || error.code !== "AUTHORIZATION_DENIED") throw error;
+      recordAuthorizationDenial({
+        error,
+        actionType: command.type,
+        source: command.source,
+        sessionId: command.sessionId,
+      });
       throw error;
     }
   };
 
-  const executeCommand: any = (command: any, authorizationContext: any = defaultAuthorization) => {
+  const executeCommand = (command: PlannerCommand, authorizationContext = defaultAuthorization): object => {
     if (!command || typeof command.type !== "string") throw venueError("COMMAND_INVALID");
 
     if (command.type === "inspect_layout") return inspection(state);
     if (command.type === "inspect_templates") return listVenueTemplates();
     if (command.type === "list_constraints") {
-      const validation: any = validateVenueState(state);
-      const checks: any = new Map(validation.checks.map((check: any) => [check.constraintId, check]));
+      const validation = validateVenueState(state);
+      const checks = new Map(validation.checks.map((check) => [check.constraintId, check]));
       return state.plan.constraints
-        .filter((constraint: any) => !command.category || constraint.category === command.category)
-        .filter((constraint: any) => !command.severity || constraint.severity === command.severity)
-        .map((constraint: any) => ({ ...clone(constraint), evaluation: checks.has(constraint.id) ? clone({ status: checks.get(constraint.id).status, actual: checks.get(constraint.id).actual, threshold: checks.get(constraint.id).threshold, unit: checks.get(constraint.id).unit, waiver: checks.get(constraint.id).waiver ?? null }) : null }));
+        .filter((constraint) => !command.category || constraint.category === command.category)
+        .filter((constraint) => !command.severity || constraint.severity === command.severity)
+        .map((constraint) => {
+          const check = checks.get(constraint.id);
+          return {
+            ...clone(constraint),
+            evaluation: check
+              ? clone({
+                  status: check.status,
+                  actual: check.actual,
+                  threshold: check.threshold,
+                  unit: check.unit,
+                  waiver: check.waiver ?? null,
+                })
+              : null,
+          };
+        });
     }
     if (command.type === "get_validation_evidence") {
-      const validation: any = validateVenueState(state);
-      if (command.validationId && command.validationId !== validation.validationId) throw venueError("VALIDATION_NOT_FOUND", { validationId: command.validationId, currentValidationId: validation.validationId });
-      const constraintIds: any = new Set(command.constraintIds ?? []);
-      const checks: any = validation.checks.filter((check: any) => !constraintIds.size || constraintIds.has(check.constraintId));
-      const evidenceFingerprint: any = stableFingerprint("validation-evidence", { inputFingerprint: validation.inputFingerprint, constraintIds: checks.map((check: any) => check.constraintId), checks });
+      const validation = validateVenueState(state);
+      if (command.validationId && command.validationId !== validation.validationId)
+        throw venueError("VALIDATION_NOT_FOUND", {
+          validationId: command.validationId,
+          currentValidationId: validation.validationId,
+        });
+      const constraintIds = new Set(command.constraintIds ?? []);
+      const checks = validation.checks.filter((check) => !constraintIds.size || constraintIds.has(check.constraintId));
+      const evidenceFingerprint = stableFingerprint("validation-evidence", {
+        inputFingerprint: validation.inputFingerprint,
+        constraintIds: checks.map((check) => check.constraintId),
+        checks,
+      });
       return {
         validationId: validation.validationId,
         inputFingerprint: validation.inputFingerprint,
@@ -389,78 +1051,149 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
       };
     }
     if (command.type === "get_object" || command.type === "search_objects") {
-      const scope: any = command.scope ?? "proposal";
-      const plan: any = scope === "accepted" ? state.plan : materializeSpatialPlan(state.plan, state.proposal?.changes ?? [], { projectLocks: state.projectLocks, allowLockConflicts: true });
-      const effectiveLocks: any = (object: any) => [...(object.locks ?? []), ...state.projectLocks.filter((lock: any) => lock.objectId === object.id)].filter((lock: any) => lock.active);
+      const scope = command.scope ?? "proposal";
+      const plan =
+        scope === "accepted"
+          ? state.plan
+          : materializeSpatialPlan(state.plan, state.proposal?.changes ?? [], {
+              projectLocks: state.projectLocks,
+              allowLockConflicts: true,
+            });
+      const effectiveLocks = (object: VenueObject) =>
+        [...(object.locks ?? []), ...state.projectLocks.filter((lock) => lock.objectId === object.id)].filter(
+          (lock) => lock.active,
+        );
       if (command.type === "get_object") {
-        const object: any = plan.objects.find((item: any) => item.id === command.objectId);
+        const object = plan.objects.find((item) => item.id === command.objectId);
         if (!object) throw venueError("OBJECT_NOT_FOUND", { objectId: command.objectId, scope });
-        return { scope, planId: plan.id, planVersion: plan.version, proposalId: scope === "proposal" ? state.proposal?.id ?? null : null, object: { ...clone(object), effectiveLocks: clone(effectiveLocks(object)) } };
+        return {
+          scope,
+          planId: plan.id,
+          planVersion: plan.version,
+          proposalId: scope === "proposal" ? (state.proposal?.id ?? null) : null,
+          object: { ...clone(object), effectiveLocks: clone(effectiveLocks(object)) },
+        };
       }
-      const query: any = command.query?.trim().toLowerCase() ?? "";
-      const kinds: any = new Set(command.kinds ?? []);
-      const layers: any = new Set(command.layers ?? []);
-      const limit: any = Math.min(50, Math.max(1, command.limit ?? 20));
-      const matches: any = plan.objects.filter((object: any) => {
-        if (query && ![object.id, object.label, object.kind].some((value: any) => value?.toLowerCase().includes(query))) return false;
-        if (kinds.size && !kinds.has(object.kind)) return false;
-        if (layers.size && !layers.has(object.layer)) return false;
-        if (command.locked !== undefined && (effectiveLocks(object).length > 0) !== command.locked) return false;
-        return true;
-      }).sort((left: any, right: any) => left.id.localeCompare(right.id));
+      const query = command.query?.trim().toLowerCase() ?? "";
+      const kinds = new Set(command.kinds ?? []);
+      const layers = new Set(command.layers ?? []);
+      const limit = Math.min(50, Math.max(1, command.limit ?? 20));
+      const matches = plan.objects
+        .filter((object) => {
+          if (query && ![object.id, object.label, object.kind].some((value) => value?.toLowerCase().includes(query)))
+            return false;
+          if (kinds.size && !kinds.has(object.kind)) return false;
+          if (layers.size && !layers.has(object.layer ?? "")) return false;
+          if (command.locked !== undefined && effectiveLocks(object).length > 0 !== command.locked) return false;
+          return true;
+        })
+        .sort((left, right) => left.id.localeCompare(right.id));
       return {
         scope,
         planId: plan.id,
         planVersion: plan.version,
-        proposalId: scope === "proposal" ? state.proposal?.id ?? null : null,
+        proposalId: scope === "proposal" ? (state.proposal?.id ?? null) : null,
         total: matches.length,
         limit,
         truncated: matches.length > limit,
-        objects: matches.slice(0, limit).map((object: any) => ({ id: object.id, label: object.label, kind: object.kind, layer: object.layer, elevationM: object.elevationM, footprint: clone(object.footprint), locked: effectiveLocks(object).length > 0, lockIds: effectiveLocks(object).map((lock: any) => lock.id) })),
+        objects: matches.slice(0, limit).map((object) => ({
+          id: object.id,
+          label: object.label,
+          kind: object.kind,
+          layer: object.layer,
+          elevationM: object.elevationM,
+          footprint: clone(object.footprint),
+          locked: effectiveLocks(object).length > 0,
+          lockIds: effectiveLocks(object).map((lock) => lock.id),
+        })),
       };
     }
-    if (command.type === "measure_objects") return measureObjects(materializeSpatialPlan(state.plan, state.proposal?.changes ?? [], { projectLocks: state.projectLocks, allowLockConflicts: true }), command.objectIds);
+    if (command.type === "measure_objects")
+      return measureObjects(
+        materializeSpatialPlan(state.plan, state.proposal?.changes ?? [], {
+          projectLocks: state.projectLocks,
+          allowLockConflicts: true,
+        }),
+        command.objectIds ?? [],
+      );
     if (command.type === "list_comments") return listComments(state, command.filters);
     if (command.type === "list_scenarios") return clone(state.scenarios);
     if (command.type === "list_scenario_runs") return clone(state.scenarioRuns);
     if (command.type === "get_scenario_result") {
-      const run: any = state.scenarioRuns.find((item: any) => item.id === command.runId);
+      const run = state.scenarioRuns.find((item) => item.id === command.runId);
       if (!run) throw venueError("SCENARIO_RUN_NOT_FOUND", { runId: command.runId });
-      const result: any = clone(run.result ?? run.partialResult);
-      if (result && command.includeDensityFrames !== true) delete result.densityFrames;
-      return { id: run.id, scenarioId: run.scenarioId, scenarioFingerprint: run.scenarioFingerprint, model: run.model, branchId: run.branchId, planId: run.planId, planVersion: run.planVersion, geometryFingerprint: run.geometryFingerprint, inputFingerprint: run.inputFingerprint, engineVersion: run.engineVersion, status: run.status, progress: run.progress, completedPhaseIds: clone(run.completedPhaseIds), startedAt: run.startedAt, completedAt: run.completedAt, cancellationReason: run.cancellationReason, cacheHit: run.cacheHit ?? false, result };
+      const result = clone(run.result ?? run.partialResult);
+      if (result && command.includeDensityFrames !== true && "densityFrames" in result) delete result.densityFrames;
+      return {
+        id: run.id,
+        scenarioId: run.scenarioId,
+        scenarioFingerprint: run.scenarioFingerprint,
+        model: run.model,
+        branchId: run.branchId,
+        planId: run.planId,
+        planVersion: run.planVersion,
+        geometryFingerprint: run.geometryFingerprint,
+        inputFingerprint: run.inputFingerprint,
+        engineVersion: run.engineVersion,
+        status: run.status,
+        progress: run.progress,
+        completedPhaseIds: clone(run.completedPhaseIds),
+        startedAt: run.startedAt,
+        completedAt: run.completedAt,
+        cancellationReason: run.cancellationReason,
+        cacheHit: run.cacheHit ?? false,
+        result,
+      };
     }
     if (command.type === "compare_simulations") {
-      const left: any = state.scenarioRuns.find((run: any) => run.id === command.leftRunId && run.status === "completed")?.result;
-      const right: any = state.scenarioRuns.find((run: any) => run.id === command.rightRunId && run.status === "completed")?.result;
-      if (!left || !right) throw venueError("COMMAND_INVALID", { leftRunId: command.leftRunId, rightRunId: command.rightRunId }, "Simulation comparison requires two completed Run IDs");
+      const left = state.scenarioRuns.find((run) => run.id === command.leftRunId && run.status === "completed")?.result;
+      const right = state.scenarioRuns.find(
+        (run) => run.id === command.rightRunId && run.status === "completed",
+      )?.result;
+      if (!left || !right)
+        throw venueError(
+          "COMMAND_INVALID",
+          { leftRunId: command.leftRunId, rightRunId: command.rightRunId },
+          "Simulation comparison requires two completed Run IDs",
+        );
       return compareSimulationResults(left, right);
     }
     if (command.type === "export_simulation") {
-      const run: any = state.scenarioRuns.find((item: any) => item.id === command.runId);
-      const scenario: any = run?.scenarioSnapshot ?? state.scenarios.find((item: any) => item.id === run?.scenarioId);
-      if (!run || !scenario || run.status !== "completed") throw venueError("COMMAND_INVALID", { runId: command.runId }, "Simulation export requires a completed Run ID");
+      const run = state.scenarioRuns.find((item) => item.id === command.runId);
+      const scenario = run?.scenarioSnapshot ?? state.scenarios.find((item) => item.id === run?.scenarioId);
+      if (!run || !scenario || run.status !== "completed")
+        throw venueError("COMMAND_INVALID", { runId: command.runId }, "Simulation export requires a completed Run ID");
       return exportSimulationRun(scenario, { status: run.status, runId: run.id, result: run.result });
     }
     if (command.type === "validate_layout") return validateVenueState(state);
     if (command.type === "get_change_log") return clone(state.ledger);
-    if (command.type === "get_project_brief") return eventBriefWithCoverage(candidateBriefFor(state), validateVenueState(state), validateVenueState({ ...state, proposal: null }));
+    if (command.type === "get_project_brief")
+      return eventBriefWithCoverage(
+        candidateBriefFor(state),
+        validateVenueState(state),
+        validateVenueState({ ...state, proposal: null }),
+      );
     if (command.type === "replay_history") return replayActivityLedger(state.ledger, state.plan, state.brief);
     if (command.type === "detect_conflicts") return detectProposalConflicts(state, command.branchId);
     if (command.type === "list_branches") {
-      return state.branches.map((branch: any) => {
-        const validation: any = validateVenueState({ ...state, proposal: branch.proposal });
-        const conflictState: any = detectProposalConflicts(state, branch.id);
+      return state.branches.map((branch) => {
+        const validation = validateVenueState({ ...state, proposal: branch.proposal });
+        const conflictState = detectProposalConflicts(state, branch.id);
         return {
           id: branch.id,
           name: branch.name,
           notes: branch.notes ?? "",
           strategy: branch.strategy,
           active: branch.id === state.activeBranchId,
-          archived: branch.archived === true,
+          archived: branch.archived,
           decisionStatus: branch.decisionStatus ?? null,
           revisionCount: (branch.revisions ?? []).length + 1,
-          revisions: [...(branch.revisions ?? []), branch.proposal].map((proposal: any) => ({ proposalId: proposal.id, revision: proposal.revision, status: proposal.status, current: proposal.id === branch.proposal.id })),
+          revisions: [...(branch.revisions ?? []), branch.proposal].map((proposal) => ({
+            proposalId: proposal.id,
+            revision: proposal.revision,
+            status: proposal.status,
+            current: proposal.id === branch.proposal.id,
+          })),
           proposalId: branch.proposal.id,
           baseVersion: branch.proposal.baseVersion,
           status: branch.proposal.status,
@@ -474,25 +1207,46 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
         };
       });
     }
-    if (command.type === "compare_branches") return compareProposalBranches(state, command.leftBranchId, command.rightBranchId, validateVenueState);
+    if (command.type === "compare_branches") {
+      if (!command.leftBranchId || !command.rightBranchId) throw venueError("COMMAND_INVALID", { field: "branchIds" });
+      return compareProposalBranches(state, command.leftBranchId, command.rightBranchId, validateVenueState);
+    }
     if (command.type === "export_plan") {
-      const format: any = command.format ?? "json";
-      const validation: any = validateVenueState(state);
-      const acceptedValidation: any = validateVenueState({ ...state, proposal: null });
-      const replay: any = replayActivityLedger(state.ledger, state.plan, state.brief);
-      const exportState: any = {
+      const format = command.format ?? "json";
+      const validation = validateVenueState(state);
+      const acceptedValidation = validateVenueState({ ...state, proposal: null });
+      const replay = replayActivityLedger(state.ledger, state.plan, state.brief);
+      const exportState = {
         ...state,
         brief: eventBriefWithCoverage(candidateBriefFor(state), validation, acceptedValidation),
         receipts: state.receipts.map(publicReceipt),
       };
-      const plan: any = materializeSpatialPlan(state.plan, state.proposal?.changes ?? [], { projectLocks: state.projectLocks, allowLockConflicts: true });
-      const jsonPayload: any = `${JSON.stringify({ ...inspection(state), validation, ledger: state.ledger, commandReceipts: state.receipts.map(publicReceipt), historyReplay: replay }, null, 2)}\n`;
-      return createPlanExport(format, { state: exportState, plan, validation, replay, exportedAt: now(), jsonPayload, textPayload: formatExport(state) });
+      const plan = materializeSpatialPlan(state.plan, state.proposal?.changes ?? [], {
+        projectLocks: state.projectLocks,
+        allowLockConflicts: true,
+      });
+      const jsonPayload = `${JSON.stringify({ ...inspection(state), validation, ledger: state.ledger, commandReceipts: state.receipts.map(publicReceipt), historyReplay: replay }, null, 2)}\n`;
+      return createPlanExport(format, {
+        state: exportState,
+        plan,
+        validation,
+        replay,
+        exportedAt: now(),
+        jsonPayload,
+        textPayload: formatExport(state),
+      });
     }
 
     if (command.type === "restore_snapshot") {
-      const snapshot: any = restoreSnapshot(command.snapshot);
-      if (!snapshot?.plan?.id || !snapshot?.plan?.version || !snapshot?.proposal?.id || !Array.isArray(snapshot?.ledger)) {
+      if (!isPlannerSnapshot(command.snapshot))
+        throw venueError("SNAPSHOT_INVALID", { reason: "snapshot-shape-invalid", requiredProjectSchemaVersion: 10 });
+      const snapshot = restoreSnapshot(command.snapshot);
+      if (
+        !snapshot?.plan?.id ||
+        !snapshot?.plan?.version ||
+        !snapshot?.proposal?.id ||
+        !Array.isArray(snapshot?.ledger)
+      ) {
         throw venueError("SNAPSHOT_INVALID");
       }
       undoStack = [];
@@ -502,68 +1256,181 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
     }
 
     if (command.type === "add_comment") {
-      const comment: any = createComment(state, command, now());
-      publish({ ...state, comments: [...state.comments, comment], ledger: appendLedger(state, "comment.created", command.actor ?? "human", { commentId: comment.id, anchor: comment.anchor, authorId: comment.authorId, mentions: comment.mentions, decisionRelevant: comment.decisionRelevant }) });
+      const comment = createComment(
+        state,
+        {
+          actorId: command.actorId,
+          actor: command.actor,
+          anchor: command.anchor,
+          body: command.body,
+          mentions: command.mentions,
+          decisionRelevant: command.decisionRelevant,
+        },
+        now(),
+      );
+      publish({
+        ...state,
+        comments: [...state.comments, comment],
+        ledger: appendLedger(state, "comment.created", command.actor ?? "human", {
+          commentId: comment.id,
+          anchor: comment.anchor,
+          authorId: comment.authorId,
+          mentions: comment.mentions,
+          decisionRelevant: comment.decisionRelevant,
+        }),
+      });
       return { status: "open", commentId: comment.id, anchor: clone(comment.anchor) };
     }
 
     if (command.type === "edit_comment") {
-      const result: any = editComment(state.comments, command, now());
+      const result = editComment(
+        state.comments,
+        {
+          actorId: command.actorId,
+          actor: command.actor,
+          body: command.body,
+          mentions: command.mentions,
+          decisionRelevant: command.decisionRelevant,
+          commentId: command.commentId,
+        },
+        now(),
+      );
       if (!result.changed) return { status: "noop", commentId: result.comment.id };
-      publish({ ...state, comments: result.comments, ledger: appendLedger(state, "comment.edited", command.actor ?? "human", { commentId: result.comment.id, authorId: command.actorId, editNumber: result.comment.editHistory.length, mentions: result.comment.mentions, decisionRelevant: result.comment.decisionRelevant }) });
+      publish({
+        ...state,
+        comments: result.comments,
+        ledger: appendLedger(state, "comment.edited", command.actor ?? "human", {
+          commentId: result.comment.id,
+          authorId: command.actorId,
+          editNumber: result.comment.editHistory.length,
+          mentions: result.comment.mentions,
+          decisionRelevant: result.comment.decisionRelevant,
+        }),
+      });
       return { status: "edited", commentId: result.comment.id, editNumber: result.comment.editHistory.length };
     }
 
     if (command.type === "set_comment_status") {
-      const result: any = setCommentStatus(state.comments, command, now());
+      if (command.status !== "open" && command.status !== "resolved")
+        throw venueError("COMMENT_INVALID", { field: "status", status: command.status ?? null });
+      const result = setCommentStatus(
+        state.comments,
+        { actorId: command.actorId, actor: command.actor, commentId: command.commentId, status: command.status },
+        now(),
+      );
       if (!result.changed) return { status: "noop", commentId: result.comment.id };
-      publish({ ...state, comments: result.comments, ledger: appendLedger(state, command.status === "resolved" ? "comment.resolved" : "comment.reopened", command.actor ?? "human", { commentId: result.comment.id, authorId: command.actorId, status: command.status }) });
+      publish({
+        ...state,
+        comments: result.comments,
+        ledger: appendLedger(
+          state,
+          command.status === "resolved" ? "comment.resolved" : "comment.reopened",
+          command.actor ?? "human",
+          { commentId: result.comment.id, authorId: command.actorId, status: command.status },
+        ),
+      });
       return { status: command.status, commentId: result.comment.id };
     }
 
     if (command.type === "preview_revision") {
-      const proposal: any = {
+      const proposal = {
         ...state.proposal,
         id: `proposal-${state.plan.version.replace(".", "")}-${String.fromCharCode(96 + state.proposal.revision + 1)}`,
         revision: state.proposal.revision + 1,
         baseVersion: state.plan.version,
         status: "review",
-        goal: command.goal,
+        goal: command.goal ?? state.proposal.goal,
         validation: null,
         waivers: [],
       };
       assertNoLockConflicts(state.plan, proposal.changes, state.projectLocks);
-      const next: any = {
+      const next = {
         ...syncActiveBranch(state, proposal),
-        ledger: appendLedger(state, "proposal.previewed", command.actor ?? "agent", { proposalId: proposal.id, branchId: state.activeBranchId, baseVersion: proposal.baseVersion, goal: proposal.goal, changeIds: proposal.changes.map((change: any) => change.id) }),
+        ledger: appendLedger(state, "proposal.previewed", command.actor ?? "agent", {
+          proposalId: proposal.id,
+          branchId: state.activeBranchId,
+          baseVersion: proposal.baseVersion,
+          goal: proposal.goal,
+          changeIds: proposal.changes.map((change) => change.id),
+        }),
       };
       publish(next);
-      return { proposalId: proposal.id, baseVersion: proposal.baseVersion, revision: proposal.revision, changedItems: proposal.changes.length, requiresHumanApproval: true };
+      return {
+        proposalId: proposal.id,
+        baseVersion: proposal.baseVersion,
+        revision: proposal.revision,
+        changedItems: proposal.changes.length,
+        requiresHumanApproval: true,
+      };
     }
 
     if (command.type === "preview_template_update") {
-      const proposal: any = createRoomTemplateUpdateProposal(state.plan, { templateId: command.templateId, toVersion: command.toVersion, actor: command.actor ?? "agent" });
+      const proposal = createRoomTemplateUpdateProposal(state.plan, {
+        templateId: command.templateId,
+        toVersion: command.toVersion,
+        actor: command.actor ?? "agent",
+      });
+      const templateUpdate = proposal.templateUpdate;
+      if (!templateUpdate) throw venueError("COMMAND_INVALID", { field: "templateUpdate" });
       assertNoLockConflicts(state.plan, proposal.changes, state.projectLocks);
-      const branchNumber: any = state.branches.length + 1;
-      const branch: any = { id: `branch-template-${branchNumber}`, name: `Room ${command.toVersion}`, notes: "", strategy: "template-update", proposal: clone(proposal), revisions: [], archived: false, decisionStatus: null, createdAt: now(), createdBy: command.actor ?? "agent" };
+      const branchNumber = state.branches.length + 1;
+      const branch = {
+        id: `branch-template-${branchNumber}`,
+        name: `Room ${command.toVersion}`,
+        notes: "",
+        strategy: "template-update",
+        proposal: clone(proposal),
+        revisions: [],
+        archived: false,
+        decisionStatus: null,
+        createdAt: now(),
+        createdBy: command.actor ?? "agent",
+      };
       publish({
         ...state,
         proposal,
         activeBranchId: branch.id,
         branches: [...state.branches, branch],
-        ledger: appendLedger(state, "template.update_previewed", command.actor ?? "agent", { proposalId: proposal.id, branchId: branch.id, templateId: command.templateId, fromVersion: proposal.templateUpdate.fromVersion, toVersion: command.toVersion, changeIds: proposal.changes.map((change: any) => change.id), skipped: proposal.templateUpdate.skipped }),
+        ledger: appendLedger(state, "template.update_previewed", command.actor ?? "agent", {
+          proposalId: proposal.id,
+          branchId: branch.id,
+          templateId: command.templateId,
+          fromVersion: templateUpdate.fromVersion,
+          toVersion: command.toVersion,
+          changeIds: proposal.changes.map((change) => change.id),
+          skipped: templateUpdate.skipped,
+        }),
       });
-      return { proposalId: proposal.id, branchId: branch.id, baseVersion: proposal.baseVersion, templateId: command.templateId, fromVersion: proposal.templateUpdate.fromVersion, toVersion: command.toVersion, changedItems: proposal.changes.length, preservedOverrides: clone(proposal.templateUpdate.preservedOverrides), requiresHumanApproval: true };
+      return {
+        proposalId: proposal.id,
+        branchId: branch.id,
+        baseVersion: proposal.baseVersion,
+        templateId: command.templateId,
+        fromVersion: templateUpdate.fromVersion,
+        toVersion: command.toVersion,
+        changedItems: proposal.changes.length,
+        preservedOverrides: clone(templateUpdate.preservedOverrides),
+        requiresHumanApproval: true,
+      };
     }
 
     if (command.type === "apply_edit") {
-      const existingChanges: any = state.proposal.status === "review" && state.proposal.baseVersion === state.plan.version ? state.proposal.changes : [];
-      const editingPlan: any = materializeSpatialPlan(state.plan, existingChanges, { projectLocks: state.projectLocks, allowLockConflicts: true });
-      const editingChange: any = buildEditingChange(editingPlan, command.edit);
-      const changes: any = [...existingChanges, { ...editingChange, number: existingChanges.length + 1 }];
+      if (!isEditingCommand(command.edit)) throw venueError("COMMAND_INVALID", { field: "edit.operation" });
+      const existingChanges =
+        state.proposal.status === "review" && state.proposal.baseVersion === state.plan.version
+          ? state.proposal.changes
+          : [];
+      const editingPlan = materializeSpatialPlan(state.plan, existingChanges, {
+        projectLocks: state.projectLocks,
+        allowLockConflicts: true,
+      });
+      const editingChange = buildEditingChange(editingPlan, command.edit);
+      const changes = [...existingChanges, { ...editingChange, number: existingChanges.length + 1 }];
+      const lastChange = changes.at(-1);
+      if (!lastChange) throw venueError("COMMAND_INVALID", { field: "edit" });
       assertNoLockConflicts(state.plan, changes, state.projectLocks);
       materializeSpatialPlan(state.plan, changes, { projectLocks: state.projectLocks });
-      const proposal: any = {
+      const proposal = {
         ...state.proposal,
         id: `proposal-${state.plan.version.replace(".", "")}-edit-${state.proposal.revision + 1}`,
         revision: state.proposal.revision + 1,
@@ -576,27 +1443,62 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
       };
       publish({
         ...syncActiveBranch(state, proposal),
-        editHistory: { undo: [...state.editHistory.undo, { change: clone(changes.at(-1)), proposalId: proposal.id }], redo: [] },
-        ledger: appendLedger(state, "editor.change_applied", command.actor ?? "human", { proposalId: proposal.id, changeId: changes.at(-1).id, operation: command.edit.operation, objectIds: changes.at(-1).targetObjectIds }),
+        editHistory: {
+          undo: [...state.editHistory.undo, { change: clone(lastChange), proposalId: proposal.id }],
+          redo: [],
+        },
+        ledger: appendLedger(state, "editor.change_applied", command.actor ?? "human", {
+          proposalId: proposal.id,
+          changeId: lastChange.id,
+          operation: command.edit.operation,
+          objectIds: lastChange.targetObjectIds,
+        }),
       });
-      return { status: "review", proposalId: proposal.id, changeId: changes.at(-1).id, operation: command.edit.operation, changedItems: changes.length, requiresHumanApproval: true };
+      return {
+        status: "review",
+        proposalId: proposal.id,
+        changeId: lastChange.id,
+        operation: command.edit.operation,
+        changedItems: changes.length,
+        requiresHumanApproval: true,
+      };
     }
 
     if (command.type === "update_event_brief") {
-      const brief: any = normalizeEventBrief({ ...command.brief, ...(state.brief.planningEffectBindings !== undefined ? { planningEffectBindings: state.brief.planningEffectBindings } : {}) }, state.brief);
-      const proposal: any = { ...state.proposal, validation: null, waivers: [] };
+      const normalizedInput = normalizeEventBrief(command.brief, state.brief);
+      const brief = normalizeEventBrief(
+        {
+          ...normalizedInput,
+          ...(state.brief.planningEffectBindings !== undefined
+            ? { planningEffectBindings: state.brief.planningEffectBindings }
+            : {}),
+        },
+        state.brief,
+      );
+      const proposal = { ...state.proposal, validation: null, waivers: [] };
       publish({
         ...syncActiveBranch(state, proposal),
         brief,
-        ledger: appendLedger(state, "brief.updated", command.actor ?? "human", { briefId: brief.id, attendeeTarget: brief.attendeeTarget, requirementIds: brief.requirements.map((requirement: any) => requirement.id), acceptedBrief: clone(brief), briefFingerprint: fingerprintEventBrief(brief) }),
+        ledger: appendLedger(state, "brief.updated", command.actor ?? "human", {
+          briefId: brief.id,
+          attendeeTarget: brief.attendeeTarget,
+          requirementIds: brief.requirements.map((requirement) => requirement.id),
+          acceptedBrief: clone(brief),
+          briefFingerprint: fingerprintEventBrief(brief),
+        }),
       });
-      return { status: "updated", briefId: brief.id, attendeeTarget: brief.attendeeTarget, requirements: brief.requirements.length };
+      return {
+        status: "updated",
+        briefId: brief.id,
+        attendeeTarget: brief.attendeeTarget,
+        requirements: brief.requirements.length,
+      };
     }
 
     if (command.type === "request_adjustment") {
-      const instruction: any = command.instruction?.trim();
-      if (!instruction) throw venueError("ADJUSTMENT_REQUIRED");
-      const proposal: any = {
+      const instruction = command.instruction?.trim();
+      if (!instruction || instruction.length > 2_000) throw venueError("ADJUSTMENT_REQUIRED");
+      const proposal = {
         ...state.proposal,
         id: `proposal-${state.plan.version.replace(".", "")}-${String.fromCharCode(96 + state.proposal.revision + 1)}`,
         revision: state.proposal.revision + 1,
@@ -608,43 +1510,58 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
       };
       publish({
         ...syncActiveBranch(state, proposal),
-        ledger: appendLedger(state, "proposal.adjustment_requested", command.actor ?? "human", { proposalId: proposal.id, instruction }),
+        ledger: appendLedger(state, "proposal.adjustment_requested", command.actor ?? "human", {
+          proposalId: proposal.id,
+          instruction,
+        }),
       });
       return { proposalId: proposal.id, revision: proposal.revision, status: proposal.status };
     }
 
     if (command.type === "revert_change") {
-      if (state.proposal.status !== "review") throw venueError("PROPOSAL_NOT_REVIEWABLE", { proposalId: state.proposal.id, status: state.proposal.status });
-      const change: any = state.proposal.changes.find((item: any) => item.id === command.changeId);
+      if (state.proposal.status !== "review")
+        throw venueError("PROPOSAL_NOT_REVIEWABLE", { proposalId: state.proposal.id, status: state.proposal.status });
+      const change = state.proposal.changes.find((item) => item.id === command.changeId);
       if (!change) return { status: "noop", proposalId: state.proposal.id };
-      const proposal: any = {
+      const proposal = {
         ...state.proposal,
         id: `proposal-${state.plan.version.replace(".", "")}-${String.fromCharCode(96 + state.proposal.revision + 1)}`,
         revision: state.proposal.revision + 1,
-        changes: state.proposal.changes.filter((item: any) => item.id !== command.changeId),
+        changes: state.proposal.changes.filter((item) => item.id !== command.changeId),
         validation: null,
         waivers: [],
       };
       publish({
         ...syncActiveBranch(state, proposal),
-        editHistory: { undo: state.editHistory.undo.filter((item: any) => item.change.id !== change.id), redo: state.editHistory.redo },
-        ledger: appendLedger(state, "proposal.change_reverted", command.actor ?? "human", { proposalId: proposal.id, changeId: change.id }),
+        editHistory: {
+          undo: state.editHistory.undo.filter((item) => item.change.id !== change.id),
+          redo: state.editHistory.redo,
+        },
+        ledger: appendLedger(state, "proposal.change_reverted", command.actor ?? "human", {
+          proposalId: proposal.id,
+          changeId: change.id,
+        }),
       });
-      return { status: "reverted", proposalId: proposal.id, changeId: change.id, changedItems: proposal.changes.length };
+      return {
+        status: "reverted",
+        proposalId: proposal.id,
+        changeId: change.id,
+        changedItems: proposal.changes.length,
+      };
     }
 
     if (command.type === "create_branch") {
-      const name: any = command.name?.trim();
+      const name = command.name?.trim();
       if (!name) throw venueError("BRANCH_NAME_REQUIRED");
-      const strategy: any = command.strategy ?? "balanced";
-      const number: any = state.branches.length + 1;
-      const filteredChanges: any = state.proposal.changes.filter((change: any) => {
+      const strategy = command.strategy ?? "balanced";
+      const number = state.branches.length + 1;
+      const filteredChanges = state.proposal.changes.filter((change) => {
         if (strategy === "access-first") return change.number !== 3;
         if (strategy === "sightlines-first") return change.number !== 2;
-        if (strategy === "circulation-first") return [2, 4].includes(change.number);
+        if (strategy === "circulation-first") return change.number === 2 || change.number === 4;
         return true;
       });
-      const proposal: any = {
+      const proposal = {
         ...clone(state.proposal),
         id: `proposal-${state.plan.version.replace(".", "")}-branch-${number}`,
         revision: 1,
@@ -656,31 +1573,51 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
         waivers: [],
       };
       assertNoLockConflicts(state.plan, proposal.changes, state.projectLocks);
-      const branch: any = { id: `branch-${number}`, name, notes: "", strategy, proposal, revisions: [], archived: false, decisionStatus: null, createdAt: now(), createdBy: command.actor ?? "human" };
+      const branch = {
+        id: `branch-${number}`,
+        name,
+        notes: "",
+        strategy,
+        proposal,
+        revisions: [],
+        archived: false,
+        decisionStatus: null,
+        createdAt: now(),
+        createdBy: command.actor ?? "human",
+      };
       publish({
         ...state,
         proposal,
         activeBranchId: branch.id,
         branches: [...state.branches, branch],
-        ledger: appendLedger(state, "proposal.branch_created", command.actor ?? "human", { branchId: branch.id, proposalId: proposal.id, strategy }),
+        ledger: appendLedger(state, "proposal.branch_created", command.actor ?? "human", {
+          branchId: branch.id,
+          proposalId: proposal.id,
+          strategy,
+        }),
       });
       return { branchId: branch.id, proposalId: proposal.id, strategy, changedItems: proposal.changes.length };
     }
 
     if (command.type === "recover_unsynchronized_branch") {
       if (command.actor !== "human") throw venueError("CONFLICT_HUMAN_REQUIRED", { commandType: command.type });
-      const sourceProposal: any = command.proposal;
-      if (!sourceProposal?.id || !sourceProposal.baseVersion || !Array.isArray(sourceProposal.changes)) throw venueError("COMMAND_INVALID", { field: "proposal" }, "Recovery requires a complete Proposal");
-      const number: any = state.branches.length + 1;
-      const proposal: any = {
+      const sourceProposal = command.proposal;
+      if (!sourceProposal?.id || !sourceProposal.baseVersion || !Array.isArray(sourceProposal.changes))
+        throw venueError("COMMAND_INVALID", { field: "proposal" }, "Recovery requires a complete Proposal");
+      const number = state.branches.length + 1;
+      const proposal = {
         ...clone(sourceProposal),
         id: `proposal-${state.plan.version.replace(".", "")}-recovery-${number}`,
         status: "review",
         validation: null,
         waivers: [],
-        recovery: { sourceProposalId: sourceProposal.id, sourceRecordRevision: command.sourceRevision ?? null, recoveredAt: now() },
+        recovery: {
+          sourceProposalId: sourceProposal.id,
+          sourceRecordRevision: command.sourceRevision ?? null,
+          recoveredAt: now(),
+        },
       };
-      const branch: any = {
+      const branch = {
         id: `branch-recovery-${number}`,
         name: command.name?.trim() || `RECOVERY R${command.sourceRevision ?? "LOCAL"}`,
         notes: "",
@@ -696,85 +1633,204 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
       publish({
         ...state,
         branches: [...state.branches, branch],
-        ledger: appendLedger(state, "proposal.branch_recovered", "human", { branchId: branch.id, proposalId: proposal.id, sourceProposalId: sourceProposal.id, sourceRecordRevision: command.sourceRevision ?? null, remoteRecordRevision: command.remoteRevision ?? null }),
+        ledger: appendLedger(state, "proposal.branch_recovered", "human", {
+          branchId: branch.id,
+          proposalId: proposal.id,
+          sourceProposalId: sourceProposal.id,
+          sourceRecordRevision: command.sourceRevision ?? null,
+          remoteRecordRevision: command.remoteRevision ?? null,
+        }),
       });
-      return { status: "recovered", branchId: branch.id, proposalId: proposal.id, stale: proposal.baseVersion !== state.plan.version, changedItems: proposal.changes.length };
+      return {
+        status: "recovered",
+        branchId: branch.id,
+        proposalId: proposal.id,
+        stale: proposal.baseVersion !== state.plan.version,
+        changedItems: proposal.changes.length,
+      };
     }
 
     if (command.type === "record_share_link_created") {
-      if (command.actor !== "human" || !command.shareLinkId || !["read-only", "reviewer"].includes(command.scope) || (command.scope === "reviewer" && !command.proposalId)) throw venueError("COMMAND_INVALID", { commandType: command.type });
-      publish({ ...state, ledger: appendLedger(state, "share_link.created", "human", { shareLinkId: command.shareLinkId, scope: command.scope, proposalId: command.proposalId ?? null, expiresAt: command.expiresAt }) });
-      return { status: "created", shareLinkId: command.shareLinkId, scope: command.scope, proposalId: command.proposalId ?? null };
+      if (
+        command.actor !== "human" ||
+        !command.shareLinkId ||
+        (command.scope !== "read-only" && command.scope !== "reviewer") ||
+        (command.scope === "reviewer" && !command.proposalId)
+      )
+        throw venueError("COMMAND_INVALID", { commandType: command.type });
+      publish({
+        ...state,
+        ledger: appendLedger(state, "share_link.created", "human", {
+          shareLinkId: command.shareLinkId,
+          scope: command.scope,
+          proposalId: command.proposalId ?? null,
+          expiresAt: command.expiresAt,
+        }),
+      });
+      return {
+        status: "created",
+        shareLinkId: command.shareLinkId,
+        scope: command.scope,
+        proposalId: command.proposalId ?? null,
+      };
     }
 
     if (command.type === "record_share_link_revoked") {
-      if (command.actor !== "human" || !command.shareLinkId) throw venueError("COMMAND_INVALID", { commandType: command.type });
-      publish({ ...state, ledger: appendLedger(state, "share_link.revoked", "human", { shareLinkId: command.shareLinkId, reasonCode: command.reasonCode ?? "operator-revoked" }) });
+      if (command.actor !== "human" || !command.shareLinkId)
+        throw venueError("COMMAND_INVALID", { commandType: command.type });
+      publish({
+        ...state,
+        ledger: appendLedger(state, "share_link.revoked", "human", {
+          shareLinkId: command.shareLinkId,
+          reasonCode: command.reasonCode ?? "operator-revoked",
+        }),
+      });
       return { status: "revoked", shareLinkId: command.shareLinkId };
     }
 
     if (command.type === "update_branch_metadata") {
-      const branch: any = state.branches.find((item: any) => item.id === command.branchId);
+      const branch = state.branches.find((item) => item.id === command.branchId);
       if (!branch) throw venueError("BRANCH_NOT_FOUND", { branchId: command.branchId });
-      const name: any = command.name === undefined ? branch.name : command.name.trim();
-      const notes: any = command.notes === undefined ? (branch.notes ?? "") : command.notes.trim();
+      const name = command.name === undefined ? branch.name : command.name.trim();
+      const notes = command.notes === undefined ? (branch.notes ?? "") : command.notes.trim();
       if (!name) throw venueError("BRANCH_NAME_REQUIRED");
-      const branches: any = state.branches.map((item: any) => item.id === branch.id ? { ...item, name, notes } : item);
-      publish({ ...state, branches, ledger: appendLedger(state, "proposal.branch_metadata_updated", command.actor ?? "human", { branchId: branch.id, name, notes }) });
+      const branches = state.branches.map((item) => (item.id === branch.id ? { ...item, name, notes } : item));
+      publish({
+        ...state,
+        branches,
+        ledger: appendLedger(state, "proposal.branch_metadata_updated", command.actor ?? "human", {
+          branchId: branch.id,
+          name,
+          notes,
+        }),
+      });
       return { status: "updated", branchId: branch.id, name, notes };
     }
 
     if (command.type === "duplicate_branch") {
-      const source: any = state.branches.find((item: any) => item.id === command.branchId);
+      const source = state.branches.find((item) => item.id === command.branchId);
       if (!source) throw venueError("BRANCH_NOT_FOUND", { branchId: command.branchId });
-      const sourceProposal: any = command.proposalId
-        ? [source.proposal, ...(source.revisions ?? [])].find((proposal: any) => proposal.id === command.proposalId)
+      const sourceProposal = command.proposalId
+        ? [source.proposal, ...(source.revisions ?? [])].find((proposal) => proposal.id === command.proposalId)
         : source.proposal;
-      if (!sourceProposal) throw venueError("PROPOSAL_MISMATCH", { branchId: source.id, receivedProposalId: command.proposalId });
-      const number: any = state.branches.length + 1;
-      const name: any = command.name?.trim() || `${source.name} copy`;
-      const proposal: any = { ...clone(sourceProposal), id: `proposal-${state.plan.version.replace(".", "")}-copy-${number}`, revision: 1, baseVersion: sourceProposal.baseVersion, status: "review", validation: null, waivers: [] };
+      if (!sourceProposal)
+        throw venueError("PROPOSAL_MISMATCH", { branchId: source.id, receivedProposalId: command.proposalId });
+      const number = state.branches.length + 1;
+      const name = command.name?.trim() || `${source.name} copy`;
+      const proposal = {
+        ...clone(sourceProposal),
+        id: `proposal-${state.plan.version.replace(".", "")}-copy-${number}`,
+        revision: 1,
+        baseVersion: sourceProposal.baseVersion,
+        status: "review",
+        validation: null,
+        waivers: [],
+      };
       assertNoLockConflicts(state.plan, proposal.changes, state.projectLocks);
-      const branch: any = { id: `branch-${number}`, name, notes: source.notes ?? "", strategy: source.strategy, proposal, revisions: [], archived: false, decisionStatus: null, source: { branchId: source.id, proposalId: sourceProposal.id }, createdAt: now(), createdBy: command.actor ?? "human" };
-      publish({ ...state, proposal, activeBranchId: branch.id, branches: [...state.branches, branch], ledger: appendLedger(state, "proposal.branch_duplicated", command.actor ?? "human", { branchId: branch.id, sourceBranchId: source.id, sourceProposalId: sourceProposal.id, proposalId: proposal.id }) });
-      return { status: "duplicated", branchId: branch.id, proposalId: proposal.id, sourceBranchId: source.id, sourceProposalId: sourceProposal.id };
+      const branch = {
+        id: `branch-${number}`,
+        name,
+        notes: source.notes ?? "",
+        strategy: source.strategy,
+        proposal,
+        revisions: [],
+        archived: false,
+        decisionStatus: null,
+        source: { branchId: source.id, proposalId: sourceProposal.id },
+        createdAt: now(),
+        createdBy: command.actor ?? "human",
+      };
+      publish({
+        ...state,
+        proposal,
+        activeBranchId: branch.id,
+        branches: [...state.branches, branch],
+        ledger: appendLedger(state, "proposal.branch_duplicated", command.actor ?? "human", {
+          branchId: branch.id,
+          sourceBranchId: source.id,
+          sourceProposalId: sourceProposal.id,
+          proposalId: proposal.id,
+        }),
+      });
+      return {
+        status: "duplicated",
+        branchId: branch.id,
+        proposalId: proposal.id,
+        sourceBranchId: source.id,
+        sourceProposalId: sourceProposal.id,
+      };
     }
 
     if (command.type === "archive_branch") {
-      const branch: any = state.branches.find((item: any) => item.id === command.branchId);
+      const branch = state.branches.find((item) => item.id === command.branchId);
       if (!branch) throw venueError("BRANCH_NOT_FOUND", { branchId: command.branchId });
       if (branch.archived) return { status: "archived", branchId: branch.id };
-      const fallback: any = state.branches.find((item: any) => item.id !== branch.id && !item.archived);
-      if (branch.id === state.activeBranchId && !fallback) throw venueError("COMMAND_INVALID", { branchId: branch.id, reason: "last-active-branch" });
-      const branches: any = state.branches.map((item: any) => item.id === branch.id ? { ...item, archived: true } : item);
-      publish({ ...state, branches, ...(branch.id === state.activeBranchId ? { activeBranchId: fallback.id, proposal: clone(fallback.proposal) } : {}), ledger: appendLedger(state, "proposal.branch_archived", command.actor ?? "human", { branchId: branch.id }) });
-      return { status: "archived", branchId: branch.id, activeBranchId: branch.id === state.activeBranchId ? fallback.id : state.activeBranchId };
+      const fallback = state.branches.find((item) => item.id !== branch.id && !item.archived);
+      if (branch.id === state.activeBranchId && !fallback)
+        throw venueError("COMMAND_INVALID", { branchId: branch.id, reason: "last-active-branch" });
+      const branches = state.branches.map((item) => (item.id === branch.id ? { ...item, archived: true } : item));
+      const fallbackBranch = branch.id === state.activeBranchId ? fallback : undefined;
+      publish({
+        ...state,
+        branches,
+        ...(fallbackBranch ? { activeBranchId: fallbackBranch.id, proposal: clone(fallbackBranch.proposal) } : {}),
+        ledger: appendLedger(state, "proposal.branch_archived", command.actor ?? "human", { branchId: branch.id }),
+      });
+      return { status: "archived", branchId: branch.id, activeBranchId: fallbackBranch?.id ?? state.activeBranchId };
     }
 
     if (command.type === "restore_branch") {
-      const branch: any = state.branches.find((item: any) => item.id === command.branchId);
+      const branch = state.branches.find((item) => item.id === command.branchId);
       if (!branch) throw venueError("BRANCH_NOT_FOUND", { branchId: command.branchId });
-      const branches: any = state.branches.map((item: any) => item.id === branch.id ? { ...item, archived: false } : item);
-      publish({ ...state, branches, ledger: appendLedger(state, "proposal.branch_restored", command.actor ?? "human", { branchId: branch.id }) });
+      const branches = state.branches.map((item) => (item.id === branch.id ? { ...item, archived: false } : item));
+      publish({
+        ...state,
+        branches,
+        ledger: appendLedger(state, "proposal.branch_restored", command.actor ?? "human", { branchId: branch.id }),
+      });
       return { status: "restored", branchId: branch.id };
     }
 
     if (command.type === "record_branch_decision") {
-      if (command.actor !== "human" || !command.actorId?.trim()) throw venueError("COMMAND_INVALID", { field: "actorId", reason: "human-decision-required" });
-      const chosen: any = state.branches.find((item: any) => item.id === command.chosenBranchId);
+      if (command.actor !== "human" || !command.actorId?.trim())
+        throw venueError("COMMAND_INVALID", { field: "actorId", reason: "human-decision-required" });
+      const chosen = state.branches.find((item) => item.id === command.chosenBranchId);
       if (!chosen) throw venueError("BRANCH_NOT_FOUND", { branchId: command.chosenBranchId });
-      const rejectedIds: any = [...new Set(command.rejectedBranchIds ?? [])].filter((id: any) => id !== chosen.id);
+      const rejectedIds = [...new Set(command.rejectedBranchIds ?? [])].filter((id) => id !== chosen.id);
       if (!rejectedIds.length) throw venueError("COMMAND_INVALID", { field: "rejectedBranchIds" });
-      for (const branchId of rejectedIds) if (!state.branches.some((item: any) => item.id === branchId)) throw venueError("BRANCH_NOT_FOUND", { branchId });
-      const note: any = command.note?.trim() ?? "";
-      const decisionId: any = stableFingerprint("decision", { planVersion: state.plan.version, chosenBranchId: chosen.id, rejectedBranchIds: rejectedIds.slice().sort(), note });
-      const branches: any = state.branches.map((item: any) => ({ ...item, decisionStatus: item.id === chosen.id ? "chosen" : rejectedIds.includes(item.id) ? "rejected" : item.decisionStatus ?? null }));
-      publish({ ...state, branches, activeBranchId: chosen.id, proposal: clone(chosen.proposal), ledger: appendLedger(state, "proposal.branch_decision_recorded", "human", { decisionId, chosenBranchId: chosen.id, rejectedBranchIds: rejectedIds, note, comparisonId: command.comparisonId ?? null, actorId: command.actorId.trim() }) });
+      for (const branchId of rejectedIds)
+        if (!state.branches.some((item) => item.id === branchId)) throw venueError("BRANCH_NOT_FOUND", { branchId });
+      const note = command.note?.trim() ?? "";
+      const decisionId = stableFingerprint("decision", {
+        planVersion: state.plan.version,
+        chosenBranchId: chosen.id,
+        rejectedBranchIds: rejectedIds.slice().sort(),
+        note,
+      });
+      const branches = state.branches.map((item) => ({
+        ...item,
+        decisionStatus:
+          item.id === chosen.id ? "chosen" : rejectedIds.includes(item.id) ? "rejected" : (item.decisionStatus ?? null),
+      }));
+      publish({
+        ...state,
+        branches,
+        activeBranchId: chosen.id,
+        proposal: clone(chosen.proposal),
+        ledger: appendLedger(state, "proposal.branch_decision_recorded", "human", {
+          decisionId,
+          chosenBranchId: chosen.id,
+          rejectedBranchIds: rejectedIds,
+          note,
+          comparisonId: command.comparisonId ?? null,
+          actorId: command.actorId.trim(),
+        }),
+      });
       return { status: "recorded", decisionId, chosenBranchId: chosen.id, rejectedBranchIds: rejectedIds };
     }
 
     if (command.type === "switch_branch") {
-      const branch: any = state.branches.find((item: any) => item.id === command.branchId);
+      const branch = state.branches.find((item) => item.id === command.branchId);
       if (!branch) throw venueError("BRANCH_NOT_FOUND", { branchId: command.branchId });
       if (branch.archived) throw venueError("COMMAND_INVALID", { branchId: branch.id, reason: "branch-archived" });
       assertNoLockConflicts(state.plan, branch.proposal.changes, state.projectLocks);
@@ -782,18 +1838,31 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
         ...state,
         activeBranchId: branch.id,
         proposal: clone(branch.proposal),
-        ledger: appendLedger(state, "proposal.branch_selected", command.actor ?? "human", { branchId: branch.id, proposalId: branch.proposal.id }),
+        ledger: appendLedger(state, "proposal.branch_selected", command.actor ?? "human", {
+          branchId: branch.id,
+          proposalId: branch.proposal.id,
+        }),
       });
       return { branchId: branch.id, proposalId: branch.proposal.id, status: branch.proposal.status };
     }
 
     if (command.type === "rebase_proposal") {
-      const branch: any = state.branches.find((item: any) => item.id === (command.branchId ?? state.activeBranchId));
+      const branch = state.branches.find((item) => item.id === (command.branchId ?? state.activeBranchId));
       if (!branch) throw venueError("BRANCH_NOT_FOUND", { branchId: command.branchId ?? state.activeBranchId });
-      const detected: any = detectProposalConflicts(state, branch.id);
-      if (detected.blockingConflicts > 0) throw venueError("REBASE_CONFLICT", { branchId: branch.id, conflictIds: detected.conflicts.filter((conflict: any) => conflict.blocking).map((conflict: any) => conflict.id) });
-      if (!detected.stale) return { status: "current", branchId: branch.id, proposalId: branch.proposal.id, baseVersion: branch.proposal.baseVersion };
-      const rebasedProposal: any = {
+      const detected = detectProposalConflicts(state, branch.id);
+      if (detected.blockingConflicts > 0)
+        throw venueError("REBASE_CONFLICT", {
+          branchId: branch.id,
+          conflictIds: detected.conflicts.filter((conflict) => conflict.blocking).map((conflict) => conflict.id),
+        });
+      if (!detected.stale)
+        return {
+          status: "current",
+          branchId: branch.id,
+          proposalId: branch.proposal.id,
+          baseVersion: branch.proposal.baseVersion,
+        };
+      const rebasedProposal = {
         ...clone(branch.proposal),
         id: `proposal-${state.plan.version.replace(".", "")}-rebase-${branch.proposal.revision + 1}`,
         revision: branch.proposal.revision + 1,
@@ -804,9 +1873,9 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
         waivers: [],
       };
       assertNoLockConflicts(state.plan, rebasedProposal.changes, state.projectLocks);
-      const validation: any = validateVenueState({ ...state, proposal: rebasedProposal });
-      const proposal: any = { ...rebasedProposal, validation };
-      const branches: any = state.branches.map((item: any) => item.id === branch.id ? { ...item, proposal } : item);
+      const validation = validateVenueState({ ...state, proposal: rebasedProposal });
+      const proposal = { ...rebasedProposal, validation };
+      const branches = state.branches.map((item) => (item.id === branch.id ? { ...item, proposal } : item));
       publish({
         ...state,
         branches,
@@ -817,38 +1886,66 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
           previousProposalId: branch.proposal.id,
           fromVersion: branch.proposal.baseVersion,
           toVersion: state.plan.version,
-          conflictIds: detected.conflicts.map((item: any) => item.id),
-          changeIds: proposal.changes.map((change: any) => change.id),
+          conflictIds: detected.conflicts.map((item) => item.id),
+          changeIds: proposal.changes.map((change) => change.id),
           validationId: validation.validationId,
         }),
       });
-      return { status: "rebased", branchId: branch.id, proposalId: proposal.id, fromVersion: branch.proposal.baseVersion, toVersion: proposal.baseVersion, changedItems: proposal.changes.length, validationStatus: validation.status, validationId: validation.validationId };
+      return {
+        status: "rebased",
+        branchId: branch.id,
+        proposalId: proposal.id,
+        fromVersion: branch.proposal.baseVersion,
+        toVersion: proposal.baseVersion,
+        changedItems: proposal.changes.length,
+        validationStatus: validation.status,
+        validationId: validation.validationId,
+      };
     }
 
     if (command.type === "resolve_conflict") {
       if (command.actor !== "human") throw venueError("CONFLICT_HUMAN_REQUIRED", { actor: command.actor ?? null });
-      const branch: any = state.branches.find((item: any) => item.id === (command.branchId ?? state.activeBranchId));
+      const branch = state.branches.find((item) => item.id === (command.branchId ?? state.activeBranchId));
       if (!branch) throw venueError("BRANCH_NOT_FOUND", { branchId: command.branchId ?? state.activeBranchId });
-      const detected: any = detectProposalConflicts(state, branch.id);
-      const currentConflict: any = detected.conflicts.find((item: any) => item.id === command.conflictId);
-      if (!currentConflict) throw venueError("CONFLICT_NOT_FOUND", { branchId: branch.id, conflictId: command.conflictId });
-      const outcome: any = command.outcome;
-      const outcomeAllowed: any = (outcome === "keep-plan" && currentConflict.resolutionOptions.some((option: any) => ["keep-plan", "drop-change"].includes(option)))
-        || (outcome === "keep-proposal" && currentConflict.resolutionOptions.includes("keep-proposal"))
-        || (outcome === "manual-resolution" && currentConflict.resolutionOptions.some((option: any) => ["manual-resolution", "revise-proposal"].includes(option)));
-      if (!outcomeAllowed) throw venueError("CONFLICT_RESOLUTION_INVALID", { conflictId: currentConflict.id, outcome, resolutionOptions: currentConflict.resolutionOptions });
+      const detected = detectProposalConflicts(state, branch.id);
+      const currentConflict = detected.conflicts.find((item) => item.id === command.conflictId);
+      if (!currentConflict)
+        throw venueError("CONFLICT_NOT_FOUND", { branchId: branch.id, conflictId: command.conflictId });
+      const outcome = command.outcome;
+      const outcomeAllowed =
+        (outcome === "keep-plan" &&
+          currentConflict.resolutionOptions.some((option) => ["keep-plan", "drop-change"].includes(option))) ||
+        (outcome === "keep-proposal" && currentConflict.resolutionOptions.includes("keep-proposal")) ||
+        (outcome === "manual-resolution" &&
+          currentConflict.resolutionOptions.some((option) =>
+            ["manual-resolution", "revise-proposal"].includes(option),
+          ));
+      if (!outcomeAllowed)
+        throw venueError("CONFLICT_RESOLUTION_INVALID", {
+          conflictId: currentConflict.id,
+          outcome,
+          resolutionOptions: currentConflict.resolutionOptions,
+        });
 
-      const affectedChangeIds: any = new Set(currentConflict.changeIds);
-      let changes: any = clone(branch.proposal.changes);
-      let transformedChangeId: any = null;
-      if (outcome === "keep-plan") changes = changes.filter((change: any) => !affectedChangeIds.has(change.id));
+      const affectedChangeIds = new Set(currentConflict.changeIds);
+      let changes = clone(branch.proposal.changes);
+      let transformedChangeId = null;
+      if (outcome === "keep-plan") changes = changes.filter((change) => !affectedChangeIds.has(change.id));
       if (outcome === "manual-resolution") {
-        if (!command.manualChange || !Array.isArray(command.manualChange.targetObjectIds) || !Array.isArray(command.manualChange.spatialEffects)) {
-          throw venueError("CONFLICT_RESOLUTION_INVALID", { conflictId: currentConflict.id, outcome, field: "manualChange" });
+        if (
+          !command.manualChange ||
+          !Array.isArray(command.manualChange.targetObjectIds) ||
+          !Array.isArray(command.manualChange.spatialEffects)
+        ) {
+          throw venueError("CONFLICT_RESOLUTION_INVALID", {
+            conflictId: currentConflict.id,
+            outcome,
+            field: "manualChange",
+          });
         }
-        const original: any = changes.find((change: any) => affectedChangeIds.has(change.id));
-        const semanticChange: any = {
-          number: original?.number ?? Math.max(0, ...changes.map((change: any) => change.number ?? 0)) + 1,
+        const original = changes.find((change) => affectedChangeIds.has(change.id));
+        const semanticChange = {
+          number: original?.number ?? Math.max(0, ...changes.map((change) => change.number ?? 0)) + 1,
           title: command.manualChange.title?.trim() || original?.title || "Manual resolution",
           shortTitle: command.manualChange.shortTitle?.trim() || original?.shortTitle || "Resolved",
           metrics: clone(command.manualChange.metrics ?? original?.metrics ?? []),
@@ -858,27 +1955,37 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
           lineage: { transformedFromChangeIds: [...affectedChangeIds].sort(), conflictId: currentConflict.id },
         };
         transformedChangeId = stableFingerprint("chg", semanticChange);
-        changes = [...changes.filter((change: any) => !affectedChangeIds.has(change.id)), { id: transformedChangeId, ...semanticChange }].sort((left: any, right: any) => left.number - right.number || left.id.localeCompare(right.id));
+        changes = [
+          ...changes.filter((change) => !affectedChangeIds.has(change.id)),
+          { id: transformedChangeId, ...semanticChange },
+        ].sort((left, right) => (left.number ?? 0) - (right.number ?? 0) || left.id.localeCompare(right.id));
       }
 
-      const rebased: any = branch.proposal.baseVersion !== state.plan.version;
-      const proposal: any = {
+      const rebased = branch.proposal.baseVersion !== state.plan.version;
+      const proposal: VenueProposal = {
         ...clone(branch.proposal),
         id: `proposal-${state.plan.version.replace(".", "")}-resolve-${branch.proposal.revision + 1}`,
         revision: branch.proposal.revision + 1,
-        previousBaseVersion: rebased ? branch.proposal.baseVersion : branch.proposal.previousBaseVersion,
+        ...(rebased
+          ? { previousBaseVersion: branch.proposal.baseVersion }
+          : branch.proposal.previousBaseVersion
+            ? { previousBaseVersion: branch.proposal.previousBaseVersion }
+            : {}),
         baseVersion: rebased ? state.plan.version : branch.proposal.baseVersion,
         status: "review",
         changes,
         validation: null,
         waivers: [],
-        lineage: [...(branch.proposal.lineage ?? []), { proposalId: branch.proposal.id, conflictId: currentConflict.id, outcome }],
+        lineage: [
+          ...(branch.proposal.lineage ?? []),
+          { proposalId: branch.proposal.id, conflictId: currentConflict.id, outcome },
+        ],
       };
       assertNoLockConflicts(state.plan, proposal.changes, state.projectLocks);
-      const validation: any = validateVenueState({ ...state, proposal });
+      const validation = validateVenueState({ ...state, proposal });
       proposal.validation = validation;
-      const branches: any = state.branches.map((item: any) => item.id === branch.id ? { ...item, proposal } : item);
-      const nextState: any = {
+      const branches = state.branches.map((item) => (item.id === branch.id ? { ...item, proposal } : item));
+      const nextState = {
         ...state,
         branches,
         proposal: state.activeBranchId === branch.id ? clone(proposal) : state.proposal,
@@ -890,7 +1997,10 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
           previousProposalId: branch.proposal.id,
           proposalId: proposal.id,
           droppedChangeIds: outcome === "keep-plan" ? [...affectedChangeIds].sort() : [],
-          preservedChangeIds: proposal.changes.filter((change: any) => !transformedChangeId || change.id !== transformedChangeId).map((change: any) => change.id).sort(),
+          preservedChangeIds: proposal.changes
+            .filter((change) => !transformedChangeId || change.id !== transformedChangeId)
+            .map((change) => change.id)
+            .sort(),
           transformedFromChangeIds: transformedChangeId ? [...affectedChangeIds].sort() : [],
           transformedChangeId,
           fromVersion: branch.proposal.baseVersion,
@@ -900,22 +2010,55 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
         }),
       };
       publish(nextState);
-      const remaining: any = detectProposalConflicts(nextState, branch.id);
-      return { status: "resolved", branchId: branch.id, proposalId: proposal.id, conflictId: currentConflict.id, outcome, transformedChangeId, validationId: validation.validationId, validationStatus: validation.status, remainingConflicts: remaining.conflicts.length };
+      const remaining = detectProposalConflicts(nextState, branch.id);
+      return {
+        status: "resolved",
+        branchId: branch.id,
+        proposalId: proposal.id,
+        conflictId: currentConflict.id,
+        outcome,
+        transformedChangeId,
+        validationId: validation.validationId,
+        validationStatus: validation.status,
+        remainingConflicts: remaining.conflicts.length,
+      };
     }
 
     if (command.type === "set_object_lock") {
       if (command.actor !== "human") throw venueError("LOCK_HUMAN_REQUIRED", { actor: command.actor ?? null });
-      const authorId: any = command.actorId?.trim();
+      const authorId = command.actorId?.trim();
       if (!authorId) throw venueError("LOCK_HUMAN_REQUIRED", { field: "actorId" });
-      if (!LOCK_TYPES.includes(command.lockType)) throw venueError("LOCK_TYPE_INVALID", { lockType: command.lockType ?? null });
-      if (!state.plan.objects.some((object: any) => object.id === command.objectId)) throw venueError("LOCK_OBJECT_NOT_FOUND", { objectId: command.objectId ?? null });
-      const active: any = state.projectLocks.find((lock: any) => lock.active && lock.objectId === command.objectId && lock.type === command.lockType);
-      if (active) throw venueError("LOCK_CONFLICT", { objectIds: [command.objectId], conflicts: [{ objectId: command.objectId, lockId: active.id, lockType: active.type, source: active.source }] }, `Active ${command.lockType} Lock already exists for ${command.objectId}`);
-      const reasonCode: any = command.reasonCode?.trim();
-      if (!reasonCode) throw venueError("LOCK_CONFLICT", { objectId: command.objectId, field: "reasonCode" }, "Project Lock requires a reason code");
-      if (command.expiresAt !== undefined && command.expiresAt !== null && Number.isNaN(Date.parse(command.expiresAt))) throw venueError("LOCK_CONFLICT", { objectId: command.objectId, field: "expiresAt" }, "Project Lock expiry must be an ISO timestamp");
-      const lock: any = {
+      if (!isLockType(command.lockType)) throw venueError("LOCK_TYPE_INVALID", { lockType: command.lockType ?? null });
+      if (!state.plan.objects.some((object) => object.id === command.objectId))
+        throw venueError("LOCK_OBJECT_NOT_FOUND", { objectId: command.objectId ?? null });
+      const active = state.projectLocks.find(
+        (lock) => lock.active && lock.objectId === command.objectId && lock.type === command.lockType,
+      );
+      if (active)
+        throw venueError(
+          "LOCK_CONFLICT",
+          {
+            objectIds: [command.objectId],
+            conflicts: [
+              { objectId: command.objectId, lockId: active.id, lockType: active.type, source: active.source },
+            ],
+          },
+          `Active ${command.lockType} Lock already exists for ${command.objectId}`,
+        );
+      const reasonCode = command.reasonCode?.trim();
+      if (!reasonCode)
+        throw venueError(
+          "LOCK_CONFLICT",
+          { objectId: command.objectId, field: "reasonCode" },
+          "Project Lock requires a reason code",
+        );
+      if (command.expiresAt !== undefined && command.expiresAt !== null && Number.isNaN(Date.parse(command.expiresAt)))
+        throw venueError(
+          "LOCK_CONFLICT",
+          { objectId: command.objectId, field: "expiresAt" },
+          "Project Lock expiry must be an ISO timestamp",
+        );
+      const lock = {
         id: `project-lock-${command.objectId}-${command.lockType}-${String(state.projectLocks.length + 1).padStart(3, "0")}`,
         objectId: command.objectId,
         type: command.lockType,
@@ -926,45 +2069,75 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
         expiresAt: command.expiresAt ?? null,
         active: true,
       };
-      const projectLocks: any = normalizeProjectLocks([...state.projectLocks, lock], state.plan);
+      const projectLocks = normalizeProjectLocks([...state.projectLocks, lock], state.plan);
       publish({
         ...state,
         projectLocks,
-        ledger: appendLedger(state, "object.lock_added", "human", { lockId: lock.id, objectId: lock.objectId, lockType: lock.type, source: lock.source, reasonCode: lock.reasonCode, authorId: lock.authorId, expiresAt: lock.expiresAt }),
+        ledger: appendLedger(state, "object.lock_added", "human", {
+          lockId: lock.id,
+          objectId: lock.objectId,
+          lockType: lock.type,
+          source: lock.source,
+          reasonCode: lock.reasonCode,
+          authorId: lock.authorId,
+          expiresAt: lock.expiresAt,
+        }),
       });
       return { status: "locked", lockId: lock.id, objectId: lock.objectId, lockType: lock.type, source: lock.source };
     }
 
     if (command.type === "release_object_lock") {
       if (command.actor !== "human") throw venueError("LOCK_HUMAN_REQUIRED", { actor: command.actor ?? null });
-      const authorId: any = command.actorId?.trim();
+      const authorId = command.actorId?.trim();
       if (!authorId) throw venueError("LOCK_HUMAN_REQUIRED", { field: "actorId" });
-      const existing: any = state.projectLocks.find((lock: any) => lock.id === command.lockId && lock.active);
+      const existing = state.projectLocks.find((lock) => lock.id === command.lockId && lock.active);
       if (!existing) throw venueError("LOCK_NOT_FOUND", { lockId: command.lockId ?? null });
-      const releasedAt: any = now();
-      const projectLocks: any = normalizeProjectLocks(state.projectLocks.map((lock: any) => lock.id === existing.id ? { ...lock, active: false, releasedAt, releasedBy: authorId } : lock), state.plan);
+      const releasedAt = now();
+      const projectLocks = normalizeProjectLocks(
+        state.projectLocks.map((lock) =>
+          lock.id === existing.id ? { ...lock, active: false, releasedAt, releasedBy: authorId } : lock,
+        ),
+        state.plan,
+      );
       publish({
         ...state,
         projectLocks,
-        ledger: appendLedger(state, "object.lock_released", "human", { lockId: existing.id, objectId: existing.objectId, lockType: existing.type, source: existing.source, authorId, releasedAt }),
+        ledger: appendLedger(state, "object.lock_released", "human", {
+          lockId: existing.id,
+          objectId: existing.objectId,
+          lockType: existing.type,
+          source: existing.source,
+          authorId,
+          releasedAt,
+        }),
       });
       return { status: "released", lockId: existing.id, objectId: existing.objectId, lockType: existing.type };
     }
 
     if (command.type === "waive_warning") {
       if (command.actor !== "human") throw venueError("WAIVER_HUMAN_REQUIRED", { actor: command.actor ?? null });
-      const authorId: any = command.actorId?.trim();
+      const authorId = command.actorId?.trim();
       if (!authorId) throw venueError("WAIVER_AUTHOR_REQUIRED");
-      const reasonCodes: any = new Set(["operational-acceptance", "temporary-condition", "equivalent-control", "owner-approved-deviation"]);
-      if (!reasonCodes.has(command.reasonCode)) throw venueError("WAIVER_REASON_INVALID", { reasonCode: command.reasonCode ?? null });
-      const validation: any = validateVenueState(state);
-      const check: any = validation.checks.find((item: any) => item.constraintId === command.constraintId);
-      if (!check) throw venueError("CONSTRAINT_NOT_FOUND", { constraintId: command.constraintId });
-      if (check.status !== "warning" || !check.waivable) throw venueError("WARNING_NOT_WAIVABLE", { constraintId: command.constraintId, status: check.status });
-      if (check.waiver) throw venueError("WARNING_ALREADY_WAIVED", { constraintId: command.constraintId, waiverId: check.waiver.id });
-      const waiver: any = {
+      const reasonCodes = new Set([
+        "operational-acceptance",
+        "temporary-condition",
+        "equivalent-control",
+        "owner-approved-deviation",
+      ]);
+      if (typeof command.reasonCode !== "string" || !reasonCodes.has(command.reasonCode))
+        throw venueError("WAIVER_REASON_INVALID", { reasonCode: command.reasonCode ?? null });
+      const constraintId = command.constraintId;
+      if (!constraintId) throw venueError("CONSTRAINT_NOT_FOUND", { constraintId: null });
+      const validation = validateVenueState(state);
+      const check = validation.checks.find((item) => item.constraintId === constraintId);
+      if (!check) throw venueError("CONSTRAINT_NOT_FOUND", { constraintId });
+      if (check.status !== "warning" || !check.waivable)
+        throw venueError("WARNING_NOT_WAIVABLE", { constraintId: command.constraintId, status: check.status });
+      if (check.waiver)
+        throw venueError("WARNING_ALREADY_WAIVED", { constraintId: command.constraintId, waiverId: check.waiver.id });
+      const waiver = {
         id: `waiver-${command.constraintId}-${validation.inputFingerprint.slice(-8)}`,
-        constraintId: command.constraintId,
+        constraintId,
         proposalId: state.proposal.id,
         baseVersion: state.plan.version,
         validationInputFingerprint: validation.inputFingerprint,
@@ -972,34 +2145,99 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
         reasonCode: command.reasonCode,
         createdAt: now(),
       };
-      const proposal: any = { ...state.proposal, waivers: [...(state.proposal.waivers ?? []), waiver], validation: null };
+      const proposal = { ...state.proposal, waivers: [...(state.proposal.waivers ?? []), waiver], validation: null };
       publish({
         ...syncActiveBranch(state, proposal),
-        ledger: appendLedger(state, "constraint.warning_waived", "human", { waiverId: waiver.id, constraintId: waiver.constraintId, proposalId: waiver.proposalId, baseVersion: waiver.baseVersion, validationInputFingerprint: waiver.validationInputFingerprint, authorId: waiver.authorId, reasonCode: waiver.reasonCode }),
+        ledger: appendLedger(state, "constraint.warning_waived", "human", {
+          waiverId: waiver.id,
+          constraintId: waiver.constraintId,
+          proposalId: waiver.proposalId,
+          baseVersion: waiver.baseVersion,
+          validationInputFingerprint: waiver.validationInputFingerprint,
+          authorId: waiver.authorId,
+          reasonCode: waiver.reasonCode,
+        }),
       });
-      return { status: "waived", waiverId: waiver.id, constraintId: waiver.constraintId, proposalId: waiver.proposalId, validationInputFingerprint: waiver.validationInputFingerprint };
+      return {
+        status: "waived",
+        waiverId: waiver.id,
+        constraintId: waiver.constraintId,
+        proposalId: waiver.proposalId,
+        validationInputFingerprint: waiver.validationInputFingerprint,
+      };
     }
 
     if (command.type === "approve_proposal") {
-      if (command.actor !== "human") throw venueError("AUTHORIZATION_DENIED", { reason: "approval-human-required", permission: "approval.approve" });
-      if (authorizationContext?.principal?.type === "human" && command.actorId !== authorizationContext.principal.id) throw venueError("AUTHORIZATION_DENIED", { reason: "approval-principal-mismatch", permission: "approval.approve" });
-      if (command.proposalId !== state.proposal.id) throw venueError("PROPOSAL_MISMATCH", { expectedProposalId: state.proposal.id, receivedProposalId: command.proposalId ?? null });
-      if (!Array.isArray(state.proposal.changes) || state.proposal.changes.length === 0) throw venueError("PROPOSAL_EMPTY", { proposalId: state.proposal.id });
-      if (command.baseVersion !== state.plan.version || state.proposal.baseVersion !== state.plan.version) throw venueError("PLAN_VERSION_CONFLICT", { expectedVersion: state.plan.version, receivedVersion: command.baseVersion ?? null, proposalBaseVersion: state.proposal.baseVersion });
-      const operationalResourceEvidence: any = verifyOperationalResourceFreshness(state.proposal);
+      if (command.actor !== "human")
+        throw venueError("AUTHORIZATION_DENIED", { reason: "approval-human-required", permission: "approval.approve" });
+      if (authorizationContext?.principal?.type === "human" && command.actorId !== authorizationContext.principal.id)
+        throw venueError("AUTHORIZATION_DENIED", {
+          reason: "approval-principal-mismatch",
+          permission: "approval.approve",
+        });
+      if (command.proposalId !== state.proposal.id)
+        throw venueError("PROPOSAL_MISMATCH", {
+          expectedProposalId: state.proposal.id,
+          receivedProposalId: command.proposalId ?? null,
+        });
+      if (!Array.isArray(state.proposal.changes) || state.proposal.changes.length === 0)
+        throw venueError("PROPOSAL_EMPTY", { proposalId: state.proposal.id });
+      if (command.baseVersion !== state.plan.version || state.proposal.baseVersion !== state.plan.version)
+        throw venueError("PLAN_VERSION_CONFLICT", {
+          expectedVersion: state.plan.version,
+          receivedVersion: command.baseVersion ?? null,
+          proposalBaseVersion: state.proposal.baseVersion,
+        });
+      const operationalResourceEvidence = verifyOperationalResourceFreshness(state.proposal);
       assertNoLockConflicts(state.plan, state.proposal.changes, state.projectLocks);
-      const validation: any = validateVenueState(state);
-      if (validation.status !== "pass") throw venueError("VALIDATION_FAILED", { validationId: validation.validationId, blockingIssues: validation.blockingIssues });
-      if (validation.unwaivedWarnings > 0) throw venueError("WARNING_WAIVER_REQUIRED", { validationId: validation.validationId, constraintIds: validation.checks.filter((check: any) => check.status === "warning" && !check.waiver).map((check: any) => check.constraintId) });
-      let emergencyReview: any = null;
+      const validation = validateVenueState(state);
+      if (validation.status !== "pass")
+        throw venueError("VALIDATION_FAILED", {
+          validationId: validation.validationId,
+          blockingIssues: validation.blockingIssues,
+        });
+      if (validation.unwaivedWarnings > 0)
+        throw venueError("WARNING_WAIVER_REQUIRED", {
+          validationId: validation.validationId,
+          constraintIds: validation.checks
+            .filter((check) => check.status === "warning" && !check.waiver)
+            .map((check) => check.constraintId),
+        });
+      let emergencyReview = null;
       if (validation.emergencyReviewRequired) {
-        const reviewerId: any = command.emergencyReview?.reviewerId?.trim();
-        const reviewerRole: any = command.emergencyReview?.reviewerRole;
-        if (!reviewerId || command.emergencyReview?.assumptionsAccepted !== true) throw venueError("EMERGENCY_REVIEW_REQUIRED", { proposalId: state.proposal.id, validationId: validation.validationId, changedObjectIds: validation.emergencyChangedObjectIds, authorizedReviewerRoles: validation.authorizedEmergencyReviewerRoles });
-        if (!validation.authorizedEmergencyReviewerRoles.includes(reviewerRole)) throw venueError("EMERGENCY_REVIEW_UNAUTHORIZED", { reviewerId, reviewerRole, authorizedReviewerRoles: validation.authorizedEmergencyReviewerRoles });
-        if (authorizationContext?.principal?.type === "human" && (reviewerId !== authorizationContext.principal.id || !(authorizationContext.principal.operationalRoles ?? []).includes(reviewerRole))) throw venueError("EMERGENCY_REVIEW_UNAUTHORIZED", { reviewerId, reviewerRole, reason: "authenticated-reviewer-mismatch", authorizedReviewerRoles: validation.authorizedEmergencyReviewerRoles });
+        const reviewerId = command.emergencyReview?.reviewerId?.trim();
+        const reviewerRole = command.emergencyReview?.reviewerRole;
+        if (!reviewerId || !reviewerRole || command.emergencyReview?.assumptionsAccepted !== true)
+          throw venueError("EMERGENCY_REVIEW_REQUIRED", {
+            proposalId: state.proposal.id,
+            validationId: validation.validationId,
+            changedObjectIds: validation.emergencyChangedObjectIds,
+            authorizedReviewerRoles: validation.authorizedEmergencyReviewerRoles,
+          });
+        if (!validation.authorizedEmergencyReviewerRoles.includes(reviewerRole))
+          throw venueError("EMERGENCY_REVIEW_UNAUTHORIZED", {
+            reviewerId,
+            reviewerRole,
+            authorizedReviewerRoles: validation.authorizedEmergencyReviewerRoles,
+          });
+        if (
+          authorizationContext?.principal?.type === "human" &&
+          (reviewerId !== authorizationContext.principal.id ||
+            !(authorizationContext.principal.operationalRoles ?? []).includes(reviewerRole))
+        )
+          throw venueError("EMERGENCY_REVIEW_UNAUTHORIZED", {
+            reviewerId,
+            reviewerRole,
+            reason: "authenticated-reviewer-mismatch",
+            authorizedReviewerRoles: validation.authorizedEmergencyReviewerRoles,
+          });
         emergencyReview = {
-          id: stableFingerprint("emergency-review", { proposalId: state.proposal.id, validationInputFingerprint: validation.inputFingerprint, reviewerId, reviewerRole }),
+          id: stableFingerprint("emergency-review", {
+            proposalId: state.proposal.id,
+            validationInputFingerprint: validation.inputFingerprint,
+            reviewerId,
+            reviewerRole,
+          }),
           proposalId: state.proposal.id,
           basePlanVersion: state.plan.version,
           validationInputFingerprint: validation.inputFingerprint,
@@ -1015,69 +2253,173 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
       }
       undoStack.push({ plan: clone(state.plan), brief: clone(state.brief) });
       redoStack = [];
-      const plan: any = {
-        ...applyApprovedTemplateBinding(materializeSpatialPlan(state.plan, state.proposal.changes, { projectLocks: state.projectLocks }), state.proposal),
+      const plan: VenuePlan = {
+        ...applyApprovedTemplateBinding(
+          materializeSpatialPlan(state.plan, state.proposal.changes, { projectLocks: state.projectLocks }),
+          state.proposal,
+        ),
         version: incrementVersion(state.plan.version),
         metrics: validation.candidateMetrics,
-        waivers: (state.proposal.waivers ?? []).map((waiver: any) => ({ ...waiver, acceptedPlanVersion: incrementVersion(state.plan.version) })),
-        emergencyReviews: [...(state.plan.emergencyReviews ?? []), ...(emergencyReview ? [{ ...emergencyReview, acceptedPlanVersion: incrementVersion(state.plan.version) }] : [])],
+        waivers: (state.proposal.waivers ?? []).map((waiver) => ({
+          ...waiver,
+          acceptedPlanVersion: incrementVersion(state.plan.version),
+        })),
+        emergencyReviews: [
+          ...(state.plan.emergencyReviews ?? []),
+          ...(emergencyReview
+            ? [{ ...emergencyReview, acceptedPlanVersion: incrementVersion(state.plan.version) }]
+            : []),
+        ],
       };
-      const approvedProposal: any = { ...state.proposal, status: "approved", validation };
-      const brief: any = materializeEventBrief(state.brief, state.proposal.changes);
+      const approvedProposal = { ...state.proposal, status: "approved", validation };
+      const brief = materializeEventBrief(state.brief, state.proposal.changes);
       publish({
         ...syncActiveBranch(state, approvedProposal),
         plan,
         brief,
         editHistory: { undo: [], redo: [] },
-        ledger: appendLedger(state, "proposal.approved", command.actor ?? "human", { proposalId: state.proposal.id, branchId: state.activeBranchId, changeIds: state.proposal.changes.map((change: any) => change.id), validationId: validation.validationId, fromVersion: state.plan.version, toVersion: plan.version, ...(operationalResourceEvidence.length ? { operationalResourceEvidence } : {}), ...(emergencyReview ? { emergencyReview: clone({ ...emergencyReview, acceptedPlanVersion: plan.version }) } : {}), acceptedPlan: clone(plan), planFingerprint: fingerprintPlan(plan), acceptedBrief: clone(brief), briefFingerprint: fingerprintEventBrief(brief) }),
+        ledger: appendLedger(state, "proposal.approved", command.actor ?? "human", {
+          proposalId: state.proposal.id,
+          branchId: state.activeBranchId,
+          changeIds: state.proposal.changes.map((change) => change.id),
+          validationId: validation.validationId,
+          fromVersion: state.plan.version,
+          toVersion: plan.version,
+          ...(operationalResourceEvidence.length ? { operationalResourceEvidence } : {}),
+          ...(emergencyReview
+            ? { emergencyReview: clone({ ...emergencyReview, acceptedPlanVersion: plan.version }) }
+            : {}),
+          acceptedPlan: clone(plan),
+          planFingerprint: fingerprintPlan(plan),
+          acceptedBrief: clone(brief),
+          briefFingerprint: fingerprintEventBrief(brief),
+        }),
       });
-      return { planId: plan.id, planVersion: plan.version, proposalId: state.proposal.id, status: "approved", validation };
+      return {
+        planId: plan.id,
+        planVersion: plan.version,
+        proposalId: state.proposal.id,
+        status: "approved",
+        validation,
+      };
     }
 
     if (command.type === "undo") {
-      const edit: any = state.editHistory.undo.at(-1);
-      if (edit && state.proposal.status === "review" && state.proposal.changes.some((change: any) => change.id === edit.change.id)) {
-        const changes: any = state.proposal.changes.filter((change: any) => change.id !== edit.change.id).map((change: any, index: any) => ({ ...change, number: index + 1 }));
-        const proposal: any = { ...state.proposal, id: `proposal-${state.plan.version.replace(".", "")}-edit-undo-${state.proposal.revision + 1}`, revision: state.proposal.revision + 1, changes, validation: null, waivers: [] };
-        publish({ ...syncActiveBranch(state, proposal), editHistory: { undo: state.editHistory.undo.slice(0, -1), redo: [...state.editHistory.redo, edit] }, ledger: appendLedger(state, "editor.change_undone", command.actor ?? "human", { proposalId: proposal.id, changeId: edit.change.id, operation: edit.change.editor?.operation ?? null }) });
-        return { status: "edit-undone", proposalId: proposal.id, changeId: edit.change.id, changedItems: changes.length };
+      const edit = state.editHistory.undo.at(-1);
+      if (
+        edit &&
+        state.proposal.status === "review" &&
+        state.proposal.changes.some((change) => change.id === edit.change.id)
+      ) {
+        const changes = state.proposal.changes
+          .filter((change) => change.id !== edit.change.id)
+          .map((change, index) => ({ ...change, number: index + 1 }));
+        const proposal = {
+          ...state.proposal,
+          id: `proposal-${state.plan.version.replace(".", "")}-edit-undo-${state.proposal.revision + 1}`,
+          revision: state.proposal.revision + 1,
+          changes,
+          validation: null,
+          waivers: [],
+        };
+        publish({
+          ...syncActiveBranch(state, proposal),
+          editHistory: { undo: state.editHistory.undo.slice(0, -1), redo: [...state.editHistory.redo, edit] },
+          ledger: appendLedger(state, "editor.change_undone", command.actor ?? "human", {
+            proposalId: proposal.id,
+            changeId: edit.change.id,
+            operation: edit.change.editor?.operation ?? null,
+          }),
+        });
+        return {
+          status: "edit-undone",
+          proposalId: proposal.id,
+          changeId: edit.change.id,
+          changedItems: changes.length,
+        };
       }
-      const previous: any = undoStack.pop();
+      const previous = undoStack.pop();
       if (!previous) return { status: "noop", planVersion: state.plan.version };
       redoStack.push({ plan: clone(state.plan), brief: clone(state.brief) });
-      const restoredProposal: any = { ...state.proposal, baseVersion: previous.plan.version, status: "review", validation: null, waivers: [] };
+      const restoredProposal = {
+        ...state.proposal,
+        baseVersion: previous.plan.version,
+        status: "review",
+        validation: null,
+        waivers: [],
+      };
       publish({
         ...syncActiveBranch(state, restoredProposal),
         plan: previous.plan,
         brief: previous.brief,
         editHistory: { undo: [], redo: [] },
-        ledger: appendLedger(state, "plan.undone", command.actor ?? "human", { toVersion: previous.plan.version, acceptedPlan: clone(previous.plan), planFingerprint: fingerprintPlan(previous.plan), acceptedBrief: clone(previous.brief), briefFingerprint: fingerprintEventBrief(previous.brief) }),
+        ledger: appendLedger(state, "plan.undone", command.actor ?? "human", {
+          toVersion: previous.plan.version,
+          acceptedPlan: clone(previous.plan),
+          planFingerprint: fingerprintPlan(previous.plan),
+          acceptedBrief: clone(previous.brief),
+          briefFingerprint: fingerprintEventBrief(previous.brief),
+        }),
       });
       return { status: "undone", planVersion: previous.plan.version };
     }
 
     if (command.type === "redo") {
-      const edit: any = state.editHistory.redo.at(-1);
+      const edit = state.editHistory.redo.at(-1);
       if (edit && state.proposal.status === "review") {
-        const restoredChange: any = { ...clone(edit.change), number: state.proposal.changes.length + 1 };
-        const changes: any = [...state.proposal.changes, restoredChange];
+        const restoredChange = { ...clone(edit.change), number: state.proposal.changes.length + 1 };
+        const changes = [...state.proposal.changes, restoredChange];
         assertNoLockConflicts(state.plan, changes, state.projectLocks);
         materializeSpatialPlan(state.plan, changes, { projectLocks: state.projectLocks });
-        const proposal: any = { ...state.proposal, id: `proposal-${state.plan.version.replace(".", "")}-edit-redo-${state.proposal.revision + 1}`, revision: state.proposal.revision + 1, changes, validation: null, waivers: [] };
-        publish({ ...syncActiveBranch(state, proposal), editHistory: { undo: [...state.editHistory.undo, edit], redo: state.editHistory.redo.slice(0, -1) }, ledger: appendLedger(state, "editor.change_redone", command.actor ?? "human", { proposalId: proposal.id, changeId: edit.change.id, operation: edit.change.editor?.operation ?? null }) });
-        return { status: "edit-redone", proposalId: proposal.id, changeId: edit.change.id, changedItems: changes.length };
+        const proposal = {
+          ...state.proposal,
+          id: `proposal-${state.plan.version.replace(".", "")}-edit-redo-${state.proposal.revision + 1}`,
+          revision: state.proposal.revision + 1,
+          changes,
+          validation: null,
+          waivers: [],
+        };
+        publish({
+          ...syncActiveBranch(state, proposal),
+          editHistory: { undo: [...state.editHistory.undo, edit], redo: state.editHistory.redo.slice(0, -1) },
+          ledger: appendLedger(state, "editor.change_redone", command.actor ?? "human", {
+            proposalId: proposal.id,
+            changeId: edit.change.id,
+            operation: edit.change.editor?.operation ?? null,
+          }),
+        });
+        return {
+          status: "edit-redone",
+          proposalId: proposal.id,
+          changeId: edit.change.id,
+          changedItems: changes.length,
+        };
       }
-      const next: any = redoStack.pop();
+      const next = redoStack.pop();
       if (!next) return { status: "noop", planVersion: state.plan.version };
       undoStack.push({ plan: clone(state.plan), brief: clone(state.brief) });
-      const approvedProposalForReplay: any = { ...state.proposal, baseVersion: next.plan.version, status: "approved" };
-      const redoneProposal: any = { ...approvedProposalForReplay, validation: validateVenueState({ ...state, plan: next.plan, brief: next.brief, proposal: approvedProposalForReplay }) };
+      const approvedProposalForReplay = { ...state.proposal, baseVersion: next.plan.version, status: "approved" };
+      const redoneProposal = {
+        ...approvedProposalForReplay,
+        validation: validateVenueState({
+          ...state,
+          plan: next.plan,
+          brief: next.brief,
+          proposal: approvedProposalForReplay,
+        }),
+      };
       publish({
         ...syncActiveBranch(state, redoneProposal),
         plan: next.plan,
         brief: next.brief,
         editHistory: { undo: [], redo: [] },
-        ledger: appendLedger(state, "plan.redone", command.actor ?? "human", { toVersion: next.plan.version, acceptedPlan: clone(next.plan), planFingerprint: fingerprintPlan(next.plan), acceptedBrief: clone(next.brief), briefFingerprint: fingerprintEventBrief(next.brief) }),
+        ledger: appendLedger(state, "plan.redone", command.actor ?? "human", {
+          toVersion: next.plan.version,
+          acceptedPlan: clone(next.plan),
+          planFingerprint: fingerprintPlan(next.plan),
+          acceptedBrief: clone(next.brief),
+          briefFingerprint: fingerprintEventBrief(next.brief),
+        }),
       });
       return { status: "redone", planVersion: next.plan.version };
     }
@@ -1085,82 +2427,207 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
     throw venueError("COMMAND_UNSUPPORTED", { commandType: command.type });
   };
 
-  const executeScenarioCommand: any = (command: any) => {
-    const idempotencyKey: any = command.idempotencyKey?.trim();
+  const executeScenarioCommand = (command: PlannerCommand): object | Promise<object> => {
+    const idempotencyKey = command.idempotencyKey?.trim();
     if (!idempotencyKey) throw venueError("IDEMPOTENCY_KEY_REQUIRED", { commandType: command.type });
-    const commandInputFingerprint: any = commandFingerprint(command);
-    const existing: any = state.receipts.find((receipt: any) => receipt.idempotencyKey === idempotencyKey);
+    const commandInputFingerprint = commandFingerprint(command);
+    const existing = state.receipts.find((receipt) => receipt.idempotencyKey === idempotencyKey);
     if (existing) {
-      if (existing.inputFingerprint !== commandInputFingerprint) throw venueError("IDEMPOTENCY_KEY_CONFLICT", { idempotencyKey, commandType: command.type });
+      if (existing.inputFingerprint !== commandInputFingerprint)
+        throw venueError("IDEMPOTENCY_KEY_CONFLICT", { idempotencyKey, commandType: command.type });
       return { ...clone(existing.result), receipt: publicReceipt(existing) };
     }
-    const pending: any = pendingScenarioCommands.get(idempotencyKey);
+    const pending = pendingScenarioCommands.get(idempotencyKey);
     if (pending) {
-      if (pending.inputFingerprint !== commandInputFingerprint) throw venueError("IDEMPOTENCY_KEY_CONFLICT", { idempotencyKey, commandType: command.type });
+      if (pending.inputFingerprint !== commandInputFingerprint)
+        throw venueError("IDEMPOTENCY_KEY_CONFLICT", { idempotencyKey, commandType: command.type });
       return pending.promise;
     }
 
-    const scenario: any = normalizeScenarioDefinition(command.scenario);
-    const branch: any = command.branchId ? state.branches.find((item: any) => item.id === command.branchId) : state.branches.find((item: any) => item.id === state.activeBranchId);
+    const scenario = normalizeScenarioDefinition(command.scenario);
+    const branch = command.branchId
+      ? state.branches.find((item) => item.id === command.branchId)
+      : state.branches.find((item) => item.id === state.activeBranchId);
     if (!branch) throw venueError("BRANCH_NOT_FOUND", { branchId: command.branchId });
-    const plan: any = materializeSpatialPlan(state.plan, branch.proposal?.changes ?? [], { projectLocks: state.projectLocks, allowLockConflicts: true });
-    const inputFingerprint: any = scenarioInputFingerprint(scenario, plan, branch.id);
-    const runId: any = `simulation-${inputFingerprint.slice(-8)}`;
-    const receiptId: any = `receipt-sim-${commandInputFingerprint.slice(-8)}`;
-    const startedAt: any = now();
-    const scenarios: any = state.scenarios.some((item: any) => item.id === scenario.id) ? state.scenarios.map((item: any) => item.id === scenario.id ? clone(scenario) : item) : [...state.scenarios, clone(scenario)];
-    const runRecord: any = { id: runId, scenarioId: scenario.id, scenarioFingerprint: scenarioDefinitionFingerprint(scenario), scenarioSnapshot: clone(scenario), model: scenario.model, branchId: branch.id, planId: plan.id, planVersion: plan.version, geometryFingerprint: plan.spatial.fingerprint, inputFingerprint, engineVersion: SIMULATION_ENGINE_VERSION, status: "queued", progress: 0, completedPhaseIds: [], partialResult: null, result: null, startedAt, completedAt: null, cancellationReason: null };
-    const scenarioRuns: any = [...state.scenarioRuns.filter((run: any) => run.id !== runId), runRecord];
-    publish({ ...state, scenarios, scenarioRuns, ledger: sealActivityLedger(appendLedger(state, "simulation.started", command.actor ?? "agent", { runId, scenarioId: scenario.id, branchId: branch.id, inputFingerprint, engineVersion: runRecord.engineVersion, commandReceiptId: receiptId })) });
+    const plan = materializeSpatialPlan(state.plan, branch.proposal?.changes ?? [], {
+      projectLocks: state.projectLocks,
+      allowLockConflicts: true,
+    });
+    const inputFingerprint = scenarioInputFingerprint(scenario, plan, branch.id);
+    const runId = `simulation-${inputFingerprint.slice(-8)}`;
+    const receiptId = `receipt-sim-${commandInputFingerprint.slice(-8)}`;
+    const startedAt = now();
+    const scenarios = state.scenarios.some((item) => item.id === scenario.id)
+      ? state.scenarios.map((item) => (item.id === scenario.id ? clone(scenario) : item))
+      : [...state.scenarios, clone(scenario)];
+    const runRecord: ScenarioRun = {
+      id: runId,
+      scenarioId: scenario.id,
+      scenarioFingerprint: scenarioDefinitionFingerprint(scenario),
+      scenarioSnapshot: clone(scenario),
+      model: scenario.model,
+      branchId: branch.id,
+      planId: plan.id,
+      planVersion: plan.version,
+      ...(plan.spatial.fingerprint ? { geometryFingerprint: plan.spatial.fingerprint } : {}),
+      inputFingerprint,
+      engineVersion: SIMULATION_ENGINE_VERSION,
+      status: "queued",
+      progress: 0,
+      completedPhaseIds: [],
+      partialResult: null,
+      result: null,
+      startedAt,
+      completedAt: null,
+      cancellationReason: null,
+    };
+    const scenarioRuns = [...state.scenarioRuns.filter((run) => run.id !== runId), runRecord];
+    publish({
+      ...state,
+      scenarios,
+      scenarioRuns,
+      ledger: sealActivityLedger(
+        appendLedger(state, "simulation.started", command.actor ?? "agent", {
+          runId,
+          scenarioId: scenario.id,
+          branchId: branch.id,
+          inputFingerprint,
+          engineVersion: runRecord.engineVersion,
+          commandReceiptId: receiptId,
+        }),
+      ),
+    });
 
-    const promise: any = scenarioRunner.run({ scenario, plan, branchId: branch.id }, {
-      onProgress: (update: any) => publish({ ...state, scenarioRuns: state.scenarioRuns.map((run: any) => run.id === runId ? { ...run, status: update.status, progress: update.progress, completedPhaseIds: update.completedPhaseIds, partialResult: update.partialResult } : run) }),
-    }).then((outcome: any) => {
-      const completedAt: any = now();
-      const terminalRun: any = { ...state.scenarioRuns.find((run: any) => run.id === runId), status: outcome.status, progress: outcome.status === "completed" ? 1 : state.scenarioRuns.find((run: any) => run.id === runId)?.progress ?? 0, result: outcome.result ?? null, partialResult: outcome.partialResult ?? state.scenarioRuns.find((run: any) => run.id === runId)?.partialResult ?? null, completedAt, cancellationReason: outcome.reason ?? null, cacheHit: outcome.cacheHit };
-      const result: any = { status: outcome.status, runId, scenarioId: scenario.id, branchId: branch.id, inputFingerprint, cacheHit: outcome.cacheHit, ...(outcome.result ? { result: outcome.result } : {}), ...(outcome.partialResult ? { partialResult: outcome.partialResult } : {}), ...(outcome.reason ? { reason: outcome.reason } : {}) };
-      const receipt: any = { id: receiptId, idempotencyKey, commandType: command.type, inputFingerprint: commandInputFingerprint, correlationId: command.correlationId?.trim() || `corr-${commandInputFingerprint.slice(-8)}`, actor: command.actor ?? "agent", resultIds: { runId }, occurredAt: completedAt, result: clone(result) };
-      const terminalLedger: any = appendLedger(state, outcome.status === "completed" ? "simulation.completed" : "simulation.cancelled", command.actor ?? "agent", { runId, scenarioId: scenario.id, branchId: branch.id, inputFingerprint, cacheHit: outcome.cacheHit, reason: outcome.reason ?? null, commandReceiptId: receipt.id, correlationId: receipt.correlationId });
-      publish({ ...state, scenarioRuns: state.scenarioRuns.map((run: any) => run.id === runId ? terminalRun : run), ledger: sealActivityLedger(terminalLedger), receipts: [...state.receipts, receipt] });
-      return { ...result, receipt: publicReceipt(receipt) };
-    }).finally(() => pendingScenarioCommands.delete(idempotencyKey));
+    const promise = scenarioRunner
+      .run(
+        { scenario, plan, branchId: branch.id },
+        {
+          onProgress: (update) =>
+            publish({
+              ...state,
+              scenarioRuns: state.scenarioRuns.map((run) =>
+                run.id === runId
+                  ? {
+                      ...run,
+                      status: update.status,
+                      progress: update.progress,
+                      completedPhaseIds: update.completedPhaseIds,
+                      partialResult: update.partialResult,
+                    }
+                  : run,
+              ),
+            }),
+        },
+      )
+      .then((outcome) => {
+        const completedAt = now();
+        const currentRun = state.scenarioRuns.find((run) => run.id === runId) ?? runRecord;
+        const terminalRun: ScenarioRun = {
+          ...currentRun,
+          status: outcome.status,
+          progress: outcome.status === "completed" ? 1 : currentRun.progress,
+          result: outcome.result ?? null,
+          partialResult: outcome.partialResult ?? currentRun.partialResult,
+          completedAt,
+          cancellationReason: outcome.reason ?? null,
+          cacheHit: outcome.cacheHit,
+        };
+        const result = {
+          status: outcome.status,
+          runId,
+          scenarioId: scenario.id,
+          branchId: branch.id,
+          inputFingerprint,
+          cacheHit: outcome.cacheHit,
+          ...(outcome.result ? { result: outcome.result } : {}),
+          ...(outcome.partialResult ? { partialResult: outcome.partialResult } : {}),
+          ...(outcome.reason ? { reason: outcome.reason } : {}),
+        };
+        const receipt = {
+          id: receiptId,
+          idempotencyKey,
+          commandType: command.type,
+          inputFingerprint: commandInputFingerprint,
+          correlationId: command.correlationId?.trim() || `corr-${commandInputFingerprint.slice(-8)}`,
+          actor: command.actor ?? "agent",
+          resultIds: { runId },
+          occurredAt: completedAt,
+          result: clone(result),
+        };
+        const terminalLedger = appendLedger(
+          state,
+          outcome.status === "completed" ? "simulation.completed" : "simulation.cancelled",
+          command.actor ?? "agent",
+          {
+            runId,
+            scenarioId: scenario.id,
+            branchId: branch.id,
+            inputFingerprint,
+            cacheHit: outcome.cacheHit,
+            reason: outcome.reason ?? null,
+            commandReceiptId: receipt.id,
+            correlationId: receipt.correlationId,
+          },
+        );
+        publish({
+          ...state,
+          scenarioRuns: state.scenarioRuns.map((run) => (run.id === runId ? terminalRun : run)),
+          ledger: sealActivityLedger(terminalLedger),
+          receipts: [...state.receipts, receipt],
+        });
+        return { ...result, receipt: publicReceipt(receipt) };
+      })
+      .finally(() => pendingScenarioCommands.delete(idempotencyKey));
     pendingScenarioCommands.set(idempotencyKey, { inputFingerprint: commandInputFingerprint, promise });
     return promise;
   };
 
-  const execute: any = (command: any, options: any = {}) => {
+  function execute<C extends PlannerReadCommand>(command: C, options?: PlannerExecutionOptions): PlannerReadResult<C>;
+  function execute(command: PlannerCommand, options?: PlannerExecutionOptions): object | Promise<object>;
+  function execute(command: PlannerCommand, options: PlannerExecutionOptions = {}): object | Promise<object> {
     if (!command || typeof command.type !== "string") throw venueError("COMMAND_INVALID");
     authorize(command, options);
     if (command.type === "run_scenario") return executeScenarioCommand(command);
-    const pending: any = pendingScenarioCommands.get(command.idempotencyKey?.trim());
-    if (pending && pending.inputFingerprint !== commandFingerprint(command)) throw venueError("IDEMPOTENCY_KEY_CONFLICT", { idempotencyKey: command.idempotencyKey, commandType: command.type });
-    const authorization: any = options.authorization ?? defaultAuthorization;
+    const pendingKey = command.idempotencyKey?.trim();
+    const pending = pendingKey ? pendingScenarioCommands.get(pendingKey) : undefined;
+    if (pending && pending.inputFingerprint !== commandFingerprint(command))
+      throw venueError("IDEMPOTENCY_KEY_CONFLICT", {
+        idempotencyKey: command.idempotencyKey,
+        commandType: command.type,
+      });
+    const authorization = options.authorization ?? defaultAuthorization;
     if (!MUTATING_COMMANDS.has(command.type)) return executeCommand(command, authorization);
 
-    const idempotencyKey: any = command.idempotencyKey?.trim();
+    const idempotencyKey = command.idempotencyKey?.trim();
     if (!idempotencyKey) throw venueError("IDEMPOTENCY_KEY_REQUIRED", { commandType: command.type });
-    const inputFingerprint: any = commandFingerprint(command);
-    const existing: any = state.receipts.find((receipt: any) => receipt.idempotencyKey === idempotencyKey);
+    const inputFingerprint = commandFingerprint(command);
+    const existing = state.receipts.find((receipt) => receipt.idempotencyKey === idempotencyKey);
     if (existing) {
-      if (existing.inputFingerprint !== inputFingerprint) throw venueError("IDEMPOTENCY_KEY_CONFLICT", { idempotencyKey, commandType: command.type });
+      if (existing.inputFingerprint !== inputFingerprint)
+        throw venueError("IDEMPOTENCY_KEY_CONFLICT", { idempotencyKey, commandType: command.type });
       if (existing.error) throw venueError(existing.error.code, clone(existing.error.details), existing.error.message);
       return { ...clone(existing.result), receipt: publicReceipt(existing) };
     }
 
-    const previousLedgerLength: any = state.ledger.length;
+    const previousLedgerLength = state.ledger.length;
     transaction = { nextState: null };
-    let result: any;
+    let result;
     try {
       result = executeCommand(command, authorization);
-    } catch (error: any) {
+    } catch (error) {
       transaction = null;
-      if (error?.code === "AUTHORIZATION_DENIED") {
-        recordAuthorizationDenial({ error, actionType: command.type, source: command.source, sessionId: command.sessionId });
+      if (error instanceof VenueError && error.code === "AUTHORIZATION_DENIED") {
+        recordAuthorizationDenial({
+          error,
+          actionType: command.type,
+          source: command.source,
+          sessionId: command.sessionId,
+        });
         throw error;
       }
-      if (error?.code === "LOCK_CONFLICT") {
-        const correlationId: any = command.correlationId?.trim() || `corr-${inputFingerprint.slice(-8)}`;
-        const receipt: any = {
+      if (error instanceof VenueError && error.code === "LOCK_CONFLICT") {
+        const correlationId = command.correlationId?.trim() || `corr-${inputFingerprint.slice(-8)}`;
+        const receipt = {
           id: `receipt-${String(state.receipts.length + 1).padStart(4, "0")}`,
           idempotencyKey,
           commandType: command.type,
@@ -1169,34 +2636,55 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
           actor: command.actor ?? "system",
           resultIds: {},
           occurredAt: now(),
-          error: { code: error.code, message: error.message, remediation: error.remediation, details: { ...error.details } },
+          error: {
+            code: error.code,
+            message: error.message,
+            remediation: error.remediation,
+            details: { ...error.details },
+          },
         };
-        const entry: any = createActivityEntry(state.ledger.length + 1, "proposal.lock_rejected", command.actor ?? "system", {
-          proposalId: state.proposal?.id ?? null,
-          conflictIds: (error.details?.conflicts ?? []).map((conflict: any) => conflict.id).filter(Boolean),
-          conflicts: clone(error.details?.conflicts ?? []),
-          beforePlanVersion: state.plan.version,
-          afterPlanVersion: state.plan.version,
-          commandReceiptId: receipt.id,
-          correlationId,
-          idempotencyKey,
-          inputFingerprint,
-        }, {
-          actorId: command.actorId ?? command.actor ?? "system",
-          actorType: command.actor ?? "system",
-          source: command.source ?? (command.actor === "agent" ? "agent-tool" : "studio"),
-          sessionId: command.sessionId ?? "session-unknown",
-        });
-        const details: any = { ...error.details, commandReceiptId: receipt.id, correlationId };
+        const rawConflicts = error.details?.conflicts;
+        const conflicts = Array.isArray(rawConflicts)
+          ? rawConflicts.filter(
+              (conflict): conflict is { id?: string } => Boolean(conflict) && typeof conflict === "object",
+            )
+          : [];
+        const entry = createActivityEntry(
+          state.ledger.length + 1,
+          "proposal.lock_rejected",
+          command.actor ?? "system",
+          {
+            proposalId: state.proposal?.id ?? null,
+            conflictIds: conflicts.flatMap((conflict) => (typeof conflict.id === "string" ? [conflict.id] : [])),
+            conflicts: clone(conflicts),
+            beforePlanVersion: state.plan.version,
+            afterPlanVersion: state.plan.version,
+            commandReceiptId: receipt.id,
+            correlationId,
+            idempotencyKey,
+            inputFingerprint,
+          },
+          {
+            actorId: command.actorId ?? command.actor ?? "system",
+            actorType: command.actor ?? "system",
+            source: command.source ?? (command.actor === "agent" ? "agent-tool" : "studio"),
+            sessionId: command.sessionId ?? "session-unknown",
+          },
+        );
+        const details = { ...error.details, commandReceiptId: receipt.id, correlationId };
         receipt.error.details = details;
-        publish({ ...state, ledger: sealActivityLedger([...state.ledger, entry]), receipts: [...state.receipts, receipt] });
+        publish({
+          ...state,
+          ledger: sealActivityLedger([...state.ledger, entry]),
+          receipts: [...state.receipts, receipt],
+        });
         throw venueError(error.code, details, error.message);
       }
       throw error;
     }
-    const nextState: any = transaction.nextState ?? state;
+    const nextState = transaction.nextState ?? state;
     transaction = null;
-    const receipt: any = {
+    const receipt = {
       id: `receipt-${String(state.receipts.length + 1).padStart(4, "0")}`,
       idempotencyKey,
       commandType: command.type,
@@ -1207,29 +2695,49 @@ export function createVenuePlanner(initialPlan: any, { authorization: defaultAut
       occurredAt: now(),
       result: clone(result),
     };
-    const ledger: any = nextState.ledger.map((entry: any, index: any) => index < previousLedgerLength ? entry : {
-      ...entry,
-      actorId: command.actorId ?? command.actor ?? entry.actor,
-      actorType: command.actor ?? entry.actor,
-      source: command.source ?? (command.actor === "agent" ? "agent-tool" : "studio"),
-      sessionId: command.sessionId ?? "session-unknown",
-      details: {
-        ...entry.details,
-        beforePlanVersion: state.plan.version,
-        afterPlanVersion: nextState.plan.version,
-        commandReceiptId: receipt.id,
-        correlationId: receipt.correlationId,
-        idempotencyKey: receipt.idempotencyKey,
-        inputFingerprint: receipt.inputFingerprint,
-      },
-    });
+    const ledger = nextState.ledger.map((entry, index) =>
+      index < previousLedgerLength
+        ? entry
+        : {
+            ...entry,
+            actorId: command.actorId ?? command.actor ?? entry.actor,
+            actorType: command.actor ?? entry.actor,
+            source: command.source ?? (command.actor === "agent" ? "agent-tool" : "studio"),
+            sessionId: command.sessionId ?? "session-unknown",
+            details: {
+              ...entry.details,
+              beforePlanVersion: state.plan.version,
+              afterPlanVersion: nextState.plan.version,
+              commandReceiptId: receipt.id,
+              correlationId: receipt.correlationId,
+              idempotencyKey: receipt.idempotencyKey,
+              inputFingerprint: receipt.inputFingerprint,
+            },
+          },
+    );
     publish({ ...nextState, ledger: sealActivityLedger(ledger), receipts: [...state.receipts, receipt] });
     return { ...result, receipt: publicReceipt(receipt) };
-  };
+  }
 
-  const cancelActive: any = (reason: any = "cancelled") => scenarioRunner.cancelActive(reason);
+  const cancelActive = (reason = "cancelled"): boolean => scenarioRunner.cancelActive(reason);
 
-  const getProjectId: any = () => projectId;
-  const getAdapterProjectContext: any = () => projectId ? clone({ projectId, brief: state.brief, constraints: state.plan.constraints, planningEffectBindings: state.brief.planningEffectBindings ?? {} }) : null;
-  return Object.freeze({ getSnapshot, getProjectId, getAdapterProjectContext, subscribe, execute, cancelActive, recordAuthorizationDenial });
+  const getProjectId = (): string | null => projectId;
+  const getAdapterProjectContext = () =>
+    projectId
+      ? clone({
+          projectId,
+          brief: state.brief,
+          constraints: state.plan.constraints,
+          planningEffectBindings: state.brief.planningEffectBindings ?? {},
+        })
+      : null;
+  return Object.freeze({
+    getSnapshot,
+    getProjectId,
+    getAdapterProjectContext,
+    subscribe,
+    execute,
+    cancelActive,
+    recordAuthorizationDenial,
+  });
 }

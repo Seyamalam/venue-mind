@@ -1,0 +1,8 @@
+.next
+.vercel
+.wrangler
+dist
+node_modules
+public
+packages/sdk/src/generated
+worker-configuration.d.ts

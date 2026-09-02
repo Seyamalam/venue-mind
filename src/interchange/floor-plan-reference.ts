@@ -17,37 +17,51 @@ const definitions = [
     supportedEntities: ["vector-path", "raster-contour", "ocr-label"],
     limits: { maximumBytes: 20_000_000, maximumPages: 50, maximumSelectedPages: 1, maximumPixels: 40_000_000 },
   },
-].map((definition: any) => Object.freeze({
-  ...definition,
-  authority: FLOOR_PLAN_REFERENCE_AUTHORITY,
-  requiresHumanCalibration: true,
-  plannerMutationAllowed: false,
-}));
+].map((definition) =>
+  Object.freeze({
+    ...definition,
+    authority: FLOOR_PLAN_REFERENCE_AUTHORITY,
+    requiresHumanCalibration: true,
+    plannerMutationAllowed: false,
+  }),
+);
 
 export const floorPlanReferenceAdapters = Object.freeze(definitions);
 
-export const inspectFloorPlanReferenceAdapters = () => definitions.map((definition: any) => structuredClone(definition));
+export const inspectFloorPlanReferenceAdapters = () => definitions.map((definition) => structuredClone(definition));
 
-export function createFloorPlanReferenceIntake(adapterId: any, source: any) {
-  const adapter = definitions.find((definition: any) => definition.id === adapterId);
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+export function createFloorPlanReferenceIntake(adapterId: string, source: unknown) {
+  const adapter = definitions.find((definition) => definition.id === adapterId);
   if (!adapter) throw new Error(`Unknown floor-plan reference adapter: ${adapterId}`);
-  if (!source?.fingerprint || typeof source.fingerprint !== "string") throw new Error("Floor-plan reference requires a source fingerprint");
-  if (!Number.isInteger(source.bytes) || source.bytes < 1 || source.bytes > adapter.limits.maximumBytes) throw new Error("Floor-plan reference size is invalid");
-  if (!adapter.mediaTypes.includes(source.mediaType)) throw new Error(`Unsupported media type for ${adapterId}`);
+  if (!isRecord(source) || typeof source["fingerprint"] !== "string" || !source["fingerprint"])
+    throw new Error("Floor-plan reference requires a source fingerprint");
+  const bytes = source["bytes"];
+  const mediaType = source["mediaType"];
+  if (typeof bytes !== "number" || !Number.isInteger(bytes) || bytes < 1 || bytes > adapter.limits.maximumBytes)
+    throw new Error("Floor-plan reference size is invalid");
+  if (typeof mediaType !== "string" || !adapter.mediaTypes.includes(mediaType))
+    throw new Error(`Unsupported media type for ${adapterId}`);
+  const fingerprint = source["fingerprint"];
+  const filename = source["filename"];
   return {
-    id: `reference-${source.fingerprint.replace(/[^a-zA-Z0-9-]/g, "").slice(0, 24)}`,
+    id: `reference-${fingerprint.replace(/[^a-zA-Z0-9-]/g, "").slice(0, 24)}`,
     adapterId: adapter.id,
     authority: FLOOR_PLAN_REFERENCE_AUTHORITY,
     status: "calibration-required",
     source: {
-      fingerprint: source.fingerprint,
-      mediaType: source.mediaType,
-      bytes: source.bytes,
-      ...(source.filename ? { filename: String(source.filename) } : {}),
+      fingerprint,
+      mediaType,
+      bytes,
+      ...(typeof filename === "string" && filename ? { filename } : {}),
     },
     transform: null,
     calibration: null,
     candidateGeometry: null,
-    warnings: ["Reference geometry cannot mutate a Plan before calibration, review, Proposal creation, Validation, and human Approval."],
+    warnings: [
+      "Reference geometry cannot mutate a Plan before calibration, review, Proposal creation, Validation, and human Approval.",
+    ],
   };
 }

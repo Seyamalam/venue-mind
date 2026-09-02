@@ -9,10 +9,24 @@ const readPanel = () => readFile(panelUrl, "utf8");
 test("Runbook uses non-modal shadcn surfaces and no raw form controls", async () => {
   const source = await readPanel();
 
-  for (const component of ["Badge", "Button", "Dialog", "DropdownMenu", "Empty", "Field", "Input", "Progress", "ScrollArea", "Select", "Separator", "Sheet", "Tabs"]) {
+  for (const component of [
+    "Badge",
+    "Button",
+    "Dialog",
+    "DropdownMenu",
+    "Empty",
+    "Field",
+    "Input",
+    "Progress",
+    "ScrollArea",
+    "Select",
+    "Separator",
+    "Sheet",
+    "Tabs",
+  ]) {
     assert.match(source, new RegExp(`\\b${component}\\b`), component);
   }
-  assert.match(source, /<Sheet open=\{open\}/);
+  assert.match(source, /<Sheet\s+open=\{open\}/);
   assert.match(source, /modal=\{false\}/);
   assert.match(source, /showOverlay=\{false\}/);
   assert.match(source, /<SheetTitle asChild>/);
@@ -27,12 +41,14 @@ test("Runbook uses non-modal shadcn surfaces and no raw form controls", async ()
 test("Runbook exposes the six event phases, five role filters, and compact views", async () => {
   const source = await readPanel();
 
-  for (const phase of ["SETUP", "DOORS", "LIVE", "INTERVAL", "EGRESS", "BREAKDOWN"]) assert.match(source, new RegExp(`label: "${phase}"`));
-  for (const role of ["PRODUCTION", "FOH", "SECURITY", "CATERING", "VENUE OPS"]) assert.match(source, new RegExp(`label: "${role}"`));
+  for (const phase of ["SETUP", "DOORS", "LIVE", "INTERVAL", "EGRESS", "BREAKDOWN"])
+    assert.match(source, new RegExp(`label: "${phase}"`));
+  for (const role of ["PRODUCTION", "FOH", "SECURITY", "CATERING", "VENUE OPS"])
+    assert.match(source, new RegExp(`label: "${role}"`));
   assert.match(source, /<TabsTrigger value="tasks">TASKS<\/TabsTrigger>/);
   assert.match(source, /<TabsTrigger value="handoff">HANDOFF<\/TabsTrigger>/);
-  assert.match(source, />NO RUNBOOK</);
-  assert.match(source, />CREATE</);
+  assert.match(source, />\s*NO RUNBOOK\s*</);
+  assert.match(source, />\s*CREATE\s*</);
   assert.doesNotMatch(source, /Get started|You can|Please |This runbook|Create a runbook to/i);
 });
 
@@ -50,11 +66,12 @@ test("Runbook action boundary stays prop-driven and stable-ID scoped", async () 
     "onExportHandoff",
     "onSync",
     "onResolveSyncConflict",
-  ]) assert.match(source, new RegExp(`\\b${action}\\b`), action);
+  ])
+    assert.match(source, new RegExp(`\\b${action}\\b`), action);
 
-  assert.match(source, /onTaskTransition\?\.\(\{ taskId: task\.id, toStatus:/);
-  assert.match(source, /onAddEvidence\?\.\(\{ taskId: task\?\.id, code, ref:/);
-  assert.match(source, /onCreateHandoff\?\.\(\{ runbookId,/);
+  assert.match(source, /onTaskTransition\?\.\(\{\s*taskId:\s*task\.id,\s*toStatus:/);
+  assert.match(source, /onAddEvidence\?\.\(\{\s*taskId:\s*task\.id,\s*code,\s*ref:\s*reference\.trim\(\)/);
+  assert.match(source, /onCreateHandoff\?\.\(\{\s*outgoingOwnerId,\s*incomingOwnerId,\s*roleId,\s*at\s*\}\)/);
   assert.match(source, /<code>\{task\.id\}<\/code>/);
 });
 
@@ -79,7 +96,10 @@ test("Runbook panel is viewport-safe and preserves coarse-pointer targets", asyn
   const styles = await readFile(stylesUrl, "utf8");
 
   assert.match(styles, /\.runbook-panel \{[^}]*width: min\(420px, calc\(100vw - 32px\)\)/s);
-  assert.match(styles, /@media \(max-width: 880px\) \{\s*\.runbook-panel \{ inset: 10px !important; width: auto !important; \}/s);
+  assert.match(
+    styles,
+    /@media \(max-width: 880px\) \{\s*\.runbook-panel \{ inset: 10px !important; width: auto !important; \}/s,
+  );
   assert.match(styles, /@media \(pointer: coarse\) \{\s*\.runbook-panel :is\([^}]*min-height: 44px;/s);
   assert.match(styles, /\.runbook-task-list \{ min-height: 0; flex: 1; \}/);
 });

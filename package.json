@@ -30,8 +30,13 @@
     "check:generated": "node scripts/check-generated-drift.mjs",
     "start": "next start",
     "preview": "next start",
-    "lint": "eslint app components lib next.config.ts postcss.config.mjs",
-    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "npm run typecheck:app && npm run typecheck:worker && npm run typecheck:mcp && npm run typecheck:sdk",
+    "typecheck:app": "tsc --noEmit",
+    "typecheck:worker": "tsc -p worker/tsconfig.json --noEmit",
+    "typecheck:mcp": "tsc -p packages/mcp-server/tsconfig.json --noEmit",
+    "typecheck:sdk": "tsc -p packages/sdk/tsconfig.json --noEmit",
+    "check:typesafety": "npm run typecheck && npm run lint",
     "test": "npm run build && npm run build:worker && node --test tests/*.test.mjs",
     "test:mcp": "npm run build:mcp && node --test tests/mcp-server.test.mjs",
     "test:sdk": "npm run build:sdk && node --test tests/sdk-*.test.mjs",
@@ -39,7 +44,8 @@
     "test:worker": "npm run build:worker && node --test tests/worker-api.test.mjs",
     "test:skills": "npm run build:skills && node --test tests/skills.test.mjs",
     "test:tutorials": "node scripts/verify-tutorials.mjs",
-    "validate:skills": "node scripts/validate-skills.mjs"
+    "validate:skills": "node scripts/validate-skills.mjs",
+    "prepare": "husky"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
@@ -69,8 +75,12 @@
     "esbuild": "^0.28.2",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.4",
+    "husky": "^9.1.7",
     "json-schema-to-typescript": "16.0.0",
+    "lint-staged": "^17.4.1",
+    "prettier": "^3.9.6",
     "typescript": "6.0.3",
+    "typescript-eslint": "^8.69.0",
     "wrangler": "^4.127.1"
   }
 }

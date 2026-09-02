@@ -1,5 +1,3 @@
-/// <reference path="../worker-configuration.d.ts" />
-
 import { createD1AccountRepository, isOrganizationAdministrator } from "./account-repository.ts";
 import { createStaticIdentityProvider, type IdentityProvider } from "./authentication.ts";
 import { createD1ProjectRepository, ProjectRevisionConflict, type ProjectRecord } from "./project-repository.ts";
@@ -8,18 +6,60 @@ import { collaborationEventPayload, projectCollaborationEventTypes } from "../sr
 import { createD1CollaborationRepository, createMemoryCollaborationRepository } from "./collaboration-repository.ts";
 import { createD1SharingRepository, createMemorySharingRepository } from "./sharing-repository.ts";
 import { drainNotificationEmail } from "./email-delivery.ts";
-import { createShareToken, hashShareToken, safeNotification, shareLinkStatus, SHARE_SCOPES } from "../src/domain/sharing.ts";
+import {
+  createShareToken,
+  hashShareToken,
+  safeNotification,
+  shareLinkStatus,
+  SHARE_SCOPES,
+} from "../src/domain/sharing.ts";
+import type { NotificationEventType, NotificationRefs, ShareScope } from "../src/domain/sharing.ts";
 import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import type { PlannerCommand } from "../src/domain/venue-planner.ts";
 import { transitionRunbookTask } from "../src/domain/event-day-runbook.ts";
-import { createAuthenticatedIdentity } from "../src/domain/accounts.ts";
-import { createD1RunbookRepository, RunbookClientSequenceConflict, RunbookIdempotencyConflict, RunbookTransitionConflict } from "./runbook-repository.ts";
-import { browserCommandToPersistenceInput, browserRunbookToPersistenceInput, repositoryRunbookToBrowserSnapshot } from "./runbook-http.ts";
+import { createAuthenticatedIdentity, ORGANIZATION_ROLES } from "../src/domain/accounts.ts";
+import type { OrganizationRole } from "../src/domain/accounts.ts";
+import {
+  createD1RunbookRepository,
+  RunbookClientSequenceConflict,
+  RunbookIdempotencyConflict,
+  RunbookTransitionConflict,
+} from "./runbook-repository.ts";
+import {
+  browserCommandToPersistenceInput,
+  browserRunbookToPersistenceInput,
+  repositoryRunbookToBrowserSnapshot,
+} from "./runbook-http.ts";
 import { createD1OccupancyRepository, OccupancyMonitorConflict } from "./occupancy-repository.ts";
-import { acknowledgeOccupancyAlert, createLiveOccupancyMonitor, evaluateLiveOccupancy, exportLiveOccupancyAudit, ingestOccupancySignal, refreshLiveOccupancy } from "../src/domain/live-occupancy.ts";
+import {
+  acknowledgeOccupancyAlert,
+  createLiveOccupancyMonitor,
+  evaluateLiveOccupancy,
+  exportLiveOccupancyAudit,
+  ingestOccupancySignal,
+  refreshLiveOccupancy,
+} from "../src/domain/live-occupancy.ts";
 import { createIncidentCommandBus } from "../src/domain/incident-command-bus.ts";
 import { createD1IncidentRepository, IncidentRegisterConflict } from "./incident-repository.ts";
 import { createIncidentAttachmentService, IncidentAttachmentError } from "./incident-attachments.ts";
 import { venueError } from "../src/domain/errors.ts";
+import { isLocalProjectRecord } from "../src/domain/project-types.ts";
+import type {
+  AggregateOccupancySignal,
+  IncidentCategory,
+  IncidentCommand,
+  IncidentLocationInput,
+  IncidentMutationResult,
+  IncidentOwner,
+  IncidentRegister,
+  IncidentRelatedRef,
+  IncidentSeverity,
+  IncidentStatus,
+  LiveOccupancyMonitor,
+  OccupancyMutationCommand,
+  OccupancyPolicy,
+  OccupancySimulationBaseline,
+} from "../src/domain/operational-types.ts";
 
 export { createD1AccountRepository, createMemoryAccountRepository } from "./account-repository.ts";
 export { createStaticIdentityProvider } from "./authentication.ts";
@@ -40,16 +80,23 @@ type RunbookRepository = ReturnType<typeof createD1RunbookRepository>;
 type OccupancyRepository = ReturnType<typeof createD1OccupancyRepository>;
 type IncidentRepository = ReturnType<typeof createD1IncidentRepository>;
 type IncidentAttachmentService = ReturnType<typeof createIncidentAttachmentService>;
-type EmailDelivery = { send: (message: { idempotencyKey: string; to: string; bodyCode: string; refs: Record<string, string | number> }) => Promise<{ delivered: boolean; providerMessageId?: string }> };
+type EmailDelivery = {
+  send: (message: {
+    idempotencyKey: string;
+    to: string;
+    bodyCode: string;
+    refs: NotificationRefs;
+  }) => Promise<{ delivered: boolean; providerMessageId?: string }>;
+};
 type WorkerEnv = CloudflareEnv & { EMAIL_DELIVERY?: EmailDelivery; INCIDENT_EVIDENCE: R2Bucket };
 type WorkerOptions = {
-  createProjectRepository?: (db: unknown) => ProjectRepository;
-  createAccountRepository?: (db: unknown) => AccountRepository;
-  createCollaborationRepository?: (db: unknown) => CollaborationRepository;
-  createSharingRepository?: (db: unknown) => SharingRepository;
-  createRunbookRepository?: (db: unknown) => RunbookRepository;
-  createOccupancyRepository?: (db: unknown) => OccupancyRepository;
-  createIncidentRepository?: (db: unknown) => IncidentRepository;
+  createProjectRepository?: (db: D1Database) => ProjectRepository;
+  createAccountRepository?: (db: D1Database) => AccountRepository;
+  createCollaborationRepository?: (db: D1Database) => CollaborationRepository;
+  createSharingRepository?: (db: D1Database) => SharingRepository;
+  createRunbookRepository?: (db: D1Database) => RunbookRepository;
+  createOccupancyRepository?: (db: D1Database) => OccupancyRepository;
+  createIncidentRepository?: (db: D1Database) => IncidentRepository;
   createIncidentAttachmentService?: (bucket: R2Bucket) => IncidentAttachmentService;
   identityProvider?: IdentityProvider;
   emailDelivery?: EmailDelivery;
@@ -59,31 +106,389 @@ type WorkerOptions = {
 
 const SESSION_COOKIE = "venuemind_session";
 const DEMO_IDENTITY_COOKIE = "venuemind_demo_identity";
-const json = (value: unknown, init: ResponseInit = {}) => new Response(JSON.stringify(value), {
-  ...init,
-  headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...init.headers },
-});
-const apiError = (status: number, code: string, message: string, details?: unknown, headers?: HeadersInit) => json({ error: message, code, ...(details === undefined ? {} : { details }) }, { status, headers });
+const RUNBOOK_WRITE_ROLES: readonly OrganizationRole[] = [
+  "planner",
+  "venue-administrator",
+  "organization-administrator",
+];
+const INCIDENT_WRITE_ROLES: readonly OrganizationRole[] = [
+  "planner",
+  "safety-officer",
+  "venue-administrator",
+  "organization-administrator",
+];
+const INCIDENT_EXPORT_ROLES: readonly OrganizationRole[] = [
+  "reviewer",
+  "approver",
+  "safety-officer",
+  "venue-administrator",
+  "organization-administrator",
+];
+const SHARE_MANAGEMENT_ROLES: readonly OrganizationRole[] = ["venue-administrator", "organization-administrator"];
+const hasRole = (available: readonly OrganizationRole[], required: readonly OrganizationRole[]): boolean =>
+  required.some((role) => available.includes(role));
+const isOrganizationRole = (value: unknown): value is OrganizationRole =>
+  typeof value === "string" && ORGANIZATION_ROLES.some((role) => role === value);
+const isShareScope = (value: unknown): value is ShareScope => SHARE_SCOPES.some((scope) => scope === value);
+const json = (value: unknown, init: ResponseInit = {}) => {
+  const headers = new Headers({ "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+  new Headers(init.headers).forEach((headerValue, headerName) => headers.set(headerName, headerValue));
+  return new Response(JSON.stringify(value), { ...init, headers });
+};
+const apiError = (status: number, code: string, message: string, details?: unknown, headers?: HeadersInit) =>
+  json(
+    { error: message, code, ...(details === undefined ? {} : { details }) },
+    { status, ...(headers === undefined ? {} : { headers }) },
+  );
 const projectIdFrom = (pathname: string) => decodeURIComponent(pathname.slice("/api/projects/".length));
-const cookieValue = (request: Request, name: string) => request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${name}=`))?.slice(name.length + 1) ?? null;
-const sessionCookie = (id: string, secure: boolean) => `${SESSION_COOKIE}=${encodeURIComponent(id)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=43200${secure ? "; Secure" : ""}`;
-const clearedSessionCookie = (secure: boolean) => `${SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure ? "; Secure" : ""}`;
+const pathCapture = (match: RegExpMatchArray, index: number): string => {
+  const value = match[index];
+  if (value === undefined) throw new TypeError("Route capture is missing");
+  return decodeURIComponent(value);
+};
+const cookieValue = (request: Request, name: string) =>
+  request.headers
+    .get("cookie")
+    ?.split(";")
+    .map((item) => item.trim())
+    .find((item) => item.startsWith(`${name}=`))
+    ?.slice(name.length + 1) ?? null;
+const sessionCookie = (id: string, secure: boolean) =>
+  `${SESSION_COOKIE}=${encodeURIComponent(id)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=43200${secure ? "; Secure" : ""}`;
+const clearedSessionCookie = (secure: boolean) =>
+  `${SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure ? "; Secure" : ""}`;
 const anonymousDemoIdentity = (request: Request, secure: boolean) => {
   const suppliedSubject = cookieValue(request, DEMO_IDENTITY_COOKIE);
-  const subject = suppliedSubject && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(suppliedSubject)
-    ? suppliedSubject
-    : crypto.randomUUID();
+  const subject =
+    suppliedSubject && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(suppliedSubject)
+      ? suppliedSubject
+      : crypto.randomUUID();
   return {
-    identity: createAuthenticatedIdentity({ provider: "anonymous-demo", subject, email: `demo+${subject}@venuemind.invalid`, displayName: "Guest Planner" }),
-    cookie: suppliedSubject === subject ? null : `${DEMO_IDENTITY_COOKIE}=${subject}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000${secure ? "; Secure" : ""}`,
+    identity: createAuthenticatedIdentity({
+      provider: "anonymous-demo",
+      subject,
+      email: `demo+${subject}@venuemind.invalid`,
+      displayName: "Guest Planner",
+    }),
+    cookie:
+      suppliedSubject === subject
+        ? null
+        : `${DEMO_IDENTITY_COOKIE}=${subject}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000${secure ? "; Secure" : ""}`,
   };
 };
-const readBody = async <T>(request: Request): Promise<T> => {
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+const readBody = async (request: Request): Promise<unknown> => {
   if (Number(request.headers.get("content-length") ?? 0) > 2_000_000) throw new Error("PAYLOAD_TOO_LARGE");
   const text = await request.text();
   if (new TextEncoder().encode(text).byteLength > 2_000_000) throw new Error("PAYLOAD_TOO_LARGE");
-  return JSON.parse(text) as T;
+  const parsed: unknown = JSON.parse(text);
+  return parsed;
 };
+const readObjectBody = async (request: Request): Promise<Record<string, unknown>> => {
+  const body = await readBody(request);
+  if (!isRecord(body)) throw new TypeError("JSON body must be an object");
+  return body;
+};
+const errorInfo = (cause: unknown): { code?: string; message?: string; details?: unknown } => {
+  if (!isRecord(cause)) return cause instanceof Error ? { message: cause.message } : {};
+  return {
+    ...(typeof cause.code === "string" ? { code: cause.code } : {}),
+    ...(typeof cause.message === "string" ? { message: cause.message } : {}),
+    ...(cause.details === undefined ? {} : { details: cause.details }),
+  };
+};
+const occupancySimulation = (value: unknown): OccupancySimulationBaseline | null => {
+  if (value == null) return null;
+  if (
+    !isRecord(value) ||
+    typeof value.runId !== "string" ||
+    typeof value.planFingerprint !== "string" ||
+    !Array.isArray(value.expectedPeakByScope)
+  ) {
+    throw venueError("OCCUPANCY_BASELINE_INVALID", { reason: "simulation-shape-invalid" });
+  }
+  const expectedPeakByScope = value.expectedPeakByScope.map((item) => {
+    if (!isRecord(item) || typeof item.scopeId !== "string" || typeof item.count !== "number")
+      throw venueError("OCCUPANCY_BASELINE_INVALID", { reason: "simulation-scope-invalid" });
+    return { scopeId: item.scopeId, count: item.count };
+  });
+  return { runId: value.runId, planFingerprint: value.planFingerprint, expectedPeakByScope };
+};
+const occupancyPolicy = (value: unknown): Partial<OccupancyPolicy> | undefined => {
+  if (value === undefined) return undefined;
+  if (!isRecord(value)) throw venueError("OCCUPANCY_BASELINE_INVALID", { reason: "policy-shape-invalid" });
+  const numeric = (key: keyof OccupancyPolicy): number | undefined => {
+    const candidate = value[key];
+    if (candidate === undefined) return undefined;
+    if (typeof candidate !== "number" || !Number.isFinite(candidate))
+      throw venueError("OCCUPANCY_BASELINE_INVALID", { reason: "policy-value-invalid", field: key });
+    return candidate;
+  };
+  const freshAfterSeconds = numeric("freshAfterSeconds");
+  const staleAfterSeconds = numeric("staleAfterSeconds");
+  const warningRatio = numeric("warningRatio");
+  const conflictTolerancePersons = numeric("conflictTolerancePersons");
+  const conflictToleranceRatio = numeric("conflictToleranceRatio");
+  return {
+    ...(freshAfterSeconds === undefined ? {} : { freshAfterSeconds }),
+    ...(staleAfterSeconds === undefined ? {} : { staleAfterSeconds }),
+    ...(warningRatio === undefined ? {} : { warningRatio }),
+    ...(conflictTolerancePersons === undefined ? {} : { conflictTolerancePersons }),
+    ...(conflictToleranceRatio === undefined ? {} : { conflictToleranceRatio }),
+  };
+};
+const occupancySignal = (value: unknown): AggregateOccupancySignal => {
+  if (
+    !isRecord(value) ||
+    typeof value.sourceId !== "string" ||
+    (value.sourceType !== "registration" && value.sourceType !== "sensor" && value.sourceType !== "manual-counter") ||
+    typeof value.sourceVersion !== "string" ||
+    (value.kind !== "check-in" && value.kind !== "zone-occupancy") ||
+    typeof value.observedAt !== "string" ||
+    (value.confidence !== "low" && value.confidence !== "medium" && value.confidence !== "high") ||
+    !Array.isArray(value.readings)
+  )
+    throw venueError("OCCUPANCY_SIGNAL_INVALID", { reason: "signal-shape-invalid" });
+  const readings = value.readings.map((item) => {
+    if (!isRecord(item) || typeof item.scopeId !== "string" || typeof item.count !== "number")
+      throw venueError("OCCUPANCY_SIGNAL_INVALID", { reason: "reading-shape-invalid" });
+    return { scopeId: item.scopeId, count: item.count };
+  });
+  return {
+    sourceId: value.sourceId,
+    sourceType: value.sourceType,
+    sourceVersion: value.sourceVersion,
+    kind: value.kind,
+    observedAt: value.observedAt,
+    confidence: value.confidence,
+    readings,
+  };
+};
+const occupancyMutationCommand = (
+  value: Record<string, unknown>,
+  actorId: string,
+  sessionId: string,
+  committedAt: string,
+): OccupancyMutationCommand => {
+  if (
+    typeof value.expectedRevision !== "number" ||
+    !Number.isSafeInteger(value.expectedRevision) ||
+    typeof value.idempotencyKey !== "string"
+  ) {
+    throw venueError("OCCUPANCY_SIGNAL_INVALID", { reason: "command-context-invalid" });
+  }
+  const context = {
+    expectedRevision: value.expectedRevision,
+    idempotencyKey: value.idempotencyKey,
+    actorType: "human" as const,
+    actorId,
+    source: "studio" as const,
+    sessionId,
+    committedAt,
+    ...(typeof value.operationId === "string" ? { operationId: value.operationId } : {}),
+    ...(typeof value.correlationId === "string" ? { correlationId: value.correlationId } : {}),
+    ...(typeof value.clientId === "string" ? { clientId: value.clientId } : {}),
+    ...(typeof value.clientSequence === "number" ? { clientSequence: value.clientSequence } : {}),
+    ...(typeof value.clientOccurredAt === "string" ? { clientOccurredAt: value.clientOccurredAt } : {}),
+    ...(typeof value.deviceOccurredAt === "string" ? { deviceOccurredAt: value.deviceOccurredAt } : {}),
+    ...(typeof value.deviceId === "string" ? { deviceId: value.deviceId } : {}),
+  };
+  if (value.type === "ingest_occupancy_signal")
+    return { ...context, type: value.type, signal: occupancySignal(value.signal) };
+  if (value.type === "refresh_live_occupancy") return { ...context, type: value.type, evaluatedAt: committedAt };
+  if (
+    value.type === "acknowledge_occupancy_alert" &&
+    typeof value.alertId === "string" &&
+    typeof value.reasonCode === "string"
+  )
+    return { ...context, type: value.type, alertId: value.alertId, reasonCode: value.reasonCode };
+  throw venueError("COMMAND_UNSUPPORTED", { commandType: typeof value.type === "string" ? value.type : null });
+};
+const requiredIncidentString = (value: unknown, field: string): string => {
+  if (typeof value !== "string" || !value.trim())
+    throw venueError("INCIDENT_INVALID", { reason: "field-required", field });
+  return value;
+};
+const requiredIncidentRevision = (value: unknown): number => {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0)
+    throw venueError("INCIDENT_INVALID", { reason: "incident-revision-invalid" });
+  return value;
+};
+const incidentSeverity = (value: unknown): IncidentSeverity => {
+  if (value !== "low" && value !== "medium" && value !== "high" && value !== "critical")
+    throw venueError("INCIDENT_INVALID", { reason: "severity-invalid" });
+  return value;
+};
+const incidentCategory = (value: unknown): IncidentCategory => {
+  const categories: readonly IncidentCategory[] = [
+    "accessibility",
+    "crowd-capacity",
+    "medical",
+    "security",
+    "fire-life-safety",
+    "facilities",
+    "production-av",
+    "catering",
+    "staffing",
+    "transport",
+    "weather",
+    "other",
+  ];
+  const category = categories.find((candidate) => candidate === value);
+  if (!category) throw venueError("INCIDENT_INVALID", { reason: "category-invalid" });
+  return category;
+};
+const incidentStatus = (value: unknown): IncidentStatus => {
+  if (value !== "open" && value !== "mitigating" && value !== "resolved" && value !== "closed")
+    throw venueError("INCIDENT_INVALID", { reason: "status-invalid" });
+  return value;
+};
+const incidentLocation = (value: unknown): IncidentLocationInput => {
+  if (!isRecord(value)) throw venueError("INCIDENT_INVALID", { reason: "location-invalid" });
+  if (value.kind === "plan-object")
+    return { kind: "plan-object", planObjectId: requiredIncidentString(value.planObjectId, "location.planObjectId") };
+  if (
+    value.kind === "coordinate" &&
+    isRecord(value.point) &&
+    typeof value.point.x === "number" &&
+    Number.isFinite(value.point.x) &&
+    typeof value.point.y === "number" &&
+    Number.isFinite(value.point.y)
+  ) {
+    return { kind: "coordinate", point: { x: value.point.x, y: value.point.y } };
+  }
+  throw venueError("INCIDENT_INVALID", { reason: "location-invalid" });
+};
+const incidentOwner = (value: unknown, field: string): IncidentOwner => {
+  if (!isRecord(value)) throw venueError("INCIDENT_INVALID", { reason: "owner-invalid", field });
+  return {
+    roleId: requiredIncidentString(value.roleId, `${field}.roleId`),
+    ...(typeof value.shiftId === "string" ? { shiftId: value.shiftId } : {}),
+    ...(typeof value.staffPostObjectId === "string" ? { staffPostObjectId: value.staffPostObjectId } : {}),
+    ...(typeof value.assignmentId === "string" ? { assignmentId: value.assignmentId } : {}),
+  };
+};
+const incidentRelatedRefs = (value: unknown, field: string): readonly IncidentRelatedRef[] => {
+  if (!Array.isArray(value)) throw venueError("INCIDENT_INVALID", { reason: "references-invalid", field });
+  return value.map((item) => {
+    if (
+      !isRecord(item) ||
+      (item.kind !== "occupancy-alert" && item.kind !== "runbook-task" && item.kind !== "plan-object")
+    )
+      throw venueError("INCIDENT_INVALID", { reason: "reference-invalid", field });
+    return { kind: item.kind, id: requiredIncidentString(item.id, `${field}.id`) };
+  });
+};
+const incidentStrings = (value: unknown, field: string): readonly string[] => {
+  if (!Array.isArray(value)) throw venueError("INCIDENT_INVALID", { reason: "list-invalid", field });
+  return value.map((item) => requiredIncidentString(item, field));
+};
+const incidentMutationCommand = (
+  value: Record<string, unknown>,
+  actorId: string,
+  sessionId: string,
+  committedAt: string,
+  source: "studio" | "webmcp",
+  authorityRole: OrganizationRole | null,
+): IncidentCommand => {
+  const type = value.type;
+  const context = {
+    actorType: "human" as const,
+    actorId,
+    source,
+    sessionId,
+    committedAt,
+    idempotencyKey: requiredIncidentString(value.idempotencyKey, "idempotencyKey"),
+  };
+  const incidentId = requiredIncidentString(value.incidentId, "incidentId");
+  if (type === "report_incident") {
+    const relatedRefs =
+      value.relatedRefs === undefined ? undefined : incidentRelatedRefs(value.relatedRefs, "relatedRefs");
+    return {
+      ...context,
+      type,
+      incidentId,
+      severity: incidentSeverity(value.severity),
+      category: incidentCategory(value.category),
+      summaryCode: requiredIncidentString(value.summaryCode, "summaryCode"),
+      location: incidentLocation(value.location),
+      ...(relatedRefs === undefined ? {} : { relatedRefs }),
+    };
+  }
+  const expectedIncidentRevision = requiredIncidentRevision(value.expectedIncidentRevision);
+  const mutationContext = { ...context, incidentId, expectedIncidentRevision };
+  if (type === "classify_incident")
+    return {
+      ...mutationContext,
+      type,
+      severity: incidentSeverity(value.severity),
+      category: incidentCategory(value.category),
+      summaryCode: requiredIncidentString(value.summaryCode, "summaryCode"),
+    };
+  if (type === "set_incident_owner") return { ...mutationContext, type, owner: incidentOwner(value.owner, "owner") };
+  if (type === "acknowledge_incident")
+    return { ...mutationContext, type, reasonCode: requiredIncidentString(value.reasonCode, "reasonCode") };
+  if (
+    type === "escalate_incident" &&
+    (value.level === "team" || value.level === "venue-command" || value.level === "emergency-response")
+  )
+    return {
+      ...mutationContext,
+      type,
+      level: value.level,
+      reasonCode: requiredIncidentString(value.reasonCode, "reasonCode"),
+    };
+  if (type === "relocate_incident")
+    return {
+      ...mutationContext,
+      type,
+      location: incidentLocation(value.location),
+      reasonCode: requiredIncidentString(value.reasonCode, "reasonCode"),
+    };
+  if (type === "transition_incident_status")
+    return {
+      ...mutationContext,
+      type,
+      toStatus: incidentStatus(value.toStatus),
+      ...(typeof value.reasonCode === "string" ? { reasonCode: value.reasonCode } : {}),
+      ...(typeof value.resolutionCode === "string" ? { resolutionCode: value.resolutionCode } : {}),
+    };
+  if (type === "handoff_incident")
+    return {
+      ...mutationContext,
+      type,
+      fromOwner: incidentOwner(value.fromOwner, "fromOwner"),
+      toOwner: incidentOwner(value.toOwner, "toOwner"),
+      openActionCodes: incidentStrings(value.openActionCodes, "openActionCodes"),
+      evidenceRefs: incidentRelatedRefs(value.evidenceRefs, "evidenceRefs"),
+    };
+  if (type === "record_incident_emergency_action") {
+    if (!authorityRole) throw venueError("AUTHORIZATION_DENIED", { permission: "incident.emergency-act" });
+    return {
+      ...mutationContext,
+      type,
+      actionCode: requiredIncidentString(value.actionCode, "actionCode"),
+      targetObjectIds: incidentStrings(value.targetObjectIds, "targetObjectIds"),
+      ...(typeof value.scenarioDefinitionId === "string" ? { scenarioDefinitionId: value.scenarioDefinitionId } : {}),
+      authorityRole,
+    };
+  }
+  throw venueError("COMMAND_UNSUPPORTED", { commandType: typeof type === "string" ? type : null });
+};
+const isIncidentRegister = (value: unknown): value is IncidentRegister =>
+  isRecord(value) &&
+  value.schemaVersion === 1 &&
+  typeof value.id === "string" &&
+  typeof value.projectId === "string" &&
+  Array.isArray(value.incidents) &&
+  typeof value.revision === "number";
+const isIncidentMutationResult = (value: unknown): value is IncidentMutationResult =>
+  isRecord(value) &&
+  isIncidentRegister(value.register) &&
+  isRecord(value.incident) &&
+  isRecord(value.receipt) &&
+  typeof value.duplicate === "boolean";
 const safeMutationOrigin = (request: Request, env: WorkerEnv) => {
   if (["GET", "HEAD", "OPTIONS"].includes(request.method)) return true;
   const origin = request.headers.get("origin");
@@ -91,43 +496,88 @@ const safeMutationOrigin = (request: Request, env: WorkerEnv) => {
   try {
     const normalized = new URL(origin).origin;
     if (normalized === new URL(request.url).origin) return true;
-    return (env.VENUEMIND_APP_ORIGINS ?? "").split(",").map((value) => value.trim()).filter(Boolean).includes(normalized);
-  } catch { return false; }
+    return (env.VENUEMIND_APP_ORIGINS ?? "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .includes(normalized);
+  } catch {
+    return false;
+  }
 };
-const retainedProposals = (snapshot: { proposal?: { id?: string }; branches?: Array<{ proposal?: { id?: string }; revisions?: Array<{ id?: string }> }> }) => {
-  const proposals = [snapshot.proposal, ...(snapshot.branches ?? []).flatMap((branch) => [branch.proposal, ...(branch.revisions ?? [])])].filter((proposal): proposal is { id?: string } => Boolean(proposal));
+const retainedProposals = (snapshot: {
+  proposal?: { id?: string };
+  branches?: Array<{ proposal?: { id?: string }; revisions?: Array<{ id?: string }> }>;
+}) => {
+  const proposals = [
+    snapshot.proposal,
+    ...(snapshot.branches ?? []).flatMap((branch) => [branch.proposal, ...(branch.revisions ?? [])]),
+  ].filter((proposal): proposal is { id?: string } => Boolean(proposal));
   return [...new Map(proposals.filter((proposal) => proposal.id).map((proposal) => [proposal.id, proposal])).values()];
 };
 
 export function createWorker(options: WorkerOptions = {}) {
-  const projectRepositoryFactory = options.createProjectRepository ?? ((db) => createD1ProjectRepository(db as never));
-  const accountRepositoryFactory = options.createAccountRepository ?? ((db) => createD1AccountRepository(db as never));
+  const projectRepositoryFactory = options.createProjectRepository ?? createD1ProjectRepository;
+  const accountRepositoryFactory = options.createAccountRepository ?? createD1AccountRepository;
   const memoryCollaboration = createMemoryCollaborationRepository({ clock: options.clock });
-  const collaborationRepositoryFactory = options.createCollaborationRepository ?? (options.createProjectRepository ? (() => memoryCollaboration as never) : ((db) => createD1CollaborationRepository(db as never)));
+  const collaborationRepositoryFactory =
+    options.createCollaborationRepository ??
+    (options.createProjectRepository ? () => memoryCollaboration : createD1CollaborationRepository);
   const memorySharing = createMemorySharingRepository();
-  const sharingRepositoryFactory = options.createSharingRepository ?? (options.createProjectRepository ? (() => memorySharing as never) : ((db) => createD1SharingRepository(db as never)));
+  const sharingRepositoryFactory =
+    options.createSharingRepository ??
+    (options.createProjectRepository ? () => memorySharing : createD1SharingRepository);
   const identityProvider = options.identityProvider ?? createStaticIdentityProvider(null);
   const secureCookies = options.secureCookies ?? true;
   const clock = options.clock ?? (() => new Date().toISOString());
-  const runbookRepositoryFactory = options.createRunbookRepository ?? ((db) => createD1RunbookRepository(db as never, { clock }));
-  const occupancyRepositoryFactory = options.createOccupancyRepository ?? ((db) => createD1OccupancyRepository(db as never));
-  const incidentRepositoryFactory = options.createIncidentRepository ?? ((db) => createD1IncidentRepository(db as never));
-  const incidentAttachmentServiceFactory = options.createIncidentAttachmentService ?? ((bucket) => createIncidentAttachmentService({ bucket, clock }));
+  const runbookRepositoryFactory =
+    options.createRunbookRepository ?? ((db) => createD1RunbookRepository(db, { clock }));
+  const occupancyRepositoryFactory = options.createOccupancyRepository ?? createD1OccupancyRepository;
+  const incidentRepositoryFactory = options.createIncidentRepository ?? createD1IncidentRepository;
+  const incidentAttachmentServiceFactory =
+    options.createIncidentAttachmentService ?? ((bucket) => createIncidentAttachmentService({ bucket, clock }));
 
-  const appendShareLedger = async (env: WorkerEnv, organizationId: string, actorUserId: string, sessionId: string, record: ProjectRecord, command: Record<string, unknown>) => {
+  const appendShareLedger = async (
+    env: WorkerEnv,
+    organizationId: string,
+    actorUserId: string,
+    sessionId: string,
+    record: ProjectRecord,
+    command: PlannerCommand,
+  ) => {
     const projects = projectRepositoryFactory(env.DB);
     let current = record;
     for (let attempt = 0; attempt < 4; attempt += 1) {
-      const snapshot = current.snapshot as { plan: Record<string, unknown>; brief: unknown; proposal: unknown };
-      const planner = createVenuePlanner({ ...snapshot.plan, brief: snapshot.brief, proposal: snapshot.proposal }, { projectId: current.id });
-      planner.execute({ type: "restore_snapshot", snapshot: current.snapshot });
-      planner.execute(command);
+      const snapshot = current.snapshot;
+      const planner = createVenuePlanner(
+        { ...snapshot.plan, brief: snapshot.brief, proposal: snapshot.proposal },
+        { projectId: current.id },
+      );
+      await planner.execute({ type: "restore_snapshot", snapshot: current.snapshot });
+      await planner.execute(command);
       try {
-        const saved = await projects.put(organizationId, { ...current, snapshot: planner.getSnapshot(), updatedAt: clock() }, { expectedRevision: current.revision });
-        await collaborationRepositoryFactory(env.DB).append({ organizationId, projectId: current.id, type: "ledger.appended", actorUserId, sessionId, projectRevision: saved.revision, payload: collaborationEventPayload("ledger.appended", current, saved), occurredAt: clock() });
+        const saved = await projects.put(
+          organizationId,
+          { ...current, snapshot: planner.getSnapshot(), updatedAt: clock() },
+          { expectedRevision: current.revision },
+        );
+        await collaborationRepositoryFactory(env.DB).append({
+          organizationId,
+          projectId: current.id,
+          type: "ledger.appended",
+          actorUserId,
+          sessionId,
+          projectRevision: saved.revision,
+          payload: collaborationEventPayload("ledger.appended", current, saved),
+          occurredAt: clock(),
+        });
         return saved;
       } catch (cause) {
-        if (!(cause instanceof ProjectRevisionConflict) && (!(cause instanceof Error) || cause.message !== "PROJECT_REVISION_CONFLICT")) throw cause;
+        if (
+          !(cause instanceof ProjectRevisionConflict) &&
+          (!(cause instanceof Error) || cause.message !== "PROJECT_REVISION_CONFLICT")
+        )
+          throw cause;
         const latest = await projects.get(organizationId, current.id);
         if (!latest) throw cause;
         current = latest;
@@ -136,7 +586,10 @@ export function createWorker(options: WorkerOptions = {}) {
     throw new ProjectRevisionConflict(await projects.get(organizationId, record.id));
   };
 
-  const reconcileShareOperations = async (env: WorkerEnv, filter: { organizationId?: string; projectId?: string; linkId?: string; limit?: number } = {}) => {
+  const reconcileShareOperations = async (
+    env: WorkerEnv,
+    filter: { organizationId?: string; projectId?: string; linkId?: string; limit?: number } = {},
+  ) => {
     const sharing = sharingRepositoryFactory(env.DB);
     const projects = projectRepositoryFactory(env.DB);
     const pending = await sharing.pendingLinkOperations(filter);
@@ -146,18 +599,59 @@ export function createWorker(options: WorkerOptions = {}) {
         const current = await projects.get(link.organizationId, link.projectId);
         if (!current) throw new Error("PROJECT_NOT_FOUND");
         if (link.lifecycleState === "pending-create") {
-          const saved = await appendShareLedger(env, link.organizationId, link.createdBy, `share-reconcile-${link.id}`, current, { type: "record_share_link_created", shareLinkId: link.id, scope: link.scope, proposalId: link.proposalId, expiresAt: link.expiresAt, actor: "human", actorId: link.createdBy, idempotencyKey: `share-create-${link.id}`, source: "studio", sessionId: `share-reconcile-${link.id}` });
+          const saved = await appendShareLedger(
+            env,
+            link.organizationId,
+            link.createdBy,
+            `share-reconcile-${link.id}`,
+            current,
+            {
+              type: "record_share_link_created",
+              shareLinkId: link.id,
+              scope: link.scope,
+              ...(link.proposalId === null ? {} : { proposalId: link.proposalId }),
+              expiresAt: link.expiresAt,
+              actor: "human",
+              actorId: link.createdBy,
+              idempotencyKey: `share-create-${link.id}`,
+              source: "studio",
+              sessionId: `share-reconcile-${link.id}`,
+            },
+          );
           await sharing.markLinkCreated(link.id, clock());
           results.push({ id: link.id, status: "active", projectRevision: saved.revision });
         } else {
           const actorId = link.revokedBy ?? link.createdBy;
-          const saved = await appendShareLedger(env, link.organizationId, actorId, `share-reconcile-${link.id}`, current, { type: "record_share_link_revoked", shareLinkId: link.id, reasonCode: "operator-revoked", actor: "human", actorId, idempotencyKey: `share-revoke-${link.id}`, source: "studio", sessionId: `share-reconcile-${link.id}` });
+          const saved = await appendShareLedger(
+            env,
+            link.organizationId,
+            actorId,
+            `share-reconcile-${link.id}`,
+            current,
+            {
+              type: "record_share_link_revoked",
+              shareLinkId: link.id,
+              reasonCode: "operator-revoked",
+              actor: "human",
+              actorId,
+              idempotencyKey: `share-revoke-${link.id}`,
+              source: "studio",
+              sessionId: `share-reconcile-${link.id}`,
+            },
+          );
           await sharing.markLinkRevoked(link.id, clock());
           results.push({ id: link.id, status: "revoked", projectRevision: saved.revision });
         }
       } catch (cause) {
-        const code = (cause instanceof Error ? cause.message : "SHARE_RECONCILIATION_FAILED").toUpperCase().replace(/[^A-Z0-9_:-]/g, "_").slice(0, 80);
-        try { await sharing.recordLinkOperationFailure(link.id, code || "SHARE_RECONCILIATION_FAILED"); } catch { /* a later sweep retries */ }
+        const code = (cause instanceof Error ? cause.message : "SHARE_RECONCILIATION_FAILED")
+          .toUpperCase()
+          .replace(/[^A-Z0-9_:-]/g, "_")
+          .slice(0, 80);
+        try {
+          await sharing.recordLinkOperationFailure(link.id, code || "SHARE_RECONCILIATION_FAILED");
+        } catch {
+          /* a later sweep retries */
+        }
         results.push({ id: link.id, status: link.lifecycleState, error: code });
       }
     }
@@ -167,27 +661,44 @@ export function createWorker(options: WorkerOptions = {}) {
   return {
     async fetch(request: Request, env: WorkerEnv) {
       const url = new URL(request.url);
-      if (url.pathname === "/api/health" && request.method === "GET") return json({ status: "ok", service: "venue-mind-api" });
+      if (url.pathname === "/api/health" && request.method === "GET")
+        return json({ status: "ok", service: "venue-mind-api" });
       const publicShareMatch = url.pathname.match(/^\/api\/share\/([0-9a-f]{64})$/);
       if (publicShareMatch && request.method === "GET") {
         const sharing = sharingRepositoryFactory(env.DB);
-        const tokenHash = await hashShareToken(publicShareMatch[1]);
+        const tokenHash = await hashShareToken(pathCapture(publicShareMatch, 1));
         let link = await sharing.resolveLink(tokenHash, clock());
         if (link && ["pending-create", "pending-revoke"].includes(link.lifecycleState)) {
           await reconcileShareOperations(env, { linkId: link.id, limit: 1 });
           link = await sharing.resolveLink(tokenHash, clock());
         }
-        if (!link || link.status !== "active" || !SHARE_SCOPES.includes(link.scope as never)) return apiError(404, "SHARE_LINK_UNAVAILABLE", "Share link unavailable");
-        if ((link.scope === "reviewer") !== Boolean(link.proposalId)) return apiError(404, "SHARE_LINK_UNAVAILABLE", "Share link unavailable");
+        if (!link || link.status !== "active") return apiError(404, "SHARE_LINK_UNAVAILABLE", "Share link unavailable");
+        if ((link.scope === "reviewer") !== Boolean(link.proposalId))
+          return apiError(404, "SHARE_LINK_UNAVAILABLE", "Share link unavailable");
         const record = await projectRepositoryFactory(env.DB).get(link.organizationId, link.projectId);
         if (!record) return apiError(404, "SHARE_LINK_UNAVAILABLE", "Share link unavailable");
-        const snapshot = record.snapshot as { plan?: unknown; proposal?: { id?: string }; branches?: Array<{ proposal?: { id?: string }; revisions?: Array<{ id?: string }> }> };
+        const snapshot = record.snapshot;
         const proposals = retainedProposals(snapshot);
-        const proposal = link.scope === "reviewer" ? proposals.find((item: { id?: string }) => item.id === link.proposalId) ?? null : null;
-        if (link.scope === "reviewer" && !proposal) return apiError(404, "SHARE_LINK_UNAVAILABLE", "Share link unavailable");
-        return json({ shareLinkId: link.id, scope: link.scope, expiresAt: link.expiresAt, project: { id: record.id, name: record.name, revision: record.revision }, plan: snapshot.plan, ...(proposal ? { proposal } : {}) }, { headers: { "referrer-policy": "no-referrer", "x-content-type-options": "nosniff" } });
+        const proposal =
+          link.scope === "reviewer"
+            ? (proposals.find((item: { id?: string }) => item.id === link.proposalId) ?? null)
+            : null;
+        if (link.scope === "reviewer" && !proposal)
+          return apiError(404, "SHARE_LINK_UNAVAILABLE", "Share link unavailable");
+        return json(
+          {
+            shareLinkId: link.id,
+            scope: link.scope,
+            expiresAt: link.expiresAt,
+            project: { id: record.id, name: record.name, revision: record.revision },
+            plan: snapshot.plan,
+            ...(proposal ? { proposal } : {}),
+          },
+          { headers: { "referrer-policy": "no-referrer", "x-content-type-options": "nosniff" } },
+        );
       }
-      if (!url.pathname.startsWith("/api/")) return apiError(404, "API_ROUTE_REQUIRED", "This service exposes VenueMind API routes only");
+      if (!url.pathname.startsWith("/api/"))
+        return apiError(404, "API_ROUTE_REQUIRED", "This service exposes VenueMind API routes only");
 
       if (!safeMutationOrigin(request, env)) return apiError(403, "ORIGIN_DENIED", "Cross-origin mutation denied");
       const accounts = accountRepositoryFactory(env.DB);
@@ -218,16 +729,24 @@ export function createWorker(options: WorkerOptions = {}) {
         for (const cookie of setCookies) response.headers.append("set-cookie", cookie);
         return response;
       };
-      const requestedOrganizationId = request.headers.get("x-venuemind-organization-id")?.trim() || (url.pathname.endsWith("/collaboration") || url.pathname.endsWith("/presence") ? url.searchParams.get("organizationId")?.trim() : null) || null;
-      const organization = requestedOrganizationId ? account.organizations.find((item) => item.id === requestedOrganizationId) : account.organizations[0];
+      const requestedOrganizationId =
+        request.headers.get("x-venuemind-organization-id")?.trim() ||
+        (url.pathname.endsWith("/collaboration") || url.pathname.endsWith("/presence")
+          ? url.searchParams.get("organizationId")?.trim()
+          : null) ||
+        null;
+      const organization = requestedOrganizationId
+        ? account.organizations.find((item) => item.id === requestedOrganizationId)
+        : account.organizations[0];
       const admin = organization ? isOrganizationAdministrator({ status: "active", roles: organization.roles }) : false;
 
-      if (url.pathname === "/api/session" && request.method === "GET") return respond({
-        user: { id: account.user.id, email: account.user.email, displayName: account.user.displayName },
-        session: { id: account.session.id, expiresAt: account.session.expiresAt },
-        organizations: account.organizations,
-        activeOrganizationId: organization?.id ?? null,
-      });
+      if (url.pathname === "/api/session" && request.method === "GET")
+        return respond({
+          user: { id: account.user.id, email: account.user.email, displayName: account.user.displayName },
+          session: { id: account.session.id, expiresAt: account.session.expiresAt },
+          organizations: account.organizations,
+          activeOrganizationId: organization?.id ?? null,
+        });
 
       if (url.pathname === "/api/session/revoke" && request.method === "POST") {
         await accounts.revokeSession(account.session.id);
@@ -237,16 +756,28 @@ export function createWorker(options: WorkerOptions = {}) {
       }
 
       if (url.pathname === "/api/organizations" && request.method === "POST") {
-        const body = await readBody<{ name?: string; slug?: string }>(request);
-        if (!body.name?.trim() || !/^[a-z0-9][a-z0-9-]{1,62}$/.test(body.slug?.trim() ?? "")) return apiError(400, "ORGANIZATION_INVALID", "Organization name and slug are required");
-        return respond(await accounts.createOrganization(account.user.id, { name: body.name, slug: body.slug! }), { status: 201 });
+        const body = await readObjectBody(request);
+        if (
+          typeof body.name !== "string" ||
+          !body.name.trim() ||
+          typeof body.slug !== "string" ||
+          !/^[a-z0-9][a-z0-9-]{1,62}$/.test(body.slug.trim())
+        )
+          return apiError(400, "ORGANIZATION_INVALID", "Organization name and slug are required");
+        return respond(await accounts.createOrganization(account.user.id, { name: body.name, slug: body.slug }), {
+          status: 201,
+        });
       }
 
       if (url.pathname === "/api/invitations/accept" && request.method === "POST") {
-        const body = await readBody<{ token?: string }>(request);
-        if (!body.token) return apiError(400, "INVITATION_INVALID", "Invitation token required");
-        try { return respond(await accounts.acceptInvitation(account.user.id, account.user.email, body.token)); }
-        catch { return apiError(400, "INVITATION_INVALID", "Invitation is invalid or unavailable"); }
+        const body = await readObjectBody(request);
+        if (typeof body.token !== "string" || !body.token)
+          return apiError(400, "INVITATION_INVALID", "Invitation token required");
+        try {
+          return respond(await accounts.acceptInvitation(account.user.id, account.user.email, body.token));
+        } catch {
+          return apiError(400, "INVITATION_INVALID", "Invitation is invalid or unavailable");
+        }
       }
 
       if (!organization) return apiError(403, "ORGANIZATION_ACCESS_DENIED", "Active organization membership required");
@@ -258,24 +789,49 @@ export function createWorker(options: WorkerOptions = {}) {
 
       if (url.pathname === "/api/invitations" && request.method === "POST") {
         if (!admin) return apiError(403, "ORGANIZATION_ADMIN_REQUIRED", "Organization administrator required");
-        const body = await readBody<{ email?: string; roles?: string[]; expiresAt?: string }>(request);
-        if (!body.email || !body.roles?.length || !body.expiresAt) return apiError(400, "INVITATION_INVALID", "Invitation fields are required");
-        try { return respond(await accounts.createInvitation(organization.id, account.user.id, body as { email: string; roles: string[]; expiresAt: string }), { status: 201 }); }
-        catch { return apiError(400, "INVITATION_INVALID", "Invitation is invalid"); }
+        const body = await readObjectBody(request);
+        if (
+          typeof body.email !== "string" ||
+          !Array.isArray(body.roles) ||
+          !body.roles.every((role): role is string => typeof role === "string") ||
+          body.roles.length === 0 ||
+          typeof body.expiresAt !== "string"
+        )
+          return apiError(400, "INVITATION_INVALID", "Invitation fields are required");
+        try {
+          return respond(
+            await accounts.createInvitation(organization.id, account.user.id, {
+              email: body.email,
+              roles: body.roles,
+              expiresAt: body.expiresAt,
+            }),
+            { status: 201 },
+          );
+        } catch {
+          return apiError(400, "INVITATION_INVALID", "Invitation is invalid");
+        }
       }
 
       const membershipMatch = url.pathname.match(/^\/api\/memberships\/([^/]+)$/);
       if (membershipMatch && request.method === "PATCH") {
         if (!admin) return apiError(403, "ORGANIZATION_ADMIN_REQUIRED", "Organization administrator required");
-        const targetUserId = decodeURIComponent(membershipMatch[1]);
-        const body = await readBody<{ roles?: string[] }>(request);
-        try { return respond(await accounts.setMembershipRoles(organization.id, account.user.id, targetUserId, body.roles ?? [])); }
-        catch { return apiError(400, "MEMBERSHIP_INVALID", "Membership roles are invalid"); }
+        const targetUserId = pathCapture(membershipMatch, 1);
+        const body = await readObjectBody(request);
+        const roles =
+          Array.isArray(body.roles) && body.roles.every((role): role is string => typeof role === "string")
+            ? body.roles
+            : [];
+        try {
+          return respond(await accounts.setMembershipRoles(organization.id, account.user.id, targetUserId, roles));
+        } catch {
+          return apiError(400, "MEMBERSHIP_INVALID", "Membership roles are invalid");
+        }
       }
       if (membershipMatch && request.method === "DELETE") {
         if (!admin) return apiError(403, "ORGANIZATION_ADMIN_REQUIRED", "Organization administrator required");
-        const targetUserId = decodeURIComponent(membershipMatch[1]);
-        if (targetUserId === account.user.id) return apiError(409, "SELF_REMOVAL_DENIED", "Transfer administration before leaving");
+        const targetUserId = pathCapture(membershipMatch, 1);
+        if (targetUserId === account.user.id)
+          return apiError(409, "SELF_REMOVAL_DENIED", "Transfer administration before leaving");
         await accounts.removeMembership(organization.id, account.user.id, targetUserId);
         return respond({ status: "removed" });
       }
@@ -302,81 +858,174 @@ export function createWorker(options: WorkerOptions = {}) {
       const runbooks = runbookRepositoryFactory(env.DB);
       const occupancy = occupancyRepositoryFactory(env.DB);
       const incidents = incidentRepositoryFactory(env.DB);
-      const notifyOrganization = async (eventType: string, record: ProjectRecord, refs: Record<string, string | number>, excludeUserId: string | null = account.user.id) => {
+      const notifyOrganization = async (
+        eventType: NotificationEventType,
+        record: ProjectRecord,
+        refs: NotificationRefs,
+        excludeUserId: string | null = account.user.id,
+      ) => {
         const recipients = await sharing.notificationRecipients(organization.id, eventType, excludeUserId);
         for (const recipient of recipients) {
-          const notification = safeNotification({ id: `notification-${crypto.randomUUID()}`, organizationId: organization.id, projectId: record.id, userId: recipient.userId, eventType, refs: { projectId: record.id, revision: record.revision, ...refs }, createdAt: clock() });
-          await sharing.addNotification(notification, { inAppEnabled: recipient.inAppEnabled, recipientEmail: recipient.emailEnabled ? recipient.email : null });
+          const notification = safeNotification({
+            id: `notification-${crypto.randomUUID()}`,
+            organizationId: organization.id,
+            projectId: record.id,
+            userId: recipient.userId,
+            eventType,
+            refs: { projectId: record.id, revision: record.revision, ...refs },
+            createdAt: clock(),
+          });
+          await sharing.addNotification(notification, {
+            inAppEnabled: recipient.inAppEnabled,
+            recipientEmail: recipient.emailEnabled ? recipient.email : null,
+          });
         }
       };
-      const canWriteRunbooks = ["planner", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
+      const canWriteRunbooks = hasRole(organization.roles, RUNBOOK_WRITE_ROLES);
       const canWriteOccupancy = canWriteRunbooks;
-      const canWriteIncidents = ["planner", "safety-officer", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
-      const canAccessIncidentAttachments = ["planner", "safety-officer", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
-      const canExportIncidents = ["reviewer", "approver", "safety-officer", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role));
+      const canWriteIncidents = hasRole(organization.roles, INCIDENT_WRITE_ROLES);
+      const canAccessIncidentAttachments = hasRole(organization.roles, INCIDENT_WRITE_ROLES);
+      const canExportIncidents = hasRole(organization.roles, INCIDENT_EXPORT_ROLES);
       const runbookCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks$/);
       const runbookItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)$/);
       const runbookSyncMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)\/transitions:sync$/);
       if (runbookCollectionMatch && request.method === "POST") {
         if (!canWriteRunbooks) return apiError(403, "RUNBOOK_WRITE_DENIED", "Runbook write role required");
-        const projectId = decodeURIComponent(runbookCollectionMatch[1]);
-        if (!await projects.get(organization.id, projectId)) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        const projectId = pathCapture(runbookCollectionMatch, 1);
+        if (!(await projects.get(organization.id, projectId)))
+          return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
         let body: unknown;
-        try { body = await readBody(request); }
-        catch (cause) { return apiError(cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400, "RUNBOOK_INVALID", "Runbook payload is invalid"); }
         try {
-          const envelope = body && typeof body === "object" && !Array.isArray(body) ? body as Record<string, unknown> : null;
+          body = await readBody(request);
+        } catch (cause) {
+          return apiError(
+            cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400,
+            "RUNBOOK_INVALID",
+            "Runbook payload is invalid",
+          );
+        }
+        try {
+          const envelope = isRecord(body) ? body : null;
           const input = browserRunbookToPersistenceInput(envelope?.runbook ?? body, account.user.id);
           const existing = await runbooks.getRunbook(organization.id, projectId, input.id);
           const stored = await runbooks.createRunbook(organization.id, projectId, input);
-          return respond({ status: existing ? "already-applied" : "created", runbook: repositoryRunbookToBrowserSnapshot(stored) }, { status: existing ? 200 : 201 });
+          return respond(
+            { status: existing ? "already-applied" : "created", runbook: repositoryRunbookToBrowserSnapshot(stored) },
+            { status: existing ? 200 : 201 },
+          );
         } catch (cause) {
-          const error = cause as { code?: string; message?: string; details?: unknown };
-          if (error.code === "RUNBOOK_ID_CONFLICT") return apiError(409, error.code, error.message ?? "Runbook version conflicts with stored content", error.details);
+          const error = errorInfo(cause);
+          if (error.code === "RUNBOOK_ID_CONFLICT")
+            return apiError(
+              409,
+              error.code,
+              error.message ?? "Runbook version conflicts with stored content",
+              error.details,
+            );
           if (cause instanceof TypeError) return apiError(400, "RUNBOOK_INVALID", cause.message);
           throw cause;
         }
       }
       if (runbookSyncMatch && request.method === "POST") {
         if (!canWriteRunbooks) return apiError(403, "RUNBOOK_WRITE_DENIED", "Runbook write role required");
-        const projectId = decodeURIComponent(runbookSyncMatch[1]);
-        const runbookVersionId = decodeURIComponent(runbookSyncMatch[2]);
-        if (!await projects.get(organization.id, projectId)) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
-        let body: { commands?: unknown[] };
-        try { body = await readBody(request); }
-        catch (cause) { return apiError(cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400, "RUNBOOK_SYNC_INVALID", "Runbook sync payload is invalid"); }
-        if (!Array.isArray(body.commands) || body.commands.length > 100) return apiError(400, "RUNBOOK_SYNC_INVALID", "Runbook sync commands are invalid");
+        const projectId = pathCapture(runbookSyncMatch, 1);
+        const runbookVersionId = pathCapture(runbookSyncMatch, 2);
+        if (!(await projects.get(organization.id, projectId)))
+          return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let body: Record<string, unknown>;
+        try {
+          body = await readObjectBody(request);
+        } catch (cause) {
+          return apiError(
+            cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400,
+            "RUNBOOK_SYNC_INVALID",
+            "Runbook sync payload is invalid",
+          );
+        }
+        if (!Array.isArray(body.commands) || body.commands.length > 100)
+          return apiError(400, "RUNBOOK_SYNC_INVALID", "Runbook sync commands are invalid");
         let current = await runbooks.getRunbook(organization.id, projectId, runbookVersionId);
         if (!current) return apiError(404, "RUNBOOK_NOT_FOUND", "Runbook not found");
         const acknowledgements: Array<Record<string, unknown>> = [];
         for (const candidate of body.commands) {
-          const command = candidate && typeof candidate === "object" && !Array.isArray(candidate) ? candidate as Record<string, unknown> : {};
-          const identity = { idempotencyKey: typeof command.idempotencyKey === "string" ? command.idempotencyKey : null, operationId: typeof command.operationId === "string" ? command.operationId : null };
+          const command = isRecord(candidate) ? candidate : {};
+          const identity = {
+            idempotencyKey: typeof command.idempotencyKey === "string" ? command.idempotencyKey : null,
+            operationId: typeof command.operationId === "string" ? command.operationId : null,
+          };
           try {
-            const storedCommand = browserCommandToPersistenceInput(command, current, account.user.id, account.session.id);
-            const existing = current.receipts.some((receipt) => receipt.idempotencyKey === storedCommand.idempotencyKey);
+            const storedCommand = browserCommandToPersistenceInput(
+              command,
+              current,
+              account.user.id,
+              account.session.id,
+            );
+            const existing = current.receipts.some(
+              (receipt) => receipt.idempotencyKey === storedCommand.idempotencyKey,
+            );
             if (!existing) {
-              transitionRunbookTask(repositoryRunbookToBrowserSnapshot(current), {
-                ...command,
-                type: "transition_runbook_task",
-                runbookVersionId,
-                actorType: "human",
-                actorId: account.user.id,
-                source: "studio",
-                sessionId: account.session.id,
-              }, { committedAt: clock() });
+              transitionRunbookTask(
+                repositoryRunbookToBrowserSnapshot(current),
+                {
+                  type: "transition_runbook_task",
+                  runbookVersionId,
+                  taskId: storedCommand.taskId,
+                  expectedTaskRevision: storedCommand.expectedTaskRevision,
+                  fromStatus: storedCommand.fromStatus,
+                  toStatus: storedCommand.toStatus,
+                  actorType: storedCommand.actorType,
+                  actorId: storedCommand.actorId,
+                  source: storedCommand.source,
+                  sessionId: storedCommand.sessionId,
+                  idempotencyKey: storedCommand.idempotencyKey,
+                  evidence: storedCommand.evidence ?? [],
+                  operationId: storedCommand.id,
+                  clientId: storedCommand.clientId,
+                  clientSequence: storedCommand.clientSequence,
+                  clientOccurredAt: storedCommand.clientOccurredAt,
+                  ...(storedCommand.reasonCode === null ? {} : { reasonCode: storedCommand.reasonCode }),
+                  ...(storedCommand.correlationId === null ? {} : { correlationId: storedCommand.correlationId }),
+                },
+                { committedAt: clock() },
+              );
             }
-            const applied = await runbooks.applyTransitionBatch(organization.id, projectId, runbookVersionId, [storedCommand]);
+            const applied = await runbooks.applyTransitionBatch(organization.id, projectId, runbookVersionId, [
+              storedCommand,
+            ]);
             current = applied.runbook;
-            acknowledgements.push({ ...identity, ...applied.results[0], status: existing ? "already-applied" : "applied" });
+            acknowledgements.push({
+              ...identity,
+              ...applied.results[0],
+              status: existing ? "already-applied" : "applied",
+            });
           } catch (cause) {
-            const error = cause as { code?: string; message?: string; details?: unknown };
-            if (cause instanceof RunbookIdempotencyConflict || cause instanceof RunbookTransitionConflict || cause instanceof RunbookClientSequenceConflict || ["IDEMPOTENCY_KEY_CONFLICT", "RUNBOOK_TASK_REVISION_CONFLICT"].includes(error.code ?? "")) {
-              acknowledgements.push({ ...identity, status: "conflict", code: error.code ?? "RUNBOOK_TRANSITION_CONFLICT", details: error.details });
+            const error = errorInfo(cause);
+            if (
+              cause instanceof RunbookIdempotencyConflict ||
+              cause instanceof RunbookTransitionConflict ||
+              cause instanceof RunbookClientSequenceConflict ||
+              ["IDEMPOTENCY_KEY_CONFLICT", "RUNBOOK_TASK_REVISION_CONFLICT"].includes(error.code ?? "")
+            ) {
+              acknowledgements.push({
+                ...identity,
+                status: "conflict",
+                code: error.code ?? "RUNBOOK_TRANSITION_CONFLICT",
+                details: error.details,
+              });
               continue;
             }
-            if (cause instanceof TypeError || error.code?.startsWith("RUNBOOK_") || error.code === "IDEMPOTENCY_KEY_REQUIRED") {
-              acknowledgements.push({ ...identity, status: "rejected", code: error.code ?? "RUNBOOK_COMMAND_INVALID", details: error.details, message: error.message });
+            if (
+              cause instanceof TypeError ||
+              error.code?.startsWith("RUNBOOK_") ||
+              error.code === "IDEMPOTENCY_KEY_REQUIRED"
+            ) {
+              acknowledgements.push({
+                ...identity,
+                status: "rejected",
+                code: error.code ?? "RUNBOOK_COMMAND_INVALID",
+                details: error.details,
+                message: error.message,
+              });
               continue;
             }
             throw cause;
@@ -385,169 +1034,329 @@ export function createWorker(options: WorkerOptions = {}) {
         return respond({ acknowledgements, runbook: repositoryRunbookToBrowserSnapshot(current) });
       }
       if (runbookItemMatch && request.method === "GET") {
-        const projectId = decodeURIComponent(runbookItemMatch[1]);
-        const runbookVersionId = decodeURIComponent(runbookItemMatch[2]);
+        const projectId = pathCapture(runbookItemMatch, 1);
+        const runbookVersionId = pathCapture(runbookItemMatch, 2);
         const runbook = await runbooks.getRunbook(organization.id, projectId, runbookVersionId);
-        return runbook ? respond({ runbook: repositoryRunbookToBrowserSnapshot(runbook) }) : apiError(404, "RUNBOOK_NOT_FOUND", "Runbook not found");
+        return runbook
+          ? respond({ runbook: repositoryRunbookToBrowserSnapshot(runbook) })
+          : apiError(404, "RUNBOOK_NOT_FOUND", "Runbook not found");
       }
       const occupancyCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/occupancy-monitors$/);
-      const occupancyCommandMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/occupancy-monitors\/([^/]+)\/commands:sync$/);
-      const occupancyExportMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/occupancy-monitors\/([^/]+)\/export$/);
+      const occupancyCommandMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/occupancy-monitors\/([^/]+)\/commands:sync$/,
+      );
+      const occupancyExportMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/occupancy-monitors\/([^/]+)\/export$/,
+      );
       const occupancyItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/occupancy-monitors\/([^/]+)$/);
       if (occupancyCollectionMatch && request.method === "POST") {
         if (!canWriteOccupancy) return apiError(403, "OCCUPANCY_WRITE_DENIED", "Live Occupancy write role required");
-        const projectId = decodeURIComponent(occupancyCollectionMatch[1]);
-        if (!await projects.get(organization.id, projectId)) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
-        let body: { runbookVersionId?: string; simulation?: unknown; policy?: unknown };
-        try { body = await readBody(request); }
-        catch (cause) { return apiError(cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400, "OCCUPANCY_BASELINE_INVALID", "Live Occupancy payload is invalid"); }
-        if (typeof body.runbookVersionId !== "string" || !body.runbookVersionId.trim()) return apiError(400, "OCCUPANCY_BASELINE_INVALID", "Runbook Version ID is required");
+        const projectId = pathCapture(occupancyCollectionMatch, 1);
+        if (!(await projects.get(organization.id, projectId)))
+          return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let body: Record<string, unknown>;
+        try {
+          body = await readObjectBody(request);
+        } catch (cause) {
+          return apiError(
+            cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400,
+            "OCCUPANCY_BASELINE_INVALID",
+            "Live Occupancy payload is invalid",
+          );
+        }
+        if (typeof body.runbookVersionId !== "string" || !body.runbookVersionId.trim())
+          return apiError(400, "OCCUPANCY_BASELINE_INVALID", "Runbook Version ID is required");
         const storedRunbook = await runbooks.getRunbook(organization.id, projectId, body.runbookVersionId);
         if (!storedRunbook) return apiError(404, "RUNBOOK_NOT_FOUND", "Runbook not found");
         try {
           const existing = await occupancy.getByRunbook(organization.id, projectId, body.runbookVersionId);
-          const monitor = createLiveOccupancyMonitor({ projectId, runbook: repositoryRunbookToBrowserSnapshot(storedRunbook), simulation: body.simulation ?? null, policy: body.policy, createdAt: clock(), createdBy: account.user.id });
-          const saved = await occupancy.create(organization.id, projectId, monitor as never);
-          return respond({ status: existing ? "already-applied" : "created", monitor: saved, projection: evaluateLiveOccupancy(saved, { at: clock() }) }, { status: existing ? 200 : 201 });
+          const simulation = occupancySimulation(body.simulation);
+          const policy = occupancyPolicy(body.policy);
+          const monitor = createLiveOccupancyMonitor({
+            projectId,
+            runbook: repositoryRunbookToBrowserSnapshot(storedRunbook),
+            simulation,
+            ...(policy === undefined ? {} : { policy }),
+            createdAt: clock(),
+            createdBy: account.user.id,
+          });
+          const saved = await occupancy.create(organization.id, projectId, monitor);
+          return respond(
+            {
+              status: existing ? "already-applied" : "created",
+              monitor: saved,
+              projection: evaluateLiveOccupancy(saved, { at: clock() }),
+            },
+            { status: existing ? 200 : 201 },
+          );
         } catch (cause) {
-          const error = cause as { code?: string; message?: string; details?: unknown };
-          if (cause instanceof OccupancyMonitorConflict) return apiError(409, error.code ?? "OCCUPANCY_ID_CONFLICT", error.message ?? "Live Occupancy monitor conflicts with stored state", error.details);
-          if (error.code?.startsWith("OCCUPANCY_")) return apiError(400, error.code, error.message ?? "Live Occupancy baseline is invalid", error.details);
+          const error = errorInfo(cause);
+          if (cause instanceof OccupancyMonitorConflict)
+            return apiError(
+              409,
+              error.code ?? "OCCUPANCY_ID_CONFLICT",
+              error.message ?? "Live Occupancy monitor conflicts with stored state",
+              error.details,
+            );
+          if (error.code?.startsWith("OCCUPANCY_"))
+            return apiError(400, error.code, error.message ?? "Live Occupancy baseline is invalid", error.details);
           throw cause;
         }
       }
       if (occupancyCommandMatch && request.method === "POST") {
         if (!canWriteOccupancy) return apiError(403, "OCCUPANCY_WRITE_DENIED", "Live Occupancy write role required");
-        const projectId = decodeURIComponent(occupancyCommandMatch[1]);
-        const monitorId = decodeURIComponent(occupancyCommandMatch[2]);
-        if (!await projects.get(organization.id, projectId)) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
-        let body: { commands?: unknown[] };
-        try { body = await readBody(request); }
-        catch (cause) { return apiError(cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400, "OCCUPANCY_SYNC_INVALID", "Live Occupancy sync payload is invalid"); }
-        if (!Array.isArray(body.commands) || body.commands.length > 100) return apiError(400, "OCCUPANCY_SYNC_INVALID", "Live Occupancy sync commands are invalid");
-        let current = await occupancy.get(organization.id, projectId, monitorId);
-        if (!current) return apiError(404, "OCCUPANCY_MONITOR_NOT_FOUND", "Live Occupancy monitor not found");
+        const projectId = pathCapture(occupancyCommandMatch, 1);
+        const monitorId = pathCapture(occupancyCommandMatch, 2);
+        if (!(await projects.get(organization.id, projectId)))
+          return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let body: Record<string, unknown>;
+        try {
+          body = await readObjectBody(request);
+        } catch (cause) {
+          return apiError(
+            cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400,
+            "OCCUPANCY_SYNC_INVALID",
+            "Live Occupancy sync payload is invalid",
+          );
+        }
+        if (!Array.isArray(body.commands) || body.commands.length > 100)
+          return apiError(400, "OCCUPANCY_SYNC_INVALID", "Live Occupancy sync commands are invalid");
+        const storedMonitor = await occupancy.get(organization.id, projectId, monitorId);
+        if (!storedMonitor) return apiError(404, "OCCUPANCY_MONITOR_NOT_FOUND", "Live Occupancy monitor not found");
+        let current: LiveOccupancyMonitor = storedMonitor;
         const acknowledgements: Array<Record<string, unknown>> = [];
         for (const candidate of body.commands) {
-          const command = candidate && typeof candidate === "object" && !Array.isArray(candidate) ? candidate as Record<string, unknown> : {};
-          const identity = { idempotencyKey: typeof command.idempotencyKey === "string" ? command.idempotencyKey : null, operationId: typeof command.operationId === "string" ? command.operationId : null };
+          const command = isRecord(candidate) ? candidate : {};
+          const identity = {
+            idempotencyKey: typeof command.idempotencyKey === "string" ? command.idempotencyKey : null,
+            operationId: typeof command.operationId === "string" ? command.operationId : null,
+          };
           try {
             const committedAt = clock();
-            const trustedCommand = { ...command, actorType: "human", actorId: account.user.id, source: "studio", sessionId: account.session.id, committedAt };
-            const result = command.type === "ingest_occupancy_signal"
-              ? ingestOccupancySignal(current, trustedCommand, { acceptedAt: committedAt })
-              : command.type === "refresh_live_occupancy"
-                ? refreshLiveOccupancy(current, { ...trustedCommand, evaluatedAt: committedAt }, { committedAt })
-                : command.type === "acknowledge_occupancy_alert"
-                  ? acknowledgeOccupancyAlert(current, trustedCommand, { acknowledgedAt: committedAt })
-                  : (() => { throw venueError("COMMAND_UNSUPPORTED", { commandType: command.type ?? null }); })();
-            if (!result.duplicate) await occupancy.put(organization.id, projectId, result.monitor as never, current.revision);
+            const trustedCommand = occupancyMutationCommand(command, account.user.id, account.session.id, committedAt);
+            const result =
+              trustedCommand.type === "ingest_occupancy_signal"
+                ? ingestOccupancySignal(current, trustedCommand, { acceptedAt: committedAt })
+                : trustedCommand.type === "refresh_live_occupancy"
+                  ? refreshLiveOccupancy(current, trustedCommand, { committedAt })
+                  : acknowledgeOccupancyAlert(current, trustedCommand, { acknowledgedAt: committedAt });
+            if (!result.duplicate) await occupancy.put(organization.id, projectId, result.monitor, current.revision);
             current = result.monitor;
-            acknowledgements.push({ ...identity, status: result.duplicate ? "already-applied" : "applied", receipt: result.receipt });
+            acknowledgements.push({
+              ...identity,
+              status: result.duplicate ? "already-applied" : "applied",
+              receipt: result.receipt,
+            });
           } catch (cause) {
-            const error = cause as { code?: string; message?: string; details?: unknown };
-            if (cause instanceof OccupancyMonitorConflict || ["IDEMPOTENCY_KEY_CONFLICT", "OCCUPANCY_REVISION_CONFLICT"].includes(error.code ?? "")) {
-              acknowledgements.push({ ...identity, status: "conflict", code: error.code ?? "OCCUPANCY_REVISION_CONFLICT", details: error.details });
+            const error = errorInfo(cause);
+            if (
+              cause instanceof OccupancyMonitorConflict ||
+              ["IDEMPOTENCY_KEY_CONFLICT", "OCCUPANCY_REVISION_CONFLICT"].includes(error.code ?? "")
+            ) {
+              acknowledgements.push({
+                ...identity,
+                status: "conflict",
+                code: error.code ?? "OCCUPANCY_REVISION_CONFLICT",
+                details: error.details,
+              });
               continue;
             }
-            if (error.code === "IDEMPOTENCY_KEY_REQUIRED" || error.code === "COMMAND_UNSUPPORTED" || error.code?.startsWith("OCCUPANCY_")) {
-              acknowledgements.push({ ...identity, status: "rejected", code: error.code ?? "OCCUPANCY_COMMAND_INVALID", details: error.details, message: error.message });
+            if (
+              error.code === "IDEMPOTENCY_KEY_REQUIRED" ||
+              error.code === "COMMAND_UNSUPPORTED" ||
+              error.code?.startsWith("OCCUPANCY_")
+            ) {
+              acknowledgements.push({
+                ...identity,
+                status: "rejected",
+                code: error.code ?? "OCCUPANCY_COMMAND_INVALID",
+                details: error.details,
+                message: error.message,
+              });
               continue;
             }
             throw cause;
           }
         }
-        return respond({ acknowledgements, monitor: current, projection: evaluateLiveOccupancy(current, { at: clock() }) });
+        return respond({
+          acknowledgements,
+          monitor: current,
+          projection: evaluateLiveOccupancy(current, { at: clock() }),
+        });
       }
       if (occupancyExportMatch && request.method === "GET") {
-        const projectId = decodeURIComponent(occupancyExportMatch[1]);
-        const monitorId = decodeURIComponent(occupancyExportMatch[2]);
+        const projectId = pathCapture(occupancyExportMatch, 1);
+        const monitorId = pathCapture(occupancyExportMatch, 2);
         const monitor = await occupancy.get(organization.id, projectId, monitorId);
-        return monitor ? respond({ artifact: exportLiveOccupancyAudit(monitor, { exportedAt: clock() }) }) : apiError(404, "OCCUPANCY_MONITOR_NOT_FOUND", "Live Occupancy monitor not found");
+        return monitor
+          ? respond({ artifact: exportLiveOccupancyAudit(monitor, { exportedAt: clock() }) })
+          : apiError(404, "OCCUPANCY_MONITOR_NOT_FOUND", "Live Occupancy monitor not found");
       }
       if (occupancyItemMatch && request.method === "GET") {
-        const projectId = decodeURIComponent(occupancyItemMatch[1]);
-        const monitorId = decodeURIComponent(occupancyItemMatch[2]);
+        const projectId = pathCapture(occupancyItemMatch, 1);
+        const monitorId = pathCapture(occupancyItemMatch, 2);
         const monitor = await occupancy.get(organization.id, projectId, monitorId);
-        return monitor ? respond({ monitor, projection: evaluateLiveOccupancy(monitor, { at: clock() }) }) : apiError(404, "OCCUPANCY_MONITOR_NOT_FOUND", "Live Occupancy monitor not found");
+        return monitor
+          ? respond({ monitor, projection: evaluateLiveOccupancy(monitor, { at: clock() }) })
+          : apiError(404, "OCCUPANCY_MONITOR_NOT_FOUND", "Live Occupancy monitor not found");
       }
       const incidentCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers$/);
-      const incidentCommandMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/commands:sync$/);
-      const incidentNestedExportMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/incidents\/([^/]+)\/export$/);
+      const incidentCommandMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/commands:sync$/,
+      );
+      const incidentNestedExportMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/incidents\/([^/]+)\/export$/,
+      );
       const incidentExportMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/export$/);
-      const incidentAttachmentMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/incidents\/([^/]+)\/attachments$/);
-      const incidentAttachmentItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/incidents\/([^/]+)\/attachments\/([^/]+)$/);
+      const incidentAttachmentMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/incidents\/([^/]+)\/attachments$/,
+      );
+      const incidentAttachmentItemMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)\/incidents\/([^/]+)\/attachments\/([^/]+)$/,
+      );
       const incidentItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/incident-registers\/([^/]+)$/);
       if (incidentCollectionMatch && request.method === "POST") {
         if (!canWriteIncidents) return apiError(403, "INCIDENT_WRITE_DENIED", "Incident write role required");
-        const projectId = decodeURIComponent(incidentCollectionMatch[1]);
-        if (!await projects.get(organization.id, projectId)) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
-        let body: { runbookVersionId?: string };
-        try { body = await readBody(request); }
-        catch (cause) { return apiError(cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400, "INCIDENT_BASELINE_INVALID", "Incident Register payload is invalid"); }
-        if (typeof body.runbookVersionId !== "string" || !body.runbookVersionId.trim()) return apiError(400, "INCIDENT_BASELINE_INVALID", "Runbook Version ID is required");
+        const projectId = pathCapture(incidentCollectionMatch, 1);
+        if (!(await projects.get(organization.id, projectId)))
+          return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let body: Record<string, unknown>;
+        try {
+          body = await readObjectBody(request);
+        } catch (cause) {
+          return apiError(
+            cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400,
+            "INCIDENT_BASELINE_INVALID",
+            "Incident Register payload is invalid",
+          );
+        }
+        if (typeof body.runbookVersionId !== "string" || !body.runbookVersionId.trim())
+          return apiError(400, "INCIDENT_BASELINE_INVALID", "Runbook Version ID is required");
         const storedRunbook = await runbooks.getRunbook(organization.id, projectId, body.runbookVersionId);
         if (!storedRunbook) return apiError(404, "RUNBOOK_NOT_FOUND", "Runbook not found");
         try {
           const existing = await incidents.getByRunbook(organization.id, projectId, body.runbookVersionId);
           const bus = createIncidentCommandBus();
-          const result = bus.execute({ type: "create_incident_register", projectId, runbook: repositoryRunbookToBrowserSnapshot(storedRunbook), createdAt: clock(), createdBy: account.user.id, actorType: "human" });
-          const saved = await incidents.create(organization.id, projectId, result.register as never);
-          return respond({ status: existing ? "already-applied" : "created", register: saved }, { status: existing ? 200 : 201 });
+          bus.execute({
+            type: "create_incident_register",
+            projectId,
+            runbook: repositoryRunbookToBrowserSnapshot(storedRunbook),
+            createdAt: clock(),
+            createdBy: account.user.id,
+            actorType: "human",
+          });
+          const created = bus.getSnapshot();
+          if (!created) throw venueError("INCIDENT_REGISTER_NOT_FOUND");
+          const saved = await incidents.create(organization.id, projectId, created);
+          return respond(
+            { status: existing ? "already-applied" : "created", register: saved },
+            { status: existing ? 200 : 201 },
+          );
         } catch (cause) {
-          const error = cause as { code?: string; message?: string; details?: unknown };
-          if (cause instanceof IncidentRegisterConflict) return apiError(409, error.code, error.message ?? "Incident Register conflicts with stored state", error.details);
-          if (error.code?.startsWith("INCIDENT_")) return apiError(400, error.code, error.message ?? "Incident Register baseline is invalid", error.details);
+          const error = errorInfo(cause);
+          if (cause instanceof IncidentRegisterConflict)
+            return apiError(
+              409,
+              cause.code,
+              error.message ?? "Incident Register conflicts with stored state",
+              error.details,
+            );
+          if (error.code?.startsWith("INCIDENT_"))
+            return apiError(400, error.code, error.message ?? "Incident Register baseline is invalid", error.details);
           throw cause;
         }
       }
       if (incidentCommandMatch && request.method === "POST") {
         if (!canWriteIncidents) return apiError(403, "INCIDENT_WRITE_DENIED", "Incident write role required");
-        const projectId = decodeURIComponent(incidentCommandMatch[1]);
-        const registerId = decodeURIComponent(incidentCommandMatch[2]);
-        if (!await projects.get(organization.id, projectId)) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
-        let body: { commands?: unknown[] };
-        try { body = await readBody(request); }
-        catch (cause) { return apiError(cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400, "INCIDENT_SYNC_INVALID", "Incident sync payload is invalid"); }
-        if (!Array.isArray(body.commands) || body.commands.length > 100) return apiError(400, "INCIDENT_SYNC_INVALID", "Incident sync commands are invalid");
-        let current = await incidents.get(organization.id, projectId, registerId);
-        if (!current) return apiError(404, "INCIDENT_REGISTER_NOT_FOUND", "Incident Register not found");
+        const projectId = pathCapture(incidentCommandMatch, 1);
+        const registerId = pathCapture(incidentCommandMatch, 2);
+        if (!(await projects.get(organization.id, projectId)))
+          return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let body: Record<string, unknown>;
+        try {
+          body = await readObjectBody(request);
+        } catch (cause) {
+          return apiError(
+            cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400,
+            "INCIDENT_SYNC_INVALID",
+            "Incident sync payload is invalid",
+          );
+        }
+        if (!Array.isArray(body.commands) || body.commands.length > 100)
+          return apiError(400, "INCIDENT_SYNC_INVALID", "Incident sync commands are invalid");
+        const storedRegister = await incidents.get(organization.id, projectId, registerId);
+        if (!storedRegister) return apiError(404, "INCIDENT_REGISTER_NOT_FOUND", "Incident Register not found");
+        let current: IncidentRegister = storedRegister;
         const acknowledgements: Array<Record<string, unknown>> = [];
         for (const candidate of body.commands) {
-          const command = candidate && typeof candidate === "object" && !Array.isArray(candidate) ? candidate as Record<string, unknown> : {};
-          const identity = { idempotencyKey: typeof command.idempotencyKey === "string" ? command.idempotencyKey : null, operationId: typeof command.operationId === "string" ? command.operationId : null };
+          const command = isRecord(candidate) ? candidate : {};
+          const identity = {
+            idempotencyKey: typeof command.idempotencyKey === "string" ? command.idempotencyKey : null,
+            operationId: typeof command.operationId === "string" ? command.operationId : null,
+          };
           try {
-            if (command.type === "attach_incident_evidence") throw venueError("INCIDENT_ATTACHMENT_INVALID", { reason: "multipart-upload-required" });
-            const emergencyAuthorityRole = command.type === "record_incident_emergency_action"
-              ? (current.baseline?.emergencyPlan?.authorizedReviewerRoles ?? []).find((role: unknown) => typeof role === "string" && organization.roles.includes(role)) ?? null
-              : null;
-            if (command.type === "record_incident_emergency_action" && !emergencyAuthorityRole) throw venueError("AUTHORIZATION_DENIED", { permission: "incident.emergency-act" });
+            if (command.type === "attach_incident_evidence")
+              throw venueError("INCIDENT_ATTACHMENT_INVALID", { reason: "multipart-upload-required" });
+            const emergencyAuthorityRole =
+              command.type === "record_incident_emergency_action"
+                ? ((current.baseline?.emergencyPlan?.authorizedReviewerRoles ?? []).find(
+                    (role: unknown): role is OrganizationRole =>
+                      isOrganizationRole(role) && organization.roles.includes(role),
+                  ) ?? null)
+                : null;
+            if (command.type === "record_incident_emergency_action" && !emergencyAuthorityRole)
+              throw venueError("AUTHORIZATION_DENIED", { permission: "incident.emergency-act" });
             const committedAt = clock();
             const bus = createIncidentCommandBus({ initialRegister: current });
-            const isWebMcpReport = command.type === "report_incident"
-              && command.actorType === "agent"
-              && command.actorId === "webmcp-agent"
-              && command.source === "webmcp";
-            const result = bus.execute({
-              ...command,
-              ...(command.type === "record_incident_emergency_action" ? { authorityRole: emergencyAuthorityRole } : {}),
-              actorType: "human",
-              actorId: account.user.id,
-              source: isWebMcpReport ? "webmcp" : "studio",
-              sessionId: account.session.id,
+            const isWebMcpReport =
+              command.type === "report_incident" &&
+              command.actorType === "agent" &&
+              command.actorId === "webmcp-agent" &&
+              command.source === "webmcp";
+            const trustedCommand = incidentMutationCommand(
+              command,
+              account.user.id,
+              account.session.id,
               committedAt,
-            });
-            if (!result.duplicate) await incidents.put(organization.id, projectId, result.register as never, current.revision);
+              isWebMcpReport ? "webmcp" : "studio",
+              emergencyAuthorityRole,
+            );
+            const resultValue: unknown = bus.execute(trustedCommand);
+            if (!isIncidentMutationResult(resultValue))
+              throw venueError("INCIDENT_INVALID", { reason: "mutation-result-invalid" });
+            const result = resultValue;
+            if (!result.duplicate) await incidents.put(organization.id, projectId, result.register, current.revision);
             current = result.register;
-            acknowledgements.push({ ...identity, status: result.duplicate ? "already-applied" : "applied", receipt: result.receipt });
+            acknowledgements.push({
+              ...identity,
+              status: result.duplicate ? "already-applied" : "applied",
+              receipt: result.receipt,
+            });
           } catch (cause) {
-            const error = cause as { code?: string; message?: string; details?: unknown };
-            if (cause instanceof IncidentRegisterConflict || ["IDEMPOTENCY_KEY_CONFLICT", "INCIDENT_REVISION_CONFLICT"].includes(error.code ?? "")) {
-              acknowledgements.push({ ...identity, status: "conflict", code: error.code ?? "INCIDENT_REGISTER_REVISION_CONFLICT", details: error.details });
+            const error = errorInfo(cause);
+            if (
+              cause instanceof IncidentRegisterConflict ||
+              ["IDEMPOTENCY_KEY_CONFLICT", "INCIDENT_REVISION_CONFLICT"].includes(error.code ?? "")
+            ) {
+              acknowledgements.push({
+                ...identity,
+                status: "conflict",
+                code: error.code ?? "INCIDENT_REGISTER_REVISION_CONFLICT",
+                details: error.details,
+              });
               continue;
             }
-            if (["AUTHORIZATION_DENIED", "IDEMPOTENCY_KEY_REQUIRED", "COMMAND_UNSUPPORTED"].includes(error.code ?? "") || error.code?.startsWith("INCIDENT_")) {
-              acknowledgements.push({ ...identity, status: "rejected", code: error.code ?? "INCIDENT_COMMAND_INVALID", details: error.details, message: error.message });
+            if (
+              ["AUTHORIZATION_DENIED", "IDEMPOTENCY_KEY_REQUIRED", "COMMAND_UNSUPPORTED"].includes(error.code ?? "") ||
+              error.code?.startsWith("INCIDENT_")
+            ) {
+              acknowledgements.push({
+                ...identity,
+                status: "rejected",
+                code: error.code ?? "INCIDENT_COMMAND_INVALID",
+                details: error.details,
+                message: error.message,
+              });
               continue;
             }
             throw cause;
@@ -557,242 +1366,562 @@ export function createWorker(options: WorkerOptions = {}) {
       }
       if (incidentAttachmentMatch && request.method === "POST") {
         if (!canWriteIncidents) return apiError(403, "INCIDENT_ATTACHMENT_DENIED", "Incident attachment role required");
-        const projectId = decodeURIComponent(incidentAttachmentMatch[1]);
-        const registerId = decodeURIComponent(incidentAttachmentMatch[2]);
-        const incidentId = decodeURIComponent(incidentAttachmentMatch[3]);
+        const projectId = pathCapture(incidentAttachmentMatch, 1);
+        const registerId = pathCapture(incidentAttachmentMatch, 2);
+        const incidentId = pathCapture(incidentAttachmentMatch, 3);
         const current = await incidents.get(organization.id, projectId, registerId);
         const incident = current?.incidents?.find((candidate: { id?: string }) => candidate.id === incidentId);
-        if (!current || !incident) return apiError(404, !current ? "INCIDENT_REGISTER_NOT_FOUND" : "INCIDENT_NOT_FOUND", !current ? "Incident Register not found" : "Incident not found");
+        if (!current || !incident)
+          return apiError(
+            404,
+            !current ? "INCIDENT_REGISTER_NOT_FOUND" : "INCIDENT_NOT_FOUND",
+            !current ? "Incident Register not found" : "Incident not found",
+          );
         let uploaded: Awaited<ReturnType<IncidentAttachmentService["upload"]>> | null = null;
         try {
           const form = await request.formData();
           const file = form.get("file");
-          if (!(file instanceof File)) throw new IncidentAttachmentError("INCIDENT_ATTACHMENT_INVALID", "Attachment file is required");
+          if (!(file instanceof File))
+            throw new IncidentAttachmentError("INCIDENT_ATTACHMENT_INVALID", "Attachment file is required");
           const service = incidentAttachmentServiceFactory(env.INCIDENT_EVIDENCE);
-          uploaded = await service.upload({ incidentId, filename: file.name, mimeType: file.type, content: file, existingAttachments: incident.attachments });
+          uploaded = await service.upload({
+            incidentId,
+            filename: file.name,
+            mimeType: file.type,
+            content: file,
+            existingAttachments: incident.attachments,
+          });
           const bus = createIncidentCommandBus({ initialRegister: current });
-          const result = bus.execute({ type: "attach_incident_evidence", incidentId, expectedIncidentRevision: incident.revision, attachment: { id: uploaded.id, kind: uploaded.mimeType === "application/pdf" ? "document" : "photo", status: "available", contentType: uploaded.mimeType, byteLength: uploaded.byteLength, sha256: uploaded.sha256, uploadedBy: account.user.id, uploadedAt: uploaded.createdAt }, idempotencyKey: `attach-${uploaded.id}`, operationId: `attach-${uploaded.id}`, actorType: "human", actorId: account.user.id, source: "studio", sessionId: account.session.id, committedAt: clock() });
-          await incidents.put(organization.id, projectId, result.register as never, current.revision);
-          return respond({ status: "attached", register: result.register, incident: result.incident, attachment: result.incident.attachments.at(-1) }, { status: 201 });
+          const resultValue: unknown = bus.execute({
+            type: "attach_incident_evidence",
+            incidentId,
+            expectedIncidentRevision: incident.revision,
+            attachment: {
+              id: uploaded.id,
+              kind: uploaded.mimeType === "application/pdf" ? "document" : "photo",
+              status: "available",
+              contentType: uploaded.mimeType,
+              byteLength: uploaded.byteLength,
+              sha256: uploaded.sha256,
+              uploadedBy: account.user.id,
+              uploadedAt: uploaded.createdAt,
+            },
+            idempotencyKey: `attach-${uploaded.id}`,
+            actorType: "human",
+            actorId: account.user.id,
+            source: "studio",
+            sessionId: account.session.id,
+            committedAt: clock(),
+          });
+          if (!isIncidentMutationResult(resultValue))
+            throw venueError("INCIDENT_INVALID", { reason: "attachment-result-invalid" });
+          const result = resultValue;
+          await incidents.put(organization.id, projectId, result.register, current.revision);
+          return respond(
+            {
+              status: "attached",
+              register: result.register,
+              incident: result.incident,
+              attachment: result.incident.attachments.at(-1),
+            },
+            { status: 201 },
+          );
         } catch (cause) {
           if (uploaded) await env.INCIDENT_EVIDENCE.delete(`private/${uploaded.id}`);
-          const error = cause as { code?: string; message?: string; details?: unknown };
-          if (cause instanceof IncidentRegisterConflict) return apiError(409, error.code, error.message ?? "Incident Register revision conflict", error.details);
-          if (cause instanceof IncidentAttachmentError || error.code?.startsWith("INCIDENT_ATTACHMENT")) return apiError(400, error.code ?? "INCIDENT_ATTACHMENT_INVALID", error.message ?? "Incident attachment is invalid", error.details);
+          const error = errorInfo(cause);
+          if (cause instanceof IncidentRegisterConflict)
+            return apiError(409, cause.code, error.message ?? "Incident Register revision conflict", error.details);
+          if (cause instanceof IncidentAttachmentError || error.code?.startsWith("INCIDENT_ATTACHMENT"))
+            return apiError(
+              400,
+              error.code ?? "INCIDENT_ATTACHMENT_INVALID",
+              error.message ?? "Incident attachment is invalid",
+              error.details,
+            );
           throw cause;
         }
       }
       if (incidentAttachmentItemMatch && request.method === "GET") {
-        if (!canAccessIncidentAttachments) return apiError(403, "INCIDENT_ATTACHMENT_DENIED", "Incident attachment role required");
-        const projectId = decodeURIComponent(incidentAttachmentItemMatch[1]);
-        const registerId = decodeURIComponent(incidentAttachmentItemMatch[2]);
-        const incidentId = decodeURIComponent(incidentAttachmentItemMatch[3]);
-        const attachmentId = decodeURIComponent(incidentAttachmentItemMatch[4]);
+        if (!canAccessIncidentAttachments)
+          return apiError(403, "INCIDENT_ATTACHMENT_DENIED", "Incident attachment role required");
+        const projectId = pathCapture(incidentAttachmentItemMatch, 1);
+        const registerId = pathCapture(incidentAttachmentItemMatch, 2);
+        const incidentId = pathCapture(incidentAttachmentItemMatch, 3);
+        const attachmentId = pathCapture(incidentAttachmentItemMatch, 4);
         const current = await incidents.get(organization.id, projectId, registerId);
         const incident = current?.incidents?.find((candidate: { id?: string }) => candidate.id === incidentId);
         const attachment = incident?.attachments?.find((candidate: { id?: string }) => candidate.id === attachmentId);
-        if (!current || !incident || !attachment) return apiError(404, "INCIDENT_ATTACHMENT_NOT_FOUND", "Incident attachment not found");
-        const extension = attachment.contentType === "application/pdf" ? "pdf" : attachment.contentType === "image/png" ? "png" : attachment.contentType === "image/webp" ? "webp" : "jpg";
-        try { return await incidentAttachmentServiceFactory(env.INCIDENT_EVIDENCE).download({ ...attachment, incidentId, filename: `${attachment.id}.${extension}`, mimeType: attachment.contentType, createdAt: attachment.uploadedAt } as never); }
-        catch (cause) {
-          const error = cause as { code?: string; message?: string; details?: unknown };
-          return apiError(error.code === "INCIDENT_ATTACHMENT_NOT_FOUND" ? 404 : 409, error.code ?? "INCIDENT_ATTACHMENT_UNAVAILABLE", error.message ?? "Incident attachment unavailable", error.details);
+        if (!current || !incident || !attachment)
+          return apiError(404, "INCIDENT_ATTACHMENT_NOT_FOUND", "Incident attachment not found");
+        const extension =
+          attachment.contentType === "application/pdf"
+            ? "pdf"
+            : attachment.contentType === "image/png"
+              ? "png"
+              : attachment.contentType === "image/webp"
+                ? "webp"
+                : "jpg";
+        try {
+          return await incidentAttachmentServiceFactory(env.INCIDENT_EVIDENCE).download({
+            id: attachment.id,
+            incidentId,
+            filename: `${attachment.id}.${extension}`,
+            mimeType: attachment.contentType,
+            byteLength: attachment.byteLength,
+            sha256: attachment.sha256,
+            createdAt: attachment.uploadedAt,
+          });
+        } catch (cause) {
+          const error = errorInfo(cause);
+          return apiError(
+            error.code === "INCIDENT_ATTACHMENT_NOT_FOUND" ? 404 : 409,
+            error.code ?? "INCIDENT_ATTACHMENT_UNAVAILABLE",
+            error.message ?? "Incident attachment unavailable",
+            error.details,
+          );
         }
       }
       if ((incidentNestedExportMatch || incidentExportMatch) && request.method === "GET") {
         if (!canExportIncidents) return apiError(403, "INCIDENT_EXPORT_DENIED", "Incident export role required");
-        const match = incidentNestedExportMatch ?? incidentExportMatch!;
-        const projectId = decodeURIComponent(match[1]);
-        const registerId = decodeURIComponent(match[2]);
-        const incidentId = incidentNestedExportMatch ? decodeURIComponent(match[3]) : url.searchParams.get("incidentId")?.trim();
+        const match = incidentNestedExportMatch ?? incidentExportMatch;
+        if (!match) return apiError(404, "INCIDENT_EXPORT_ROUTE_INVALID", "Incident export route is invalid");
+        const projectId = pathCapture(match, 1);
+        const registerId = pathCapture(match, 2);
+        const incidentId = incidentNestedExportMatch
+          ? pathCapture(match, 3)
+          : url.searchParams.get("incidentId")?.trim();
         if (!incidentId) return apiError(400, "INCIDENT_INVALID", "Incident ID is required");
         const current = await incidents.get(organization.id, projectId, registerId);
         if (!current) return apiError(404, "INCIDENT_REGISTER_NOT_FOUND", "Incident Register not found");
-        try { return respond({ artifact: createIncidentCommandBus({ initialRegister: current }).execute({ type: "export_incident_record", incidentId, exportedAt: clock() }) }); }
-        catch (cause) {
-          const error = cause as { code?: string; message?: string; details?: unknown };
-          return apiError(error.code === "INCIDENT_NOT_FOUND" ? 404 : 409, error.code ?? "INCIDENT_EXPORT_FAILED", error.message ?? "Incident export failed", error.details);
+        try {
+          return respond({
+            artifact: createIncidentCommandBus({ initialRegister: current }).execute({
+              type: "export_incident_record",
+              incidentId,
+              exportedAt: clock(),
+            }),
+          });
+        } catch (cause) {
+          const error = errorInfo(cause);
+          return apiError(
+            error.code === "INCIDENT_NOT_FOUND" ? 404 : 409,
+            error.code ?? "INCIDENT_EXPORT_FAILED",
+            error.message ?? "Incident export failed",
+            error.details,
+          );
         }
       }
       if (incidentItemMatch && request.method === "GET") {
-        const projectId = decodeURIComponent(incidentItemMatch[1]);
-        const registerId = decodeURIComponent(incidentItemMatch[2]);
+        const projectId = pathCapture(incidentItemMatch, 1);
+        const registerId = pathCapture(incidentItemMatch, 2);
         const register = await incidents.get(organization.id, projectId, registerId);
-        return register ? respond({ register }) : apiError(404, "INCIDENT_REGISTER_NOT_FOUND", "Incident Register not found");
+        return register
+          ? respond({ register })
+          : apiError(404, "INCIDENT_REGISTER_NOT_FOUND", "Incident Register not found");
       }
-      if (url.pathname === "/api/notifications" && request.method === "GET") return respond({ notifications: await sharing.listNotifications(account.user.id, organization.id) });
-      if (url.pathname === "/api/notification-preferences" && request.method === "GET") return respond(await sharing.preferences(account.user.id));
+      if (url.pathname === "/api/notifications" && request.method === "GET")
+        return respond({ notifications: await sharing.listNotifications(account.user.id, organization.id) });
+      if (url.pathname === "/api/notification-preferences" && request.method === "GET")
+        return respond(await sharing.preferences(account.user.id));
       if (url.pathname === "/api/notification-preferences" && request.method === "PUT") {
         const body = await readBody(request);
-        try { return respond(await sharing.setPreferences(account.user.id, body, clock())); } catch { return apiError(400, "NOTIFICATION_PREFERENCES_INVALID", "Notification preferences are invalid"); }
+        try {
+          return respond(await sharing.setPreferences(account.user.id, body, clock()));
+        } catch {
+          return apiError(400, "NOTIFICATION_PREFERENCES_INVALID", "Notification preferences are invalid");
+        }
       }
       const notificationReadMatch = url.pathname.match(/^\/api\/notifications\/([^/]+)\/read$/);
-      if (notificationReadMatch && request.method === "POST") { await sharing.markRead(account.user.id, organization.id, decodeURIComponent(notificationReadMatch[1]), clock()); return respond({ status: "read" }); }
+      if (notificationReadMatch && request.method === "POST") {
+        await sharing.markRead(account.user.id, organization.id, pathCapture(notificationReadMatch, 1), clock());
+        return respond({ status: "read" });
+      }
       if (url.pathname === "/api/notifications/email/drain" && request.method === "POST") {
         if (!admin) return apiError(403, "ORGANIZATION_ADMIN_REQUIRED", "Organization administrator required");
-        return respond(await drainNotificationEmail({ repository: sharing, delivery: options.emailDelivery ?? env.EMAIL_DELIVERY, organizationId: organization.id, clock }));
+        return respond(
+          await drainNotificationEmail({
+            repository: sharing,
+            delivery: options.emailDelivery ?? env.EMAIL_DELIVERY,
+            organizationId: organization.id,
+            clock,
+          }),
+        );
       }
 
       const shareCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/share-links$/);
       if (shareCollectionMatch && request.method === "GET") {
-        if (!["venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role))) return apiError(403, "SHARE_LINK_DENIED", "Share-link management role required");
-        const projectId = decodeURIComponent(shareCollectionMatch[1]);
-        if (!await projects.get(organization.id, projectId)) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        if (!hasRole(organization.roles, SHARE_MANAGEMENT_ROLES))
+          return apiError(403, "SHARE_LINK_DENIED", "Share-link management role required");
+        const projectId = pathCapture(shareCollectionMatch, 1);
+        if (!(await projects.get(organization.id, projectId)))
+          return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
         await reconcileShareOperations(env, { organizationId: organization.id, projectId });
-        return respond({ links: (await sharing.listLinks(organization.id, projectId)).map(({ tokenHash: _tokenHash, ...link }) => ({ ...link, status: link.lifecycleState === "pending-create" ? "pending" : ["pending-revoke", "revoked"].includes(link.lifecycleState) ? "revoked" : shareLinkStatus(link, clock()) })) });
+        return respond({
+          links: (await sharing.listLinks(organization.id, projectId)).map(({ tokenHash: _tokenHash, ...link }) => ({
+            ...link,
+            status:
+              link.lifecycleState === "pending-create"
+                ? "pending"
+                : ["pending-revoke", "revoked"].includes(link.lifecycleState)
+                  ? "revoked"
+                  : shareLinkStatus(link, clock()),
+          })),
+        });
       }
       if (shareCollectionMatch && request.method === "POST") {
-        if (!["venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role))) return apiError(403, "SHARE_LINK_DENIED", "Share-link management role required");
-        const projectId = decodeURIComponent(shareCollectionMatch[1]);
+        if (!hasRole(organization.roles, SHARE_MANAGEMENT_ROLES))
+          return apiError(403, "SHARE_LINK_DENIED", "Share-link management role required");
+        const projectId = pathCapture(shareCollectionMatch, 1);
         const current = await projects.get(organization.id, projectId);
         if (!current) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
-        const body = await readBody<{ scope?: string; proposalId?: string; expiresAt?: string }>(request);
+        const body = await readObjectBody(request);
         const nowMs = Date.parse(clock());
-        const expiresAtMs = Date.parse(body.expiresAt ?? "");
+        const expiresAt = typeof body.expiresAt === "string" ? body.expiresAt : "";
+        const expiresAtMs = Date.parse(expiresAt);
         const canonicalExpiry = Number.isFinite(expiresAtMs) ? new Date(expiresAtMs).toISOString() : null;
-        if (!SHARE_SCOPES.includes(body.scope as never) || !body.expiresAt || canonicalExpiry !== body.expiresAt || expiresAtMs <= nowMs || expiresAtMs > nowMs + 30 * 24 * 60 * 60 * 1000 || (body.scope === "read-only" && body.proposalId != null)) return apiError(400, "SHARE_LINK_INVALID", "Share link fields are invalid");
-        const snapshot = current.snapshot as { proposal?: { id?: string }; branches?: Array<{ proposal?: { id?: string }; revisions?: Array<{ id?: string }> }> };
+        if (
+          !isShareScope(body.scope) ||
+          !expiresAt ||
+          canonicalExpiry !== expiresAt ||
+          expiresAtMs <= nowMs ||
+          expiresAtMs > nowMs + 30 * 24 * 60 * 60 * 1000 ||
+          (body.scope === "read-only" && body.proposalId != null)
+        )
+          return apiError(400, "SHARE_LINK_INVALID", "Share link fields are invalid");
+        const snapshot = current.snapshot;
         const proposalIds = new Set(retainedProposals(snapshot).map((proposal) => proposal.id));
-        if (body.scope === "reviewer" && (!body.proposalId || !proposalIds.has(body.proposalId))) return apiError(400, "SHARE_PROPOSAL_INVALID", "Reviewer link requires one retained Proposal");
+        const proposalId = typeof body.proposalId === "string" ? body.proposalId : null;
+        if (body.scope === "reviewer" && (!proposalId || !proposalIds.has(proposalId)))
+          return apiError(400, "SHARE_PROPOSAL_INVALID", "Reviewer link requires one retained Proposal");
         const id = `share-${crypto.randomUUID()}`;
         const token = createShareToken();
         const tokenHash = await hashShareToken(token);
         const createdAt = clock();
-        await sharing.createLink({ id, organizationId: organization.id, projectId, proposalId: body.scope === "reviewer" ? body.proposalId : null, scope: body.scope, tokenHash, createdBy: account.user.id, createdAt, expiresAt: body.expiresAt, revokedAt: null, revokedBy: null });
+        await sharing.createLink({
+          id,
+          organizationId: organization.id,
+          projectId,
+          proposalId: body.scope === "reviewer" ? proposalId : null,
+          scope: body.scope,
+          tokenHash,
+          createdBy: account.user.id,
+          createdAt,
+          expiresAt,
+        });
         const reconciliation = await reconcileShareOperations(env, { linkId: id, limit: 1 });
         const link = (await sharing.listLinks(organization.id, projectId)).find((item) => item.id === id);
         const saved = await projects.get(organization.id, projectId);
         const active = link?.lifecycleState === "active";
-        return respond({ id, status: active ? "active" : "pending", scope: body.scope, proposalId: body.scope === "reviewer" ? body.proposalId : null, expiresAt: body.expiresAt, token, url: `/share/${token}`, projectRevision: saved?.revision ?? current.revision, ...(active ? {} : { recovery: reconciliation[0]?.error ?? "SHARE_RECONCILIATION_PENDING" }) }, { status: active ? 201 : 202 });
+        return respond(
+          {
+            id,
+            status: active ? "active" : "pending",
+            scope: body.scope,
+            proposalId: body.scope === "reviewer" ? proposalId : null,
+            expiresAt,
+            token,
+            url: `/share/${token}`,
+            projectRevision: saved?.revision ?? current.revision,
+            ...(active ? {} : { recovery: reconciliation[0]?.error ?? "SHARE_RECONCILIATION_PENDING" }),
+          },
+          { status: active ? 201 : 202 },
+        );
       }
       const shareRevokeMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/share-links\/([^/]+)\/revoke$/);
       if (shareRevokeMatch && request.method === "POST") {
-        if (!["venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role))) return apiError(403, "SHARE_LINK_DENIED", "Share-link management role required");
-        const projectId = decodeURIComponent(shareRevokeMatch[1]);
-        const linkId = decodeURIComponent(shareRevokeMatch[2]);
+        if (!hasRole(organization.roles, SHARE_MANAGEMENT_ROLES))
+          return apiError(403, "SHARE_LINK_DENIED", "Share-link management role required");
+        const projectId = pathCapture(shareRevokeMatch, 1);
+        const linkId = pathCapture(shareRevokeMatch, 2);
         await reconcileShareOperations(env, { organizationId: organization.id, projectId, linkId, limit: 1 });
         const revoked = await sharing.beginRevoke(organization.id, projectId, linkId, account.user.id, clock());
         if (!revoked) return apiError(404, "SHARE_LINK_NOT_FOUND", "Share link not found");
-        if (revoked.link.lifecycleState === "revoked") { const current = await projects.get(organization.id, projectId); return respond({ status: "already-revoked", id: linkId, revokedAt: revoked.link.revokedAt, projectRevision: current?.revision ?? null }); }
+        if (revoked.link.lifecycleState === "revoked") {
+          const current = await projects.get(organization.id, projectId);
+          return respond({
+            status: "already-revoked",
+            id: linkId,
+            revokedAt: revoked.link.revokedAt,
+            projectRevision: current?.revision ?? null,
+          });
+        }
         const reconciliation = await reconcileShareOperations(env, { linkId, limit: 1 });
         const finalLink = (await sharing.listLinks(organization.id, projectId)).find((item) => item.id === linkId);
         const current = await projects.get(organization.id, projectId);
         const complete = finalLink?.lifecycleState === "revoked";
-        return respond({ status: complete ? "revoked" : "pending-revoke", id: linkId, revokedAt: finalLink?.revokedAt ?? revoked.link.revokedAt, projectRevision: current?.revision ?? null, ...(complete ? {} : { recovery: reconciliation[0]?.error ?? "SHARE_RECONCILIATION_PENDING" }) }, { status: complete ? 200 : 202 });
+        return respond(
+          {
+            status: complete ? "revoked" : "pending-revoke",
+            id: linkId,
+            revokedAt: finalLink?.revokedAt ?? revoked.link.revokedAt,
+            projectRevision: current?.revision ?? null,
+            ...(complete ? {} : { recovery: reconciliation[0]?.error ?? "SHARE_RECONCILIATION_PENDING" }),
+          },
+          { status: complete ? 200 : 202 },
+        );
       }
       const collaborationMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/collaboration$/);
       const presenceMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/collaboration\/presence$/);
       if (collaborationMatch && request.method === "GET") {
-        const projectId = decodeURIComponent(collaborationMatch[1]);
+        const projectId = pathCapture(collaborationMatch, 1);
         const project = await projects.get(organization.id, projectId);
         if (!project) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
         const afterValue = request.headers.get("last-event-id") ?? url.searchParams.get("after") ?? "0";
         const after = Number(afterValue);
-        if (!Number.isSafeInteger(after) || after < 0) return apiError(400, "COLLABORATION_CURSOR_INVALID", "Collaboration cursor is invalid");
+        if (!Number.isSafeInteger(after) || after < 0)
+          return apiError(400, "COLLABORATION_CURSOR_INVALID", "Collaboration cursor is invalid");
         const collaboration = collaborationRepositoryFactory(env.DB);
         const batch = await collaboration.events(organization.id, projectId, after, 100);
         const presence = await collaboration.presence(organization.id, projectId, clock());
         const chunks = ["retry: 1500", `event: presence.snapshot\ndata: ${JSON.stringify({ presence })}`];
-        if (batch.missed) chunks.push(`id: ${batch.cursor}\nevent: sync.reset\ndata: ${JSON.stringify({ projectId, revision: project.revision, cursor: batch.cursor })}`);
-        for (const event of batch.events) chunks.push(`id: ${event.id}\nevent: ${event.type}\ndata: ${JSON.stringify(event)}`);
-        chunks.push(`event: sync.cursor\ndata: ${JSON.stringify({ cursor: batch.cursor, revision: project.revision })}`);
-        const response = new Response(`${chunks.join("\n\n")}\n\n`, { headers: { "content-type": "text/event-stream; charset=utf-8", "cache-control": "no-store", "x-collaboration-cursor": String(batch.cursor) } });
+        if (batch.missed)
+          chunks.push(
+            `id: ${batch.cursor}\nevent: sync.reset\ndata: ${JSON.stringify({ projectId, revision: project.revision, cursor: batch.cursor })}`,
+          );
+        for (const event of batch.events)
+          chunks.push(`id: ${event.id}\nevent: ${event.type}\ndata: ${JSON.stringify(event)}`);
+        chunks.push(
+          `event: sync.cursor\ndata: ${JSON.stringify({ cursor: batch.cursor, revision: project.revision })}`,
+        );
+        const response = new Response(`${chunks.join("\n\n")}\n\n`, {
+          headers: {
+            "content-type": "text/event-stream; charset=utf-8",
+            "cache-control": "no-store",
+            "x-collaboration-cursor": String(batch.cursor),
+          },
+        });
         for (const cookie of setCookies) response.headers.append("set-cookie", cookie);
         return response;
       }
       if (presenceMatch && request.method === "PUT") {
-        const projectId = decodeURIComponent(presenceMatch[1]);
+        const projectId = pathCapture(presenceMatch, 1);
         const project = await projects.get(organization.id, projectId);
         if (!project) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
-        const body = await readBody<{ planVersion?: string; focusedObjectId?: string | null; viewport?: Record<string, unknown> | null }>(request);
-        if (!body.planVersion || (body.focusedObjectId !== undefined && body.focusedObjectId !== null && typeof body.focusedObjectId !== "string")) return apiError(400, "PRESENCE_INVALID", "Presence payload is invalid");
+        const body = await readObjectBody(request);
+        if (
+          typeof body.planVersion !== "string" ||
+          !body.planVersion ||
+          (body.focusedObjectId !== undefined &&
+            body.focusedObjectId !== null &&
+            typeof body.focusedObjectId !== "string")
+        )
+          return apiError(400, "PRESENCE_INVALID", "Presence payload is invalid");
         const focusableIds = new Set([
-          ...((project.snapshot as { plan?: { objects?: Array<{ id?: string }> } })?.plan?.objects ?? []).map((object) => object.id),
-          ...((project.snapshot as { proposal?: { changes?: Array<{ targetObjectIds?: string[] }> } })?.proposal?.changes ?? []).flatMap((change) => change.targetObjectIds ?? []),
-        ].filter(Boolean));
-        if (body.focusedObjectId && !focusableIds.has(body.focusedObjectId)) return apiError(400, "PRESENCE_FOCUS_INVALID", "Focused object is unavailable");
-        const viewport = body.viewport === null || body.viewport === undefined ? null : body.viewport;
-        if (viewport && (Object.keys(viewport).some((key) => !["x", "y", "zoom", "width", "height"].includes(key)) || Object.values(viewport).some((item) => typeof item !== "number" || !Number.isFinite(item)) || (typeof viewport.zoom === "number" && viewport.zoom <= 0))) return apiError(400, "PRESENCE_VIEWPORT_INVALID", "Presence viewport is invalid");
+          ...project.snapshot.plan.objects.map((object) => object.id),
+          ...project.snapshot.proposal.changes.flatMap((change) => change.targetObjectIds ?? []),
+        ]);
+        const focusedObjectId = typeof body.focusedObjectId === "string" ? body.focusedObjectId : null;
+        if (focusedObjectId && !focusableIds.has(focusedObjectId))
+          return apiError(400, "PRESENCE_FOCUS_INVALID", "Focused object is unavailable");
+        const viewport =
+          body.viewport === null || body.viewport === undefined ? null : isRecord(body.viewport) ? body.viewport : null;
+        if (body.viewport !== null && body.viewport !== undefined && viewport === null)
+          return apiError(400, "PRESENCE_VIEWPORT_INVALID", "Presence viewport is invalid");
+        if (
+          viewport &&
+          (Object.keys(viewport).some((key) => !["x", "y", "zoom", "width", "height"].includes(key)) ||
+            Object.values(viewport).some((item) => typeof item !== "number" || !Number.isFinite(item)) ||
+            (typeof viewport.zoom === "number" && viewport.zoom <= 0))
+        )
+          return apiError(400, "PRESENCE_VIEWPORT_INVALID", "Presence viewport is invalid");
         const now = clock();
         const expiresAt = new Date(Date.parse(now) + 30_000).toISOString();
-        const value = await collaborationRepositoryFactory(env.DB).upsertPresence({ organizationId: organization.id, projectId, sessionId: account.session.id, userId: account.user.id, displayName: account.user.displayName || account.user.email, planVersion: body.planVersion, focusedObjectId: body.focusedObjectId ?? null, viewport, lastSeenAt: now, expiresAt });
+        const value = await collaborationRepositoryFactory(env.DB).upsertPresence({
+          organizationId: organization.id,
+          projectId,
+          sessionId: account.session.id,
+          userId: account.user.id,
+          displayName: account.user.displayName || account.user.email,
+          planVersion: body.planVersion,
+          focusedObjectId,
+          viewport,
+          lastSeenAt: now,
+          expiresAt,
+        });
         return respond(value);
       }
       if (presenceMatch && request.method === "DELETE") {
-        const projectId = decodeURIComponent(presenceMatch[1]);
-        await collaborationRepositoryFactory(env.DB).removePresence(organization.id, projectId, account.session.id, account.user.id);
+        const projectId = pathCapture(presenceMatch, 1);
+        await collaborationRepositoryFactory(env.DB).removePresence(
+          organization.id,
+          projectId,
+          account.session.id,
+          account.user.id,
+        );
         return respond({ status: "offline" });
       }
-      if (url.pathname === "/api/projects" && request.method === "GET") return respond({ organizationId: organization.id, projects: await projects.list(organization.id) });
+      if (url.pathname === "/api/projects" && request.method === "GET")
+        return respond({ organizationId: organization.id, projects: await projects.list(organization.id) });
       if (url.pathname.startsWith("/api/projects/") && request.method === "GET") {
         const projectId = projectIdFrom(url.pathname);
         const record = await projects.get(organization.id, projectId);
         if (!record) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
-        if (record.schemaVersion !== 10) return apiError(409, "PROJECT_SCHEMA_UNSUPPORTED", "Project schema is unsupported", { schemaVersion: record.schemaVersion, supportedSchemaVersion: 10 });
+        if (record.schemaVersion !== 10)
+          return apiError(409, "PROJECT_SCHEMA_UNSUPPORTED", "Project schema is unsupported", {
+            schemaVersion: record.schemaVersion,
+            supportedSchemaVersion: 10,
+          });
         return respond(record, { headers: { etag: projectEtag(record.id, record.revision) } });
       }
       if (url.pathname.startsWith("/api/projects/") && request.method === "PUT") {
         const projectId = projectIdFrom(url.pathname);
-        let body: Partial<ProjectRecord>;
-        try { body = await readBody(request); } catch { return apiError(413, "PAYLOAD_TOO_LARGE", "Project payload too large"); }
-        if (body.id !== projectId || !body.name || !body.activePlanId || body.schemaVersion !== 10 || !body.snapshot) return apiError(400, "PROJECT_INVALID", "Invalid project record");
-        if (body.organizationId && body.organizationId !== organization.id) return apiError(403, "ORGANIZATION_ACCESS_DENIED", "Project organization does not match active organization");
-        if (!["planner", "venue-administrator", "organization-administrator"].some((role) => organization.roles.includes(role))) return apiError(403, "PROJECT_WRITE_DENIED", "Project write role required");
-        const snapshot = body.snapshot as { plan?: Record<string, unknown>; brief?: unknown; proposal?: unknown };
+        let rawBody: Record<string, unknown>;
         try {
-          const planner = createVenuePlanner({ ...(snapshot.plan ?? {}), brief: snapshot.brief, proposal: snapshot.proposal });
-          planner.execute({ type: "restore_snapshot", snapshot: body.snapshot });
-        } catch (cause) {
-          const error = cause as { code?: string; message?: string; details?: unknown };
-          return apiError(400, error.code ?? "PROJECT_INVALID", error.message ?? "Project snapshot is invalid", error.details);
+          rawBody = await readObjectBody(request);
+        } catch {
+          return apiError(413, "PAYLOAD_TOO_LARGE", "Project payload too large");
         }
-        const record = { ...body, organizationId: organization.id } as ProjectRecord;
+        if (typeof rawBody.organizationId === "string" && rawBody.organizationId !== organization.id)
+          return apiError(403, "ORGANIZATION_ACCESS_DENIED", "Project organization does not match active organization");
+        const bodyCandidate = {
+          ...rawBody,
+          organizationId: organization.id,
+          archivedAt: rawBody.archivedAt ?? null,
+          deletedAt: rawBody.deletedAt ?? null,
+          recoveryUntil: rawBody.recoveryUntil ?? null,
+          pinned: rawBody.pinned ?? false,
+          lastOpenedAt: rawBody.lastOpenedAt ?? null,
+        };
+        if (!isLocalProjectRecord(bodyCandidate) || bodyCandidate.id !== projectId)
+          return apiError(400, "PROJECT_INVALID", "Invalid project record");
+        const body = bodyCandidate;
+        if (!hasRole(organization.roles, RUNBOOK_WRITE_ROLES))
+          return apiError(403, "PROJECT_WRITE_DENIED", "Project write role required");
+        const snapshot = body.snapshot;
+        try {
+          const planner = createVenuePlanner({ ...snapshot.plan, brief: snapshot.brief, proposal: snapshot.proposal });
+          await planner.execute({ type: "restore_snapshot", snapshot });
+        } catch (cause) {
+          const error = errorInfo(cause);
+          return apiError(
+            400,
+            error.code ?? "PROJECT_INVALID",
+            error.message ?? "Project snapshot is invalid",
+            error.details,
+          );
+        }
+        const record = body;
         const current = await projects.get(organization.id, projectId);
         const createOnly = request.headers.get("if-none-match") === "*";
         const ifMatch = request.headers.get("if-match");
-        if (createOnly && ifMatch) return apiError(400, "PROJECT_PRECONDITION_INVALID", "Choose one Project write precondition");
-        if (createOnly && current) return apiError(409, "PROJECT_ID_CONFLICT", "Project already exists", { current, currentEtag: projectEtag(current.id, current.revision) }, { etag: projectEtag(current.id, current.revision) });
-        if (!createOnly && !current) return apiError(412, "PROJECT_REVISION_CONFLICT", "Project revision is unavailable", { current: null, expectedRevision: null });
-        if (!createOnly && !ifMatch) return apiError(428, "PROJECT_PRECONDITION_REQUIRED", "If-Match is required for an existing Project");
+        if (createOnly && ifMatch)
+          return apiError(400, "PROJECT_PRECONDITION_INVALID", "Choose one Project write precondition");
+        if (createOnly && current)
+          return apiError(
+            409,
+            "PROJECT_ID_CONFLICT",
+            "Project already exists",
+            { current, currentEtag: projectEtag(current.id, current.revision) },
+            { etag: projectEtag(current.id, current.revision) },
+          );
+        if (!createOnly && !current)
+          return apiError(412, "PROJECT_REVISION_CONFLICT", "Project revision is unavailable", {
+            current: null,
+            expectedRevision: null,
+          });
+        if (!createOnly && !ifMatch)
+          return apiError(428, "PROJECT_PRECONDITION_REQUIRED", "If-Match is required for an existing Project");
         const expectedRevision = ifMatch ? parseProjectEtag(ifMatch, projectId) : null;
-        if (!createOnly && expectedRevision === null) return apiError(400, "PROJECT_ETAG_INVALID", "Project ETag is invalid");
-        if (!createOnly && body.revision !== undefined && body.revision !== expectedRevision) return apiError(400, "PROJECT_REVISION_INVALID", "Project body revision does not match If-Match");
+        if (!createOnly && expectedRevision === null)
+          return apiError(400, "PROJECT_ETAG_INVALID", "Project ETag is invalid");
+        if (!createOnly && body.revision !== undefined && body.revision !== expectedRevision)
+          return apiError(400, "PROJECT_REVISION_INVALID", "Project body revision does not match If-Match");
         try {
           const saved = await projects.put(organization.id, record, { createOnly, expectedRevision });
           const collaboration = collaborationRepositoryFactory(env.DB);
           const collaborationTypes = projectCollaborationEventTypes(current, saved);
           for (const type of collaborationTypes) {
-            await collaboration.append({ organizationId: organization.id, projectId, type, actorUserId: account.user.id, sessionId: account.session.id, projectRevision: saved.revision, payload: collaborationEventPayload(type, current, saved), occurredAt: clock() });
+            await collaboration.append({
+              organizationId: organization.id,
+              projectId,
+              type,
+              actorUserId: account.user.id,
+              sessionId: account.session.id,
+              projectRevision: saved.revision,
+              payload: collaborationEventPayload(type, current, saved),
+              occurredAt: clock(),
+            });
           }
-          const currentLedgerLength = ((current?.snapshot as { ledger?: unknown[] } | undefined)?.ledger ?? []).length;
-          const newLedger = ((saved.snapshot as { ledger?: Array<{ type?: string }> })?.ledger ?? []).slice(currentLedgerLength);
-          if (newLedger.some((entry) => entry.type === "proposal.adjustment_requested")) await notifyOrganization("adjustment_requested", saved, { proposalId: (saved.snapshot as { proposal?: { id?: string } }).proposal?.id ?? "proposal-unknown" });
-          else if (collaborationTypes.includes("approval.committed")) await notifyOrganization("approval_completed", saved, { planVersion: (saved.snapshot as { plan?: { version?: string } }).plan?.version ?? "0.0" });
-          else if (collaborationTypes.includes("proposal.updated")) await notifyOrganization("review_requested", saved, { proposalId: (saved.snapshot as { proposal?: { id?: string } }).proposal?.id ?? "proposal-unknown" });
+          const currentLedgerLength = current?.snapshot.ledger.length ?? 0;
+          const newLedger = saved.snapshot.ledger.slice(currentLedgerLength);
+          if (newLedger.some((entry) => entry.type === "proposal.adjustment_requested"))
+            await notifyOrganization("adjustment_requested", saved, { proposalId: saved.snapshot.proposal.id });
+          else if (collaborationTypes.includes("approval.committed"))
+            await notifyOrganization("approval_completed", saved, { planVersion: saved.snapshot.plan.version });
+          else if (collaborationTypes.includes("proposal.updated"))
+            await notifyOrganization("review_requested", saved, { proposalId: saved.snapshot.proposal.id });
           const correlationId = request.headers.get("x-correlation-id");
-          return respond(saved, { status: createOnly ? 201 : 200, headers: { etag: projectEtag(saved.id, saved.revision), ...(correlationId ? { "x-correlation-id": correlationId } : {}) } });
+          return respond(saved, {
+            status: createOnly ? 201 : 200,
+            headers: {
+              etag: projectEtag(saved.id, saved.revision),
+              ...(correlationId ? { "x-correlation-id": correlationId } : {}),
+            },
+          });
         } catch (cause) {
-          if (cause instanceof ProjectRevisionConflict || (cause instanceof Error && cause.message === "PROJECT_REVISION_CONFLICT")) {
-            const latest = cause instanceof ProjectRevisionConflict ? cause.current : await projects.get(organization.id, projectId);
+          if (
+            cause instanceof ProjectRevisionConflict ||
+            (cause instanceof Error && cause.message === "PROJECT_REVISION_CONFLICT")
+          ) {
+            const latest =
+              cause instanceof ProjectRevisionConflict ? cause.current : await projects.get(organization.id, projectId);
             const preferences = await sharing.preferences(account.user.id);
-            if (latest && preferences.eventTypes.includes("conflict_detected") && (preferences.inAppEnabled || preferences.emailEnabled)) {
-              const notification = safeNotification({ id: `notification-${crypto.randomUUID()}`, organizationId: organization.id, projectId, userId: account.user.id, eventType: "conflict_detected", refs: { projectId, revision: latest.revision, conflictCode: "PROJECT_REVISION_CONFLICT" }, createdAt: clock() });
-              await sharing.addNotification(notification, { inAppEnabled: preferences.inAppEnabled, recipientEmail: preferences.emailEnabled ? account.user.email : null });
+            if (
+              latest &&
+              preferences.eventTypes.includes("conflict_detected") &&
+              (preferences.inAppEnabled || preferences.emailEnabled)
+            ) {
+              const notification = safeNotification({
+                id: `notification-${crypto.randomUUID()}`,
+                organizationId: organization.id,
+                projectId,
+                userId: account.user.id,
+                eventType: "conflict_detected",
+                refs: { projectId, revision: latest.revision, conflictCode: "PROJECT_REVISION_CONFLICT" },
+                createdAt: clock(),
+              });
+              await sharing.addNotification(notification, {
+                inAppEnabled: preferences.inAppEnabled,
+                recipientEmail: preferences.emailEnabled ? account.user.email : null,
+              });
             }
-            return apiError(412, "PROJECT_REVISION_CONFLICT", "Project revision is stale", { current: latest, expectedRevision, currentRevision: latest?.revision ?? null, currentEtag: latest ? projectEtag(latest.id, latest.revision) : null }, latest ? { etag: projectEtag(latest.id, latest.revision) } : undefined);
+            return apiError(
+              412,
+              "PROJECT_REVISION_CONFLICT",
+              "Project revision is stale",
+              {
+                current: latest,
+                expectedRevision,
+                currentRevision: latest?.revision ?? null,
+                currentEtag: latest ? projectEtag(latest.id, latest.revision) : null,
+              },
+              latest ? { etag: projectEtag(latest.id, latest.revision) } : undefined,
+            );
           }
-          if (cause instanceof Error && cause.message === "PROJECT_ID_CONFLICT") return apiError(409, "PROJECT_ID_CONFLICT", "Project ID belongs to another organization");
+          if (cause instanceof Error && cause.message === "PROJECT_ID_CONFLICT")
+            return apiError(409, "PROJECT_ID_CONFLICT", "Project ID belongs to another organization");
           throw cause;
         }
       }
       return apiError(404, "NOT_FOUND", "Not found");
     },
-    async scheduled(_controller: unknown, env: WorkerEnv, context?: { waitUntil?: (promise: Promise<unknown>) => void }) {
+    async scheduled(
+      _controller: unknown,
+      env: WorkerEnv,
+      context?: { waitUntil?: (promise: Promise<unknown>) => void },
+    ) {
       const task = Promise.all([
         reconcileShareOperations(env, { limit: 100 }),
-        drainNotificationEmail({ repository: sharingRepositoryFactory(env.DB), delivery: options.emailDelivery ?? env.EMAIL_DELIVERY, clock }),
+        drainNotificationEmail({
+          repository: sharingRepositoryFactory(env.DB),
+          delivery: options.emailDelivery ?? env.EMAIL_DELIVERY,
+          clock,
+        }),
       ]);
-      if (context?.waitUntil) { context.waitUntil(task); return; }
+      if (context?.waitUntil) {
+        context.waitUntil(task);
+        return;
+      }
       await task;
     },
   };

@@ -1,31 +1,159 @@
-import { commandForVenueTool, venueToolContracts } from "../contracts/venue-contracts.ts";
-import { assertVenuePermission, permissionForTool, TRUSTED_LOCAL_AUTHORIZATION } from "../domain/authorization.ts";
+import {
+  commandForVenueTool,
+  venueToolContracts,
+  type VenueToolContract,
+  type VenueToolInput,
+  type VenueToolName,
+  type VenueToolSource,
+} from "../contracts/venue-contracts.ts";
+import {
+  assertVenuePermission,
+  permissionForTool,
+  TRUSTED_LOCAL_AUTHORIZATION,
+  type AgentGrant,
+  type HumanPrincipal,
+  type VenuePrincipal,
+} from "../domain/authorization.ts";
 import { venueError } from "../domain/errors.ts";
 
-const contracts: any = new Map(venueToolContracts.map((contract: any) => [contract.name, contract]));
+export interface ToolAuthorization {
+  readonly principal: VenuePrincipal;
+  readonly grant?: AgentGrant;
+  readonly delegatedBy?: HumanPrincipal;
+  readonly organizationId?: string;
+  readonly projectId?: string;
+}
 
-const canonicalProjectList: any = (value: any) => {
-  const source: any = Array.isArray(value) ? "repository" : value?.source ?? "repository";
-  const projects: any = Array.isArray(value) ? value : value?.projects;
-  if (!Array.isArray(projects)) throw venueError("PROJECT_TOOL_UNAVAILABLE", { reason: "project-list-contract" });
-  return { source, projects };
+export interface ProjectSummary {
+  readonly id: string;
+  readonly name: string;
+  readonly active?: boolean;
+  readonly activePlanId?: string;
+  readonly planVersion?: string;
+  readonly proposalId?: string | null;
+  readonly schemaVersion?: number;
+  readonly createdAt?: string;
+  readonly updatedAt?: string;
+}
+
+export interface CanonicalProjectList {
+  readonly source: string;
+  readonly projects: readonly ProjectSummary[];
+}
+export interface CanonicalProjectOpen {
+  readonly status: string;
+  readonly project: ProjectSummary;
+}
+export interface ToolExecutionContext {
+  readonly signal?: AbortSignal;
+  readonly authorization?: ToolAuthorization;
+  readonly organizationId?: string;
+  readonly projectId?: string;
+}
+
+type ToolOutput = object | readonly object[];
+type MaybePromise<T> = T | Promise<T>;
+type Command = ReturnType<typeof commandForVenueTool>;
+type CommandExecutor = (command: Command, context: ToolExecutionContext) => MaybePromise<ToolOutput>;
+type Operation = (
+  input: VenueToolInput,
+  context: ToolExecutionContext & { readonly source: VenueToolSource },
+) => MaybePromise<ToolOutput>;
+
+export interface ProjectOperations {
+  listProjects(): MaybePromise<CanonicalProjectList | ProjectSummary[]>;
+  openProject(projectId: string): MaybePromise<CanonicalProjectOpen | ProjectSummary>;
+}
+export interface OccupancyOperations {
+  inspectLiveOccupancy: Operation;
+  ingestOccupancySignal: Operation;
+  refreshLiveOccupancy: Operation;
+  exportLiveOccupancy: Operation;
+}
+export interface IncidentOperations {
+  inspectIncidents: Operation;
+  reportIncident: Operation;
+  exportIncidentRecord: Operation;
+}
+export interface AuthorizationProviderContext {
+  readonly name: VenueToolName;
+  readonly input: VenueToolInput;
+  readonly source: VenueToolSource;
+}
+export interface AuthorizationDenial {
+  readonly error: Error;
+  readonly actionType: VenueToolName;
+  readonly source: VenueToolSource;
+  readonly sessionId: string;
+}
+
+export interface VenueToolServiceOptions {
+  readonly executeCommand: CommandExecutor;
+  readonly projectOperations?: ProjectOperations;
+  readonly occupancyOperations?: Partial<OccupancyOperations>;
+  readonly incidentOperations?: Partial<IncidentOperations>;
+  readonly authorization?: ToolAuthorization;
+  readonly authorizationProvider?: (context: AuthorizationProviderContext) => MaybePromise<ToolAuthorization>;
+  readonly recordAuthorizationDenial?: (denial: AuthorizationDenial) => MaybePromise<void>;
+}
+
+const contracts = new Map<VenueToolName, VenueToolContract>(
+  venueToolContracts.map((contract) => [contract.name, contract]),
+);
+
+const canonicalProjectList = (value: CanonicalProjectList | ProjectSummary[]): CanonicalProjectList => {
+  if (Array.isArray(value)) return { source: "repository", projects: value };
+  return { source: value.source, projects: value.projects };
 };
 
-const canonicalProjectOpen: any = (value: any) => value?.project
-  ? { status: value.status ?? "active", project: { ...value.project, active: value.project.active ?? value.status === "active" } }
-  : { status: "active", project: { ...value, active: value?.active ?? true } };
+const canonicalProjectOpen = (value: CanonicalProjectOpen | ProjectSummary): CanonicalProjectOpen => {
+  if ("project" in value)
+    return {
+      status: value.status,
+      project: { ...value.project, active: value.project.active ?? value.status === "active" },
+    };
+  return { status: "active", project: { ...value, active: value.active ?? true } };
+};
 
-export function createVenueToolService({ executeCommand, projectOperations, occupancyOperations, incidentOperations, authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION, authorizationProvider, recordAuthorizationDenial }: any = {}) {
-  if (typeof executeCommand !== "function") throw new TypeError("Venue tool service requires a command executor");
+const requiredString = (value: string | undefined, field: string): string => {
+  if (!value?.trim()) throw venueError("COMMAND_INVALID", { reason: "tool-input-required", field });
+  return value;
+};
 
+const asError = (value: unknown): Error =>
+  value instanceof Error ? value : new Error("Venue tool authorization failed", { cause: value });
+
+export function createVenueToolService({
+  executeCommand,
+  projectOperations,
+  occupancyOperations,
+  incidentOperations,
+  authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION,
+  authorizationProvider,
+  recordAuthorizationDenial,
+}: VenueToolServiceOptions) {
   return Object.freeze({
-    async execute(name: any, input: any = {}, source: any = "agent-tool", { signal, authorization: suppliedAuthorization, organizationId: suppliedOrganizationId, projectId: suppliedProjectId }: any = {}) {
+    async execute(
+      name: VenueToolName,
+      input: VenueToolInput = {},
+      source: VenueToolSource = "agent-tool",
+      {
+        signal,
+        authorization: suppliedAuthorization,
+        organizationId: suppliedOrganizationId,
+        projectId: suppliedProjectId,
+      }: ToolExecutionContext = {},
+    ): Promise<ToolOutput> {
       if (signal?.aborted) throw venueError("TOOL_CALL_CANCELLED", { toolName: name });
-      const contract: any = contracts.get(name);
+      const contract = contracts.get(name);
       if (!contract) throw venueError("COMMAND_UNSUPPORTED", { toolName: name });
-      const authorization: any = suppliedAuthorization ?? await authorizationProvider?.({ name, input, source }) ?? defaultAuthorization;
-      const projectId: any = name === "venue.open_project" ? input.projectId : suppliedProjectId ?? authorization?.projectId ?? null;
-      const organizationId: any = suppliedOrganizationId ?? authorization?.organizationId ?? null;
+      const authorization =
+        suppliedAuthorization ?? (await authorizationProvider?.({ name, input, source })) ?? defaultAuthorization;
+      const projectId =
+        name === "venue.open_project"
+          ? (input.projectId ?? null)
+          : (suppliedProjectId ?? authorization.projectId ?? null);
+      const organizationId = suppliedOrganizationId ?? authorization.organizationId ?? null;
       try {
         assertVenuePermission({
           ...authorization,
@@ -33,47 +161,74 @@ export function createVenueToolService({ executeCommand, projectOperations, occu
           organizationId,
           projectId,
         });
-      } catch (error: any) {
-        await recordAuthorizationDenial?.({ error, actionType: name, source, sessionId: input.correlationId ?? "agent-session" });
+      } catch (error) {
+        await recordAuthorizationDenial?.({
+          error: asError(error),
+          actionType: name,
+          source,
+          sessionId: input.correlationId ?? "agent-session",
+        });
         throw error;
       }
-      let output: any;
+      const operationContext = {
+        source,
+        authorization,
+        ...(organizationId ? { organizationId } : {}),
+        ...(projectId ? { projectId } : {}),
+        ...(signal ? { signal } : {}),
+      };
+      let output: ToolOutput;
       if (name === "venue.list_projects") {
-        if (typeof projectOperations?.listProjects !== "function") throw venueError("PROJECT_TOOL_UNAVAILABLE", { toolName: name });
-        output = canonicalProjectList(await projectOperations.listProjects());
-        if (authorization?.principal?.type === "agent") {
-          const allowedProjectId: any = authorization.grant?.projectId;
-          output = { ...output, projects: output.projects.filter((project: any) => project.id === allowedProjectId) };
-        }
+        if (!projectOperations) throw venueError("PROJECT_TOOL_UNAVAILABLE", { toolName: name });
+        const listed = canonicalProjectList(await projectOperations.listProjects());
+        output =
+          authorization.principal.type === "agent"
+            ? {
+                ...listed,
+                projects: listed.projects.filter((project) => project.id === authorization.grant?.projectId),
+              }
+            : listed;
       } else if (name === "venue.open_project") {
-        if (typeof projectOperations?.openProject !== "function") throw venueError("PROJECT_TOOL_UNAVAILABLE", { toolName: name });
-        output = canonicalProjectOpen(await projectOperations.openProject(input.projectId));
-      } else if (name === "venue.inspect_live_occupancy") {
-        if (typeof occupancyOperations?.inspectLiveOccupancy !== "function") throw venueError("OCCUPANCY_TOOL_UNAVAILABLE", { toolName: name });
-        output = await occupancyOperations.inspectLiveOccupancy(input, { source, authorization, organizationId, projectId, signal });
-      } else if (name === "venue.ingest_occupancy_signal") {
-        if (typeof occupancyOperations?.ingestOccupancySignal !== "function") throw venueError("OCCUPANCY_TOOL_UNAVAILABLE", { toolName: name });
-        output = await occupancyOperations.ingestOccupancySignal(input, { source, authorization, organizationId, projectId, signal });
-      } else if (name === "venue.refresh_live_occupancy") {
-        if (typeof occupancyOperations?.refreshLiveOccupancy !== "function") throw venueError("OCCUPANCY_TOOL_UNAVAILABLE", { toolName: name });
-        output = await occupancyOperations.refreshLiveOccupancy(input, { source, authorization, organizationId, projectId, signal });
-      } else if (name === "venue.export_live_occupancy") {
-        if (typeof occupancyOperations?.exportLiveOccupancy !== "function") throw venueError("OCCUPANCY_TOOL_UNAVAILABLE", { toolName: name });
-        output = await occupancyOperations.exportLiveOccupancy(input, { source, authorization, organizationId, projectId, signal });
-      } else if (name === "venue.inspect_incidents") {
-        if (typeof incidentOperations?.inspectIncidents !== "function") throw venueError("INCIDENT_TOOL_UNAVAILABLE", { toolName: name });
-        output = await incidentOperations.inspectIncidents(input, { source, authorization, organizationId, projectId, signal });
-      } else if (name === "venue.report_incident") {
-        if (typeof incidentOperations?.reportIncident !== "function") throw venueError("INCIDENT_TOOL_UNAVAILABLE", { toolName: name });
-        output = await incidentOperations.reportIncident(input, { source, authorization, organizationId, projectId, signal });
-      } else if (name === "venue.export_incident_record") {
-        if (typeof incidentOperations?.exportIncidentRecord !== "function") throw venueError("INCIDENT_TOOL_UNAVAILABLE", { toolName: name });
-        output = await incidentOperations.exportIncidentRecord(input, { source, authorization, organizationId, projectId, signal });
+        if (!projectOperations) throw venueError("PROJECT_TOOL_UNAVAILABLE", { toolName: name });
+        output = canonicalProjectOpen(
+          await projectOperations.openProject(requiredString(input.projectId, "projectId")),
+        );
+      } else if (
+        name === "venue.inspect_live_occupancy" ||
+        name === "venue.ingest_occupancy_signal" ||
+        name === "venue.refresh_live_occupancy" ||
+        name === "venue.export_live_occupancy"
+      ) {
+        const operation =
+          name === "venue.inspect_live_occupancy"
+            ? occupancyOperations?.inspectLiveOccupancy
+            : name === "venue.ingest_occupancy_signal"
+              ? occupancyOperations?.ingestOccupancySignal
+              : name === "venue.refresh_live_occupancy"
+                ? occupancyOperations?.refreshLiveOccupancy
+                : occupancyOperations?.exportLiveOccupancy;
+        if (!operation) throw venueError("OCCUPANCY_TOOL_UNAVAILABLE", { toolName: name });
+        output = await operation(input, operationContext);
+      } else if (
+        name === "venue.inspect_incidents" ||
+        name === "venue.report_incident" ||
+        name === "venue.export_incident_record"
+      ) {
+        const operation =
+          name === "venue.inspect_incidents"
+            ? incidentOperations?.inspectIncidents
+            : name === "venue.report_incident"
+              ? incidentOperations?.reportIncident
+              : incidentOperations?.exportIncidentRecord;
+        if (!operation) throw venueError("INCIDENT_TOOL_UNAVAILABLE", { toolName: name });
+        output = await operation(input, operationContext);
       } else {
-        output = await executeCommand(commandForVenueTool(name, input, source), { signal, authorization, organizationId, projectId });
+        output = await executeCommand(commandForVenueTool(name, input, source), operationContext);
       }
       if (signal?.aborted) throw venueError("TOOL_CALL_CANCELLED", { toolName: name });
       return output;
     },
   });
 }
+
+export type VenueToolService = ReturnType<typeof createVenueToolService>;

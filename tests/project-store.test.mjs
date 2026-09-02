@@ -5,7 +5,9 @@ import { createProjectStore } from "../src/persistence/project-store.ts";
 const createStorage = () => {
   const values = new Map();
   return {
-    get length() { return values.size; },
+    get length() {
+      return values.size;
+    },
     getItem: (key) => values.get(key) ?? null,
     setItem: (key, value) => values.set(key, value),
     removeItem: (key) => values.delete(key),
@@ -17,7 +19,12 @@ const recordInput = {
   id: "project-summit-forward",
   name: "SummitForward 2026",
   activePlanId: "plan-summit-forward-2026",
-  snapshot: { plan: { id: "plan-summit-forward-2026", version: "3.2" }, proposal: { id: "proposal-32-a" }, ledger: [], receipts: [{ correlationId: "corr-save-001" }] },
+  snapshot: {
+    plan: { id: "plan-summit-forward-2026", version: "3.2" },
+    proposal: { id: "proposal-32-a" },
+    ledger: [],
+    receipts: [{ correlationId: "corr-save-001" }],
+  },
   createdAt: "2026-08-27T00:00:00.000Z",
 };
 
@@ -26,15 +33,26 @@ const createRevisionServer = (initial) => {
   return {
     read: () => structuredClone(remote),
     fetch: async (_url, init = {}) => {
-      if (init.method !== "PUT") return remote ? Response.json(remote, { headers: { etag: `"venuemind:${remote.id}:${remote.revision}"` } }) : Response.json({ error: "missing" }, { status: 404 });
+      if (init.method !== "PUT")
+        return remote
+          ? Response.json(remote, { headers: { etag: `"venuemind:${remote.id}:${remote.revision}"` } })
+          : Response.json({ error: "missing" }, { status: 404 });
       const input = JSON.parse(init.body);
       if (init.headers["if-none-match"] === "*") {
-        if (remote) return Response.json({ code: "PROJECT_ID_CONFLICT", details: { current: remote } }, { status: 409 });
+        if (remote)
+          return Response.json({ code: "PROJECT_ID_CONFLICT", details: { current: remote } }, { status: 409 });
         remote = { ...input, revision: 1 };
         return Response.json(remote, { status: 201 });
       }
       const expected = `"venuemind:${remote.id}:${remote.revision}"`;
-      if (init.headers["if-match"] !== expected) return Response.json({ code: "PROJECT_REVISION_CONFLICT", details: { current: remote, currentRevision: remote.revision, currentEtag: expected } }, { status: 412 });
+      if (init.headers["if-match"] !== expected)
+        return Response.json(
+          {
+            code: "PROJECT_REVISION_CONFLICT",
+            details: { current: remote, currentRevision: remote.revision, currentEtag: expected },
+          },
+          { status: 412 },
+        );
       remote = { ...input, revision: remote.revision + 1 };
       return Response.json(remote);
     },
@@ -92,7 +110,10 @@ test("Project metadata lifecycle is recoverable and preserves the snapshot", asy
   assert.equal(remoteRecord.archivedAt, "2026-08-27T01:00:00.000Z");
   assert.deepEqual(remoteRecord.snapshot, originalSnapshot);
 
-  await assert.rejects(() => store.softDelete(recordInput.id, "wrong"), (error) => error.code === "PROJECT_CONFIRMATION_MISMATCH");
+  await assert.rejects(
+    () => store.softDelete(recordInput.id, "wrong"),
+    (error) => error.code === "PROJECT_CONFIRMATION_MISMATCH",
+  );
   await store.softDelete(recordInput.id, "SummitForward Copy");
   assert.equal(remoteRecord.deletedAt, "2026-08-27T01:00:00.000Z");
   assert.equal(remoteRecord.recoveryUntil, "2026-09-03T01:00:00.000Z");
@@ -111,7 +132,9 @@ test("local recovery storage remains available when the project endpoint is offl
   const store = createProjectStore({
     storage,
     clock: () => "2026-08-27T01:00:00.000Z",
-    fetchImpl: async () => { throw new Error("offline"); },
+    fetchImpl: async () => {
+      throw new Error("offline");
+    },
   });
 
   assert.equal((await store.save(recordInput)).source, "local");
@@ -129,7 +152,8 @@ test("import commit creates a missing Project and refuses to overwrite an existi
     clock: () => "2026-08-27T01:00:00.000Z",
     fetchImpl: async (_url, init = {}) => {
       if (init.method === "PUT") {
-        if (remoteRecord && init.headers["if-none-match"] === "*") return Response.json({ error: "Project already exists" }, { status: 409 });
+        if (remoteRecord && init.headers["if-none-match"] === "*")
+          return Response.json({ error: "Project already exists" }, { status: 409 });
         remoteRecord = JSON.parse(init.body);
         return Response.json(remoteRecord, { status: 201 });
       }
@@ -137,19 +161,56 @@ test("import commit creates a missing Project and refuses to overwrite an existi
     },
   });
 
-  const imported = { ...recordInput, provenance: { packageId: "package-abc", payloadSha256: "a".repeat(64), importedAt: "2026-08-27T01:00:00.000Z" } };
+  const imported = {
+    ...recordInput,
+    organizationId: "org-local",
+    schemaVersion: 10,
+    updatedAt: "2026-08-27T01:00:00.000Z",
+    archivedAt: null,
+    deletedAt: null,
+    recoveryUntil: null,
+    pinned: false,
+    lastOpenedAt: null,
+    provenance: {
+      sourceFormat: "venuemind-project",
+      formatVersion: 1,
+      packageId: "package-abc",
+      payloadSha256: "a".repeat(64),
+      exportedAt: "2026-08-27T00:30:00.000Z",
+      importedAt: "2026-08-27T01:00:00.000Z",
+      originalProjectId: recordInput.id,
+      source: {},
+    },
+  };
   const created = await store.importProject(imported);
 
   assert.equal(created.status, "created");
   assert.equal(created.record.provenance.packageId, "package-abc");
-  await assert.rejects(() => store.importProject(imported), (error) => error.code === "PROJECT_ID_CONFLICT");
+  await assert.rejects(
+    () => store.importProject(imported),
+    (error) => error.code === "PROJECT_ID_CONFLICT",
+  );
 });
 
 test("independent stale edits reconcile with a three-way merge", async () => {
-  const base = { ...recordInput, organizationId: "org-local", schemaVersion: 10, revision: 1, updatedAt: "2026-08-27T00:00:00.000Z" };
+  const base = {
+    ...recordInput,
+    organizationId: "org-local",
+    schemaVersion: 10,
+    revision: 1,
+    updatedAt: "2026-08-27T00:00:00.000Z",
+  };
   const server = createRevisionServer(base);
-  const tabA = createProjectStore({ storage: createStorage(), fetchImpl: server.fetch, clock: () => "2026-08-27T01:00:00.000Z" });
-  const tabB = createProjectStore({ storage: createStorage(), fetchImpl: server.fetch, clock: () => "2026-08-27T02:00:00.000Z" });
+  const tabA = createProjectStore({
+    storage: createStorage(),
+    fetchImpl: server.fetch,
+    clock: () => "2026-08-27T01:00:00.000Z",
+  });
+  const tabB = createProjectStore({
+    storage: createStorage(),
+    fetchImpl: server.fetch,
+    clock: () => "2026-08-27T02:00:00.000Z",
+  });
   await tabA.load(base.id);
   await tabB.load(base.id);
 
@@ -166,10 +227,24 @@ test("independent stale edits reconcile with a three-way merge", async () => {
 });
 
 test("overlapping stale planning edits fail visibly and preserve local recovery state", async () => {
-  const base = { ...recordInput, organizationId: "org-local", schemaVersion: 10, revision: 1, updatedAt: "2026-08-27T00:00:00.000Z" };
+  const base = {
+    ...recordInput,
+    organizationId: "org-local",
+    schemaVersion: 10,
+    revision: 1,
+    updatedAt: "2026-08-27T00:00:00.000Z",
+  };
   const server = createRevisionServer(base);
-  const tabA = createProjectStore({ storage: createStorage(), fetchImpl: server.fetch, clock: () => "2026-08-27T01:00:00.000Z" });
-  const tabB = createProjectStore({ storage: createStorage(), fetchImpl: server.fetch, clock: () => "2026-08-27T02:00:00.000Z" });
+  const tabA = createProjectStore({
+    storage: createStorage(),
+    fetchImpl: server.fetch,
+    clock: () => "2026-08-27T01:00:00.000Z",
+  });
+  const tabB = createProjectStore({
+    storage: createStorage(),
+    fetchImpl: server.fetch,
+    clock: () => "2026-08-27T02:00:00.000Z",
+  });
   await tabA.load(base.id);
   await tabB.load(base.id);
   const snapshotA = structuredClone(base.snapshot);
@@ -178,13 +253,16 @@ test("overlapping stale planning edits fail visibly and preserve local recovery 
   snapshotB.proposal.goal = "TAB B LAYOUT";
   await tabA.save({ ...recordInput, snapshot: snapshotA });
 
-  await assert.rejects(() => tabB.save({ ...recordInput, snapshot: snapshotB }), (error) => {
-    assert.equal(error.code, "PROJECT_REVISION_CONFLICT");
-    assert.equal(error.conflict.kind, "planning");
-    assert.deepEqual(error.conflict.overlappingFields, ["snapshot"]);
-    assert.deepEqual(error.conflict.resolutions, ["recover-proposal-branch", "use-remote"]);
-    return true;
-  });
+  await assert.rejects(
+    () => tabB.save({ ...recordInput, snapshot: snapshotB }),
+    (error) => {
+      assert.equal(error.code, "PROJECT_REVISION_CONFLICT");
+      assert.equal(error.conflict.kind, "planning");
+      assert.deepEqual(error.conflict.overlappingFields, ["snapshot"]);
+      assert.deepEqual(error.conflict.resolutions, ["recover-proposal-branch", "use-remote"]);
+      return true;
+    },
+  );
   assert.equal(tabB.listRecoveries(base.id).length, 1);
   assert.equal(server.read().snapshot.proposal.goal, "TAB A LAYOUT");
 });

@@ -2,17 +2,17 @@
   "format": "venuemind-project",
   "formatVersion": 1,
   "manifest": {
-    "packageId": "package-3a7b92d1eba237ff",
+    "packageId": "package-a97de39c198514dc",
     "exportedAt": "2026-08-27T00:00:00.000Z",
     "payloadBytes": 96624,
-    "payloadSha256": "ef84a9b7c6ef52c0bb0e22c79ac5c109df1b4686f59e9f337461a96ff87c47b3",
+    "payloadSha256": "338bb413f1eaa0ea7b4f7f4d6413212af30e409b9f73403e7fe1c3d2e02b895b",
     "source": {
       "application": "VenueMind",
       "applicationVersion": "0.1.0",
       "projectId": "project-summit-forward",
       "projectSchemaVersion": 10
     },
-    "manifestSha256": "3a7b92d1eba237fff19c40266232513be726e2f1f5c3b6369ef0de6293fae75a"
+    "manifestSha256": "a97de39c198514dc0c17876553b8eb8724eb178d28f2f513430884b1536df4b2"
   },
   "project": {
     "id": "project-summit-forward",
@@ -2896,8 +2896,12 @@
       },
       "proposal": {
         "id": "proposal-32-a",
+        "baseVersion": "3.2",
         "revision": 1,
+        "status": "review",
         "goal": "Restore accessibility and improve sightlines",
+        "waivers": [],
+        "validation": null,
         "changes": [
           {
             "id": "chg-seat-center-shift",
@@ -2940,6 +2944,10 @@
               "obj-route-seating-east",
               "obj-route-exit-east"
             ],
+            "effects": {
+              "accessibleRouteWidthFt": 6,
+              "peakCongestionIndex": 79
+            },
             "spatialEffects": [
               {
                 "operation": "update_footprint",
@@ -2976,11 +2984,7 @@
                   "width": 1.829
                 }
               }
-            ],
-            "effects": {
-              "accessibleRouteWidthFt": 6,
-              "peakCongestionIndex": 79
-            }
+            ]
           },
           {
             "id": "chg-av-desk-east",
@@ -3000,6 +3004,9 @@
             "targetObjectIds": [
               "obj-av-desk"
             ],
+            "effects": {
+              "sightlineCoverage": 0.92
+            },
             "spatialEffects": [
               {
                 "operation": "update_footprint",
@@ -3011,10 +3018,7 @@
                   }
                 }
               }
-            ],
-            "effects": {
-              "sightlineCoverage": 0.92
-            }
+            ]
           },
           {
             "id": "chg-refreshment-buffer",
@@ -3036,11 +3040,7 @@
               "eastRouteClear": true
             }
           }
-        ],
-        "baseVersion": "3.2",
-        "status": "review",
-        "validation": null,
-        "waivers": []
+        ]
       },
       "activeBranchId": "branch-balanced",
       "branches": [
@@ -3051,8 +3051,12 @@
           "strategy": "balanced",
           "proposal": {
             "id": "proposal-32-a",
+            "baseVersion": "3.2",
             "revision": 1,
+            "status": "review",
             "goal": "Restore accessibility and improve sightlines",
+            "waivers": [],
+            "validation": null,
             "changes": [
               {
                 "id": "chg-seat-center-shift",
@@ -3095,6 +3099,10 @@
                   "obj-route-seating-east",
                   "obj-route-exit-east"
                 ],
+                "effects": {
+                  "accessibleRouteWidthFt": 6,
+                  "peakCongestionIndex": 79
+                },
                 "spatialEffects": [
                   {
                     "operation": "update_footprint",
@@ -3131,11 +3139,7 @@
                       "width": 1.829
                     }
                   }
-                ],
-                "effects": {
-                  "accessibleRouteWidthFt": 6,
-                  "peakCongestionIndex": 79
-                }
+                ]
               },
               {
                 "id": "chg-av-desk-east",
@@ -3155,6 +3159,9 @@
                 "targetObjectIds": [
                   "obj-av-desk"
                 ],
+                "effects": {
+                  "sightlineCoverage": 0.92
+                },
                 "spatialEffects": [
                   {
                     "operation": "update_footprint",
@@ -3166,10 +3173,7 @@
                       }
                     }
                   }
-                ],
-                "effects": {
-                  "sightlineCoverage": 0.92
-                }
+                ]
               },
               {
                 "id": "chg-refreshment-buffer",
@@ -3191,11 +3195,7 @@
                   "eastRouteClear": true
                 }
               }
-            ],
-            "baseVersion": "3.2",
-            "status": "review",
-            "validation": null,
-            "waivers": []
+            ]
           },
           "revisions": [],
           "archived": false,
@@ -5983,7 +5983,7 @@
               },
               "emergencyReviews": []
             },
-            "planFingerprint": "plan-a3479e63",
+            "planFingerprint": "plan-f4ce9ca9",
             "acceptedBrief": {
               "id": "brief-summit-forward-2026",
               "eventName": "SummitForward 2026",
@@ -6107,7 +6107,7 @@
             "briefFingerprint": "brief-1f947930"
           },
           "previousHash": "genesis",
-          "hash": "ledger-f8b54992"
+          "hash": "ledger-0922ee78"
         }
       ],
       "receipts": []
