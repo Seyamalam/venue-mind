@@ -33,8 +33,8 @@ test("database migration 10 installs the tenant-scoped Incident Register aggrega
   const db = new SqliteD1();
   t.after(() => db.close());
   const migrated = await applyDatabaseMigrations(db);
-  assert.equal(DATABASE_SCHEMA_VERSION, 11);
-  assert.equal(migrated.currentVersion, 11);
+  assert.equal(DATABASE_SCHEMA_VERSION, 12);
+  assert.equal(migrated.currentVersion, 12);
   const columns = await db.prepare("PRAGMA table_info(event_day_incident_registers)").all();
   assert.deepEqual(columns.results.map((column) => column.name), ["id", "organization_id", "project_id", "runbook_id", "schema_version", "baseline_fingerprint", "baseline_json", "register_json", "revision", "ledger_head_hash", "created_at", "updated_at"]);
 
