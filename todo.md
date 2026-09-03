@@ -1006,16 +1006,16 @@ Completion gate:
 
 ## 10.3 Visual system
 
-- [ ] Formalize color, type, spacing, border, elevation, icon, and motion tokens.
-- [ ] Define semantic status colors and contrast requirements.
-- [ ] Extract reusable controls without erasing the editorial visual identity.
-- [ ] Add component states for loading, empty, offline, conflict, invalid, and disabled.
-- [ ] Add visual regression tests for critical product states.
-- [ ] Keep Studio copy terse and operational.
+- [x] Formalize color, type, spacing, border, elevation, icon, and motion tokens.
+- [x] Define semantic status colors and contrast requirements.
+- [x] Extract reusable controls without erasing the editorial visual identity.
+- [x] Add component states for loading, empty, offline, conflict, invalid, and disabled.
+- [x] Add visual regression tests for critical product states.
+- [x] Keep Studio copy terse and operational.
 
 Completion gate:
 
-- [ ] Critical screens use shared tokens and pass visual regression without genericizing the selected design direction.
+- [x] Critical screens use shared tokens and pass visual regression without genericizing the selected design direction.
 
 ## 10.4 Cross-browser and device quality
 
