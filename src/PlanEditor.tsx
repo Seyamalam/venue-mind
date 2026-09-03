@@ -4,6 +4,7 @@ import { Input } from "../components/ui/input";
 import { Toggle } from "../components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "../components/ui/toggle-group";
 import { materializeSpatialPlan } from "./domain/spatial-analysis";
+import { createVenueObjectSpatialIndex } from "./domain/spatial-index";
 import { venueTemplateCatalog } from "./domain/venue-templates";
 import { AnnotationPins } from "./AnnotationPins";
 import type { ValidationResult } from "./domain/constraint-engine";
@@ -229,6 +230,16 @@ export function PlanEditor({
   const viewKey = `${bounds.minX}:${bounds.maxX}:${bounds.minY}:${bounds.maxY}`;
   const [viewState, setViewState] = useState<ViewState>(() => ({ key: viewKey, value: fullView }));
   const view = viewState.key === viewKey ? viewState.value : fullView;
+  const objectIndex = useMemo(() => createVenueObjectSpatialIndex(planObjects), [planObjects]);
+  const visiblePlanObjects = useMemo(() => {
+    const margin = Math.max(view.width, view.height) * 0.03;
+    return objectIndex.queryBounds({
+      minX: view.x - margin,
+      maxX: view.x + view.width + margin,
+      minY: bounds.maxY - view.y - view.height - margin,
+      maxY: bounds.maxY - view.y + margin,
+    });
+  }, [bounds.maxY, objectIndex, view.height, view.width, view.x, view.y]);
   const setView = (next: ViewBox | ((current: ViewBox) => ViewBox)) => {
     const value = typeof next === "function" ? next(view) : next;
     setViewState({ key: viewKey, value });
@@ -728,7 +739,7 @@ export function PlanEditor({
             />
           </g>
         )}
-        {planObjects
+        {visiblePlanObjects
           .filter((object) => layerState[object.layer ?? "annotations"].visible)
           .map((object) => {
             const draftDelta = drag?.kind === "move" && drag.objectIds.includes(object.id) ? drag.delta : null;
