@@ -485,6 +485,66 @@ export const errorCatalog = Object.freeze({
     "Incident tool Adapter is unavailable.",
     "Open VenueMind Studio or connect an MCP Project session with Incident Register operations enabled.",
   ),
+  DEVIATION_BASELINE_INVALID: define(
+    "DEVIATION_BASELINE_INVALID",
+    "Live Plan Deviation baseline is invalid.",
+    "Create the register from one active Event Day Runbook with its frozen accepted Plan and Validation evidence.",
+  ),
+  DEVIATION_REGISTER_NOT_FOUND: define(
+    "DEVIATION_REGISTER_NOT_FOUND",
+    "Live Plan Deviation Register is unavailable.",
+    "Create the register from the active Event Day Runbook before inspecting or recording deviations.",
+  ),
+  DEVIATION_NOT_FOUND: define(
+    "DEVIATION_NOT_FOUND",
+    "Live Plan Deviation is unavailable.",
+    "Inspect the register and retry with an existing stable Deviation ID.",
+  ),
+  DEVIATION_ID_CONFLICT: define(
+    "DEVIATION_ID_CONFLICT",
+    "Live Plan Deviation ID conflicts with an existing record.",
+    "Use the original semantic command or generate a new stable Deviation ID.",
+  ),
+  DEVIATION_INVALID: define(
+    "DEVIATION_INVALID",
+    "Live Plan Deviation input is invalid.",
+    "Supply a reason code, disposition, exact affected objects, location, and executable spatial Change.",
+  ),
+  DEVIATION_LOCATION_INVALID: define(
+    "DEVIATION_LOCATION_INVALID",
+    "Live Plan Deviation Location Context is invalid.",
+    "Anchor the deviation to one object or in-room coordinate in the frozen accepted Plan.",
+  ),
+  DEVIATION_REVISION_CONFLICT: define(
+    "DEVIATION_REVISION_CONFLICT",
+    "Live Plan Deviation revision conflict.",
+    "Refresh the deviation projection and retry only if the transition is still required.",
+  ),
+  DEVIATION_REGISTER_REVISION_CONFLICT: define(
+    "DEVIATION_REGISTER_REVISION_CONFLICT",
+    "Live Plan Deviation Register revision conflict.",
+    "Refresh the active overlay and retry against its current revision.",
+  ),
+  DEVIATION_TRANSITION_INVALID: define(
+    "DEVIATION_TRANSITION_INVALID",
+    "Live Plan Deviation transition is invalid.",
+    "Use a published active-to-ended transition with one structured reason code.",
+  ),
+  DEVIATION_CONSTRAINT_UNAVAILABLE: define(
+    "DEVIATION_CONSTRAINT_UNAVAILABLE",
+    "Requested live Constraint is unavailable.",
+    "Inspect the frozen Plan Constraint registry and submit only available stable Constraint IDs.",
+  ),
+  DEVIATION_POST_EVENT_PROPOSAL_EMPTY: define(
+    "DEVIATION_POST_EVENT_PROPOSAL_EMPTY",
+    "Post-event Proposal has no revision-candidate deviations.",
+    "Select at least one revision-candidate Deviation that has not already been recommended.",
+  ),
+  DEVIATION_LEDGER_INTEGRITY_FAILED: define(
+    "DEVIATION_LEDGER_INTEGRITY_FAILED",
+    "Live Plan Deviation ledger integrity failed.",
+    "Restore the last verified register state before inspection, recommendation, or export.",
+  ),
   VENUE_INTERNAL_ERROR: define(
     "VENUE_INTERNAL_ERROR",
     "VenueMind could not complete the operation.",

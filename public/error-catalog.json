@@ -479,6 +479,66 @@
     "message": "Incident tool Adapter is unavailable.",
     "remediation": "Open VenueMind Studio or connect an MCP Project session with Incident Register operations enabled."
   },
+  "DEVIATION_BASELINE_INVALID": {
+    "code": "DEVIATION_BASELINE_INVALID",
+    "message": "Live Plan Deviation baseline is invalid.",
+    "remediation": "Create the register from one active Event Day Runbook with its frozen accepted Plan and Validation evidence."
+  },
+  "DEVIATION_REGISTER_NOT_FOUND": {
+    "code": "DEVIATION_REGISTER_NOT_FOUND",
+    "message": "Live Plan Deviation Register is unavailable.",
+    "remediation": "Create the register from the active Event Day Runbook before inspecting or recording deviations."
+  },
+  "DEVIATION_NOT_FOUND": {
+    "code": "DEVIATION_NOT_FOUND",
+    "message": "Live Plan Deviation is unavailable.",
+    "remediation": "Inspect the register and retry with an existing stable Deviation ID."
+  },
+  "DEVIATION_ID_CONFLICT": {
+    "code": "DEVIATION_ID_CONFLICT",
+    "message": "Live Plan Deviation ID conflicts with an existing record.",
+    "remediation": "Use the original semantic command or generate a new stable Deviation ID."
+  },
+  "DEVIATION_INVALID": {
+    "code": "DEVIATION_INVALID",
+    "message": "Live Plan Deviation input is invalid.",
+    "remediation": "Supply a reason code, disposition, exact affected objects, location, and executable spatial Change."
+  },
+  "DEVIATION_LOCATION_INVALID": {
+    "code": "DEVIATION_LOCATION_INVALID",
+    "message": "Live Plan Deviation Location Context is invalid.",
+    "remediation": "Anchor the deviation to one object or in-room coordinate in the frozen accepted Plan."
+  },
+  "DEVIATION_REVISION_CONFLICT": {
+    "code": "DEVIATION_REVISION_CONFLICT",
+    "message": "Live Plan Deviation revision conflict.",
+    "remediation": "Refresh the deviation projection and retry only if the transition is still required."
+  },
+  "DEVIATION_REGISTER_REVISION_CONFLICT": {
+    "code": "DEVIATION_REGISTER_REVISION_CONFLICT",
+    "message": "Live Plan Deviation Register revision conflict.",
+    "remediation": "Refresh the active overlay and retry against its current revision."
+  },
+  "DEVIATION_TRANSITION_INVALID": {
+    "code": "DEVIATION_TRANSITION_INVALID",
+    "message": "Live Plan Deviation transition is invalid.",
+    "remediation": "Use a published active-to-ended transition with one structured reason code."
+  },
+  "DEVIATION_CONSTRAINT_UNAVAILABLE": {
+    "code": "DEVIATION_CONSTRAINT_UNAVAILABLE",
+    "message": "Requested live Constraint is unavailable.",
+    "remediation": "Inspect the frozen Plan Constraint registry and submit only available stable Constraint IDs."
+  },
+  "DEVIATION_POST_EVENT_PROPOSAL_EMPTY": {
+    "code": "DEVIATION_POST_EVENT_PROPOSAL_EMPTY",
+    "message": "Post-event Proposal has no revision-candidate deviations.",
+    "remediation": "Select at least one revision-candidate Deviation that has not already been recommended."
+  },
+  "DEVIATION_LEDGER_INTEGRITY_FAILED": {
+    "code": "DEVIATION_LEDGER_INTEGRITY_FAILED",
+    "message": "Live Plan Deviation ledger integrity failed.",
+    "remediation": "Restore the last verified register state before inspection, recommendation, or export."
+  },
   "VENUE_INTERNAL_ERROR": {
     "code": "VENUE_INTERNAL_ERROR",
     "message": "VenueMind could not complete the operation.",
