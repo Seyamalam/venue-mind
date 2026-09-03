@@ -1364,9 +1364,16 @@
         "DEVIATION_LEDGER_INTEGRITY_FAILED"
       ],
       "outputFields": [
-        "status"
+        "register",
+        "deviations",
+        "overlay"
       ],
-      "stableIds": []
+      "stableIds": [
+        "register.id",
+        "deviations[].id",
+        "overlay.id",
+        "overlay.objectLineage[].objectId"
+      ]
     },
     {
       "name": "venue.record_live_plan_deviation",
@@ -1400,9 +1407,18 @@
         "DEVIATION_LEDGER_INTEGRITY_FAILED"
       ],
       "outputFields": [
-        "status"
+        "register",
+        "deviation",
+        "overlay",
+        "receipt",
+        "duplicate"
       ],
-      "stableIds": []
+      "stableIds": [
+        "register.id",
+        "deviation.id",
+        "overlay.id",
+        "receipt.id"
+      ]
     },
     {
       "name": "venue.end_live_plan_deviation",
@@ -1432,9 +1448,18 @@
         "DEVIATION_LEDGER_INTEGRITY_FAILED"
       ],
       "outputFields": [
-        "status"
+        "register",
+        "deviation",
+        "overlay",
+        "receipt",
+        "duplicate"
       ],
-      "stableIds": []
+      "stableIds": [
+        "register.id",
+        "deviation.id",
+        "overlay.id",
+        "receipt.id"
+      ]
     },
     {
       "name": "venue.create_post_event_deviation_proposal",
@@ -1464,9 +1489,18 @@
         "DEVIATION_LEDGER_INTEGRITY_FAILED"
       ],
       "outputFields": [
-        "status"
+        "register",
+        "proposal",
+        "recommendation",
+        "receipt",
+        "duplicate"
       ],
-      "stableIds": []
+      "stableIds": [
+        "register.id",
+        "proposal.id",
+        "recommendation.id",
+        "receipt.id"
+      ]
     },
     {
       "name": "venue.export_live_plan_deviations",
@@ -1489,9 +1523,16 @@
         "DEVIATION_LEDGER_INTEGRITY_FAILED"
       ],
       "outputFields": [
-        "status"
+        "filename",
+        "mediaType",
+        "content",
+        "fingerprint"
       ],
-      "stableIds": []
+      "stableIds": [
+        "content.register.id",
+        "content.deviations[].id",
+        "content.overlay.id"
+      ]
     },
     {
       "name": "venue.export_audit_package",

@@ -409,6 +409,31 @@ export const TOOL_OUTPUT_REFERENCE: Readonly<Record<string, ToolOutputReference>
     ["content.register.id", "content.incident.id", "content.ledger[].id"],
     "Verified post-event Incident record with frozen Plan provenance, structured transitions, receipts, and ledger evidence.",
   ),
+  "venue.inspect_live_plan_deviations": output(
+    ["register", "deviations", "overlay"],
+    ["register.id", "deviations[].id", "overlay.id", "overlay.objectLineage[].objectId"],
+    "Runbook-bound live deviations, validation evidence, and the deterministic operational overlay over accepted Plan truth.",
+  ),
+  "venue.record_live_plan_deviation": output(
+    ["register", "deviation", "overlay", "receipt", "duplicate"],
+    ["register.id", "deviation.id", "overlay.id", "receipt.id"],
+    "An idempotent operational fact that preserves the approved Plan and records live Constraint results.",
+  ),
+  "venue.end_live_plan_deviation": output(
+    ["register", "deviation", "overlay", "receipt", "duplicate"],
+    ["register.id", "deviation.id", "overlay.id", "receipt.id"],
+    "An audited end transition that removes the deviation from the active overlay without rewriting history.",
+  ),
+  "venue.create_post_event_deviation_proposal": output(
+    ["register", "proposal", "recommendation", "receipt", "duplicate"],
+    ["register.id", "proposal.id", "recommendation.id", "receipt.id"],
+    "A standard reviewable Venue Proposal derived from ended revision candidates; accepted Plan truth stays unchanged.",
+  ),
+  "venue.export_live_plan_deviations": output(
+    ["filename", "mediaType", "content", "fingerprint"],
+    ["content.register.id", "content.deviations[].id", "content.overlay.id"],
+    "A verified deviation record that separates accepted Plan provenance, live overlay facts, and post-event recommendations.",
+  ),
   "venue.export_audit_package": output(
     ["format", "filename", "mimeType", "encoding", "content"],
     ["content.plan.id", "content.ledger[].id", "content.validation.validationId"],

@@ -4701,13 +4701,18 @@ Inspect the Runbook-bound Live Plan Deviation Register, deterministic active ove
 
 ## Output
 
-Published tool result.
+Runbook-bound live deviations, validation evidence, and the deterministic operational overlay over accepted Plan truth.
 
 | Output field | Meaning |
 | --- | --- |
-| status | Published result field. |
+| register | Published result field. |
+| deviations | Published result field. |
+| overlay | Published result field. |
 
-
+- Stable ID: register.id
+- Stable ID: deviations[].id
+- Stable ID: overlay.id
+- Stable ID: overlay.objectLineage[].objectId
 
 ## Errors
 
@@ -4798,13 +4803,20 @@ Record one validated event-day Change against the frozen accepted Plan with stab
 
 ## Output
 
-Published tool result.
+An idempotent operational fact that preserves the approved Plan and records live Constraint results.
 
 | Output field | Meaning |
 | --- | --- |
-| status | Published result field. |
+| register | Published result field. |
+| deviation | Published result field. |
+| overlay | Published result field. |
+| receipt | Published result field. |
+| duplicate | Published result field. |
 
-
+- Stable ID: register.id
+- Stable ID: deviation.id
+- Stable ID: overlay.id
+- Stable ID: receipt.id
 
 ## Errors
 
@@ -4867,13 +4879,20 @@ End one active temporary or revision-candidate deviation with optimistic Deviati
 
 ## Output
 
-Published tool result.
+An audited end transition that removes the deviation from the active overlay without rewriting history.
 
 | Output field | Meaning |
 | --- | --- |
-| status | Published result field. |
+| register | Published result field. |
+| deviation | Published result field. |
+| overlay | Published result field. |
+| receipt | Published result field. |
+| duplicate | Published result field. |
 
-
+- Stable ID: register.id
+- Stable ID: deviation.id
+- Stable ID: overlay.id
+- Stable ID: receipt.id
 
 ## Errors
 
@@ -4938,13 +4957,20 @@ Create a normal review-state Proposal from ended revision-candidate deviations. 
 
 ## Output
 
-Published tool result.
+A standard reviewable Venue Proposal derived from ended revision candidates; accepted Plan truth stays unchanged.
 
 | Output field | Meaning |
 | --- | --- |
-| status | Published result field. |
+| register | Published result field. |
+| proposal | Published result field. |
+| recommendation | Published result field. |
+| receipt | Published result field. |
+| duplicate | Published result field. |
 
-
+- Stable ID: register.id
+- Stable ID: proposal.id
+- Stable ID: recommendation.id
+- Stable ID: receipt.id
 
 ## Errors
 
@@ -4998,13 +5024,18 @@ Export a verified record that keeps the approved Plan, live deviation overlay, a
 
 ## Output
 
-Published tool result.
+A verified deviation record that separates accepted Plan provenance, live overlay facts, and post-event recommendations.
 
 | Output field | Meaning |
 | --- | --- |
-| status | Published result field. |
+| filename | Published result field. |
+| mediaType | Published result field. |
+| content | Published result field. |
+| fingerprint | Published result field. |
 
-
+- Stable ID: content.register.id
+- Stable ID: content.deviations[].id
+- Stable ID: content.overlay.id
 
 ## Errors
 
@@ -8285,6 +8316,9 @@ JSON Schemas are generated from the runtime contract source during every product
 - [Incident Location Context](https://venue-mind-jet.vercel.app/schemas/incident-location-context.schema.json)
 - [Operational Incident](https://venue-mind-jet.vercel.app/schemas/operational-incident.schema.json)
 - [Incident Register](https://venue-mind-jet.vercel.app/schemas/incident-register.schema.json)
+- [Live Plan Deviation](https://venue-mind-jet.vercel.app/schemas/live-plan-deviation.schema.json)
+- [Live Plan Deviation overlay](https://venue-mind-jet.vercel.app/schemas/live-plan-deviation-overlay.schema.json)
+- [Live Plan Deviation register](https://venue-mind-jet.vercel.app/schemas/live-plan-deviation-register.schema.json)
 - [Project list result](https://venue-mind-jet.vercel.app/schemas/project-list-result.schema.json)
 - [Project open result](https://venue-mind-jet.vercel.app/schemas/project-open-result.schema.json)
 - [Layout inspection](https://venue-mind-jet.vercel.app/schemas/layout-inspection.schema.json)
