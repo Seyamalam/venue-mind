@@ -61,5 +61,6 @@ test("production smoke check exercises public routes and an opt-in durable golde
   ])
     assert.match(source, new RegExp(signature.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "u"));
   assert.match(source, /const mutate = process\.argv\.includes\("--write"\)/u);
+  assert.match(source, /if \(saved\.status !== 200 && saved\.status !== 201\)/u);
   assert.match(source, /assert\.equal\(durable\.snapshot\.plan\.version, approval\.planVersion\)/u);
 });
