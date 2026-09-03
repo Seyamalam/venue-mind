@@ -177,6 +177,18 @@ export const DATABASE_MIGRATIONS = Object.freeze([
       "CREATE INDEX idx_event_day_incident_registers_project ON event_day_incident_registers(organization_id, project_id, updated_at DESC)",
       "CREATE TRIGGER validate_event_day_incident_register_update BEFORE UPDATE ON event_day_incident_registers BEGIN\n  SELECT CASE WHEN NEW.organization_id != OLD.organization_id OR NEW.project_id != OLD.project_id OR NEW.runbook_id != OLD.runbook_id OR NEW.schema_version != OLD.schema_version OR NEW.baseline_fingerprint != OLD.baseline_fingerprint OR NEW.baseline_json != OLD.baseline_json OR NEW.created_at != OLD.created_at THEN RAISE(ABORT, 'INCIDENT_REGISTER_BASELINE_IMMUTABLE') END;\n  SELECT CASE WHEN NEW.revision != OLD.revision + 1 THEN RAISE(ABORT, 'INCIDENT_REGISTER_REVISION_INVALID') END;\nEND"
     ]
+  },
+  {
+    "version": 11,
+    "name": "live_plan_deviations",
+    "checksum": "155f05ed671127e2b39bb1baa1fca058468b41bdda217618cf5277461b02e4fb",
+    "destructive": false,
+    "requiresProjectExport": false,
+    "statements": [
+      "CREATE TABLE event_day_deviation_registers (\n  id TEXT PRIMARY KEY,\n  organization_id TEXT NOT NULL,\n  project_id TEXT NOT NULL,\n  runbook_id TEXT NOT NULL,\n  schema_version INTEGER NOT NULL CHECK (schema_version = 1),\n  baseline_fingerprint TEXT NOT NULL CHECK (length(baseline_fingerprint) > 0),\n  baseline_json TEXT NOT NULL CHECK (json_valid(baseline_json) AND json_type(baseline_json) = 'object'),\n  register_json TEXT NOT NULL CHECK (json_valid(register_json) AND json_type(register_json) = 'object'),\n  revision INTEGER NOT NULL CHECK (revision >= 0),\n  ledger_head_hash TEXT NOT NULL CHECK (length(ledger_head_hash) > 0),\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  UNIQUE (runbook_id, organization_id, project_id),\n  FOREIGN KEY (runbook_id, organization_id, project_id) REFERENCES event_day_runbooks(id, organization_id, project_id) ON DELETE CASCADE\n)",
+      "CREATE INDEX idx_event_day_deviation_registers_project ON event_day_deviation_registers(organization_id, project_id, updated_at DESC)",
+      "CREATE TRIGGER validate_event_day_deviation_register_update BEFORE UPDATE ON event_day_deviation_registers BEGIN\n  SELECT CASE WHEN NEW.organization_id != OLD.organization_id OR NEW.project_id != OLD.project_id OR NEW.runbook_id != OLD.runbook_id OR NEW.schema_version != OLD.schema_version OR NEW.baseline_fingerprint != OLD.baseline_fingerprint OR NEW.baseline_json != OLD.baseline_json OR NEW.created_at != OLD.created_at THEN RAISE(ABORT, 'DEVIATION_REGISTER_BASELINE_IMMUTABLE') END;\n  SELECT CASE WHEN NEW.revision != OLD.revision + 1 THEN RAISE(ABORT, 'DEVIATION_REGISTER_REVISION_INVALID') END;\nEND"
+    ]
   }
 ]);
-export const DATABASE_SCHEMA_VERSION = 10;
+export const DATABASE_SCHEMA_VERSION = 11;

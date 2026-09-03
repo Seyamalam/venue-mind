@@ -1842,6 +1842,396 @@
       "remediation": "Restore the last verified register state before inspection or export."
     }
   ],
+  "venue.inspect_live_plan_deviations": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "DEVIATION_REGISTER_NOT_FOUND",
+      "message": "Live Plan Deviation Register is unavailable.",
+      "remediation": "Create the register from the active Event Day Runbook before inspecting or recording deviations."
+    },
+    {
+      "code": "DEVIATION_NOT_FOUND",
+      "message": "Live Plan Deviation is unavailable.",
+      "remediation": "Inspect the register and retry with an existing stable Deviation ID."
+    },
+    {
+      "code": "DEVIATION_TOOL_UNAVAILABLE",
+      "message": "Live Plan Deviation tool Adapter is unavailable.",
+      "remediation": "Open VenueMind Studio or connect an MCP Project session with Live Plan Deviation operations enabled."
+    },
+    {
+      "code": "DEVIATION_INVALID",
+      "message": "Live Plan Deviation input is invalid.",
+      "remediation": "Supply a reason code, disposition, exact affected objects, location, and executable spatial Change."
+    },
+    {
+      "code": "DEVIATION_LOCATION_INVALID",
+      "message": "Live Plan Deviation Location Context is invalid.",
+      "remediation": "Anchor the deviation to one object or in-room coordinate in the frozen accepted Plan."
+    },
+    {
+      "code": "DEVIATION_REVISION_CONFLICT",
+      "message": "Live Plan Deviation revision conflict.",
+      "remediation": "Refresh the deviation projection and retry only if the transition is still required."
+    },
+    {
+      "code": "DEVIATION_REGISTER_REVISION_CONFLICT",
+      "message": "Live Plan Deviation Register revision conflict.",
+      "remediation": "Refresh the active overlay and retry against its current revision."
+    },
+    {
+      "code": "DEVIATION_LEDGER_INTEGRITY_FAILED",
+      "message": "Live Plan Deviation ledger integrity failed.",
+      "remediation": "Restore the last verified register state before inspection, recommendation, or export."
+    }
+  ],
+  "venue.record_live_plan_deviation": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    },
+    {
+      "code": "DEVIATION_REGISTER_NOT_FOUND",
+      "message": "Live Plan Deviation Register is unavailable.",
+      "remediation": "Create the register from the active Event Day Runbook before inspecting or recording deviations."
+    },
+    {
+      "code": "DEVIATION_NOT_FOUND",
+      "message": "Live Plan Deviation is unavailable.",
+      "remediation": "Inspect the register and retry with an existing stable Deviation ID."
+    },
+    {
+      "code": "DEVIATION_TOOL_UNAVAILABLE",
+      "message": "Live Plan Deviation tool Adapter is unavailable.",
+      "remediation": "Open VenueMind Studio or connect an MCP Project session with Live Plan Deviation operations enabled."
+    },
+    {
+      "code": "DEVIATION_INVALID",
+      "message": "Live Plan Deviation input is invalid.",
+      "remediation": "Supply a reason code, disposition, exact affected objects, location, and executable spatial Change."
+    },
+    {
+      "code": "DEVIATION_LOCATION_INVALID",
+      "message": "Live Plan Deviation Location Context is invalid.",
+      "remediation": "Anchor the deviation to one object or in-room coordinate in the frozen accepted Plan."
+    },
+    {
+      "code": "DEVIATION_REVISION_CONFLICT",
+      "message": "Live Plan Deviation revision conflict.",
+      "remediation": "Refresh the deviation projection and retry only if the transition is still required."
+    },
+    {
+      "code": "DEVIATION_REGISTER_REVISION_CONFLICT",
+      "message": "Live Plan Deviation Register revision conflict.",
+      "remediation": "Refresh the active overlay and retry against its current revision."
+    },
+    {
+      "code": "DEVIATION_LEDGER_INTEGRITY_FAILED",
+      "message": "Live Plan Deviation ledger integrity failed.",
+      "remediation": "Restore the last verified register state before inspection, recommendation, or export."
+    }
+  ],
+  "venue.end_live_plan_deviation": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    },
+    {
+      "code": "DEVIATION_REGISTER_NOT_FOUND",
+      "message": "Live Plan Deviation Register is unavailable.",
+      "remediation": "Create the register from the active Event Day Runbook before inspecting or recording deviations."
+    },
+    {
+      "code": "DEVIATION_NOT_FOUND",
+      "message": "Live Plan Deviation is unavailable.",
+      "remediation": "Inspect the register and retry with an existing stable Deviation ID."
+    },
+    {
+      "code": "DEVIATION_TOOL_UNAVAILABLE",
+      "message": "Live Plan Deviation tool Adapter is unavailable.",
+      "remediation": "Open VenueMind Studio or connect an MCP Project session with Live Plan Deviation operations enabled."
+    },
+    {
+      "code": "DEVIATION_INVALID",
+      "message": "Live Plan Deviation input is invalid.",
+      "remediation": "Supply a reason code, disposition, exact affected objects, location, and executable spatial Change."
+    },
+    {
+      "code": "DEVIATION_LOCATION_INVALID",
+      "message": "Live Plan Deviation Location Context is invalid.",
+      "remediation": "Anchor the deviation to one object or in-room coordinate in the frozen accepted Plan."
+    },
+    {
+      "code": "DEVIATION_REVISION_CONFLICT",
+      "message": "Live Plan Deviation revision conflict.",
+      "remediation": "Refresh the deviation projection and retry only if the transition is still required."
+    },
+    {
+      "code": "DEVIATION_REGISTER_REVISION_CONFLICT",
+      "message": "Live Plan Deviation Register revision conflict.",
+      "remediation": "Refresh the active overlay and retry against its current revision."
+    },
+    {
+      "code": "DEVIATION_LEDGER_INTEGRITY_FAILED",
+      "message": "Live Plan Deviation ledger integrity failed.",
+      "remediation": "Restore the last verified register state before inspection, recommendation, or export."
+    }
+  ],
+  "venue.create_post_event_deviation_proposal": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    },
+    {
+      "code": "DEVIATION_REGISTER_NOT_FOUND",
+      "message": "Live Plan Deviation Register is unavailable.",
+      "remediation": "Create the register from the active Event Day Runbook before inspecting or recording deviations."
+    },
+    {
+      "code": "DEVIATION_NOT_FOUND",
+      "message": "Live Plan Deviation is unavailable.",
+      "remediation": "Inspect the register and retry with an existing stable Deviation ID."
+    },
+    {
+      "code": "DEVIATION_TOOL_UNAVAILABLE",
+      "message": "Live Plan Deviation tool Adapter is unavailable.",
+      "remediation": "Open VenueMind Studio or connect an MCP Project session with Live Plan Deviation operations enabled."
+    },
+    {
+      "code": "DEVIATION_INVALID",
+      "message": "Live Plan Deviation input is invalid.",
+      "remediation": "Supply a reason code, disposition, exact affected objects, location, and executable spatial Change."
+    },
+    {
+      "code": "DEVIATION_LOCATION_INVALID",
+      "message": "Live Plan Deviation Location Context is invalid.",
+      "remediation": "Anchor the deviation to one object or in-room coordinate in the frozen accepted Plan."
+    },
+    {
+      "code": "DEVIATION_REVISION_CONFLICT",
+      "message": "Live Plan Deviation revision conflict.",
+      "remediation": "Refresh the deviation projection and retry only if the transition is still required."
+    },
+    {
+      "code": "DEVIATION_REGISTER_REVISION_CONFLICT",
+      "message": "Live Plan Deviation Register revision conflict.",
+      "remediation": "Refresh the active overlay and retry against its current revision."
+    },
+    {
+      "code": "DEVIATION_LEDGER_INTEGRITY_FAILED",
+      "message": "Live Plan Deviation ledger integrity failed.",
+      "remediation": "Restore the last verified register state before inspection, recommendation, or export."
+    }
+  ],
+  "venue.export_live_plan_deviations": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "DEVIATION_REGISTER_NOT_FOUND",
+      "message": "Live Plan Deviation Register is unavailable.",
+      "remediation": "Create the register from the active Event Day Runbook before inspecting or recording deviations."
+    },
+    {
+      "code": "DEVIATION_NOT_FOUND",
+      "message": "Live Plan Deviation is unavailable.",
+      "remediation": "Inspect the register and retry with an existing stable Deviation ID."
+    },
+    {
+      "code": "DEVIATION_TOOL_UNAVAILABLE",
+      "message": "Live Plan Deviation tool Adapter is unavailable.",
+      "remediation": "Open VenueMind Studio or connect an MCP Project session with Live Plan Deviation operations enabled."
+    },
+    {
+      "code": "DEVIATION_INVALID",
+      "message": "Live Plan Deviation input is invalid.",
+      "remediation": "Supply a reason code, disposition, exact affected objects, location, and executable spatial Change."
+    },
+    {
+      "code": "DEVIATION_LOCATION_INVALID",
+      "message": "Live Plan Deviation Location Context is invalid.",
+      "remediation": "Anchor the deviation to one object or in-room coordinate in the frozen accepted Plan."
+    },
+    {
+      "code": "DEVIATION_REVISION_CONFLICT",
+      "message": "Live Plan Deviation revision conflict.",
+      "remediation": "Refresh the deviation projection and retry only if the transition is still required."
+    },
+    {
+      "code": "DEVIATION_REGISTER_REVISION_CONFLICT",
+      "message": "Live Plan Deviation Register revision conflict.",
+      "remediation": "Refresh the active overlay and retry against its current revision."
+    },
+    {
+      "code": "DEVIATION_LEDGER_INTEGRITY_FAILED",
+      "message": "Live Plan Deviation ledger integrity failed.",
+      "remediation": "Restore the last verified register state before inspection, recommendation, or export."
+    }
+  ],
   "venue.export_audit_package": [
     {
       "code": "TOOL_SCOPE_REQUIRED",

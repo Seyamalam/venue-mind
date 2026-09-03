@@ -40,6 +40,7 @@ const runbookTables = [
 ];
 const occupancyTables = ["live_occupancy_monitors"];
 const incidentTables = ["event_day_incident_registers"];
+const deviationTables = ["event_day_deviation_registers"];
 
 async function legacyBaseline(db: D1Database) {
   const { results: tableRows } = await db
@@ -84,11 +85,17 @@ async function legacyBaseline(db: D1Database) {
   const hasIncidents = incidentTables.every((table) => tables.has(table));
   if (!hasIncidents && incidentTables.some((table) => tables.has(table)))
     throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  const hasDeviations = deviationTables.every((table) => tables.has(table));
+  if (!hasDeviations && deviationTables.some((table) => tables.has(table)))
+    throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  if (hasDeviations && !hasIncidents) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasIncidents && !hasOccupancy) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasOccupancy && !hasRunbooks) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasRunbooks && !hasSharingDelivery) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
-  return hasIncidents
-    ? 10
+  return hasDeviations
+    ? 11
+    : hasIncidents
+      ? 10
     : hasOccupancy
       ? 9
       : hasRunbooks
@@ -226,6 +233,27 @@ export async function inspectDatabaseIntegrity(db: D1Database) {
     [
       "session-without-user",
       "SELECT COUNT(*) AS count FROM user_sessions s LEFT JOIN users u ON u.id = s.user_id WHERE u.id IS NULL",
+    ],
+  ] satisfies readonly (readonly [string, string])[]) {
+    const { results } = await db.prepare(sql).all<{ count: number }>();
+    checks.push({
+      id,
+      count: Number(results[0]?.count ?? 0),
+      status: Number(results[0]?.count ?? 0) === 0 ? "pass" : "fail",
+    });
+  }
+  for (const [id, sql] of [
+    [
+      "deviation-register-without-project",
+      "SELECT COUNT(*) AS count FROM event_day_deviation_registers d LEFT JOIN projects p ON p.id = d.project_id WHERE p.id IS NULL",
+    ],
+    [
+      "deviation-register-organization-mismatch",
+      "SELECT COUNT(*) AS count FROM event_day_deviation_registers d JOIN projects p ON p.id = d.project_id WHERE p.organization_id != d.organization_id",
+    ],
+    [
+      "deviation-register-runbook-scope-mismatch",
+      "SELECT COUNT(*) AS count FROM event_day_deviation_registers d LEFT JOIN event_day_runbooks r ON r.id = d.runbook_id AND r.organization_id = d.organization_id AND r.project_id = d.project_id WHERE r.id IS NULL",
     ],
   ] satisfies readonly (readonly [string, string])[]) {
     const { results } = await db.prepare(sql).all<{ count: number }>();

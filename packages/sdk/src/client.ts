@@ -31,9 +31,28 @@ export interface VenueMindClient {
   readonly ledger: {
     list(options?: VenueToolCallOptions): Promise<ActivityLedger>;
   };
+  readonly deviations: {
+    inspect(
+      input?: VenueToolInput<"venue.inspect_live_plan_deviations">,
+      options?: VenueToolCallOptions,
+    ): Promise<VenueToolOutput<"venue.inspect_live_plan_deviations">>;
+    record(
+      input: VenueToolInput<"venue.record_live_plan_deviation">,
+      options?: VenueToolCallOptions,
+    ): Promise<VenueToolOutput<"venue.record_live_plan_deviation">>;
+    end(
+      input: VenueToolInput<"venue.end_live_plan_deviation">,
+      options?: VenueToolCallOptions,
+    ): Promise<VenueToolOutput<"venue.end_live_plan_deviation">>;
+    createPostEventProposal(
+      input: VenueToolInput<"venue.create_post_event_deviation_proposal">,
+      options?: VenueToolCallOptions,
+    ): Promise<VenueToolOutput<"venue.create_post_event_deviation_proposal">>;
+  };
   readonly exports: {
     plan(format?: VenueToolInput<"venue.export_plan">["format"], options?: VenueToolCallOptions): Promise<PlanExport>;
     audit(options?: VenueToolCallOptions): Promise<PlanExport>;
+    deviations(options?: VenueToolCallOptions): Promise<VenueToolOutput<"venue.export_live_plan_deviations">>;
   };
   call<Name extends VenueToolName>(name: Name, input: VenueToolInput<Name>, options?: VenueToolCallOptions): Promise<VenueToolOutput<Name>>;
 }
@@ -61,9 +80,24 @@ export function createVenueMindClient({ transport }: { transport: VenueMindTrans
     ledger: freezeNamespace({
       list: (options?: VenueToolCallOptions) => call("venue.get_change_log", {}, options),
     }),
+    deviations: freezeNamespace({
+      inspect: (
+        input: VenueToolInput<"venue.inspect_live_plan_deviations"> = {},
+        options?: VenueToolCallOptions,
+      ) => call("venue.inspect_live_plan_deviations", input, options),
+      record: (input: VenueToolInput<"venue.record_live_plan_deviation">, options?: VenueToolCallOptions) =>
+        call("venue.record_live_plan_deviation", input, options),
+      end: (input: VenueToolInput<"venue.end_live_plan_deviation">, options?: VenueToolCallOptions) =>
+        call("venue.end_live_plan_deviation", input, options),
+      createPostEventProposal: (
+        input: VenueToolInput<"venue.create_post_event_deviation_proposal">,
+        options?: VenueToolCallOptions,
+      ) => call("venue.create_post_event_deviation_proposal", input, options),
+    }),
     exports: freezeNamespace({
       plan: (format?: VenueToolInput<"venue.export_plan">["format"], options?: VenueToolCallOptions) => call("venue.export_plan", format === undefined ? {} : { format }, options),
       audit: (options?: VenueToolCallOptions) => call("venue.export_audit_package", {}, options),
+      deviations: (options?: VenueToolCallOptions) => call("venue.export_live_plan_deviations", {}, options),
     }),
     call,
   });

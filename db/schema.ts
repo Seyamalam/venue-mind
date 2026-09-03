@@ -305,6 +305,22 @@ export const schemaStatements = [
     UNIQUE (runbook_id, organization_id, project_id),
     FOREIGN KEY (runbook_id, organization_id, project_id) REFERENCES event_day_runbooks(id, organization_id, project_id) ON DELETE CASCADE
   )`,
+  `CREATE TABLE IF NOT EXISTS event_day_deviation_registers (
+    id TEXT PRIMARY KEY,
+    organization_id TEXT NOT NULL,
+    project_id TEXT NOT NULL,
+    runbook_id TEXT NOT NULL,
+    schema_version INTEGER NOT NULL CHECK (schema_version = 1),
+    baseline_fingerprint TEXT NOT NULL CHECK (length(baseline_fingerprint) > 0),
+    baseline_json TEXT NOT NULL CHECK (json_valid(baseline_json) AND json_type(baseline_json) = 'object'),
+    register_json TEXT NOT NULL CHECK (json_valid(register_json) AND json_type(register_json) = 'object'),
+    revision INTEGER NOT NULL CHECK (revision >= 0),
+    ledger_head_hash TEXT NOT NULL CHECK (length(ledger_head_hash) > 0),
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE (runbook_id, organization_id, project_id),
+    FOREIGN KEY (runbook_id, organization_id, project_id) REFERENCES event_day_runbooks(id, organization_id, project_id) ON DELETE CASCADE
+  )`,
   `CREATE INDEX IF NOT EXISTS idx_projects_updated_at
     ON projects(updated_at DESC)`,
   `CREATE INDEX IF NOT EXISTS idx_projects_organization_updated
@@ -333,6 +349,8 @@ export const schemaStatements = [
     ON live_occupancy_monitors(organization_id, project_id, updated_at DESC)`,
   `CREATE INDEX IF NOT EXISTS idx_event_day_incident_registers_project
     ON event_day_incident_registers(organization_id, project_id, updated_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_event_day_deviation_registers_project
+    ON event_day_deviation_registers(organization_id, project_id, updated_at DESC)`,
   `CREATE INDEX IF NOT EXISTS idx_memberships_user
     ON organization_memberships(user_id, status)`,
   `CREATE INDEX IF NOT EXISTS idx_invitations_organization_email

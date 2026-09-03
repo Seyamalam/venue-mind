@@ -861,15 +861,15 @@ Completion gate:
 
 ## 8.4 Live plan deviations
 
-- [ ] Record operational deviations from the approved Plan without rewriting historical truth.
-- [ ] Require reason, author, timestamp, and affected objects.
-- [ ] Validate emergency Changes against available live Constraints.
-- [ ] Distinguish temporary deviation from permanent Plan revision.
-- [ ] Create a post-event Proposal for changes worth retaining.
+- [x] Record operational deviations from the approved Plan without rewriting historical truth.
+- [x] Require reason, author, timestamp, and affected objects.
+- [x] Validate emergency Changes against available live Constraints.
+- [x] Distinguish temporary deviation from permanent Plan revision.
+- [x] Create a post-event Proposal for changes worth retaining.
 
 Completion gate:
 
-- [ ] The final record clearly distinguishes the approved Plan, live deviations, and post-event recommended revisions.
+- [x] The final record clearly distinguishes the approved Plan, live deviations, and post-event recommended revisions.
 
 ## 8.5 Post-event review
 

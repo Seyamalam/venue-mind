@@ -18,7 +18,7 @@ import { createProjectSession, type McpLogger, type ProjectSession } from "./pro
 export { createFileProjectRepository, createMemoryProjectRepository } from "./project-repository.ts";
 export { createProjectSession } from "./project-session.ts";
 
-export const MCP_SERVER_VERSION = "0.6.0";
+export const MCP_SERVER_VERSION = "0.7.0";
 export const MCP_COMPATIBILITY = Object.freeze({
   minimumProtocolRevision: "2025-03-26",
   preferredProtocolRevision: "2026-07-28",
@@ -31,6 +31,7 @@ export const MCP_COMPATIBILITY = Object.freeze({
 const instructions = [
   "Open a Project, then inspect its accepted Plan before proposing a change.",
   "Use Proposal branches, preview, and deterministic Validation before asking the human to approve in VenueMind Studio.",
+  "Live Plan Deviation tools preserve the approved Plan, validate event-day Changes, and create only review-state post-event Proposals.",
   "Approval is intentionally absent from MCP.",
   "Treat stable IDs, baseVersion, idempotencyKey, and correlationId as concurrency and audit controls.",
 ].join(" ");
@@ -43,6 +44,7 @@ const agentReference = [
   "4. venue.validate_layout and venue.detect_proposal_conflicts.",
   "5. venue.get_change_log and venue.export_plan.",
   "6. Stop for human review in VenueMind Studio. MCP has no Approval tool.",
+  "7. During event operations, inspect and record Live Plan Deviations; create a post-event Proposal only from ended revision candidates.",
   "Remote transport guidance: stdio inherits the local host identity. A remote HTTP Adapter must validate bearer tokens, bind Project access to the authenticated principal, enforce published VenueMind scopes, require TLS, restrict origins, and never trust caller-supplied actor or organization IDs.",
 ].join("\n");
 
@@ -131,6 +133,7 @@ export function createVenueMindMcpServer({
     projectOperations: session,
     occupancyOperations: session,
     incidentOperations: session,
+    deviationOperations: session,
     authorizationProvider: () =>
       agentAuthorization ??
       createShortLivedAgentAuthorization({

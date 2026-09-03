@@ -1344,6 +1344,197 @@
       ]
     },
     {
+      "name": "venue.inspect_live_plan_deviations",
+      "path": "/docs/reference-tool-venue-inspect-live-plan-deviations",
+      "requiredFields": [],
+      "errors": [
+        "TOOL_SCOPE_REQUIRED",
+        "AUTHORIZATION_DENIED",
+        "AGENT_GRANT_INVALID",
+        "TOOL_PAYLOAD_TOO_LARGE",
+        "TOOL_CALL_CANCELLED",
+        "VENUE_INTERNAL_ERROR",
+        "DEVIATION_REGISTER_NOT_FOUND",
+        "DEVIATION_NOT_FOUND",
+        "DEVIATION_TOOL_UNAVAILABLE",
+        "DEVIATION_INVALID",
+        "DEVIATION_LOCATION_INVALID",
+        "DEVIATION_REVISION_CONFLICT",
+        "DEVIATION_REGISTER_REVISION_CONFLICT",
+        "DEVIATION_LEDGER_INTEGRITY_FAILED"
+      ],
+      "outputFields": [
+        "register",
+        "deviations",
+        "overlay"
+      ],
+      "stableIds": [
+        "register.id",
+        "deviations[].id",
+        "overlay.id",
+        "overlay.objectLineage[].objectId"
+      ]
+    },
+    {
+      "name": "venue.record_live_plan_deviation",
+      "path": "/docs/reference-tool-venue-record-live-plan-deviation",
+      "requiredFields": [
+        "deviationId",
+        "disposition",
+        "reasonCode",
+        "location",
+        "affectedObjectIds",
+        "availableConstraintIds",
+        "change",
+        "idempotencyKey"
+      ],
+      "errors": [
+        "TOOL_SCOPE_REQUIRED",
+        "AUTHORIZATION_DENIED",
+        "AGENT_GRANT_INVALID",
+        "TOOL_PAYLOAD_TOO_LARGE",
+        "TOOL_CALL_CANCELLED",
+        "VENUE_INTERNAL_ERROR",
+        "IDEMPOTENCY_KEY_REQUIRED",
+        "IDEMPOTENCY_KEY_CONFLICT",
+        "DEVIATION_REGISTER_NOT_FOUND",
+        "DEVIATION_NOT_FOUND",
+        "DEVIATION_TOOL_UNAVAILABLE",
+        "DEVIATION_INVALID",
+        "DEVIATION_LOCATION_INVALID",
+        "DEVIATION_REVISION_CONFLICT",
+        "DEVIATION_REGISTER_REVISION_CONFLICT",
+        "DEVIATION_LEDGER_INTEGRITY_FAILED"
+      ],
+      "outputFields": [
+        "register",
+        "deviation",
+        "overlay",
+        "receipt",
+        "duplicate"
+      ],
+      "stableIds": [
+        "register.id",
+        "deviation.id",
+        "overlay.id",
+        "receipt.id"
+      ]
+    },
+    {
+      "name": "venue.end_live_plan_deviation",
+      "path": "/docs/reference-tool-venue-end-live-plan-deviation",
+      "requiredFields": [
+        "deviationId",
+        "expectedDeviationRevision",
+        "reasonCode",
+        "idempotencyKey"
+      ],
+      "errors": [
+        "TOOL_SCOPE_REQUIRED",
+        "AUTHORIZATION_DENIED",
+        "AGENT_GRANT_INVALID",
+        "TOOL_PAYLOAD_TOO_LARGE",
+        "TOOL_CALL_CANCELLED",
+        "VENUE_INTERNAL_ERROR",
+        "IDEMPOTENCY_KEY_REQUIRED",
+        "IDEMPOTENCY_KEY_CONFLICT",
+        "DEVIATION_REGISTER_NOT_FOUND",
+        "DEVIATION_NOT_FOUND",
+        "DEVIATION_TOOL_UNAVAILABLE",
+        "DEVIATION_INVALID",
+        "DEVIATION_LOCATION_INVALID",
+        "DEVIATION_REVISION_CONFLICT",
+        "DEVIATION_REGISTER_REVISION_CONFLICT",
+        "DEVIATION_LEDGER_INTEGRITY_FAILED"
+      ],
+      "outputFields": [
+        "register",
+        "deviation",
+        "overlay",
+        "receipt",
+        "duplicate"
+      ],
+      "stableIds": [
+        "register.id",
+        "deviation.id",
+        "overlay.id",
+        "receipt.id"
+      ]
+    },
+    {
+      "name": "venue.create_post_event_deviation_proposal",
+      "path": "/docs/reference-tool-venue-create-post-event-deviation-proposal",
+      "requiredFields": [
+        "proposalId",
+        "goal",
+        "deviationIds",
+        "idempotencyKey"
+      ],
+      "errors": [
+        "TOOL_SCOPE_REQUIRED",
+        "AUTHORIZATION_DENIED",
+        "AGENT_GRANT_INVALID",
+        "TOOL_PAYLOAD_TOO_LARGE",
+        "TOOL_CALL_CANCELLED",
+        "VENUE_INTERNAL_ERROR",
+        "IDEMPOTENCY_KEY_REQUIRED",
+        "IDEMPOTENCY_KEY_CONFLICT",
+        "DEVIATION_REGISTER_NOT_FOUND",
+        "DEVIATION_NOT_FOUND",
+        "DEVIATION_TOOL_UNAVAILABLE",
+        "DEVIATION_INVALID",
+        "DEVIATION_LOCATION_INVALID",
+        "DEVIATION_REVISION_CONFLICT",
+        "DEVIATION_REGISTER_REVISION_CONFLICT",
+        "DEVIATION_LEDGER_INTEGRITY_FAILED"
+      ],
+      "outputFields": [
+        "register",
+        "proposal",
+        "recommendation",
+        "receipt",
+        "duplicate"
+      ],
+      "stableIds": [
+        "register.id",
+        "proposal.id",
+        "recommendation.id",
+        "receipt.id"
+      ]
+    },
+    {
+      "name": "venue.export_live_plan_deviations",
+      "path": "/docs/reference-tool-venue-export-live-plan-deviations",
+      "requiredFields": [],
+      "errors": [
+        "TOOL_SCOPE_REQUIRED",
+        "AUTHORIZATION_DENIED",
+        "AGENT_GRANT_INVALID",
+        "TOOL_PAYLOAD_TOO_LARGE",
+        "TOOL_CALL_CANCELLED",
+        "VENUE_INTERNAL_ERROR",
+        "DEVIATION_REGISTER_NOT_FOUND",
+        "DEVIATION_NOT_FOUND",
+        "DEVIATION_TOOL_UNAVAILABLE",
+        "DEVIATION_INVALID",
+        "DEVIATION_LOCATION_INVALID",
+        "DEVIATION_REVISION_CONFLICT",
+        "DEVIATION_REGISTER_REVISION_CONFLICT",
+        "DEVIATION_LEDGER_INTEGRITY_FAILED"
+      ],
+      "outputFields": [
+        "filename",
+        "mediaType",
+        "content",
+        "fingerprint"
+      ],
+      "stableIds": [
+        "content.register.id",
+        "content.deviations[].id",
+        "content.overlay.id"
+      ]
+    },
+    {
       "name": "venue.export_audit_package",
       "path": "/docs/reference-tool-venue-export-audit-package",
       "requiredFields": [],
@@ -3207,12 +3398,12 @@
     },
     {
       "surface": "Tool contracts",
-      "current": "1.4.0",
+      "current": "1.5.0",
       "compatibility": "Shared by WebMCP, standalone MCP, schemas, examples, and skills."
     },
     {
       "surface": "MCP server",
-      "current": "0.6.0",
+      "current": "0.7.0",
       "compatibility": "Preferred protocol 2026-07-28; minimum 2025-03-26."
     },
     {
@@ -3222,8 +3413,8 @@
     },
     {
       "surface": "Agent skills",
-      "current": "1.3.0",
-      "compatibility": "Targets tool contract 1.4.0."
+      "current": "1.4.0",
+      "compatibility": "Targets tool contract 1.5.0."
     },
     {
       "surface": "Interchange Package",

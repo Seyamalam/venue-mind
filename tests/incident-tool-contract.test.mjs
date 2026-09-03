@@ -5,8 +5,8 @@ import { VENUE_TOOL_CONTRACT_VERSION, venueToolContracts } from "../src/contract
 
 test("shared Incident tools expose report, inspection, and export without human response authority", () => {
   const byName = new Map(venueToolContracts.map((contract) => [contract.name, contract]));
-  assert.equal(VENUE_TOOL_CONTRACT_VERSION, "1.4.0");
-  assert.equal(venueToolContracts.length, 46);
+  assert.equal(VENUE_TOOL_CONTRACT_VERSION, "1.5.0");
+  assert.equal(venueToolContracts.length, 51);
   assert.equal(byName.get("venue.inspect_incidents")?.authorization.requiredScope, "venue:read");
   assert.equal(byName.get("venue.report_incident")?.authorization.requiredScope, "venue:operate");
   assert.equal(byName.get("venue.export_incident_record")?.authorization.requiredScope, "venue:export");

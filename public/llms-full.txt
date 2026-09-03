@@ -120,6 +120,16 @@ One Incident Register belongs to one active Runbook Version and freezes the acce
 - The current deployment stores structured Incident records only and does not accept file uploads.
 - Browser outbox replay preserves exact idempotency and retains conflicts for operator recovery.
 
+## Live Plan Deviation Register
+
+A Live Plan Deviation Register belongs to one active Runbook Version and freezes the approved Plan as immutable historical truth. Event-day spatial Changes are stored as separate, ordered Deviation records and combined only in a deterministic active overlay.
+
+- Every Deviation carries one stable ID, disposition, reason code, Plan-bound location, exact affected objects, author evidence, optimistic revision, receipt, and hash-chained ledger entry.
+- Each emergency Change is validated against the explicitly available live Constraints before it enters the overlay.
+- Temporary records can end without becoming planning history. Ended revision-candidate records may seed a normal review-state post-event Proposal.
+- Agents may inspect, record, end, export, and prepare post-event Proposals. Only humans may approve a Proposal into accepted Plan truth.
+- The export keeps the approved Plan, live Deviation overlay, and post-event recommendations in separate fields.
+
 ## Circulation and Egress Evidence
 
 The walkable Route Graph excludes edges obstructed by placement geometry. Validation derives Exit Approach Zones, shortest egress paths, Critical Route Edges, component-level Bottleneck Loads, phase profiles, and isolated congestion deltas for every Proposal Change.
@@ -625,7 +635,7 @@ Other stdio hosts use the same command, arguments, and explicit writable data di
 
 ## Completion criteria
 
-- The host lists all 46 tool contracts at version 1.4.0.
+- The host lists all 51 tool contracts at version 1.5.0.
 - The active session is bound to one Project.
 - Project state survives a server restart.
 - Approval, Occupancy Alert acknowledgement, and Incident response actions remain absent from the tool list.
@@ -652,7 +662,7 @@ Expose the active Studio as a scoped browser tool surface and complete a safe re
 
 1. Start the VenueMind development server.
 2. Open /studio/project-summit-forward in a WebMCP-capable browser host.
-3. Open WebMCP diagnostics and confirm READY, contract 1.4.0, and 46 registered tools.
+3. Open WebMCP diagnostics and confirm READY, contract 1.5.0, and 51 registered tools.
 
 ## Invoke through the browser
 
@@ -862,7 +872,7 @@ The active VenueMind page exposes compact tools backed by the same command inter
 
 ## Runtime boundary
 
-- Contract version 1.4.0 is attached to every published tool.
+- Contract version 1.5.0 is attached to every published tool.
 - Lifecycle states: detecting, registering, ready, failed, unsupported, unregistered.
 - Every invocation returns a compact text summary and versioned structured content.
 - Mutation receipts retain caller idempotency and correlation metadata.
@@ -900,7 +910,7 @@ node /absolute/path/to/venue-mind/packages/mcp-server/dist/index.js
 
 ## Protocol surfaces
 
-- 46 tools generated from one shared contract source across WebMCP and standalone MCP.
+- 51 tools generated from one shared contract source across WebMCP and standalone MCP.
 - Current Project, Plan Version, Proposal, schema, documentation, and compatibility resources.
 - Project and Plan Version resource templates with completion.
 - Supervised planning and Plan audit prompts.
@@ -954,11 +964,11 @@ ChatGPT custom MCP apps connect to remote endpoints, not directly to a local std
 
 ## Compatibility
 
-- MCP server 0.6.0.
+- MCP server 0.7.0.
 - Preferred protocol revision 2026-07-28.
 - Minimum supported revision 2025-03-26.
-- Tool contract 1.4.0.
-- Approval, Occupancy Alert acknowledgement, and Incident response authority: human-only.
+- Tool contract 1.5.0.
+- Approval, Occupancy Alert acknowledgement, and Incident response authority: human-only. Live Plan Deviation tools create records and review-state post-event Proposals only.
 
 ## Human-only approval
 
@@ -968,7 +978,7 @@ The MCP surface can inspect, preview, validate, branch, switch, read, and export
 
 # Agent skills
 
-Six versioned skill packages teach supervised VenueMind workflows against tool contract 1.4.0.
+Six versioned skill packages teach supervised VenueMind workflows against tool contract 1.5.0.
 
 ## venuemind-plan
 
@@ -1224,6 +1234,7 @@ One generated page per WebMCP and standalone MCP tool, sourced from the runtime 
 - [venue.list_scenario_runs](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-list-scenario-runs)
 - [venue.inspect_live_occupancy](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-inspect-live-occupancy)
 - [venue.inspect_incidents](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-inspect-incidents)
+- [venue.inspect_live_plan_deviations](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-inspect-live-plan-deviations)
 
 ## venue:propose
 
@@ -1238,6 +1249,7 @@ One generated page per WebMCP and standalone MCP tool, sourced from the runtime 
 - [venue.restore_proposal_branch](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-restore-proposal-branch)
 - [venue.rebase_proposal](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-rebase-proposal)
 - [venue.request_adjustment](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-request-adjustment)
+- [venue.create_post_event_deviation_proposal](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-create-post-event-deviation-proposal)
 
 ## venue:comment
 
@@ -1256,6 +1268,7 @@ One generated page per WebMCP and standalone MCP tool, sourced from the runtime 
 - [venue.export_simulation](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-simulation)
 - [venue.export_live_occupancy](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-live-occupancy)
 - [venue.export_incident_record](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-incident-record)
+- [venue.export_live_plan_deviations](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-live-plan-deviations)
 - [venue.export_audit_package](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-audit-package)
 - [venue.export_plan](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-plan)
 
@@ -1264,6 +1277,8 @@ One generated page per WebMCP and standalone MCP tool, sourced from the runtime 
 - [venue.ingest_occupancy_signal](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-ingest-occupancy-signal)
 - [venue.refresh_live_occupancy](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-refresh-live-occupancy)
 - [venue.report_incident](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-report-incident)
+- [venue.record_live_plan_deviation](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-record-live-plan-deviation)
+- [venue.end_live_plan_deviation](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-end-live-plan-deviation)
 
 ---
 
@@ -1475,6 +1490,19 @@ Every stable VenueMind error code, user-safe message, and actionable remediation
 | INCIDENT_HUMAN_REQUIRED | This Incident transition requires a human operator. | Ask an authorized human operator to acknowledge, manage, hand off, or record an emergency action. |
 | INCIDENT_LEDGER_INTEGRITY_FAILED | Incident Register ledger integrity failed. | Restore the last verified register state before inspection or export. |
 | INCIDENT_TOOL_UNAVAILABLE | Incident tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Incident Register operations enabled. |
+| DEVIATION_BASELINE_INVALID | Live Plan Deviation baseline is invalid. | Create the register from one active Event Day Runbook with its frozen accepted Plan and Validation evidence. |
+| DEVIATION_REGISTER_NOT_FOUND | Live Plan Deviation Register is unavailable. | Create the register from the active Event Day Runbook before inspecting or recording deviations. |
+| DEVIATION_TOOL_UNAVAILABLE | Live Plan Deviation tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Live Plan Deviation operations enabled. |
+| DEVIATION_NOT_FOUND | Live Plan Deviation is unavailable. | Inspect the register and retry with an existing stable Deviation ID. |
+| DEVIATION_ID_CONFLICT | Live Plan Deviation ID conflicts with an existing record. | Use the original semantic command or generate a new stable Deviation ID. |
+| DEVIATION_INVALID | Live Plan Deviation input is invalid. | Supply a reason code, disposition, exact affected objects, location, and executable spatial Change. |
+| DEVIATION_LOCATION_INVALID | Live Plan Deviation Location Context is invalid. | Anchor the deviation to one object or in-room coordinate in the frozen accepted Plan. |
+| DEVIATION_REVISION_CONFLICT | Live Plan Deviation revision conflict. | Refresh the deviation projection and retry only if the transition is still required. |
+| DEVIATION_REGISTER_REVISION_CONFLICT | Live Plan Deviation Register revision conflict. | Refresh the active overlay and retry against its current revision. |
+| DEVIATION_TRANSITION_INVALID | Live Plan Deviation transition is invalid. | Use a published active-to-ended transition with one structured reason code. |
+| DEVIATION_CONSTRAINT_UNAVAILABLE | Requested live Constraint is unavailable. | Inspect the frozen Plan Constraint registry and submit only available stable Constraint IDs. |
+| DEVIATION_POST_EVENT_PROPOSAL_EMPTY | Post-event Proposal has no revision-candidate deviations. | Select at least one revision-candidate Deviation that has not already been recommended. |
+| DEVIATION_LEDGER_INTEGRITY_FAILED | Live Plan Deviation ledger integrity failed. | Restore the last verified register state before inspection, recommendation, or export. |
 | VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
 
 ## Error envelope
@@ -1716,24 +1744,24 @@ Human Roles, Agent Grant scopes, service-boundary permissions, and Approval auth
 
 | Role | Permissions |
 | --- | --- |
-| viewer | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read |
-| planner | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, proposal.create, proposal.manage, comment.write, simulation.run, occupancy.write, incident.report, incident.manage, export.plan |
-| reviewer | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, proposal.review, comment.write, incident.export, export.audit, audit.read |
-| approver | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, proposal.review, comment.write, incident.export, export.audit, audit.read, approval.approve, approval.waive |
-| safety-officer | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, incident.report, incident.manage, incident.emergency-act, incident.export, audit.read |
-| venue-administrator | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, proposal.create, proposal.manage, comment.write, simulation.run, occupancy.write, incident.report, incident.manage, export.plan, proposal.review, incident.export, export.audit, audit.read, approval.approve, approval.waive, incident.emergency-act, project.manage, plan.update, lock.manage |
-| organization-administrator | project.read, project.manage, plan.read, plan.update, proposal.read, proposal.create, proposal.manage, proposal.review, comment.read, comment.write, simulation.read, simulation.run, occupancy.read, occupancy.write, incident.read, incident.report, incident.manage, incident.emergency-act, incident.export, export.plan, export.audit, audit.read, approval.approve, approval.waive, lock.manage |
+| viewer | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, deviation.read |
+| planner | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, deviation.read, proposal.create, proposal.manage, comment.write, simulation.run, occupancy.write, incident.report, incident.manage, deviation.record, deviation.propose, export.plan |
+| reviewer | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, deviation.read, proposal.review, comment.write, incident.export, deviation.export, export.audit, audit.read |
+| approver | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, deviation.read, proposal.review, comment.write, incident.export, deviation.export, export.audit, audit.read, approval.approve, approval.waive |
+| safety-officer | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, deviation.read, incident.report, incident.manage, incident.emergency-act, incident.export, deviation.record, deviation.export, audit.read |
+| venue-administrator | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, deviation.read, proposal.create, proposal.manage, comment.write, simulation.run, occupancy.write, incident.report, incident.manage, deviation.record, deviation.propose, export.plan, proposal.review, incident.export, deviation.export, export.audit, audit.read, approval.approve, approval.waive, incident.emergency-act, project.manage, plan.update, lock.manage |
+| organization-administrator | project.read, project.manage, plan.read, plan.update, proposal.read, proposal.create, proposal.manage, proposal.review, comment.read, comment.write, simulation.read, simulation.run, occupancy.read, occupancy.write, incident.read, incident.report, incident.manage, incident.emergency-act, incident.export, deviation.read, deviation.record, deviation.propose, deviation.export, export.plan, export.audit, audit.read, approval.approve, approval.waive, lock.manage |
 
 ## Agent Grant scopes
 
 | Scope | Permissions |
 | --- | --- |
-| venue:read | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, audit.read |
-| venue:propose | proposal.create, proposal.manage |
+| venue:read | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, deviation.read, audit.read |
+| venue:propose | proposal.create, proposal.manage, deviation.propose |
 | venue:comment | comment.read, comment.write |
 | venue:simulate | simulation.read, simulation.run |
-| venue:operate | occupancy.read, occupancy.write, incident.read, incident.report |
-| venue:export | export.plan, export.audit, incident.export |
+| venue:operate | occupancy.read, occupancy.write, incident.read, incident.report, deviation.read, deviation.record |
+| venue:export | export.plan, export.audit, incident.export, deviation.export |
 
 ## Policy decisions
 
@@ -1762,10 +1790,10 @@ Current public versions, comparison rules, migration guarantees, and the policy 
 | Validation engine | 2.7.0 | Comparable only when engine and immutable input fingerprints match. |
 | Simulation engine | 1.2.1 | Comparison requires matching engine and Scenario definition fingerprints. |
 | Activity Ledger | 1 | Hash-chain verification is required on load, replay, and export. |
-| Tool contracts | 1.4.0 | Shared by WebMCP, standalone MCP, schemas, examples, and skills. |
-| MCP server | 0.6.0 | Preferred protocol 2026-07-28; minimum 2025-03-26. |
+| Tool contracts | 1.5.0 | Shared by WebMCP, standalone MCP, schemas, examples, and skills. |
+| MCP server | 0.7.0 | Preferred protocol 2026-07-28; minimum 2025-03-26. |
 | TypeScript SDK | 0.1.0 | ESM-only on Node.js 22+; SDK SemVer remains independent of tool, adapter, and Project schema versions. |
-| Agent skills | 1.3.0 | Targets tool contract 1.4.0. |
+| Agent skills | 1.4.0 | Targets tool contract 1.5.0. |
 | Interchange Package | 1 + Project schema 10 | Create-only import with exact schema, checksum, geometry, Locks, ledger, and replay preflight. |
 
 ## Deprecation policy
@@ -1791,7 +1819,7 @@ List durable VenueMind Projects available to the current authenticated or local 
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -1845,7 +1873,7 @@ Select one durable Project as the active Project for this agent session. This ne
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -1901,7 +1929,7 @@ Read versioned Venue, Room, and Inventory Item Templates, including starter room
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -1956,7 +1984,7 @@ Read the structured Event Brief, stable Requirement IDs, priorities, ownership, 
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2024,7 +2052,7 @@ List versioned Constraints with current evaluation status, thresholds, policy so
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2076,7 +2104,7 @@ Read the active venue plan, stable object IDs, locked objects, constraints, metr
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 1048576 bytes.
@@ -2158,7 +2186,7 @@ Read one stable object with scoped accepted or Proposal geometry, operational me
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2219,7 +2247,7 @@ Search stable venue objects with bounded text, kind, layer, Lock, and accepted-v
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2289,7 +2317,7 @@ Create a non-destructive venue revision preview. The result remains pending unti
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2354,7 +2382,7 @@ Create a non-destructive Proposal containing safe Room Template differences whil
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2425,7 +2453,7 @@ Create one non-destructive, undoable spatial editing Change for placement, trans
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 262144 bytes; output limit 262144 bytes.
@@ -2499,7 +2527,7 @@ Measure deterministic center points and pairwise distances for selected Project 
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2558,7 +2586,7 @@ Validate the visible proposal or committed plan against locks, accessibility, ca
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 1048576 bytes.
@@ -2635,7 +2663,7 @@ Read deterministic evidence for the current Validation, optionally restricted to
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 1048576 bytes.
@@ -2711,7 +2739,7 @@ Compare proposal branches by base version, change count, validation status, unre
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2763,7 +2791,7 @@ Compare two Proposal Branches by spatial object differences, Change membership, 
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2829,7 +2857,7 @@ Create and activate a non-destructive proposal branch using a balanced, access-f
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2896,7 +2924,7 @@ Activate an existing proposal branch in the visible VenueMind workspace without 
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2958,7 +2986,7 @@ Update a Proposal Branch name or review notes without changing its Proposal geom
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3023,7 +3051,7 @@ Duplicate the current or a prior Proposal revision into a new active Branch with
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3092,7 +3120,7 @@ Archive a Proposal Branch without deleting its revisions or audit history.
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3154,7 +3182,7 @@ Restore an archived Proposal Branch to the active comparison set.
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3214,7 +3242,7 @@ Detect stale-base, deleted-dependency, locked-object, same-object, and Constrain
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3278,7 +3306,7 @@ Rebase a stale Proposal Branch onto the latest accepted Plan Version while prese
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3341,7 +3369,7 @@ Create a new non-destructive Proposal revision recording an agent-requested adju
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3402,7 +3430,7 @@ Read comments by status, author, subject kind, or decision relevance without cha
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3459,7 +3487,7 @@ Add a non-planning Comment anchored to an immutable VenueMind subject or spatial
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:comment.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3534,7 +3562,7 @@ Edit Comment text, mentions, or decision relevance while retaining immutable edi
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:comment.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3601,7 +3629,7 @@ Resolve or reopen a Comment without changing its immutable anchor or planning st
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:comment.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3665,7 +3693,7 @@ Read the ordered human and agent Activity Ledger for the active Plan.
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3717,7 +3745,7 @@ Verify the Activity Ledger hash chain and replay accepted Plan transitions again
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3781,7 +3809,7 @@ Read stored immutable Scenario definitions without running a simulation.
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3831,7 +3859,7 @@ Read queued, running, completed, cancelled, and failed Simulation Runs, includin
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3883,7 +3911,7 @@ Read one stable Scenario Run and its completed or partial result, with density f
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:simulate.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 1048576 bytes.
@@ -3958,7 +3986,7 @@ Run one seeded operations, ingress-egress, or spatial queue Scenario against an 
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:simulate.
 - State-affecting operation.
 - Input limit 131072 bytes; output limit 262144 bytes.
@@ -4039,7 +4067,7 @@ Compare two completed Runs with matching Scenario fingerprints and engine versio
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:simulate.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -4101,7 +4129,7 @@ Export one completed Simulation Run with its normalized Scenario parameters, eng
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:export.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -4159,7 +4187,7 @@ Read the current aggregate-only Live Occupancy projection, source freshness, act
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 1048576 bytes.
@@ -4220,7 +4248,7 @@ Ingest one bounded aggregate Occupancy Signal from a registration total, sensor,
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:operate.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -4304,7 +4332,7 @@ Refresh Live Occupancy freshness and derived Alerts at the server-accepted insta
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:operate.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -4369,7 +4397,7 @@ Export the verified aggregate-only Live Occupancy audit artifact with baseline, 
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:export.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 2000000 bytes.
@@ -4428,7 +4456,7 @@ Inspect the Runbook-bound Incident Register or one stable Operational Incident w
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 1048576 bytes.
@@ -4499,7 +4527,7 @@ Report one structured Operational Incident against an object or coordinate in th
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:operate.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -4586,7 +4614,7 @@ Export one verified post-event Operational Incident record with frozen Plan and 
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:export.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 2000000 bytes.
@@ -4644,13 +4672,405 @@ Verified post-event Incident record with frozen Plan provenance, structured tran
 
 ---
 
+# venue.inspect_live_plan_deviations
+
+Inspect the Runbook-bound Live Plan Deviation Register, deterministic active overlay, and filtered temporary or revision-candidate deviation records without changing accepted Plan truth.
+
+## Contract
+
+- Contract version 1.5.0.
+- Required Agent Grant scope venue:read.
+- Read-only operation.
+- Input limit 65536 bytes; output limit 1048576 bytes.
+
+## Input
+
+| Field | Type | Required | Default | Bounds | Meaning |
+| --- | --- | --- | --- | --- | --- |
+| deviationId | string | no | — | min 1 chars; max 160 chars | Published contract field. |
+| status | active \| ended | no | — | — | Published contract field. |
+| disposition | temporary \| revision-candidate | no | — | — | Published contract field. |
+| limit | integer | no | 50 | ≥ 1; ≤ 100 | Maximum number of returned records. |
+
+```json
+{
+  "status": "active",
+  "limit": 25
+}
+```
+
+## Output
+
+Runbook-bound live deviations, validation evidence, and the deterministic operational overlay over accepted Plan truth.
+
+| Output field | Meaning |
+| --- | --- |
+| register | Published result field. |
+| deviations | Published result field. |
+| overlay | Published result field. |
+
+- Stable ID: register.id
+- Stable ID: deviations[].id
+- Stable ID: overlay.id
+- Stable ID: overlay.objectLineage[].objectId
+
+## Errors
+
+| Code | Message | Remediation |
+| --- | --- | --- |
+| TOOL_SCOPE_REQUIRED | Tool authorization scope is required. | Grant the published scope for this tool or use a read-only tool within the current session. |
+| AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
+| AGENT_GRANT_INVALID | Agent Grant is invalid. | Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less. |
+| TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
+| TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
+| VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
+| DEVIATION_REGISTER_NOT_FOUND | Live Plan Deviation Register is unavailable. | Create the register from the active Event Day Runbook before inspecting or recording deviations. |
+| DEVIATION_NOT_FOUND | Live Plan Deviation is unavailable. | Inspect the register and retry with an existing stable Deviation ID. |
+| DEVIATION_TOOL_UNAVAILABLE | Live Plan Deviation tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Live Plan Deviation operations enabled. |
+| DEVIATION_INVALID | Live Plan Deviation input is invalid. | Supply a reason code, disposition, exact affected objects, location, and executable spatial Change. |
+| DEVIATION_LOCATION_INVALID | Live Plan Deviation Location Context is invalid. | Anchor the deviation to one object or in-room coordinate in the frozen accepted Plan. |
+| DEVIATION_REVISION_CONFLICT | Live Plan Deviation revision conflict. | Refresh the deviation projection and retry only if the transition is still required. |
+| DEVIATION_REGISTER_REVISION_CONFLICT | Live Plan Deviation Register revision conflict. | Refresh the active overlay and retry against its current revision. |
+| DEVIATION_LEDGER_INTEGRITY_FAILED | Live Plan Deviation ledger integrity failed. | Restore the last verified register state before inspection, recommendation, or export. |
+
+## Surfaces
+
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
+
+---
+
+# venue.record_live_plan_deviation
+
+Record one validated event-day Change against the frozen accepted Plan with stable object IDs, available live Constraints, reason, author evidence, and exact retry identity.
+
+## Contract
+
+- Contract version 1.5.0.
+- Required Agent Grant scope venue:operate.
+- State-affecting operation.
+- Input limit 65536 bytes; output limit 262144 bytes.
+
+## Input
+
+| Field | Type | Required | Default | Bounds | Meaning |
+| --- | --- | --- | --- | --- | --- |
+| deviationId | string | yes | — | min 1 chars; max 160 chars | Published contract field. |
+| disposition | temporary \| revision-candidate | yes | — | — | Published contract field. |
+| reasonCode | string | yes | — | min 2 chars; max 64 chars; pattern ^[A-Z][A-Z0-9_]{1,63}$ | Published contract field. |
+| location | object \| object | yes | — | — | Published contract field. |
+| affectedObjectIds | string[] | yes | — | min 1 items; max 100 items; unique items | Published contract field. |
+| availableConstraintIds | string[] | yes | — | min 1 items; max 100 items; unique items | Published contract field. |
+| change | object | yes | — | — | Published contract field. |
+| idempotencyKey | string | yes | — | min 1 chars | Unique retry key for this semantic command. |
+| correlationId | string | no | — | min 1 chars | Optional caller correlation identifier. |
+
+```json
+{
+  "deviationId": "deviation-east-exit-control",
+  "disposition": "temporary",
+  "reasonCode": "LIVE_EGRESS_CONTROL",
+  "location": {
+    "kind": "plan-object",
+    "planObjectId": "obj-fire-exit-east"
+  },
+  "affectedObjectIds": [
+    "obj-fire-exit-east"
+  ],
+  "availableConstraintIds": [
+    "constraint-emergency-readiness",
+    "constraint-peak-congestion"
+  ],
+  "change": {
+    "id": "change-live-egress-control",
+    "targetObjectIds": [
+      "obj-fire-exit-east"
+    ],
+    "spatialEffects": [
+      {
+        "operation": "update_metadata",
+        "objectId": "obj-fire-exit-east",
+        "values": {
+          "label": "East exit — controlled"
+        }
+      }
+    ]
+  },
+  "idempotencyKey": "example-deviation-record-001"
+}
+```
+
+## Output
+
+An idempotent operational fact that preserves the approved Plan and records live Constraint results.
+
+| Output field | Meaning |
+| --- | --- |
+| register | Published result field. |
+| deviation | Published result field. |
+| overlay | Published result field. |
+| receipt | Published result field. |
+| duplicate | Published result field. |
+
+- Stable ID: register.id
+- Stable ID: deviation.id
+- Stable ID: overlay.id
+- Stable ID: receipt.id
+
+## Errors
+
+| Code | Message | Remediation |
+| --- | --- | --- |
+| TOOL_SCOPE_REQUIRED | Tool authorization scope is required. | Grant the published scope for this tool or use a read-only tool within the current session. |
+| AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
+| AGENT_GRANT_INVALID | Agent Grant is invalid. | Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less. |
+| TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
+| TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
+| VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
+| IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
+| IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
+| DEVIATION_REGISTER_NOT_FOUND | Live Plan Deviation Register is unavailable. | Create the register from the active Event Day Runbook before inspecting or recording deviations. |
+| DEVIATION_NOT_FOUND | Live Plan Deviation is unavailable. | Inspect the register and retry with an existing stable Deviation ID. |
+| DEVIATION_TOOL_UNAVAILABLE | Live Plan Deviation tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Live Plan Deviation operations enabled. |
+| DEVIATION_INVALID | Live Plan Deviation input is invalid. | Supply a reason code, disposition, exact affected objects, location, and executable spatial Change. |
+| DEVIATION_LOCATION_INVALID | Live Plan Deviation Location Context is invalid. | Anchor the deviation to one object or in-room coordinate in the frozen accepted Plan. |
+| DEVIATION_REVISION_CONFLICT | Live Plan Deviation revision conflict. | Refresh the deviation projection and retry only if the transition is still required. |
+| DEVIATION_REGISTER_REVISION_CONFLICT | Live Plan Deviation Register revision conflict. | Refresh the active overlay and retry against its current revision. |
+| DEVIATION_LEDGER_INTEGRITY_FAILED | Live Plan Deviation ledger integrity failed. | Restore the last verified register state before inspection, recommendation, or export. |
+
+## Surfaces
+
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
+
+---
+
+# venue.end_live_plan_deviation
+
+End one active temporary or revision-candidate deviation with optimistic Deviation revision control and an immutable reasoned transition.
+
+## Contract
+
+- Contract version 1.5.0.
+- Required Agent Grant scope venue:operate.
+- State-affecting operation.
+- Input limit 65536 bytes; output limit 262144 bytes.
+
+## Input
+
+| Field | Type | Required | Default | Bounds | Meaning |
+| --- | --- | --- | --- | --- | --- |
+| deviationId | string | yes | — | min 1 chars; max 160 chars | Published contract field. |
+| expectedDeviationRevision | integer | yes | — | ≥ 1 | Published contract field. |
+| reasonCode | string | yes | — | min 2 chars; max 64 chars; pattern ^[A-Z][A-Z0-9_]{1,63}$ | Published contract field. |
+| idempotencyKey | string | yes | — | min 1 chars | Unique retry key for this semantic command. |
+| correlationId | string | no | — | min 1 chars | Optional caller correlation identifier. |
+
+```json
+{
+  "deviationId": "deviation-east-exit-control",
+  "expectedDeviationRevision": 1,
+  "reasonCode": "CONTROL_RELEASED",
+  "idempotencyKey": "example-deviation-end-001"
+}
+```
+
+## Output
+
+An audited end transition that removes the deviation from the active overlay without rewriting history.
+
+| Output field | Meaning |
+| --- | --- |
+| register | Published result field. |
+| deviation | Published result field. |
+| overlay | Published result field. |
+| receipt | Published result field. |
+| duplicate | Published result field. |
+
+- Stable ID: register.id
+- Stable ID: deviation.id
+- Stable ID: overlay.id
+- Stable ID: receipt.id
+
+## Errors
+
+| Code | Message | Remediation |
+| --- | --- | --- |
+| TOOL_SCOPE_REQUIRED | Tool authorization scope is required. | Grant the published scope for this tool or use a read-only tool within the current session. |
+| AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
+| AGENT_GRANT_INVALID | Agent Grant is invalid. | Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less. |
+| TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
+| TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
+| VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
+| IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
+| IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
+| DEVIATION_REGISTER_NOT_FOUND | Live Plan Deviation Register is unavailable. | Create the register from the active Event Day Runbook before inspecting or recording deviations. |
+| DEVIATION_NOT_FOUND | Live Plan Deviation is unavailable. | Inspect the register and retry with an existing stable Deviation ID. |
+| DEVIATION_TOOL_UNAVAILABLE | Live Plan Deviation tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Live Plan Deviation operations enabled. |
+| DEVIATION_INVALID | Live Plan Deviation input is invalid. | Supply a reason code, disposition, exact affected objects, location, and executable spatial Change. |
+| DEVIATION_LOCATION_INVALID | Live Plan Deviation Location Context is invalid. | Anchor the deviation to one object or in-room coordinate in the frozen accepted Plan. |
+| DEVIATION_REVISION_CONFLICT | Live Plan Deviation revision conflict. | Refresh the deviation projection and retry only if the transition is still required. |
+| DEVIATION_REGISTER_REVISION_CONFLICT | Live Plan Deviation Register revision conflict. | Refresh the active overlay and retry against its current revision. |
+| DEVIATION_LEDGER_INTEGRITY_FAILED | Live Plan Deviation ledger integrity failed. | Restore the last verified register state before inspection, recommendation, or export. |
+
+## Surfaces
+
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
+
+---
+
+# venue.create_post_event_deviation_proposal
+
+Create a normal review-state Proposal from ended revision-candidate deviations. The accepted Plan remains unchanged and Approval remains human-only in VenueMind Studio.
+
+## Contract
+
+- Contract version 1.5.0.
+- Required Agent Grant scope venue:propose.
+- State-affecting operation.
+- Input limit 65536 bytes; output limit 262144 bytes.
+
+## Input
+
+| Field | Type | Required | Default | Bounds | Meaning |
+| --- | --- | --- | --- | --- | --- |
+| proposalId | string | yes | — | min 1 chars; max 160 chars | Stable Proposal ID. |
+| goal | string | yes | — | min 1 chars; max 2000 chars | Measurable Proposal outcome. |
+| deviationIds | string[] | yes | — | min 1 items; max 100 items; unique items | Published contract field. |
+| idempotencyKey | string | yes | — | min 1 chars | Unique retry key for this semantic command. |
+| correlationId | string | no | — | min 1 chars | Optional caller correlation identifier. |
+
+```json
+{
+  "proposalId": "proposal-post-event-egress",
+  "goal": "Retain the validated event-day egress control",
+  "deviationIds": [
+    "deviation-east-exit-control"
+  ],
+  "idempotencyKey": "example-deviation-proposal-001"
+}
+```
+
+## Output
+
+A standard reviewable Venue Proposal derived from ended revision candidates; accepted Plan truth stays unchanged.
+
+| Output field | Meaning |
+| --- | --- |
+| register | Published result field. |
+| proposal | Published result field. |
+| recommendation | Published result field. |
+| receipt | Published result field. |
+| duplicate | Published result field. |
+
+- Stable ID: register.id
+- Stable ID: proposal.id
+- Stable ID: recommendation.id
+- Stable ID: receipt.id
+
+## Errors
+
+| Code | Message | Remediation |
+| --- | --- | --- |
+| TOOL_SCOPE_REQUIRED | Tool authorization scope is required. | Grant the published scope for this tool or use a read-only tool within the current session. |
+| AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
+| AGENT_GRANT_INVALID | Agent Grant is invalid. | Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less. |
+| TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
+| TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
+| VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
+| IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
+| IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
+| DEVIATION_REGISTER_NOT_FOUND | Live Plan Deviation Register is unavailable. | Create the register from the active Event Day Runbook before inspecting or recording deviations. |
+| DEVIATION_NOT_FOUND | Live Plan Deviation is unavailable. | Inspect the register and retry with an existing stable Deviation ID. |
+| DEVIATION_TOOL_UNAVAILABLE | Live Plan Deviation tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Live Plan Deviation operations enabled. |
+| DEVIATION_INVALID | Live Plan Deviation input is invalid. | Supply a reason code, disposition, exact affected objects, location, and executable spatial Change. |
+| DEVIATION_LOCATION_INVALID | Live Plan Deviation Location Context is invalid. | Anchor the deviation to one object or in-room coordinate in the frozen accepted Plan. |
+| DEVIATION_REVISION_CONFLICT | Live Plan Deviation revision conflict. | Refresh the deviation projection and retry only if the transition is still required. |
+| DEVIATION_REGISTER_REVISION_CONFLICT | Live Plan Deviation Register revision conflict. | Refresh the active overlay and retry against its current revision. |
+| DEVIATION_LEDGER_INTEGRITY_FAILED | Live Plan Deviation ledger integrity failed. | Restore the last verified register state before inspection, recommendation, or export. |
+
+## Surfaces
+
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
+
+---
+
+# venue.export_live_plan_deviations
+
+Export a verified record that keeps the approved Plan, live deviation overlay, and post-event recommended revisions explicitly separate.
+
+## Contract
+
+- Contract version 1.5.0.
+- Required Agent Grant scope venue:export.
+- Read-only operation.
+- Input limit 65536 bytes; output limit 2000000 bytes.
+
+## Input
+
+| Field | Type | Required | Default | Bounds | Meaning |
+| --- | --- | --- | --- | --- | --- |
+
+
+```json
+{}
+```
+
+## Output
+
+A verified deviation record that separates accepted Plan provenance, live overlay facts, and post-event recommendations.
+
+| Output field | Meaning |
+| --- | --- |
+| filename | Published result field. |
+| mediaType | Published result field. |
+| content | Published result field. |
+| fingerprint | Published result field. |
+
+- Stable ID: content.register.id
+- Stable ID: content.deviations[].id
+- Stable ID: content.overlay.id
+
+## Errors
+
+| Code | Message | Remediation |
+| --- | --- | --- |
+| TOOL_SCOPE_REQUIRED | Tool authorization scope is required. | Grant the published scope for this tool or use a read-only tool within the current session. |
+| AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
+| AGENT_GRANT_INVALID | Agent Grant is invalid. | Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less. |
+| TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
+| TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
+| VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
+| DEVIATION_REGISTER_NOT_FOUND | Live Plan Deviation Register is unavailable. | Create the register from the active Event Day Runbook before inspecting or recording deviations. |
+| DEVIATION_NOT_FOUND | Live Plan Deviation is unavailable. | Inspect the register and retry with an existing stable Deviation ID. |
+| DEVIATION_TOOL_UNAVAILABLE | Live Plan Deviation tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Live Plan Deviation operations enabled. |
+| DEVIATION_INVALID | Live Plan Deviation input is invalid. | Supply a reason code, disposition, exact affected objects, location, and executable spatial Change. |
+| DEVIATION_LOCATION_INVALID | Live Plan Deviation Location Context is invalid. | Anchor the deviation to one object or in-room coordinate in the frozen accepted Plan. |
+| DEVIATION_REVISION_CONFLICT | Live Plan Deviation revision conflict. | Refresh the deviation projection and retry only if the transition is still required. |
+| DEVIATION_REGISTER_REVISION_CONFLICT | Live Plan Deviation Register revision conflict. | Refresh the active overlay and retry against its current revision. |
+| DEVIATION_LEDGER_INTEGRITY_FAILED | Live Plan Deviation ledger integrity failed. | Restore the last verified register state before inspection, recommendation, or export. |
+
+## Surfaces
+
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
+
+---
+
 # venue.export_audit_package
 
 Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:export.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 2000000 bytes.
@@ -4706,7 +5126,7 @@ Export the validated Plan as JSON, compact text, layered SVG, print-ready plan o
 
 ## Contract
 
-- Contract version 1.4.0.
+- Contract version 1.5.0.
 - Required Agent Grant scope venue:export.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 2000000 bytes.
@@ -7896,6 +8316,9 @@ JSON Schemas are generated from the runtime contract source during every product
 - [Incident Location Context](https://venue-mind-jet.vercel.app/schemas/incident-location-context.schema.json)
 - [Operational Incident](https://venue-mind-jet.vercel.app/schemas/operational-incident.schema.json)
 - [Incident Register](https://venue-mind-jet.vercel.app/schemas/incident-register.schema.json)
+- [Live Plan Deviation](https://venue-mind-jet.vercel.app/schemas/live-plan-deviation.schema.json)
+- [Live Plan Deviation overlay](https://venue-mind-jet.vercel.app/schemas/live-plan-deviation-overlay.schema.json)
+- [Live Plan Deviation register](https://venue-mind-jet.vercel.app/schemas/live-plan-deviation-register.schema.json)
 - [Project list result](https://venue-mind-jet.vercel.app/schemas/project-list-result.schema.json)
 - [Project open result](https://venue-mind-jet.vercel.app/schemas/project-open-result.schema.json)
 - [Layout inspection](https://venue-mind-jet.vercel.app/schemas/layout-inspection.schema.json)
@@ -7973,6 +8396,13 @@ VenueMind JSON is the only authoritative import format. DXF and PDF files remain
 # Documentation changelog
 
 Visible changes to VenueMind contracts, workflows, compatibility, and operational guidance.
+
+## Tool contract 1.5.0
+
+- Added shared Live Plan Deviation inspection, recording, ending, post-event Proposal, and verified export tools.
+- Kept the approved Plan immutable; live Changes exist only in the Deviation overlay until a human approves a later Proposal through Studio.
+- Added exact Deviation schemas, retry-safe browser persistence, MCP Project-session support, typed SDK methods, WebMCP parity, and event-day skill guidance.
+- Updated MCP 0.7.0, schemas, examples, llms.txt, llms-full.txt, and the generated documentation catalog together.
 
 ## Tool contract 1.4.0
 

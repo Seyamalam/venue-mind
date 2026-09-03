@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { IncidentRegister } from "../../../src/domain/operational-types.ts";
+import type { IncidentRegister, LivePlanDeviationRegister } from "../../../src/domain/operational-types.ts";
 import type { PlannerSnapshot } from "../../../src/domain/venue-planner.ts";
 
 export interface McpProjectRecord {
@@ -19,6 +19,7 @@ export interface McpProjectRecord {
   readonly pinned: boolean;
   readonly lastOpenedAt: string | null;
   readonly incidentRegister?: IncidentRegister;
+  readonly deviationRegister?: LivePlanDeviationRegister;
 }
 
 export interface McpProjectRepository {
@@ -67,6 +68,24 @@ const isIncidentRegister = (value: unknown): value is IncidentRegister =>
   typeof value["createdBy"] === "string" &&
   typeof value["updatedAt"] === "string";
 
+const isDeviationRegister = (value: unknown): value is LivePlanDeviationRegister =>
+  isRecord(value) &&
+  value["schemaVersion"] === 1 &&
+  typeof value["id"] === "string" &&
+  typeof value["projectId"] === "string" &&
+  typeof value["runbookVersionId"] === "string" &&
+  isRecord(value["source"]) &&
+  isRecord(value["baseline"]) &&
+  Array.isArray(value["deviations"]) &&
+  Array.isArray(value["recommendations"]) &&
+  Array.isArray(value["transitions"]) &&
+  Array.isArray(value["receipts"]) &&
+  Array.isArray(value["ledger"]) &&
+  typeof value["revision"] === "number" &&
+  typeof value["createdAt"] === "string" &&
+  typeof value["createdBy"] === "string" &&
+  typeof value["updatedAt"] === "string";
+
 const nullableString = (value: unknown): value is string | null => value === null || typeof value === "string";
 
 const validateRecord = (value: unknown, organizationId = "org-local"): McpProjectRecord => {
@@ -85,7 +104,8 @@ const validateRecord = (value: unknown, organizationId = "org-local"): McpProjec
     !nullableString(value["recoveryUntil"]) ||
     typeof value["pinned"] !== "boolean" ||
     !nullableString(value["lastOpenedAt"]) ||
-    (value["incidentRegister"] !== undefined && !isIncidentRegister(value["incidentRegister"]))
+    (value["incidentRegister"] !== undefined && !isIncidentRegister(value["incidentRegister"])) ||
+    (value["deviationRegister"] !== undefined && !isDeviationRegister(value["deviationRegister"]))
   ) {
     throw new TypeError("Project repository requires a complete Project record");
   }
@@ -105,7 +125,11 @@ const validateRecord = (value: unknown, organizationId = "org-local"): McpProjec
     pinned: value["pinned"],
     lastOpenedAt: value["lastOpenedAt"],
   } satisfies McpProjectRecord;
-  return value["incidentRegister"] === undefined ? base : { ...base, incidentRegister: value["incidentRegister"] };
+  return {
+    ...base,
+    ...(value["incidentRegister"] !== undefined ? { incidentRegister: value["incidentRegister"] } : {}),
+    ...(value["deviationRegister"] !== undefined ? { deviationRegister: value["deviationRegister"] } : {}),
+  };
 };
 
 export function createMemoryProjectRepository(

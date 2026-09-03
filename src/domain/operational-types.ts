@@ -1,5 +1,6 @@
-import type { EmergencyPlan, Point, VenuePlan } from "./geometry.ts";
+import type { EmergencyPlan, Point, VenueObject, VenuePlan, VenueProposal } from "./geometry.ts";
 import type { EventBrief } from "./event-brief.ts";
+import type { PlanningChange } from "./planning-effects.ts";
 
 export type { Point, RoomBoundary } from "./geometry.ts";
 
@@ -286,6 +287,232 @@ export type IncidentCommand =
   | InspectIncidentCommand
   | InspectIncidentsCommand
   | ExportIncidentRecordCommand;
+
+export type DeviationDisposition = "temporary" | "revision-candidate";
+export type DeviationStatus = "active" | "ended";
+interface DeviationLocationBase {
+  readonly planId: string;
+  readonly planVersion: string | number;
+  readonly planFingerprint: string;
+}
+export type DeviationLocation =
+  | (DeviationLocationBase & Readonly<{ kind: "plan-object"; planObjectId: string }>)
+  | (DeviationLocationBase & Readonly<{ kind: "coordinate"; point: Point }>);
+export type DeviationLocationInput =
+  | Readonly<{ kind: "plan-object"; planObjectId: string }>
+  | Readonly<{ kind: "coordinate"; point: Point }>;
+export interface DeviationActorEvidence {
+  readonly actorType: ActorType;
+  readonly actorId: string;
+  readonly source: OperationalSource;
+  readonly sessionId: string;
+  readonly occurredAt: string;
+}
+export interface DeviationObjectLineage {
+  readonly objectId: string;
+  readonly beforeObject: VenueObject | null;
+  readonly afterObject: VenueObject | null;
+  readonly beforeFingerprint: string | null;
+  readonly afterFingerprint: string | null;
+}
+export interface DeviationValidationCheck {
+  readonly checkId: string;
+  readonly constraintId: string;
+  readonly category: string;
+  readonly severity: "error" | "warning";
+  readonly status: "not-applicable" | "pass" | "warning" | "fail";
+  readonly affectedObjectIds: readonly string[];
+}
+export interface DeviationValidation {
+  readonly validationId: string;
+  readonly inputFingerprint: string;
+  readonly engineVersion: string;
+  readonly overlayFingerprint: string;
+  readonly status: "pass" | "fail";
+  readonly availableConstraintIds: readonly string[];
+  readonly unavailableConstraintIds: readonly string[];
+  readonly checks: readonly DeviationValidationCheck[];
+  readonly blockingIssues: number;
+  readonly warnings: number;
+}
+export interface LivePlanDeviation {
+  readonly schemaVersion: 1;
+  readonly id: string;
+  readonly sequence: number;
+  readonly revision: number;
+  readonly runbookVersionId: string;
+  readonly disposition: DeviationDisposition;
+  readonly status: DeviationStatus;
+  readonly reasonCode: string;
+  readonly location: DeviationLocation;
+  readonly affectedObjectIds: readonly string[];
+  readonly change: PlanningChange;
+  readonly objectLineage: readonly DeviationObjectLineage[];
+  readonly validation: DeviationValidation;
+  readonly authored: DeviationActorEvidence;
+  readonly ended: (DeviationActorEvidence & Readonly<{ reasonCode: string }>) | null;
+}
+export interface DeviationOverlay {
+  readonly registerId: string;
+  readonly registerRevision: number;
+  readonly runbookVersionId: string;
+  readonly acceptedPlanId: string;
+  readonly acceptedPlanVersion: string | number;
+  readonly acceptedPlanFingerprint: string;
+  readonly activeDeviationIds: readonly string[];
+  readonly overlayPlan: OperationalVenuePlan;
+  readonly overlayFingerprint: string;
+  readonly validation: DeviationValidation;
+}
+export interface DeviationReceipt {
+  readonly id: string;
+  readonly idempotencyKey: string;
+  readonly inputFingerprint: string;
+  readonly operation: "record" | "end" | "create-post-event-proposal";
+  readonly deviationId: string | null;
+  readonly proposalId: string | null;
+  readonly deviationRevision: number | null;
+  readonly registerRevision: number;
+  readonly ledgerSequence: number;
+  readonly acceptedAt: string;
+}
+export interface DeviationTransition {
+  readonly id: string;
+  readonly sequence: number;
+  readonly type: "deviation.recorded" | "deviation.ended" | "deviation.post_event_proposal_created";
+  readonly deviationId: string | null;
+  readonly fromDeviationRevision: number | null;
+  readonly toDeviationRevision: number | null;
+  readonly fromRegisterRevision: number;
+  readonly toRegisterRevision: number;
+  readonly actor: DeviationActorEvidence;
+  readonly location: DeviationLocation | null;
+  readonly affectedObjectIds: readonly string[];
+  readonly details: Readonly<Record<string, string | number | boolean | null | readonly string[]>>;
+  readonly resultingStateFingerprint: string;
+  readonly receiptFingerprint: string;
+}
+export interface DeviationLedgerEntry {
+  readonly id: string;
+  readonly schemaVersion: 1;
+  readonly sequence: number;
+  readonly type: DeviationTransition["type"];
+  readonly transitionId: string;
+  readonly deviationId: string | null;
+  readonly actor: DeviationActorEvidence;
+  readonly location: DeviationLocation | null;
+  readonly affectedObjectIds: readonly string[];
+  readonly details: DeviationTransition["details"];
+  readonly resultingStateFingerprint: string;
+  readonly receiptFingerprint: string;
+  readonly previousHash: string;
+  readonly hash: string;
+}
+export interface PostEventDeviationRecommendation {
+  readonly id: string;
+  readonly proposalId: string;
+  readonly proposal: VenueProposal;
+  readonly proposalFingerprint: string;
+  readonly deviationIds: readonly string[];
+  readonly created: DeviationActorEvidence;
+}
+export interface LivePlanDeviationRegister {
+  readonly schemaVersion: 1;
+  readonly id: string;
+  readonly projectId: string;
+  readonly runbookVersionId: string;
+  readonly source: Readonly<{
+    runbookVersionId: string;
+    runbookDefinitionFingerprint: string;
+    runbookLedgerHeadHash: string;
+    planId: string;
+    planVersion: string | number;
+    planFingerprint: string;
+    briefFingerprint: string;
+    validationId: string;
+    validationInputFingerprint: string;
+    approvalLedgerEntryId: string;
+  }>;
+  readonly baseline: Readonly<{
+    acceptedPlan: OperationalVenuePlan;
+    acceptedBrief: EventBrief;
+    fingerprint: string;
+  }>;
+  readonly deviations: readonly LivePlanDeviation[];
+  readonly recommendations: readonly PostEventDeviationRecommendation[];
+  readonly transitions: readonly DeviationTransition[];
+  readonly receipts: readonly DeviationReceipt[];
+  readonly ledger: readonly DeviationLedgerEntry[];
+  readonly revision: number;
+  readonly createdAt: string;
+  readonly createdBy: string;
+  readonly updatedAt: string;
+}
+export interface DeviationCommandContext {
+  readonly actorType: ActorType;
+  readonly actorId: string;
+  readonly source: OperationalSource;
+  readonly sessionId: string;
+  readonly idempotencyKey: string;
+  readonly expectedRevision: number;
+  readonly committedAt?: string;
+}
+export interface CreateDeviationRegisterCommand {
+  readonly type: "create_deviation_register";
+  readonly projectId: string;
+  readonly runbook: EventDayRunbook;
+  readonly createdAt?: string;
+  readonly createdBy: string;
+}
+export interface RecordLivePlanDeviationCommand extends DeviationCommandContext {
+  readonly type: "record_live_plan_deviation";
+  readonly deviationId: string;
+  readonly disposition: DeviationDisposition;
+  readonly reasonCode: string;
+  readonly location: DeviationLocationInput;
+  readonly affectedObjectIds: readonly string[];
+  readonly availableConstraintIds: readonly string[];
+  readonly change: PlanningChange;
+}
+export interface EndLivePlanDeviationCommand extends DeviationCommandContext {
+  readonly type: "end_live_plan_deviation";
+  readonly deviationId: string;
+  readonly expectedDeviationRevision: number;
+  readonly reasonCode: string;
+}
+export interface CreatePostEventDeviationProposalCommand extends DeviationCommandContext {
+  readonly type: "create_post_event_deviation_proposal";
+  readonly proposalId: string;
+  readonly goal: string;
+  readonly deviationIds: readonly string[];
+}
+export interface InspectLivePlanDeviationsCommand {
+  readonly type: "inspect_live_plan_deviations";
+  readonly status?: DeviationStatus;
+  readonly disposition?: DeviationDisposition;
+}
+export interface InspectLivePlanOverlayCommand {
+  readonly type: "inspect_live_plan_overlay";
+}
+export interface ExportLivePlanDeviationsCommand {
+  readonly type: "export_live_plan_deviations";
+  readonly exportedAt?: string;
+}
+export type DeviationCommand =
+  | CreateDeviationRegisterCommand
+  | RecordLivePlanDeviationCommand
+  | EndLivePlanDeviationCommand
+  | CreatePostEventDeviationProposalCommand
+  | InspectLivePlanDeviationsCommand
+  | InspectLivePlanOverlayCommand
+  | ExportLivePlanDeviationsCommand;
+export interface DeviationMutationResult {
+  readonly register: LivePlanDeviationRegister;
+  readonly deviation: LivePlanDeviation | null;
+  readonly proposal: VenueProposal | null;
+  readonly receipt: DeviationReceipt;
+  readonly duplicate: boolean;
+}
 
 export type OccupancyConfidence = "low" | "medium" | "high";
 export interface AggregateOccupancySignal {

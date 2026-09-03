@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/live-plan-deviation.schema.json",
+  "title": "VenueMind Live Plan Deviation",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "sequence",
+    "revision",
+    "runbookVersionId",
+    "disposition",
+    "status",
+    "reasonCode",
+    "location",
+    "affectedObjectIds",
+    "change",
+    "objectLineage",
+    "validation",
+    "authored",
+    "ended"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "runbookVersionId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "disposition": {
+      "enum": [
+        "temporary",
+        "revision-candidate"
+      ]
+    },
+    "status": {
+      "enum": [
+        "active",
+        "ended"
+      ]
+    },
+    "reasonCode": {
+      "type": "string",
+      "minLength": 1
+    },
+    "location": {
+      "type": "object"
+    },
+    "affectedObjectIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "change": {
+      "type": "object",
+      "required": [
+        "id",
+        "targetObjectIds",
+        "spatialEffects"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "shortTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "editor": {
+          "type": "object"
+        },
+        "metrics": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "targetObjectIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        },
+        "targetRequirementIds": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        },
+        "effects": {
+          "type": "object"
+        },
+        "planningEffects": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "spatialEffects": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object"
+          }
+        },
+        "semantic": {
+          "type": "object"
+        },
+        "lineage": {
+          "type": "object"
+        },
+        "templateUpdate": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "objectLineage": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "validation": {
+      "type": "object"
+    },
+    "authored": {
+      "type": "object"
+    },
+    "ended": {
+      "anyOf": [
+        {
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

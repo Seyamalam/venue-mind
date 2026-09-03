@@ -1,5 +1,5 @@
 /* Generated from VenueMind canonical tool contracts. Do not edit. */
-export const VENUE_TOOL_CONTRACT_VERSION = "1.4.0" as const;
+export const VENUE_TOOL_CONTRACT_VERSION = "1.5.0" as const;
 export const VENUE_TOOL_NAMES = [
   "venue.list_projects",
   "venue.open_project",
@@ -45,6 +45,11 @@ export const VENUE_TOOL_NAMES = [
   "venue.inspect_incidents",
   "venue.report_incident",
   "venue.export_incident_record",
+  "venue.inspect_live_plan_deviations",
+  "venue.record_live_plan_deviation",
+  "venue.end_live_plan_deviation",
+  "venue.create_post_event_deviation_proposal",
+  "venue.export_live_plan_deviations",
   "venue.export_audit_package",
   "venue.export_plan"
 ] as const;

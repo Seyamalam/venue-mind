@@ -136,6 +136,44 @@
       "forbiddenTools": ["venue.approve_proposal", "venue.delete_project"],
       "requiredEvidence": ["currentPlanVersion", "proposalBaseVersion", "conflictIds", "validationId", "humanDecisionRequired"],
       "invariants": ["stopsBeforeApproval", "preservesAcceptedPlan", "rejectsStaleMutation", "reportsVersionMismatch"]
+    },
+    {
+      "id": "event-day-live-deviation-review",
+      "skill": "venuemind-event-day",
+      "tags": ["normal"],
+      "prompt": "Record the validated east exit control as a revision candidate, end it when released, and prepare the post-event recommendation without approving it.",
+      "requiredTools": [
+        "venue.inspect_live_plan_deviations",
+        "venue.record_live_plan_deviation",
+        "venue.end_live_plan_deviation",
+        "venue.create_post_event_deviation_proposal",
+        "venue.export_live_plan_deviations"
+      ],
+      "allowedTools": [
+        "venue.get_project_brief",
+        "venue.inspect_layout",
+        "venue.list_constraints",
+        "venue.get_object",
+        "venue.validate_layout",
+        "venue.get_validation_evidence",
+        "venue.inspect_live_plan_deviations",
+        "venue.record_live_plan_deviation",
+        "venue.end_live_plan_deviation",
+        "venue.create_post_event_deviation_proposal",
+        "venue.export_live_plan_deviations"
+      ],
+      "forbiddenTools": ["venue.approve_proposal", "venue.delete_project"],
+      "requiredEvidence": [
+        "approvedPlanFingerprint",
+        "deviationId",
+        "deviationRegisterRevision",
+        "affectedObjectIds",
+        "availableConstraintIds",
+        "overlayFingerprint",
+        "proposalId",
+        "humanReviewRequired"
+      ],
+      "invariants": ["stopsBeforeApproval", "preservesAcceptedPlan", "citesStableIds", "separatesLiveOverlayFromApprovedPlan"]
     }
   ]
 }

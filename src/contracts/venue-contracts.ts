@@ -2523,6 +2523,211 @@ const incidentExportSchema = {
   additionalProperties: false,
 };
 
+const deviationDispositionSchema = { enum: ["temporary", "revision-candidate"] };
+const deviationStatusSchema = { enum: ["active", "ended"] };
+const deviationLocationInputSchema = {
+  oneOf: [
+    {
+      type: "object",
+      required: ["kind", "planObjectId"],
+      properties: { kind: { const: "plan-object" }, planObjectId: { type: "string", minLength: 1, maxLength: 160 } },
+      additionalProperties: false,
+    },
+    {
+      type: "object",
+      required: ["kind", "point"],
+      properties: { kind: { const: "coordinate" }, point: pointSchema },
+      additionalProperties: false,
+    },
+  ],
+};
+const deviationChangeSchema = {
+  type: "object",
+  required: ["id", "targetObjectIds", "spatialEffects"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 160 },
+    number: { type: "integer", minimum: 1 },
+    title: { type: "string", minLength: 1, maxLength: 240 },
+    shortTitle: { type: "string", minLength: 1, maxLength: 120 },
+    label: { type: "string", minLength: 1, maxLength: 240 },
+    editor: { type: "object" },
+    metrics: {
+      type: "array",
+      items: { type: "array", minItems: 2, maxItems: 2, items: { type: "string" } },
+    },
+    targetObjectIds: {
+      type: "array",
+      minItems: 1,
+      maxItems: 100,
+      uniqueItems: true,
+      items: { type: "string", minLength: 1, maxLength: 160 },
+    },
+    targetRequirementIds: {
+      type: "array",
+      maxItems: 100,
+      uniqueItems: true,
+      items: { type: "string", minLength: 1, maxLength: 160 },
+    },
+    effects: { type: "object" },
+    planningEffects: { type: "array", items: { type: "object" } },
+    spatialEffects: { type: "array", minItems: 1, maxItems: 100, items: { type: "object" } },
+    semantic: { type: "object" },
+    lineage: { type: "object" },
+    templateUpdate: { type: "object" },
+  },
+  additionalProperties: false,
+};
+
+export const livePlanDeviationSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/live-plan-deviation.schema.json",
+  title: "VenueMind Live Plan Deviation",
+  type: "object",
+  required: [
+    "schemaVersion",
+    "id",
+    "sequence",
+    "revision",
+    "runbookVersionId",
+    "disposition",
+    "status",
+    "reasonCode",
+    "location",
+    "affectedObjectIds",
+    "change",
+    "objectLineage",
+    "validation",
+    "authored",
+    "ended",
+  ],
+  properties: {
+    schemaVersion: { const: 1 },
+    id: { type: "string", minLength: 1 },
+    sequence: { type: "integer", minimum: 1 },
+    revision: { type: "integer", minimum: 1 },
+    runbookVersionId: { type: "string", minLength: 1 },
+    disposition: deviationDispositionSchema,
+    status: deviationStatusSchema,
+    reasonCode: { type: "string", minLength: 1 },
+    location: { type: "object" },
+    affectedObjectIds: { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", minLength: 1 } },
+    change: deviationChangeSchema,
+    objectLineage: { type: "array", items: { type: "object" } },
+    validation: { type: "object" },
+    authored: { type: "object" },
+    ended: { anyOf: [{ type: "object" }, { type: "null" }] },
+  },
+  additionalProperties: false,
+};
+
+export const livePlanDeviationRegisterSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/live-plan-deviation-register.schema.json",
+  title: "VenueMind Live Plan Deviation Register",
+  type: "object",
+  required: [
+    "schemaVersion",
+    "id",
+    "projectId",
+    "runbookVersionId",
+    "source",
+    "baseline",
+    "deviations",
+    "recommendations",
+    "transitions",
+    "receipts",
+    "ledger",
+    "revision",
+    "createdAt",
+    "createdBy",
+    "updatedAt",
+  ],
+  properties: {
+    schemaVersion: { const: 1 },
+    id: { type: "string", minLength: 1 },
+    projectId: { type: "string", minLength: 1 },
+    runbookVersionId: { type: "string", minLength: 1 },
+    source: { type: "object" },
+    baseline: { type: "object" },
+    deviations: { type: "array", items: { $ref: livePlanDeviationSchema.$id } },
+    recommendations: { type: "array", items: { type: "object" } },
+    transitions: { type: "array", items: { type: "object" } },
+    receipts: { type: "array", items: { type: "object" } },
+    ledger: { type: "array", items: { type: "object" } },
+    revision: { type: "integer", minimum: 0 },
+    createdAt: { type: "string", format: "date-time" },
+    createdBy: { type: "string", minLength: 1 },
+    updatedAt: { type: "string", format: "date-time" },
+  },
+  additionalProperties: false,
+};
+
+export const livePlanDeviationOverlaySchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/live-plan-deviation-overlay.schema.json",
+  title: "VenueMind Live Plan Deviation Overlay",
+  type: "object",
+  required: [
+    "registerId",
+    "registerRevision",
+    "runbookVersionId",
+    "acceptedPlanId",
+    "acceptedPlanVersion",
+    "acceptedPlanFingerprint",
+    "activeDeviationIds",
+    "overlayPlan",
+    "overlayFingerprint",
+    "validation",
+  ],
+  properties: {
+    registerId: { type: "string", minLength: 1 },
+    registerRevision: { type: "integer", minimum: 0 },
+    runbookVersionId: { type: "string", minLength: 1 },
+    acceptedPlanId: { type: "string", minLength: 1 },
+    acceptedPlanVersion: { type: ["string", "number"] },
+    acceptedPlanFingerprint: { type: "string", minLength: 1 },
+    activeDeviationIds: { type: "array", uniqueItems: true, items: { type: "string", minLength: 1 } },
+    overlayPlan: { type: "object" },
+    overlayFingerprint: { type: "string", minLength: 1 },
+    validation: { type: "object" },
+  },
+  additionalProperties: false,
+};
+
+const deviationInspectionResultSchema = {
+  type: "object",
+  required: ["register", "deviations", "overlay"],
+  properties: {
+    register: livePlanDeviationRegisterSchema,
+    deviations: { type: "array", items: { $ref: livePlanDeviationSchema.$id } },
+    overlay: livePlanDeviationOverlaySchema,
+  },
+  additionalProperties: false,
+};
+const deviationMutationResultSchema = {
+  type: "object",
+  required: ["register", "deviation", "proposal", "receipt", "duplicate"],
+  properties: {
+    register: livePlanDeviationRegisterSchema,
+    deviation: { anyOf: [{ $ref: livePlanDeviationSchema.$id }, { type: "null" }] },
+    proposal: { anyOf: [{ type: "object" }, { type: "null" }] },
+    receipt: { type: "object" },
+    duplicate: { type: "boolean" },
+  },
+  additionalProperties: false,
+};
+const deviationExportSchema = {
+  type: "object",
+  required: ["filename", "mediaType", "content", "fingerprint"],
+  properties: {
+    filename: { type: "string", minLength: 1 },
+    mediaType: { const: "application/json" },
+    content: { type: "string" },
+    fingerprint: { type: "string", minLength: 1 },
+  },
+  additionalProperties: false,
+};
+
 const projectSummarySchema = {
   type: "object",
   required: ["id", "name", "activePlanId", "planVersion", "active"],
@@ -3499,6 +3704,108 @@ const baseVenueToolContracts = [
     },
   },
   {
+    name: "venue.inspect_live_plan_deviations",
+    description:
+      "Inspect the Runbook-bound Live Plan Deviation Register, deterministic active overlay, and filtered temporary or revision-candidate deviation records without changing accepted Plan truth.",
+    annotations: { readOnlyHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        deviationId: { type: "string", minLength: 1, maxLength: 160 },
+        status: deviationStatusSchema,
+        disposition: deviationDispositionSchema,
+        limit: { type: "integer", minimum: 1, maximum: 100, default: 50 },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "venue.record_live_plan_deviation",
+    description:
+      "Record one validated event-day Change against the frozen accepted Plan with stable object IDs, available live Constraints, reason, author evidence, and exact retry identity.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        deviationId: { type: "string", minLength: 1, maxLength: 160 },
+        disposition: deviationDispositionSchema,
+        reasonCode: { type: "string", minLength: 2, maxLength: 64, pattern: "^[A-Z][A-Z0-9_]{1,63}$" },
+        location: deviationLocationInputSchema,
+        affectedObjectIds: {
+          type: "array",
+          minItems: 1,
+          maxItems: 100,
+          uniqueItems: true,
+          items: { type: "string", minLength: 1, maxLength: 160 },
+        },
+        availableConstraintIds: {
+          type: "array",
+          minItems: 1,
+          maxItems: 100,
+          uniqueItems: true,
+          items: { type: "string", minLength: 1, maxLength: 160 },
+        },
+        change: deviationChangeSchema,
+        ...mutationMetadataProperties,
+      },
+      required: [
+        "deviationId",
+        "disposition",
+        "reasonCode",
+        "location",
+        "affectedObjectIds",
+        "availableConstraintIds",
+        "change",
+        "idempotencyKey",
+      ],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "venue.end_live_plan_deviation",
+    description:
+      "End one active temporary or revision-candidate deviation with optimistic Deviation revision control and an immutable reasoned transition.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        deviationId: { type: "string", minLength: 1, maxLength: 160 },
+        expectedDeviationRevision: { type: "integer", minimum: 1 },
+        reasonCode: { type: "string", minLength: 2, maxLength: 64, pattern: "^[A-Z][A-Z0-9_]{1,63}$" },
+        ...mutationMetadataProperties,
+      },
+      required: ["deviationId", "expectedDeviationRevision", "reasonCode", "idempotencyKey"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "venue.create_post_event_deviation_proposal",
+    description:
+      "Create a normal review-state Proposal from ended revision-candidate deviations. The accepted Plan remains unchanged and Approval remains human-only in VenueMind Studio.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        proposalId: { type: "string", minLength: 1, maxLength: 160 },
+        goal: { type: "string", minLength: 1, maxLength: 2000 },
+        deviationIds: {
+          type: "array",
+          minItems: 1,
+          maxItems: 100,
+          uniqueItems: true,
+          items: { type: "string", minLength: 1, maxLength: 160 },
+        },
+        ...mutationMetadataProperties,
+      },
+      required: ["proposalId", "goal", "deviationIds", "idempotencyKey"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "venue.export_live_plan_deviations",
+    description:
+      "Export a verified record that keeps the approved Plan, live deviation overlay, and post-event recommended revisions explicitly separate.",
+    annotations: { readOnlyHint: true },
+    inputSchema: emptyObject,
+  },
+  {
     name: "venue.export_audit_package",
     description:
       "Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.",
@@ -3596,9 +3903,17 @@ export interface VenueToolInput {
   readonly summaryCode?: string;
   readonly location?: JsonObject;
   readonly relatedRefs?: readonly JsonObject[];
+  readonly deviationId?: string;
+  readonly disposition?: string;
+  readonly reasonCode?: string;
+  readonly affectedObjectIds?: readonly string[];
+  readonly availableConstraintIds?: readonly string[];
+  readonly change?: JsonObject;
+  readonly expectedDeviationRevision?: number;
+  readonly deviationIds?: readonly string[];
 }
 
-export const VENUE_TOOL_CONTRACT_VERSION = "1.4.0";
+export const VENUE_TOOL_CONTRACT_VERSION = "1.5.0";
 export const VENUE_TOOL_AUTHORIZATION_SCOPES = Object.freeze([
   "venue:read",
   "venue:propose",
@@ -3612,7 +3927,15 @@ const authorizationScopeForTool = (name: VenueToolName) => {
   if (["venue.add_comment", "venue.edit_comment", "venue.set_comment_status"].includes(name)) return "venue:comment";
   if (["venue.run_scenario", "venue.get_scenario_result", "venue.compare_simulations"].includes(name))
     return "venue:simulate";
-  if (["venue.ingest_occupancy_signal", "venue.refresh_live_occupancy", "venue.report_incident"].includes(name))
+  if (
+    [
+      "venue.ingest_occupancy_signal",
+      "venue.refresh_live_occupancy",
+      "venue.report_incident",
+      "venue.record_live_plan_deviation",
+      "venue.end_live_plan_deviation",
+    ].includes(name)
+  )
     return "venue:operate";
   if (
     [
@@ -3621,6 +3944,7 @@ const authorizationScopeForTool = (name: VenueToolName) => {
       "venue.export_audit_package",
       "venue.export_live_occupancy",
       "venue.export_incident_record",
+      "venue.export_live_plan_deviations",
     ].includes(name)
   )
     return "venue:export";
@@ -3637,6 +3961,7 @@ const authorizationScopeForTool = (name: VenueToolName) => {
       "venue.restore_proposal_branch",
       "venue.rebase_proposal",
       "venue.request_adjustment",
+      "venue.create_post_event_deviation_proposal",
     ].includes(name)
   )
     return "venue:propose";
@@ -3651,6 +3976,7 @@ const limitsForTool = (name: VenueToolName) =>
       "venue.export_audit_package",
       "venue.export_live_occupancy",
       "venue.export_incident_record",
+      "venue.export_live_plan_deviations",
     ].includes(name)
       ? 2000000
       : [
@@ -3660,6 +3986,7 @@ const limitsForTool = (name: VenueToolName) =>
             "venue.get_scenario_result",
             "venue.inspect_live_occupancy",
             "venue.inspect_incidents",
+            "venue.inspect_live_plan_deviations",
           ].includes(name)
         ? 1048576
         : 262144,
@@ -3765,6 +4092,36 @@ const EXAMPLE_INPUTS: Readonly<Partial<Record<VenueToolName, JsonObject>>> = {
     idempotencyKey: "example-incident-report-001",
   },
   "venue.export_incident_record": { incidentId: "incident-example-001" },
+  "venue.inspect_live_plan_deviations": { status: "active", limit: 25 },
+  "venue.record_live_plan_deviation": {
+    deviationId: "deviation-east-exit-control",
+    disposition: "temporary",
+    reasonCode: "LIVE_EGRESS_CONTROL",
+    location: { kind: "plan-object", planObjectId: "obj-fire-exit-east" },
+    affectedObjectIds: ["obj-fire-exit-east"],
+    availableConstraintIds: ["constraint-emergency-readiness", "constraint-peak-congestion"],
+    change: {
+      id: "change-live-egress-control",
+      targetObjectIds: ["obj-fire-exit-east"],
+      spatialEffects: [
+        { operation: "update_metadata", objectId: "obj-fire-exit-east", values: { label: "East exit — controlled" } },
+      ],
+    },
+    idempotencyKey: "example-deviation-record-001",
+  },
+  "venue.end_live_plan_deviation": {
+    deviationId: "deviation-east-exit-control",
+    expectedDeviationRevision: 1,
+    reasonCode: "CONTROL_RELEASED",
+    idempotencyKey: "example-deviation-end-001",
+  },
+  "venue.create_post_event_deviation_proposal": {
+    proposalId: "proposal-post-event-egress",
+    goal: "Retain the validated event-day egress control",
+    deviationIds: ["deviation-east-exit-control"],
+    idempotencyKey: "example-deviation-proposal-001",
+  },
+  "venue.export_live_plan_deviations": {},
   "venue.export_plan": { format: "json" },
 };
 const exampleInputForTool = (name: VenueToolName): JsonObject => EXAMPLE_INPUTS[name] ?? {};
@@ -3806,6 +4163,17 @@ const errorsForTool = (name: VenueToolName, contract: (typeof baseVenueToolContr
       "INCIDENT_PRIVACY_REJECTED",
       "INCIDENT_LOCATION_INVALID",
       "INCIDENT_LEDGER_INTEGRITY_FAILED",
+    );
+  if (name.includes("deviation"))
+    errors.push(
+      "DEVIATION_REGISTER_NOT_FOUND",
+      "DEVIATION_NOT_FOUND",
+      "DEVIATION_TOOL_UNAVAILABLE",
+      "DEVIATION_INVALID",
+      "DEVIATION_LOCATION_INVALID",
+      "DEVIATION_REVISION_CONFLICT",
+      "DEVIATION_REGISTER_REVISION_CONFLICT",
+      "DEVIATION_LEDGER_INTEGRITY_FAILED",
     );
   return Object.freeze([...new Set(errors)]);
 };
@@ -5787,6 +6155,11 @@ const OUTPUT_SCHEMAS = {
   "venue.inspect_incidents": incidentResultSchema,
   "venue.report_incident": incidentResultSchema,
   "venue.export_incident_record": incidentExportSchema,
+  "venue.inspect_live_plan_deviations": deviationInspectionResultSchema,
+  "venue.record_live_plan_deviation": deviationMutationResultSchema,
+  "venue.end_live_plan_deviation": deviationMutationResultSchema,
+  "venue.create_post_event_deviation_proposal": deviationMutationResultSchema,
+  "venue.export_live_plan_deviations": deviationExportSchema,
   "venue.export_audit_package": planExportSchema,
   "venue.export_plan": planExportSchema,
 } as const satisfies Readonly<Record<VenueToolName, JsonSchema>>;

@@ -409,6 +409,31 @@ export const TOOL_OUTPUT_REFERENCE: Readonly<Record<string, ToolOutputReference>
     ["content.register.id", "content.incident.id", "content.ledger[].id"],
     "Verified post-event Incident record with frozen Plan provenance, structured transitions, receipts, and ledger evidence.",
   ),
+  "venue.inspect_live_plan_deviations": output(
+    ["register", "deviations", "overlay"],
+    ["register.id", "deviations[].id", "overlay.id", "overlay.objectLineage[].objectId"],
+    "Runbook-bound live deviations, validation evidence, and the deterministic operational overlay over accepted Plan truth.",
+  ),
+  "venue.record_live_plan_deviation": output(
+    ["register", "deviation", "overlay", "receipt", "duplicate"],
+    ["register.id", "deviation.id", "overlay.id", "receipt.id"],
+    "An idempotent operational fact that preserves the approved Plan and records live Constraint results.",
+  ),
+  "venue.end_live_plan_deviation": output(
+    ["register", "deviation", "overlay", "receipt", "duplicate"],
+    ["register.id", "deviation.id", "overlay.id", "receipt.id"],
+    "An audited end transition that removes the deviation from the active overlay without rewriting history.",
+  ),
+  "venue.create_post_event_deviation_proposal": output(
+    ["register", "proposal", "recommendation", "receipt", "duplicate"],
+    ["register.id", "proposal.id", "recommendation.id", "receipt.id"],
+    "A standard reviewable Venue Proposal derived from ended revision candidates; accepted Plan truth stays unchanged.",
+  ),
+  "venue.export_live_plan_deviations": output(
+    ["filename", "mediaType", "content", "fingerprint"],
+    ["content.register.id", "content.deviations[].id", "content.overlay.id"],
+    "A verified deviation record that separates accepted Plan provenance, live overlay facts, and post-event recommendations.",
+  ),
   "venue.export_audit_package": output(
     ["format", "filename", "mimeType", "encoding", "content"],
     ["content.plan.id", "content.ledger[].id", "content.validation.validationId"],
@@ -587,14 +612,14 @@ export const VERSION_REFERENCE = Object.freeze([
     current: VENUE_TOOL_CONTRACT_VERSION,
     compatibility: "Shared by WebMCP, standalone MCP, schemas, examples, and skills.",
   },
-  { surface: "MCP server", current: "0.6.0", compatibility: "Preferred protocol 2026-07-28; minimum 2025-03-26." },
+  { surface: "MCP server", current: "0.7.0", compatibility: "Preferred protocol 2026-07-28; minimum 2025-03-26." },
   {
     surface: "TypeScript SDK",
     current: "0.1.0",
     compatibility:
       "ESM-only on Node.js 22+; SDK SemVer remains independent of tool, adapter, and Project schema versions.",
   },
-  { surface: "Agent skills", current: "1.3.0", compatibility: `Targets tool contract ${VENUE_TOOL_CONTRACT_VERSION}.` },
+  { surface: "Agent skills", current: "1.4.0", compatibility: `Targets tool contract ${VENUE_TOOL_CONTRACT_VERSION}.` },
   {
     surface: "Interchange Package",
     current: "1 + Project schema 10",

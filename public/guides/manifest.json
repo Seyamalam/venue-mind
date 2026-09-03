@@ -244,6 +244,11 @@
       "sourcePath": "docs/adr/0028-runbook-bound-incident-registers.md",
       "publicPath": "/guides/adr/0028-runbook-bound-incident-registers.md",
       "title": "Architecture decision 0028"
+    },
+    {
+      "sourcePath": "docs/adr/0029-runbook-bound-deviations-derive-overlays.md",
+      "publicPath": "/guides/adr/0029-runbook-bound-deviations-derive-overlays.md",
+      "title": "Architecture decision 0029"
     }
   ]
 }

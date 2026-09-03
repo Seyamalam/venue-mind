@@ -260,6 +260,22 @@ _Avoid_: Public URL, inline image data, original filename
 A human-authorized record that one action from the approved Emergency Plan baseline was invoked for an Operational Incident without changing the accepted Plan.
 _Avoid_: Emergency Review, Plan mutation, agent recommendation
 
+**Live Plan Deviation**:
+A reason-coded operational divergence from one accepted Plan during its bound Event Day Runbook, with exact actor, time, location, affected-object lineage, and live Constraint evidence.
+_Avoid_: Plan edit, accepted Change, Incident, Proposal
+
+**Active Plan Overlay**:
+The deterministic materialization of active Live Plan Deviations over their immutable accepted Plan baseline. It is operational state, never an accepted Plan Version.
+_Avoid_: Current Plan, draft Plan, Proposal preview
+
+**Temporary Deviation**:
+A Live Plan Deviation intended to end with event-day operations and ineligible for direct retention as a post-event Proposal.
+_Avoid_: temporary Plan Version, discarded history
+
+**Revision-candidate Deviation**:
+A Live Plan Deviation explicitly eligible to seed a normal post-event Proposal while remaining distinct from accepted Plan truth.
+_Avoid_: approved revision, permanent deviation, automatic Plan update
+
 **Ticket Occupancy Reconciliation**:
 Deterministic evidence comparing Ticket Class totals and zone allocations with the Project attendee target and Occupancy Zone limits.
 _Avoid_: Capacity Validation, attendee manifest, admission approval

@@ -121,6 +121,22 @@ export const conceptsPage = {
       ],
     },
     {
+      id: "live-plan-deviations",
+      title: "Live Plan Deviation Register",
+      blocks: [
+        prose(
+          "A Live Plan Deviation Register belongs to one active Runbook Version and freezes the approved Plan as immutable historical truth. Event-day spatial Changes are stored as separate, ordered Deviation records and combined only in a deterministic active overlay.",
+        ),
+        bullets(
+          "Every Deviation carries one stable ID, disposition, reason code, Plan-bound location, exact affected objects, author evidence, optimistic revision, receipt, and hash-chained ledger entry.",
+          "Each emergency Change is validated against the explicitly available live Constraints before it enters the overlay.",
+          "Temporary records can end without becoming planning history. Ended revision-candidate records may seed a normal review-state post-event Proposal.",
+          "Agents may inspect, record, end, export, and prepare post-event Proposals. Only humans may approve a Proposal into accepted Plan truth.",
+          "The export keeps the approved Plan, live Deviation overlay, and post-event recommendations in separate fields.",
+        ),
+      ],
+    },
+    {
       id: "circulation-evidence",
       title: "Circulation and Egress Evidence",
       blocks: [

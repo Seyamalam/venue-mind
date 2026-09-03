@@ -5,6 +5,7 @@ import { stableFingerprint, verifyActivityLedger } from "../../../src/domain/act
 import { createEventDayRunbook } from "../../../src/domain/event-day-runbook.ts";
 import { createOccupancyCommandBus } from "../../../src/domain/occupancy-command-bus.ts";
 import { createIncidentCommandBus } from "../../../src/domain/incident-command-bus.ts";
+import { createDeviationCommandBus } from "../../../src/domain/deviation-command-bus.ts";
 import type { VenueToolInput } from "../../../src/contracts/venue-contracts.ts";
 import type { AuthorizationDenial, ProjectSummary, ToolAuthorization } from "../../../src/tools/venue-tool-service.ts";
 import type {
@@ -15,12 +16,17 @@ import type {
   IncidentRelatedRef,
   IncidentSeverity,
   IncidentStatus,
+  DeviationDisposition,
+  DeviationLocationInput,
   LiveOccupancyMonitor,
+  LivePlanDeviation,
+  LivePlanDeviationRegister,
   OccupancyConfidence,
   OccupancyMutationCommandContext,
   OperationalIncident,
   RefreshLiveOccupancyCommand,
 } from "../../../src/domain/operational-types.ts";
+import type { PlanningChange } from "../../../src/domain/planning-effects.ts";
 import type { PlannerCommand, VenuePlanner } from "../../../src/domain/venue-planner.ts";
 import type { McpProjectRecord, McpProjectRepository } from "./project-repository.ts";
 
@@ -70,6 +76,10 @@ const isIncidentCategory = (value: string | undefined): value is IncidentCategor
     "weather",
     "other",
   ].includes(value ?? "");
+const isDeviationDisposition = (value: string | undefined): value is DeviationDisposition =>
+  value === "temporary" || value === "revision-candidate";
+const isDeviationStatus = (value: string | undefined): value is LivePlanDeviation["status"] =>
+  value === "active" || value === "ended";
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
@@ -126,7 +136,51 @@ const incidentRelatedRefsFromInput = (values: VenueToolInput["relatedRefs"]): re
     return { kind, id: value["id"] };
   });
 
+const deviationLocationFromInput = (value: VenueToolInput["location"]): DeviationLocationInput => {
+  if (!value) throw venueError("DEVIATION_LOCATION_INVALID", { reason: "location-required" });
+  if (value["kind"] === "plan-object" && typeof value["planObjectId"] === "string")
+    return { kind: "plan-object", planObjectId: value["planObjectId"] };
+  const point = value["point"];
+  if (
+    value["kind"] === "coordinate" &&
+    isObject(point) &&
+    typeof point["x"] === "number" &&
+    Number.isFinite(point["x"]) &&
+    typeof point["y"] === "number" &&
+    Number.isFinite(point["y"])
+  )
+    return { kind: "coordinate", point: { x: point["x"], y: point["y"] } };
+  throw venueError("DEVIATION_LOCATION_INVALID", { reason: "location-fields-invalid" });
+};
+
+const isPlanningChange = (value: unknown): value is PlanningChange =>
+  isObject(value) &&
+  typeof value["id"] === "string" &&
+  Array.isArray(value["targetObjectIds"]) &&
+  value["targetObjectIds"].every((item) => typeof item === "string") &&
+  Array.isArray(value["spatialEffects"]) &&
+  value["spatialEffects"].every(isObject);
+const deviationChangeFromInput = (value: VenueToolInput["change"]): PlanningChange => {
+  if (!isPlanningChange(value)) throw venueError("DEVIATION_INVALID", { reason: "change-invalid" });
+  return clone(value);
+};
+const requiredStringList = (value: readonly string[] | undefined, field: string): readonly string[] => {
+  if (!value?.length || value.some((item) => !item.trim()))
+    throw venueError("DEVIATION_INVALID", { reason: `${field}-invalid` });
+  return [...new Set(value)];
+};
+
 const isIncidentList = (value: unknown): value is readonly OperationalIncident[] => Array.isArray(value);
+const isDeviationList = (value: unknown): value is readonly LivePlanDeviation[] =>
+  Array.isArray(value) &&
+  value.every(
+    (candidate) =>
+      isObject(candidate) &&
+      candidate["schemaVersion"] === 1 &&
+      typeof candidate["id"] === "string" &&
+      typeof candidate["revision"] === "number" &&
+      (candidate["status"] === "active" || candidate["status"] === "ended"),
+  );
 
 const defaultRecord = (clock: () => string, organizationId: string): McpProjectRecord => {
   const planner = createVenuePlanner(summitForwardPlan, { projectId: DEFAULT_PROJECT_ID });
@@ -170,6 +224,7 @@ export function createProjectSession({
   let initialization: Promise<McpProjectRecord> | null = null;
   const occupancyMonitors = new Map<string, LiveOccupancyMonitor>();
   const incidentRegisters = new Map<string, IncidentRegister>();
+  const deviationRegisters = new Map<string, LivePlanDeviationRegister>();
 
   const requireRecord = (): McpProjectRecord => {
     if (!activeRecord) throw venueError("PROJECT_NOT_FOUND", { projectId: activeProjectId });
@@ -188,6 +243,16 @@ export function createProjectSession({
       lastOpenedAt: clock(),
     });
     incidentRegisters.set(activeProjectId, clone(register));
+  };
+
+  const persistDeviationRegister = async (register: LivePlanDeviationRegister): Promise<void> => {
+    activeRecord = await repository.save({
+      ...requireRecord(),
+      deviationRegister: clone(register),
+      updatedAt: clock(),
+      lastOpenedAt: clock(),
+    });
+    deviationRegisters.set(activeProjectId, clone(register));
   };
 
   const activeRunbookForCurrentProject = () => {
@@ -258,6 +323,22 @@ export function createProjectSession({
     return bus;
   };
 
+  const deviationBusForCurrentProject = async () => {
+    const cached = deviationRegisters.get(activeProjectId) ?? null;
+    const bus = createDeviationCommandBus({ initialRegister: cached });
+    if (cached) return bus;
+    const created = bus.execute({
+      type: "create_deviation_register",
+      projectId: activeProjectId,
+      runbook: activeRunbookForCurrentProject(),
+      createdAt: clock(),
+      createdBy: "mcp-host",
+    });
+    if (!("register" in created)) throw venueError("DEVIATION_REGISTER_NOT_FOUND", { projectId: activeProjectId });
+    await persistDeviationRegister(created.register);
+    return bus;
+  };
+
   const occupancyMetadata = (
     input: VenueToolInput,
     type: "ingest" | "refresh",
@@ -284,6 +365,8 @@ export function createProjectSession({
     activeProjectId = record.id;
     if (record.incidentRegister) incidentRegisters.set(record.id, clone(record.incidentRegister));
     else incidentRegisters.delete(record.id);
+    if (record.deviationRegister) deviationRegisters.set(record.id, clone(record.deviationRegister));
+    else deviationRegisters.delete(record.id);
     planner = nextPlanner;
     return record;
   };
@@ -461,6 +544,110 @@ export function createProjectSession({
       return (await incidentBusForCurrentProject()).execute({
         type: "export_incident_record",
         incidentId: requiredString(input.incidentId, "incidentId"),
+        exportedAt: clock(),
+      });
+    },
+    async inspectLivePlanDeviations(input: VenueToolInput = {}) {
+      await initialize();
+      const bus = await deviationBusForCurrentProject();
+      const register = bus.getSnapshot();
+      if (!register) throw venueError("DEVIATION_REGISTER_NOT_FOUND", { projectId: activeProjectId });
+      const deviations = bus.execute({
+        type: "inspect_live_plan_deviations",
+        ...(isDeviationStatus(input.status) ? { status: input.status } : {}),
+        ...(isDeviationDisposition(input.disposition) ? { disposition: input.disposition } : {}),
+      });
+      if (!isDeviationList(deviations)) throw venueError("DEVIATION_REGISTER_NOT_FOUND", { projectId: activeProjectId });
+      const selected = input.deviationId
+        ? deviations.filter((deviation) => deviation.id === input.deviationId)
+        : deviations;
+      if (input.deviationId && !selected.length)
+        throw venueError("DEVIATION_NOT_FOUND", { deviationId: input.deviationId });
+      return {
+        register,
+        deviations: selected.slice(0, input.limit ?? 50),
+        overlay: bus.execute({ type: "inspect_live_plan_overlay" }),
+      };
+    },
+    async recordLivePlanDeviation(input: VenueToolInput) {
+      await initialize();
+      const bus = await deviationBusForCurrentProject();
+      const register = bus.getSnapshot();
+      if (!register) throw venueError("DEVIATION_REGISTER_NOT_FOUND", { projectId: activeProjectId });
+      if (!isDeviationDisposition(input.disposition))
+        throw venueError("DEVIATION_INVALID", { reason: "disposition-invalid" });
+      const result = bus.execute({
+        type: "record_live_plan_deviation",
+        deviationId: requiredString(input.deviationId, "deviationId"),
+        disposition: input.disposition,
+        reasonCode: requiredString(input.reasonCode, "reasonCode"),
+        location: deviationLocationFromInput(input.location),
+        affectedObjectIds: requiredStringList(input.affectedObjectIds, "affectedObjectIds"),
+        availableConstraintIds: requiredStringList(input.availableConstraintIds, "availableConstraintIds"),
+        change: deviationChangeFromInput(input.change),
+        expectedRevision: register.revision,
+        idempotencyKey: requiredString(input.idempotencyKey, "idempotencyKey"),
+        actorType: "agent",
+        actorId: "mcp-agent",
+        source: "mcp",
+        sessionId: input.correlationId ?? "mcp-session",
+        committedAt: clock(),
+      });
+      if (!("register" in result)) throw venueError("DEVIATION_REGISTER_NOT_FOUND", { projectId: activeProjectId });
+      await persistDeviationRegister(result.register);
+      return result;
+    },
+    async endLivePlanDeviation(input: VenueToolInput) {
+      await initialize();
+      const bus = await deviationBusForCurrentProject();
+      const register = bus.getSnapshot();
+      if (!register) throw venueError("DEVIATION_REGISTER_NOT_FOUND", { projectId: activeProjectId });
+      const expectedDeviationRevision = input.expectedDeviationRevision;
+      if (!Number.isSafeInteger(expectedDeviationRevision) || Number(expectedDeviationRevision) < 1)
+        throw venueError("DEVIATION_REVISION_CONFLICT", { reason: "expected-deviation-revision-invalid" });
+      const result = bus.execute({
+        type: "end_live_plan_deviation",
+        deviationId: requiredString(input.deviationId, "deviationId"),
+        expectedDeviationRevision: Number(expectedDeviationRevision),
+        reasonCode: requiredString(input.reasonCode, "reasonCode"),
+        expectedRevision: register.revision,
+        idempotencyKey: requiredString(input.idempotencyKey, "idempotencyKey"),
+        actorType: "agent",
+        actorId: "mcp-agent",
+        source: "mcp",
+        sessionId: input.correlationId ?? "mcp-session",
+        committedAt: clock(),
+      });
+      if (!("register" in result)) throw venueError("DEVIATION_REGISTER_NOT_FOUND", { projectId: activeProjectId });
+      await persistDeviationRegister(result.register);
+      return result;
+    },
+    async createPostEventDeviationProposal(input: VenueToolInput) {
+      await initialize();
+      const bus = await deviationBusForCurrentProject();
+      const register = bus.getSnapshot();
+      if (!register) throw venueError("DEVIATION_REGISTER_NOT_FOUND", { projectId: activeProjectId });
+      const result = bus.execute({
+        type: "create_post_event_deviation_proposal",
+        proposalId: requiredString(input.proposalId, "proposalId"),
+        goal: requiredString(input.goal, "goal"),
+        deviationIds: requiredStringList(input.deviationIds, "deviationIds"),
+        expectedRevision: register.revision,
+        idempotencyKey: requiredString(input.idempotencyKey, "idempotencyKey"),
+        actorType: "agent",
+        actorId: "mcp-agent",
+        source: "mcp",
+        sessionId: input.correlationId ?? "mcp-session",
+        committedAt: clock(),
+      });
+      if (!("register" in result)) throw venueError("DEVIATION_REGISTER_NOT_FOUND", { projectId: activeProjectId });
+      await persistDeviationRegister(result.register);
+      return result;
+    },
+    async exportLivePlanDeviations() {
+      await initialize();
+      return (await deviationBusForCurrentProject()).execute({
+        type: "export_live_plan_deviations",
         exportedAt: clock(),
       });
     },

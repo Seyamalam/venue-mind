@@ -19,6 +19,11 @@ test("typed client delegates every namespace to the canonical tool seam", async 
       if (name === "venue.preview_revision") return { proposalId: "proposal-next" };
       if (name === "venue.validate_layout") return { status: "pass" };
       if (name === "venue.get_change_log") return [];
+      if (name === "venue.inspect_live_plan_deviations") return { register: { revision: 0 }, deviations: [], overlay: {} };
+      if (name === "venue.record_live_plan_deviation") return { register: { revision: 1 }, deviation: { id: input.deviationId } };
+      if (name === "venue.end_live_plan_deviation") return { register: { revision: 2 }, deviation: { id: input.deviationId, status: "ended" } };
+      if (name === "venue.create_post_event_deviation_proposal") return { register: { revision: 3 }, proposal: { id: input.proposalId } };
+      if (name === "venue.export_live_plan_deviations") return { filename: "deviations.json", mediaType: "application/json" };
       return { format: input.format ?? "audit" };
     },
   };
@@ -31,8 +36,32 @@ test("typed client delegates every namespace to the canonical tool seam", async 
   await client.proposals.preview({ goal: "Protect access", idempotencyKey: "preview-001" });
   await client.validations.run({ signal: controller.signal });
   await client.ledger.list();
+  await client.deviations.inspect({ status: "active" });
+  await client.deviations.record({
+    deviationId: "deviation-1",
+    disposition: "temporary",
+    reasonCode: "LIVE_CONTROL",
+    location: { kind: "plan-object", planObjectId: "obj-exit" },
+    affectedObjectIds: ["obj-exit"],
+    availableConstraintIds: ["constraint-egress"],
+    change: { id: "change-1", targetObjectIds: ["obj-exit"], spatialEffects: [{}] },
+    idempotencyKey: "record-1",
+  });
+  await client.deviations.end({
+    deviationId: "deviation-1",
+    expectedDeviationRevision: 1,
+    reasonCode: "CONTROL_RELEASED",
+    idempotencyKey: "end-1",
+  });
+  await client.deviations.createPostEventProposal({
+    proposalId: "proposal-post-event",
+    goal: "Retain event-day learning",
+    deviationIds: ["deviation-1"],
+    idempotencyKey: "proposal-1",
+  });
   await client.exports.plan("svg");
   await client.exports.audit();
+  await client.exports.deviations();
 
   assert.deepEqual(calls.map(({ name }) => name), [
     "venue.list_projects",
@@ -41,11 +70,16 @@ test("typed client delegates every namespace to the canonical tool seam", async 
     "venue.preview_revision",
     "venue.validate_layout",
     "venue.get_change_log",
+    "venue.inspect_live_plan_deviations",
+    "venue.record_live_plan_deviation",
+    "venue.end_live_plan_deviation",
+    "venue.create_post_event_deviation_proposal",
     "venue.export_plan",
     "venue.export_audit_package",
+    "venue.export_live_plan_deviations",
   ]);
   assert.deepEqual(calls[1].input, { projectId: "project-main" });
-  assert.deepEqual(calls[6].input, { format: "svg" });
+  assert.deepEqual(calls[10].input, { format: "svg" });
   assert.equal(calls[4].signal, controller.signal);
   assert.deepEqual(projectList, {
     source: "repository",

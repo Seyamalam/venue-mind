@@ -9,6 +9,7 @@ import { errorPayload, venueError } from "../domain/errors.ts";
 import {
   createVenueToolService,
   type AuthorizationDenial,
+  type DeviationOperations,
   type IncidentOperations,
   type OccupancyOperations,
   type ProjectOperations,
@@ -90,6 +91,17 @@ const resultSummary = (toolName: VenueToolContract["name"], output: RedactedTool
   }
   if (toolName === "venue.export_incident_record")
     return `Incident export · ${stringValue(record["filename"], "unknown")}`;
+  if (
+    toolName === "venue.inspect_live_plan_deviations" ||
+    toolName === "venue.record_live_plan_deviation" ||
+    toolName === "venue.end_live_plan_deviation" ||
+    toolName === "venue.create_post_event_deviation_proposal"
+  ) {
+    const register = recordValue(record["register"]);
+    return `Deviations ${arrayLength(register?.["deviations"] ?? record["deviations"])} · R${numberValue(register?.["revision"])}`;
+  }
+  if (toolName === "venue.export_live_plan_deviations")
+    return `Deviation export · ${stringValue(record["filename"], "unknown")}`;
   const status = stringValue(record["status"], "ok");
   const stableId = record["proposalId"] ?? record["branchId"] ?? record["commentId"] ?? record["id"];
   return `${toolName} · ${status}${typeof stableId === "string" ? ` · ${stableId}` : ""}`;
@@ -106,6 +118,7 @@ export interface ExecuteVenueWebMcpToolOptions {
   readonly projectOperations?: ProjectOperations;
   readonly occupancyOperations?: Partial<OccupancyOperations>;
   readonly incidentOperations?: Partial<IncidentOperations>;
+  readonly deviationOperations?: Partial<DeviationOperations>;
   readonly toolService?: VenueToolService;
   readonly input?: VenueToolInput;
   readonly signal?: AbortSignal;
@@ -129,6 +142,7 @@ export async function executeVenueWebMcpTool({
   projectOperations,
   occupancyOperations,
   incidentOperations,
+  deviationOperations,
   toolService,
   input = {},
   signal,
@@ -172,6 +186,7 @@ export async function executeVenueWebMcpTool({
         ...(projectOperations ? { projectOperations } : {}),
         ...(occupancyOperations ? { occupancyOperations } : {}),
         ...(incidentOperations ? { incidentOperations } : {}),
+        ...(deviationOperations ? { deviationOperations } : {}),
         recordAuthorizationDenial: (denial) => planner.recordAuthorizationDenial(denial),
       });
     const output = await service.execute(contract.name, input, "webmcp", {

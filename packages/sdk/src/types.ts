@@ -2,6 +2,9 @@ import type {
   VenueMindActivityLedger,
   VenueMindPlanExport,
   VenueMindLayoutInspection,
+  VenueMindLivePlanDeviation,
+  VenueMindLivePlanDeviationOverlay,
+  VenueMindLivePlanDeviationRegister,
   VenueMindPlannerSnapshot,
   VenueMindPreviewRevisionResult,
   VenueMindProjectListResult,
@@ -18,6 +21,9 @@ export type {
   VenueMindError,
   VenueMindPlanExport,
   VenueMindLayoutInspection,
+  VenueMindLivePlanDeviation,
+  VenueMindLivePlanDeviationOverlay,
+  VenueMindLivePlanDeviationRegister,
   VenueMindPlannerSnapshot,
   VenueMindPreviewRevisionResult,
   VenueMindProjectListResult,
@@ -43,6 +49,9 @@ export type ProjectOpenResult = VenueMindProjectOpenResult;
 export type ProjectSummary = VenueMindProjectListResult["projects"][number];
 export type LayoutInspection = VenueMindLayoutInspection;
 export type PreviewRevisionResult = VenueMindPreviewRevisionResult;
+export type LivePlanDeviation = VenueMindLivePlanDeviation;
+export type LivePlanDeviationRegister = VenueMindLivePlanDeviationRegister;
+export type LivePlanDeviationOverlay = VenueMindLivePlanDeviationOverlay;
 
 export type VenueToolInput<Name extends VenueToolName> = VenueMindToolInputMap[Name];
 

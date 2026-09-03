@@ -41,6 +41,13 @@ import {
 } from "../src/domain/live-occupancy.ts";
 import { createIncidentCommandBus } from "../src/domain/incident-command-bus.ts";
 import { createD1IncidentRepository, IncidentRegisterConflict } from "./incident-repository.ts";
+import { createDeviationCommandBus } from "../src/domain/deviation-command-bus.ts";
+import { createD1DeviationRepository, DeviationRegisterConflict } from "./deviation-repository.ts";
+import {
+  decodeDeviationCreateBody,
+  decodeDeviationMutationCommand,
+  decodeDeviationSyncBody,
+} from "./deviation-http.ts";
 import { venueError } from "../src/domain/errors.ts";
 import { isLocalProjectRecord } from "../src/domain/project-types.ts";
 import type {
@@ -54,6 +61,8 @@ import type {
   IncidentRelatedRef,
   IncidentSeverity,
   IncidentStatus,
+  DeviationMutationResult,
+  LivePlanDeviationRegister,
   LiveOccupancyMonitor,
   OccupancyMutationCommand,
   OccupancyPolicy,
@@ -69,6 +78,7 @@ export { drainNotificationEmail } from "./email-delivery.ts";
 export { createD1RunbookRepository } from "./runbook-repository.ts";
 export { createD1OccupancyRepository } from "./occupancy-repository.ts";
 export { createD1IncidentRepository } from "./incident-repository.ts";
+export { createD1DeviationRepository } from "./deviation-repository.ts";
 
 type ProjectRepository = ReturnType<typeof createD1ProjectRepository>;
 type AccountRepository = ReturnType<typeof createD1AccountRepository>;
@@ -77,6 +87,7 @@ type SharingRepository = ReturnType<typeof createD1SharingRepository>;
 type RunbookRepository = ReturnType<typeof createD1RunbookRepository>;
 type OccupancyRepository = ReturnType<typeof createD1OccupancyRepository>;
 type IncidentRepository = ReturnType<typeof createD1IncidentRepository>;
+type DeviationRepository = ReturnType<typeof createD1DeviationRepository>;
 type EmailDelivery = {
   send: (message: {
     idempotencyKey: string;
@@ -94,6 +105,7 @@ type WorkerOptions = {
   createRunbookRepository?: (db: D1Database) => RunbookRepository;
   createOccupancyRepository?: (db: D1Database) => OccupancyRepository;
   createIncidentRepository?: (db: D1Database) => IncidentRepository;
+  createDeviationRepository?: (db: D1Database) => DeviationRepository;
   identityProvider?: IdentityProvider;
   emailDelivery?: EmailDelivery;
   secureCookies?: boolean;
@@ -114,6 +126,25 @@ const INCIDENT_WRITE_ROLES: readonly OrganizationRole[] = [
   "organization-administrator",
 ];
 const INCIDENT_EXPORT_ROLES: readonly OrganizationRole[] = [
+  "reviewer",
+  "approver",
+  "safety-officer",
+  "venue-administrator",
+  "organization-administrator",
+];
+const DEVIATION_WRITE_ROLES: readonly OrganizationRole[] = [
+  "planner",
+  "safety-officer",
+  "venue-administrator",
+  "organization-administrator",
+];
+const DEVIATION_PROPOSAL_ROLES: readonly OrganizationRole[] = [
+  "planner",
+  "venue-administrator",
+  "organization-administrator",
+];
+const DEVIATION_EXPORT_ROLES: readonly OrganizationRole[] = [
+  "planner",
   "reviewer",
   "approver",
   "safety-officer",
@@ -485,6 +516,18 @@ const isIncidentMutationResult = (value: unknown): value is IncidentMutationResu
   isRecord(value.incident) &&
   isRecord(value.receipt) &&
   typeof value.duplicate === "boolean";
+const isDeviationRegister = (value: unknown): value is LivePlanDeviationRegister =>
+  isRecord(value) &&
+  value.schemaVersion === 1 &&
+  typeof value.id === "string" &&
+  typeof value.projectId === "string" &&
+  Array.isArray(value.deviations) &&
+  typeof value.revision === "number";
+const isDeviationMutationResult = (value: unknown): value is DeviationMutationResult =>
+  isRecord(value) &&
+  isDeviationRegister(value.register) &&
+  isRecord(value.receipt) &&
+  typeof value.duplicate === "boolean";
 const safeMutationOrigin = (request: Request, env: WorkerEnv) => {
   if (["GET", "HEAD", "OPTIONS"].includes(request.method)) return true;
   const origin = request.headers.get("origin");
@@ -530,6 +573,7 @@ export function createWorker(options: WorkerOptions = {}) {
     options.createRunbookRepository ?? ((db) => createD1RunbookRepository(db, { clock }));
   const occupancyRepositoryFactory = options.createOccupancyRepository ?? createD1OccupancyRepository;
   const incidentRepositoryFactory = options.createIncidentRepository ?? createD1IncidentRepository;
+  const deviationRepositoryFactory = options.createDeviationRepository ?? createD1DeviationRepository;
 
   const appendShareLedger = async (
     env: WorkerEnv,
@@ -852,6 +896,7 @@ export function createWorker(options: WorkerOptions = {}) {
       const runbooks = runbookRepositoryFactory(env.DB);
       const occupancy = occupancyRepositoryFactory(env.DB);
       const incidents = incidentRepositoryFactory(env.DB);
+      const deviations = deviationRepositoryFactory(env.DB);
       const notifyOrganization = async (
         eventType: NotificationEventType,
         record: ProjectRecord,
@@ -879,6 +924,9 @@ export function createWorker(options: WorkerOptions = {}) {
       const canWriteOccupancy = canWriteRunbooks;
       const canWriteIncidents = hasRole(organization.roles, INCIDENT_WRITE_ROLES);
       const canExportIncidents = hasRole(organization.roles, INCIDENT_EXPORT_ROLES);
+      const canWriteDeviations = hasRole(organization.roles, DEVIATION_WRITE_ROLES);
+      const canCreateDeviationProposals = hasRole(organization.roles, DEVIATION_PROPOSAL_ROLES);
+      const canExportDeviations = hasRole(organization.roles, DEVIATION_EXPORT_ROLES);
       const runbookCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks$/);
       const runbookItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)$/);
       const runbookSyncMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)\/transitions:sync$/);
@@ -1386,6 +1434,201 @@ export function createWorker(options: WorkerOptions = {}) {
         return register
           ? respond({ register })
           : apiError(404, "INCIDENT_REGISTER_NOT_FOUND", "Incident Register not found");
+      }
+      const deviationCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/deviation-registers$/);
+      const deviationCommandMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/deviation-registers\/([^/]+)\/commands:sync$/,
+      );
+      const deviationExportMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/deviation-registers\/([^/]+)\/export$/,
+      );
+      const deviationItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/deviation-registers\/([^/]+)$/);
+      if (deviationCollectionMatch && request.method === "POST") {
+        if (!canWriteDeviations)
+          return apiError(403, "DEVIATION_WRITE_DENIED", "Live Plan Deviation write role required");
+        const projectId = pathCapture(deviationCollectionMatch, 1);
+        if (!(await projects.get(organization.id, projectId)))
+          return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let body: unknown;
+        try {
+          body = await readBody(request);
+        } catch (cause) {
+          return apiError(
+            cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400,
+            "DEVIATION_BASELINE_INVALID",
+            "Live Plan Deviation Register payload is invalid",
+          );
+        }
+        try {
+          const runbookVersionId = decodeDeviationCreateBody(body);
+          const storedRunbook = await runbooks.getRunbook(organization.id, projectId, runbookVersionId);
+          if (!storedRunbook) return apiError(404, "RUNBOOK_NOT_FOUND", "Runbook not found");
+          const existing = await deviations.getByRunbook(organization.id, projectId, runbookVersionId);
+          const bus = createDeviationCommandBus();
+          bus.execute({
+            type: "create_deviation_register",
+            projectId,
+            runbook: repositoryRunbookToBrowserSnapshot(storedRunbook),
+            createdAt: clock(),
+            createdBy: account.user.id,
+          });
+          const created = bus.getSnapshot();
+          if (!created) throw venueError("DEVIATION_REGISTER_NOT_FOUND");
+          const saved = await deviations.create(organization.id, projectId, created);
+          return respond(
+            { status: existing ? "already-applied" : "created", register: saved },
+            { status: existing ? 200 : 201 },
+          );
+        } catch (cause) {
+          const error = errorInfo(cause);
+          if (cause instanceof DeviationRegisterConflict)
+            return apiError(
+              409,
+              cause.code,
+              error.message ?? "Live Plan Deviation Register conflicts with stored state",
+              error.details,
+            );
+          if (error.code?.startsWith("DEVIATION_"))
+            return apiError(
+              400,
+              error.code,
+              error.message ?? "Live Plan Deviation Register baseline is invalid",
+              error.details,
+            );
+          throw cause;
+        }
+      }
+      if (deviationCommandMatch && request.method === "POST") {
+        if (!canWriteDeviations)
+          return apiError(403, "DEVIATION_WRITE_DENIED", "Live Plan Deviation write role required");
+        const projectId = pathCapture(deviationCommandMatch, 1);
+        const registerId = pathCapture(deviationCommandMatch, 2);
+        if (!(await projects.get(organization.id, projectId)))
+          return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let candidates: readonly unknown[];
+        try {
+          candidates = decodeDeviationSyncBody(await readBody(request));
+        } catch (cause) {
+          return apiError(
+            cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400,
+            "DEVIATION_SYNC_INVALID",
+            "Live Plan Deviation sync payload is invalid",
+            errorInfo(cause).details,
+          );
+        }
+        const storedRegister = await deviations.get(organization.id, projectId, registerId);
+        if (!storedRegister)
+          return apiError(404, "DEVIATION_REGISTER_NOT_FOUND", "Live Plan Deviation Register not found");
+        let current: LivePlanDeviationRegister = storedRegister;
+        const acknowledgements: Array<Record<string, unknown>> = [];
+        for (const candidate of candidates) {
+          const untrusted = isRecord(candidate) ? candidate : {};
+          const identity = {
+            idempotencyKey: typeof untrusted.idempotencyKey === "string" ? untrusted.idempotencyKey : null,
+            operationId: typeof untrusted.operationId === "string" ? untrusted.operationId : null,
+          };
+          try {
+            if (untrusted.type === "create_post_event_deviation_proposal" && !canCreateDeviationProposals)
+              throw venueError("AUTHORIZATION_DENIED", { permission: "deviation.post-event-proposal" });
+            const committedAt = clock();
+            const command = decodeDeviationMutationCommand(untrusted, {
+              actorId: account.user.id,
+              sessionId: account.session.id,
+              committedAt,
+            });
+            const value: unknown = createDeviationCommandBus({ initialRegister: current }).execute(command);
+            if (!isDeviationMutationResult(value))
+              throw venueError("DEVIATION_INVALID", { reason: "mutation-result-invalid" });
+            if (!value.duplicate)
+              await deviations.put(organization.id, projectId, value.register, current.revision);
+            current = value.register;
+            acknowledgements.push({
+              ...identity,
+              status: value.duplicate ? "already-applied" : "applied",
+              receipt: value.receipt,
+              ...(value.proposal ? { proposal: value.proposal } : {}),
+            });
+          } catch (cause) {
+            const error = errorInfo(cause);
+            if (
+              cause instanceof DeviationRegisterConflict ||
+              [
+                "IDEMPOTENCY_KEY_CONFLICT",
+                "DEVIATION_REVISION_CONFLICT",
+                "DEVIATION_REGISTER_REVISION_CONFLICT",
+              ].includes(error.code ?? "")
+            ) {
+              acknowledgements.push({
+                ...identity,
+                status: "conflict",
+                code: error.code ?? "DEVIATION_REGISTER_REVISION_CONFLICT",
+                details: error.details,
+              });
+              continue;
+            }
+            if (
+              ["AUTHORIZATION_DENIED", "IDEMPOTENCY_KEY_REQUIRED", "COMMAND_UNSUPPORTED"].includes(
+                error.code ?? "",
+              ) ||
+              error.code?.startsWith("DEVIATION_")
+            ) {
+              acknowledgements.push({
+                ...identity,
+                status: "rejected",
+                code: error.code ?? "DEVIATION_COMMAND_INVALID",
+                details: error.details,
+                message: error.message,
+              });
+              continue;
+            }
+            throw cause;
+          }
+        }
+        return respond({
+          acknowledgements,
+          register: current,
+          overlay: createDeviationCommandBus({ initialRegister: current }).execute({
+            type: "inspect_live_plan_overlay",
+          }),
+        });
+      }
+      if (deviationExportMatch && request.method === "GET") {
+        if (!canExportDeviations)
+          return apiError(403, "DEVIATION_EXPORT_DENIED", "Live Plan Deviation export role required");
+        const projectId = pathCapture(deviationExportMatch, 1);
+        const registerId = pathCapture(deviationExportMatch, 2);
+        const register = await deviations.get(organization.id, projectId, registerId);
+        if (!register)
+          return apiError(404, "DEVIATION_REGISTER_NOT_FOUND", "Live Plan Deviation Register not found");
+        try {
+          return respond({
+            artifact: createDeviationCommandBus({ initialRegister: register }).execute({
+              type: "export_live_plan_deviations",
+              exportedAt: clock(),
+            }),
+          });
+        } catch (cause) {
+          const error = errorInfo(cause);
+          return apiError(
+            409,
+            error.code ?? "DEVIATION_EXPORT_FAILED",
+            error.message ?? "Live Plan Deviation export failed",
+            error.details,
+          );
+        }
+      }
+      if (deviationItemMatch && request.method === "GET") {
+        const projectId = pathCapture(deviationItemMatch, 1);
+        const registerId = pathCapture(deviationItemMatch, 2);
+        const register = await deviations.get(organization.id, projectId, registerId);
+        return register
+          ? respond({
+              register,
+              overlay: createDeviationCommandBus({ initialRegister: register }).execute({
+                type: "inspect_live_plan_overlay",
+              }),
+            })
+          : apiError(404, "DEVIATION_REGISTER_NOT_FOUND", "Live Plan Deviation Register not found");
       }
       if (url.pathname === "/api/notifications" && request.method === "GET")
         return respond({ notifications: await sharing.listNotifications(account.user.id, organization.id) });

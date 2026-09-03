@@ -3545,6 +3545,125 @@ export interface VenueMindToolInputMap {
   "venue.export_incident_record": {
     incidentId: string;
   };
+  "venue.inspect_live_plan_deviations": {
+    deviationId?: string;
+    status?: "active" | "ended";
+    disposition?: "temporary" | "revision-candidate";
+    limit?: number;
+  };
+  "venue.record_live_plan_deviation": {
+    deviationId: string;
+    disposition: "temporary" | "revision-candidate";
+    reasonCode: string;
+    location:
+      | {
+          kind: "plan-object";
+          planObjectId: string;
+        }
+      | {
+          kind: "coordinate";
+          point: {
+            x: number;
+            y: number;
+          };
+        };
+    /**
+     * @minItems 1
+     * @maxItems 100
+     */
+    affectedObjectIds: [string, ...string[]];
+    /**
+     * @minItems 1
+     * @maxItems 100
+     */
+    availableConstraintIds: [string, ...string[]];
+    change: {
+      id: string;
+      number?: number;
+      title?: string;
+      shortTitle?: string;
+      label?: string;
+      editor?: {
+        [k: string]: unknown;
+      };
+      metrics?: [string, string][];
+      /**
+       * @minItems 1
+       * @maxItems 100
+       */
+      targetObjectIds: [string, ...string[]];
+      /**
+       * @maxItems 100
+       */
+      targetRequirementIds?: string[];
+      effects?: {
+        [k: string]: unknown;
+      };
+      planningEffects?: {
+        [k: string]: unknown;
+      }[];
+      /**
+       * @minItems 1
+       * @maxItems 100
+       */
+      spatialEffects: [
+        {
+          [k: string]: unknown;
+        },
+        ...{
+          [k: string]: unknown;
+        }[]
+      ];
+      semantic?: {
+        [k: string]: unknown;
+      };
+      lineage?: {
+        [k: string]: unknown;
+      };
+      templateUpdate?: {
+        [k: string]: unknown;
+      };
+    };
+    /**
+     * Unique retry key for this semantic command.
+     */
+    idempotencyKey: string;
+    /**
+     * Optional caller correlation identifier.
+     */
+    correlationId?: string;
+  };
+  "venue.end_live_plan_deviation": {
+    deviationId: string;
+    expectedDeviationRevision: number;
+    reasonCode: string;
+    /**
+     * Unique retry key for this semantic command.
+     */
+    idempotencyKey: string;
+    /**
+     * Optional caller correlation identifier.
+     */
+    correlationId?: string;
+  };
+  "venue.create_post_event_deviation_proposal": {
+    proposalId: string;
+    goal: string;
+    /**
+     * @minItems 1
+     * @maxItems 100
+     */
+    deviationIds: [string, ...string[]];
+    /**
+     * Unique retry key for this semantic command.
+     */
+    idempotencyKey: string;
+    /**
+     * Optional caller correlation identifier.
+     */
+    correlationId?: string;
+  };
+  "venue.export_live_plan_deviations": {};
   "venue.export_audit_package": {};
   "venue.export_plan": {
     format?:
