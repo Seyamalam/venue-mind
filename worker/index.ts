@@ -61,7 +61,17 @@ import {
   decodePostEventReviewSyncBody,
 } from "./post-event-review-http.ts";
 import { venueError } from "../src/domain/errors.ts";
-import { measureJsonResource, VENUE_RESOURCE_LIMITS } from "../src/security/resource-limits.ts";
+import {
+  measureJsonResource,
+  VENUE_RATE_LIMIT_WINDOW_SECONDS,
+  VENUE_RESOURCE_LIMITS,
+} from "../src/security/resource-limits.ts";
+import {
+  createD1RateLimitRepository,
+  createMemoryRateLimitRepository,
+  type RateLimitRepository,
+} from "./rate-limit-repository.ts";
+import { createRateLimitService, mutationEndpointFamily } from "./rate-limit-service.ts";
 import { isLocalProjectRecord } from "../src/domain/project-types.ts";
 import type {
   AggregateOccupancySignal,
@@ -94,6 +104,7 @@ export { createD1OccupancyRepository } from "./occupancy-repository.ts";
 export { createD1IncidentRepository } from "./incident-repository.ts";
 export { createD1DeviationRepository } from "./deviation-repository.ts";
 export { createD1PostEventReviewRepository } from "./post-event-review-repository.ts";
+export { createD1RateLimitRepository, createMemoryRateLimitRepository } from "./rate-limit-repository.ts";
 
 type ProjectRepository = ReturnType<typeof createD1ProjectRepository>;
 type AccountRepository = ReturnType<typeof createD1AccountRepository>;
@@ -123,6 +134,7 @@ type WorkerOptions = {
   createIncidentRepository?: (db: D1Database) => IncidentRepository;
   createDeviationRepository?: (db: D1Database) => DeviationRepository;
   createPostEventReviewRepository?: (db: D1Database) => PostEventReviewRepository;
+  createRateLimitRepository?: (db: D1Database) => RateLimitRepository;
   identityProvider?: IdentityProvider;
   emailDelivery?: EmailDelivery;
   secureCookies?: boolean;
@@ -684,6 +696,12 @@ export function createWorker(options: WorkerOptions = {}) {
   const incidentRepositoryFactory = options.createIncidentRepository ?? createD1IncidentRepository;
   const deviationRepositoryFactory = options.createDeviationRepository ?? createD1DeviationRepository;
   const postEventReviewRepositoryFactory = options.createPostEventReviewRepository ?? createD1PostEventReviewRepository;
+  const memoryRateLimits = createMemoryRateLimitRepository();
+  const rateLimitRepositoryFactory =
+    options.createRateLimitRepository ??
+    (options.createProjectRepository || options.createAccountRepository
+      ? () => memoryRateLimits
+      : createD1RateLimitRepository);
 
   const appendShareLedger = async (
     env: WorkerEnv,
@@ -894,6 +912,29 @@ export function createWorker(options: WorkerOptions = {}) {
         ? account.organizations.find((item) => item.id === requestedOrganizationId)
         : account.organizations[0];
       const admin = organization ? isOrganizationAdministrator({ status: "active", roles: organization.roles }) : false;
+      const endpointFamily = mutationEndpointFamily(request.method, url.pathname);
+      if (endpointFamily) {
+        const decision = await createRateLimitService({ repository: rateLimitRepositoryFactory(env.DB), clock }).consume({
+          sessionId: account.session.id,
+          organizationId: organization?.id ?? null,
+          endpointFamily,
+        });
+        if (!decision.allowed) {
+          const response = apiError(
+            429,
+            "RESOURCE_RATE_LIMITED",
+            "API mutation rate limit exceeded",
+            {
+              endpointFamily: decision.endpointFamily,
+              scope: decision.limitedScope,
+              windowSeconds: VENUE_RATE_LIMIT_WINDOW_SECONDS,
+            },
+            { "retry-after": String(decision.retryAfterSeconds) },
+          );
+          for (const cookie of setCookies) response.headers.append("set-cookie", cookie);
+          return response;
+        }
+      }
 
       if (url.pathname === "/api/session" && request.method === "GET")
         return respond({

@@ -23,6 +23,15 @@ export const VENUE_RESOURCE_LIMITS = Object.freeze({
   simulationTimeMs: 15_000,
 });
 
+export const VENUE_RATE_LIMIT_WINDOW_SECONDS = 60;
+export const VENUE_RATE_LIMITS = Object.freeze({
+  "project-writes": Object.freeze({ identity: 60, organization: 600 }),
+  "operational-command-sync": Object.freeze({ identity: 120, organization: 1_200 }),
+  "sharing-membership-mutations": Object.freeze({ identity: 30, organization: 300 }),
+  "adapter-webhook-mutation": Object.freeze({ identity: 120, organization: 1_200 }),
+});
+export type VenueRateEndpointFamily = keyof typeof VENUE_RATE_LIMITS;
+
 export interface JsonResourceBudget {
   readonly surface: string;
   readonly maximumBytes: number;

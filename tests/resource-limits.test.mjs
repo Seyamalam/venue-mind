@@ -3,7 +3,12 @@ import test from "node:test";
 import { VenueError } from "../src/domain/errors.ts";
 import { createVenuePlanner } from "../src/domain/venue-planner.ts";
 import { summitForwardPlan } from "../src/domain/summit-forward.ts";
-import { measureJsonResource, VENUE_RESOURCE_LIMITS } from "../src/security/resource-limits.ts";
+import {
+  measureJsonResource,
+  VENUE_RATE_LIMITS,
+  VENUE_RATE_LIMIT_WINDOW_SECONDS,
+  VENUE_RESOURCE_LIMITS,
+} from "../src/security/resource-limits.ts";
 
 const limitError = (error, resource, surface) =>
   error instanceof VenueError &&
@@ -67,4 +72,11 @@ test("published limits are finite positive integers with bounded time budgets", 
   }
   assert.ok(VENUE_RESOURCE_LIMITS.validationTimeMs < VENUE_RESOURCE_LIMITS.simulationTimeMs);
   assert.ok(VENUE_RESOURCE_LIMITS.simulationTimeMs <= 30_000);
+  assert.equal(VENUE_RATE_LIMIT_WINDOW_SECONDS, 60);
+  assert.deepEqual(VENUE_RATE_LIMITS, {
+    "project-writes": { identity: 60, organization: 600 },
+    "operational-command-sync": { identity: 120, organization: 1_200 },
+    "sharing-membership-mutations": { identity: 30, organization: 300 },
+    "adapter-webhook-mutation": { identity: 120, organization: 1_200 },
+  });
 });
