@@ -2934,6 +2934,71 @@
       ]
     },
     {
+      "slug": "privacy",
+      "title": "Privacy notice",
+      "description": "What VenueMind stores, excludes, retains, exports, and deletes in the current hosted preview.",
+      "canonicalPath": "/docs/privacy",
+      "audience": [
+        "operators",
+        "administrators",
+        "reviewers"
+      ],
+      "lastReviewedVersion": "VenueMind 0.7.0",
+      "compatibility": [
+        "Data protection schema 1",
+        "VenueMind 0.7.0"
+      ],
+      "anchors": [
+        "collection",
+        "purpose",
+        "retention",
+        "choices"
+      ]
+    },
+    {
+      "slug": "terms",
+      "title": "Preview terms",
+      "description": "Terms for the open-source, pre-release VenueMind hosted preview.",
+      "canonicalPath": "/docs/terms",
+      "audience": [
+        "operators",
+        "administrators",
+        "reviewers"
+      ],
+      "lastReviewedVersion": "VenueMind 0.7.0",
+      "compatibility": [
+        "Preview terms 1",
+        "MIT License"
+      ],
+      "anchors": [
+        "use",
+        "acceptable-use",
+        "availability"
+      ]
+    },
+    {
+      "slug": "trust-safety",
+      "title": "Trust and safety",
+      "description": "The exact line between configured VenueMind evidence and professional, legal, or emergency authority.",
+      "canonicalPath": "/docs/trust-safety",
+      "audience": [
+        "operators",
+        "reviewers",
+        "agents"
+      ],
+      "lastReviewedVersion": "VenueMind 0.7.0",
+      "compatibility": [
+        "Authorization policy 1",
+        "Validation 2.7.0"
+      ],
+      "anchors": [
+        "policy",
+        "authority",
+        "reporting",
+        "licenses"
+      ]
+    },
+    {
       "slug": "contracts",
       "title": "Schemas and contracts",
       "description": "JSON Schemas are generated from the runtime contract source during every production build.",
@@ -3185,6 +3250,26 @@
           "slug": "safety",
           "title": "Safety and supervision",
           "href": "/docs/safety"
+        }
+      ]
+    },
+    {
+      "label": "Trust",
+      "pages": [
+        {
+          "slug": "privacy",
+          "title": "Privacy notice",
+          "href": "/docs/privacy"
+        },
+        {
+          "slug": "terms",
+          "title": "Preview terms",
+          "href": "/docs/terms"
+        },
+        {
+          "slug": "trust-safety",
+          "title": "Trust and safety",
+          "href": "/docs/trust-safety"
         }
       ]
     }
