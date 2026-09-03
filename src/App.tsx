@@ -161,6 +161,7 @@ import type {
   PostEventObservationInput,
   PostEventProposalReviewInput,
 } from "./PostEventReviewPanel";
+import { describeVenueObject, validationAnnouncement } from "./accessibility/studio-accessibility";
 
 const briefIcons: Record<string, PhosphorIcon> = {
   accessibility: Wheelchair,
@@ -1087,6 +1088,9 @@ export function App({
     [runbookStore],
   );
   const toastTimer = useRef<number | null>(null);
+  const historyTriggerRef = useRef<HTMLButtonElement>(null);
+  const analysisTriggerRef = useRef<HTMLButtonElement>(null);
+  const analysisCloseRef = useRef<HTMLButtonElement>(null);
   const projectRecordMetadata = useRef<ProjectRecordMetadata>({
     createdAt: null,
     revision: null,
@@ -3974,6 +3978,7 @@ export function App({
             </div>
           </Popover>
           <HeaderButton
+            ref={historyTriggerRef}
             className="history-button"
             ariaLabel="Open plan history"
             onPointerEnter={() => {
@@ -4307,11 +4312,15 @@ export function App({
                 <small>Capacity</small>
               </span>
             </div>
-            <p className="proposal-count">
+            <p className="proposal-count" id="validation-summary" role="status" aria-live="polite" aria-atomic="true">
+              <b>{validation.status.toUpperCase()}</b> ·{" "}
               {proposalState === "approved"
                 ? `${changes.length} changes · applied`
-                : `${changes.length} changes · ${validation.unresolvedIssues} conflicts`}
+                : `${changes.length} changes · ${validation.blockingIssues} block · ${validation.unwaivedWarnings} warn`}
             </p>
+            <span className="sr-only" role={validation.status === "fail" ? "alert" : "status"}>
+              {validationAnnouncement(validation)}
+            </span>
             <div className="change-list" role="list" aria-label="Proposed changes">
               {changes.map((change, index) => (
                 <Button
@@ -4495,6 +4504,7 @@ export function App({
                 className={`primary-action ${proposalState === "approved" ? "is-approved" : ""}`}
                 type="button"
                 onClick={handleApprove}
+                aria-describedby="validation-summary"
                 disabled={
                   proposalState === "approved" ||
                   changes.length === 0 ||
@@ -4805,6 +4815,23 @@ export function App({
                 )}
               </div>
             )}
+            {!editorOpen && (
+              <details className="canvas-object-index">
+                <summary>OBJECT INDEX · {plannerState.plan.objects.length}</summary>
+                <div role="list" aria-label="Accepted plan objects">
+                  {plannerState.plan.objects.map((object) => (
+                    <div role="listitem" aria-label={describeVenueObject(object)} key={object.id}>
+                      <span>
+                        <strong>{object.label ?? object.id}</strong>
+                        <small>{object.kind.toUpperCase().replaceAll("_", " ")}</small>
+                      </span>
+                      <code>{(object.layer ?? "annotations").toUpperCase()}</code>
+                      <b>{(object.locks ?? []).some((lock) => lock.active) ? "LOCK" : "OPEN"}</b>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
             <div className="canvas-legend">
               <span>
                 <i className="legend-before" /> Before (v{plannerState.proposal.baseVersion})
@@ -4890,17 +4917,28 @@ export function App({
               </div>
             </div>
             <Button
+              ref={analysisTriggerRef}
               className="analysis-button"
               variant="ghost"
               type="button"
-              onClick={() => setAnalysisOpen((open) => !open)}
+              aria-expanded={analysisOpen}
+              aria-controls="spatial-analysis-panel"
+              onClick={() => {
+                if (analysisOpen) {
+                  setAnalysisOpen(false);
+                  window.requestAnimationFrame(() => analysisTriggerRef.current?.focus());
+                } else {
+                  setAnalysisOpen(true);
+                  window.requestAnimationFrame(() => analysisCloseRef.current?.focus());
+                }
+              }}
             >
               {analysisOpen ? "Hide analysis" : "View analysis"}
             </Button>
           </div>
 
           {analysisOpen && (
-            <div className="analysis-drawer">
+            <div className="analysis-drawer" id="spatial-analysis-panel" role="region" aria-label="Spatial analysis">
               <div>
                 <Wheelchair size={18} />
                 <span>
@@ -4960,10 +4998,14 @@ export function App({
                 </span>
               </div>
               <Button
+                ref={analysisCloseRef}
                 variant="ghost"
                 size="icon-sm"
                 type="button"
-                onClick={() => setAnalysisOpen(false)}
+                onClick={() => {
+                  setAnalysisOpen(false);
+                  window.requestAnimationFrame(() => analysisTriggerRef.current?.focus());
+                }}
                 aria-label="Close analysis"
               >
                 <X size={18} />
@@ -5001,6 +5043,7 @@ export function App({
             onClose={() => {
               setHistoryOpen(false);
               setComparisonOpen(false);
+              window.requestAnimationFrame(() => historyTriggerRef.current?.focus());
             }}
             onCompareLeftChange={setCompareLeftBranchId}
             onCompareRightChange={setCompareRightBranchId}
@@ -5607,8 +5650,8 @@ export function App({
         )}
       </Sheet>
       {toast && (
-        <div className="toast" role="status">
-          <CircleNotch size={18} weight="bold" />
+        <div className="toast" role="status" aria-live="polite" aria-atomic="true">
+          <CircleNotch size={18} weight="bold" aria-hidden="true" />
           {toast}
         </div>
       )}
