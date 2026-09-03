@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { AdapterContractError, sha256Checksum } from "../src/integrations/contracts.js";
-import { createAdapterRuntime, createMemoryDeadLetterSink, createVenueAdapter, serializeDeadLetter } from "../src/integrations/runtime.js";
-import { createMemoryProcessedBatchStore } from "../src/integrations/processed-batch-store.js";
-import { createMemorySecretStore } from "../src/integrations/secret-store.js";
-import { roomInventoryAdapter } from "../src/integrations/adapters/room-inventory-adapter.js";
-import { createMemoryWebhookEventStore } from "../src/integrations/webhook-event-store.js";
+import { AdapterContractError, sha256Checksum } from "../src/integrations/contracts.ts";
+import { createAdapterRuntime, createMemoryDeadLetterSink, createVenueAdapter, serializeDeadLetter } from "../src/integrations/runtime.ts";
+import { createMemoryProcessedBatchStore } from "../src/integrations/processed-batch-store.ts";
+import { createMemorySecretStore } from "../src/integrations/secret-store.ts";
+import { roomInventoryAdapter } from "../src/integrations/adapters/room-inventory-adapter.ts";
+import { createMemoryWebhookEventStore } from "../src/integrations/webhook-event-store.ts";
 
 const secretStore = createMemorySecretStore({ "test/token": "secret", "room-inventory/api-token": "test-token" });
 const auth = { grantedScopes: ["records:read"], secretStore, secretReferences: ["test/token"] };

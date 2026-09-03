@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { INGRESS_EGRESS_BENCHMARKS } from "../src/domain/ingress-egress-simulation.js";
-import { compareSimulationResults, createScenarioRunner, normalizeScenarioDefinition } from "../src/domain/scenario-engine.js";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { INGRESS_EGRESS_BENCHMARKS } from "../src/domain/ingress-egress-simulation.ts";
+import { compareSimulationResults, createScenarioRunner, normalizeScenarioDefinition } from "../src/domain/scenario-engine.ts";
 
 const scenario = {
   model: "ingress-egress",

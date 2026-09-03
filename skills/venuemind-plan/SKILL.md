@@ -3,7 +3,7 @@ name: venuemind-plan
 description: Plan and validate supervised, non-destructive venue revisions. Use for seating, access, circulation, sightlines, production, catering, capacity, or queue changes in VenueMind.
 metadata:
   version: 1.1.0
-  tool-contract-version: 1.2.0
+  tool-contract-version: 1.4.0
 ---
 
 # VenueMind Plan

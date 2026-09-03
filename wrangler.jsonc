@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "venue-mind-api",
+  "main": "dist/server/index.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "venue-mind-production",
+      "database_id": "965e47f1-c3c4-42e2-a44f-babcaf177081",
+      "migrations_dir": "db/wrangler"
+    }
+  ],
+  "vars": {
+    "VENUEMIND_AUTH_MODE": "anonymous-demo",
+    "VENUEMIND_APP_ORIGINS": "https://venue-mind-jet.vercel.app"
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}

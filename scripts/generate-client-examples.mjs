@@ -1,8 +1,8 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { CLIENT_CONFIGS, CODEX_TOML, HOST_WORKFLOWS } from "../src/examples/client-catalog.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { errorCatalog, errorPayload, venueError } from "../src/domain/errors.js";
+import { CLIENT_CONFIGS, CODEX_TOML, HOST_WORKFLOWS } from "../src/examples/client-catalog.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { errorCatalog, errorPayload, venueError } from "../src/domain/errors.ts";
 
 const output = new URL("../public/examples/client/", import.meta.url);
 const source = new URL("../examples/", import.meta.url);

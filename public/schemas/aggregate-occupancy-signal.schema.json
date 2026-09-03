@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/aggregate-occupancy-signal.schema.json",
+  "title": "VenueMind Aggregate Occupancy Signal",
+  "type": "object",
+  "required": [
+    "sourceId",
+    "sourceType",
+    "sourceVersion",
+    "kind",
+    "observedAt",
+    "confidence",
+    "readings"
+  ],
+  "properties": {
+    "sourceId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "sourceType": {
+      "enum": [
+        "registration",
+        "sensor",
+        "manual-counter"
+      ]
+    },
+    "sourceVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "kind": {
+      "enum": [
+        "check-in",
+        "zone-occupancy"
+      ]
+    },
+    "observedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "confidence": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "readings": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "required": [
+          "scopeId",
+          "count"
+        ],
+        "properties": {
+          "scopeId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

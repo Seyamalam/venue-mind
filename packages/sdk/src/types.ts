@@ -1,6 +1,5 @@
 import type {
   VenueMindActivityLedger,
-  VenueMindError,
   VenueMindPlanExport,
   VenueMindLayoutInspection,
   VenueMindPlannerSnapshot,

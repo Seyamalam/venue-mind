@@ -65,6 +65,13 @@
   <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-run-scenario</loc><lastmod>2026-08-27</lastmod></url>
   <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-compare-simulations</loc><lastmod>2026-08-27</lastmod></url>
   <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-simulation</loc><lastmod>2026-08-27</lastmod></url>
+  <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-inspect-live-occupancy</loc><lastmod>2026-08-27</lastmod></url>
+  <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-ingest-occupancy-signal</loc><lastmod>2026-08-27</lastmod></url>
+  <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-refresh-live-occupancy</loc><lastmod>2026-08-27</lastmod></url>
+  <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-live-occupancy</loc><lastmod>2026-08-27</lastmod></url>
+  <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-inspect-incidents</loc><lastmod>2026-08-27</lastmod></url>
+  <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-report-incident</loc><lastmod>2026-08-27</lastmod></url>
+  <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-incident-record</loc><lastmod>2026-08-27</lastmod></url>
   <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-audit-package</loc><lastmod>2026-08-27</lastmod></url>
   <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-plan</loc><lastmod>2026-08-27</lastmod></url>
   <url><loc>https://venue-mind-jet.vercel.app/docs/reference-command-inspect-templates</loc><lastmod>2026-08-27</lastmod></url>

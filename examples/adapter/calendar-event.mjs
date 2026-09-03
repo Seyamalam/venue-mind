@@ -1,6 +1,6 @@
-import { calendarEventAdapter } from "../../src/integrations/adapters/calendar-event-adapter.js";
-import { createAdapterRuntime } from "../../src/integrations/runtime.js";
-import { createMemorySecretStore } from "../../src/integrations/secret-store.js";
+import { calendarEventAdapter } from "../../src/integrations/adapters/calendar-event-adapter.ts";
+import { createAdapterRuntime } from "../../src/integrations/runtime.ts";
+import { createMemorySecretStore } from "../../src/integrations/secret-store.ts";
 
 const runtime = createAdapterRuntime({
   projectContext: {

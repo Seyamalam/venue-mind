@@ -1,19 +1,19 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { fingerprintPlan } from "../src/domain/activity-ledger.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { sha256Checksum } from "../src/integrations/contracts.js";
-import { createAdapterRuntime } from "../src/integrations/runtime.js";
-import { createMemorySecretStore } from "../src/integrations/secret-store.js";
+import { fingerprintPlan } from "../src/domain/activity-ledger.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { sha256Checksum } from "../src/integrations/contracts.ts";
+import { createAdapterRuntime } from "../src/integrations/runtime.ts";
+import { createMemorySecretStore } from "../src/integrations/secret-store.ts";
 import {
   assertOperationalResourceSnapshot,
   createOperationalSubstitutionStagingBatch,
   normalizeOperationalResourceAdapterInput,
   operationalResourceAdapter,
-} from "../src/integrations/adapters/operational-resource-adapter.js";
-import { assertReviewableStagingBatch, loadAdapterProposalForReview } from "../src/integrations/staging.js";
+} from "../src/integrations/adapters/operational-resource-adapter.ts";
+import { assertReviewableStagingBatch, loadAdapterProposalForReview } from "../src/integrations/staging.ts";
 
 const fixture = JSON.parse(await readFile(new URL("./fixtures/adapter-operational-resources-v1.json", import.meta.url), "utf8"));
 const clock = () => Date.parse("2026-09-01T12:00:00.000Z");
@@ -212,14 +212,13 @@ test("explicit compatible selection creates a canonical same-object staging Prop
   assert.deepEqual(plan, before);
 });
 
-test("persisted v1 SHA-256 Plan evidence remains valid during canonical fingerprint migration", async () => {
+test("raw SHA-256 Plan evidence is rejected at the current fingerprint boundary", async () => {
   const { plan, context } = await createPlanAndContext();
   context.project.planFingerprint = await sha256Checksum(plan);
-  const snapshot = (await execute(fixture, context)).output;
-  const conflict = snapshot.conflicts.find((item) => item.demandId === "demand-projector");
-  const batch = await createOperationalSubstitutionStagingBatch({ snapshot, conflictId: conflict.id, optionId: conflict.substitutionOptionIds[0], acceptedPlan: plan, proposalRevision: 2, resolveLatestSnapshot: async () => snapshot });
-  assert.equal(batch.proposal.status, "review");
-  assert.equal(batch.proposal.changes[0].spatialEffects[0].values.resourceBinding.resourceId, "resource-projector-backup");
+  await assert.rejects(
+    () => execute(fixture, context),
+    (error) => error.code === "ADAPTER_CHECKSUM_INVALID",
+  );
 });
 
 test("substitution preview preserves the accepted binding family and quantity", async () => {

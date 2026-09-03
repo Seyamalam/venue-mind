@@ -100,6 +100,26 @@ Accessible Seat Samples bind designated representative seats to focal-point rays
 
 Capacity evidence reconciles Seating Section counts into stable Occupancy Zones and the full Plan. Each scope has independent minimum and maximum bounds. Every Proposal Change records isolated section, zone, placed, effective, and operational-load deltas against the accepted Plan.
 
+## Live Occupancy Monitor
+
+A Live Occupancy Monitor is an event-day projection anchored to one active Runbook Version and its frozen accepted Plan. It accepts aggregate check-in and zone totals only; person, ticket, contact, device, and individual scan records are rejected before storage.
+
+- Stable source IDs and versions make retries, source rollback, and conflicting feeds explicit.
+- Every scope reports nominal, warning, exceeded, conflicting, stale, or unavailable state with freshness and confidence.
+- Approved capacity remains authoritative; optional Simulation assumptions appear only as a separately labeled delta.
+- Alert open, resolve, and human acknowledgement transitions append to a hash-chained Occupancy Monitor Ledger.
+- Browser outbox replay preserves idempotency across offline operation and reconnect.
+
+## Incident Register and Operational Incident
+
+One Incident Register belongs to one active Runbook Version and freezes the accepted Plan, Validation, Approval, Emergency Plan, and Runbook ledger head used on event day. An Operational Incident is a structured issue inside that register; it is never a free-form person record and an Occupancy Alert remains linked evidence rather than becoming the Incident itself.
+
+- Every report and transition carries one stable Incident ID, actor, server-accepted timestamp, Plan-bound object or in-room coordinate, per-Incident revision, receipt, and globally ordered hash-chained ledger entry.
+- Severity, category, summary code, owner, acknowledgement, escalation, status, handoff, emergency action, and resolution are structured fields.
+- Agents may inspect, report, and export. Acknowledgement, escalation, ownership, response, handoff, emergency action, resolution, closure, and reopening remain authenticated human actions.
+- The current deployment stores structured Incident records only and does not accept file uploads.
+- Browser outbox replay preserves exact idempotency and retains conflicts for operator recovery.
+
 ## Circulation and Egress Evidence
 
 The walkable Route Graph excludes edges obstructed by placement geometry. Validation derives Exit Approach Zones, shortest egress paths, Critical Route Edges, component-level Bottleneck Loads, phase profiles, and isolated congestion deltas for every Proposal Change.
@@ -605,10 +625,10 @@ Other stdio hosts use the same command, arguments, and explicit writable data di
 
 ## Completion criteria
 
-- The host lists all 39 tool contracts at version 1.2.0.
+- The host lists all 46 tool contracts at version 1.4.0.
 - The active session is bound to one Project.
 - Project state survives a server restart.
-- Approval remains absent from the tool list.
+- Approval, Occupancy Alert acknowledgement, and Incident response actions remain absent from the tool list.
 
 ## Other clients
 
@@ -632,7 +652,7 @@ Expose the active Studio as a scoped browser tool surface and complete a safe re
 
 1. Start the VenueMind development server.
 2. Open /studio/project-summit-forward in a WebMCP-capable browser host.
-3. Open WebMCP diagnostics and confirm READY, contract 1.2.0, and 39 registered tools.
+3. Open WebMCP diagnostics and confirm READY, contract 1.4.0, and 46 registered tools.
 
 ## Invoke through the browser
 
@@ -738,7 +758,7 @@ Preview an Interchange Package, commit it as a new Project, validate exact geome
 
 1. Open /projects and select IMPORT.
 2. Choose public/examples/venuemind-project-package.json from the repository.
-3. Review the package ID, checksum, migration report, stable-ID checks, geometry checks, Lock checks, ledger integrity, and replay status.
+3. Review the package ID, schema, checksum, stable-ID checks, geometry checks, Lock checks, ledger integrity, and replay status.
 4. Confirm the Project ID does not already exist.
 
 ## Commit and validate
@@ -842,13 +862,13 @@ The active VenueMind page exposes compact tools backed by the same command inter
 
 ## Runtime boundary
 
-- Contract version 1.2.0 is attached to every published tool.
+- Contract version 1.4.0 is attached to every published tool.
 - Lifecycle states: detecting, registering, ready, failed, unsupported, unregistered.
 - Every invocation returns a compact text summary and versioned structured content.
 - Mutation receipts retain caller idempotency and correlation metadata.
-- Authorization scopes: venue:read, venue:propose, venue:comment, venue:simulate, venue:export.
+- Authorization scopes: venue:read, venue:propose, venue:comment, venue:simulate, venue:operate, venue:export.
 - Input and output byte limits are published per tool and enforced before data crosses the boundary.
-- Sensitive credentials, contact fields, and attendee-record keys are redacted from structured results.
+- Sensitive credentials, contact fields, attendee-record keys, and Incident evidence bytes are excluded from structured results.
 - Abort signals unregister the page tool suite and cancel active calls where the invoking browser supplies a call signal.
 
 ## Generated catalog
@@ -880,7 +900,7 @@ node /absolute/path/to/venue-mind/packages/mcp-server/dist/index.js
 
 ## Protocol surfaces
 
-- 39 tools generated from one shared contract source across WebMCP and standalone MCP.
+- 46 tools generated from one shared contract source across WebMCP and standalone MCP.
 - Current Project, Plan Version, Proposal, schema, documentation, and compatibility resources.
 - Project and Plan Version resource templates with completion.
 - Supervised planning and Plan audit prompts.
@@ -934,11 +954,11 @@ ChatGPT custom MCP apps connect to remote endpoints, not directly to a local std
 
 ## Compatibility
 
-- MCP server 0.4.0.
+- MCP server 0.6.0.
 - Preferred protocol revision 2026-07-28.
 - Minimum supported revision 2025-03-26.
-- Tool contract 1.2.0.
-- Approval authority: human-only.
+- Tool contract 1.4.0.
+- Approval, Occupancy Alert acknowledgement, and Incident response authority: human-only.
 
 ## Human-only approval
 
@@ -948,7 +968,7 @@ The MCP surface can inspect, preview, validate, branch, switch, read, and export
 
 # Agent skills
 
-Six versioned skill packages teach supervised VenueMind workflows against tool contract 1.2.0.
+Six versioned skill packages teach supervised VenueMind workflows against tool contract 1.4.0.
 
 ## venuemind-plan
 
@@ -1202,6 +1222,8 @@ One generated page per WebMCP and standalone MCP tool, sourced from the runtime 
 - [venue.replay_history](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-replay-history)
 - [venue.list_scenarios](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-list-scenarios)
 - [venue.list_scenario_runs](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-list-scenario-runs)
+- [venue.inspect_live_occupancy](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-inspect-live-occupancy)
+- [venue.inspect_incidents](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-inspect-incidents)
 
 ## venue:propose
 
@@ -1232,8 +1254,16 @@ One generated page per WebMCP and standalone MCP tool, sourced from the runtime 
 ## venue:export
 
 - [venue.export_simulation](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-simulation)
+- [venue.export_live_occupancy](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-live-occupancy)
+- [venue.export_incident_record](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-incident-record)
 - [venue.export_audit_package](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-audit-package)
 - [venue.export_plan](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-plan)
+
+## venue:operate
+
+- [venue.ingest_occupancy_signal](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-ingest-occupancy-signal)
+- [venue.refresh_live_occupancy](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-refresh-live-occupancy)
+- [venue.report_incident](https://venue-mind-jet.vercel.app/docs/reference-tool-venue-report-incident)
 
 ---
 
@@ -1353,7 +1383,8 @@ Every stable VenueMind error code, user-safe message, and actionable remediation
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
 | IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
-| SNAPSHOT_INVALID | Invalid VenueMind snapshot. | Restore a schema-compatible snapshot containing a Plan, Proposal, and Activity Ledger. |
+| SNAPSHOT_INVALID | Invalid VenueMind snapshot. | Restore a canonical Project schema 10 snapshot containing a Plan, Proposal, and Activity Ledger. |
+| PROJECT_SCHEMA_UNSUPPORTED | Project schema is unsupported. | Use a Project schema 10 record. |
 | ADJUSTMENT_REQUIRED | Adjustment instruction is required. | Provide a concise operational adjustment. |
 | PROPOSAL_NOT_REVIEWABLE | Only a Proposal under review can be changed. | Create or activate a Proposal with review status before changing it. |
 | PROPOSAL_MISMATCH | Proposal ID does not match the active Proposal. | Inspect the active Proposal and retry with its stable ID. |
@@ -1417,7 +1448,33 @@ Every stable VenueMind error code, user-safe message, and actionable remediation
 | RUNBOOK_TRANSITION_INVALID | Runbook task transition is invalid. | Use a published task transition and supply a reason-coded human reopen for terminal work. |
 | RUNBOOK_DEPENDENCIES_INCOMPLETE | Runbook task dependencies are incomplete. | Complete every dependency before starting this task. |
 | RUNBOOK_EVIDENCE_REQUIRED | Runbook task evidence is incomplete. | Attach every required structured evidence code before completing the task. |
-| LEGACY_BRIEF_ATTESTATION_REQUIRED | Legacy Event Brief requires trusted human attestation. | Have an organization owner or administrator review and attest the legacy Event Brief before migration. |
+| OCCUPANCY_BASELINE_INVALID | Live Occupancy baseline is invalid. | Create the monitor from one active Event Day Runbook with canonical Plan capacity and event-target evidence. |
+| OCCUPANCY_SIGNAL_INVALID | Aggregate Occupancy Signal is invalid. | Send one bounded aggregate-only signal for the check-in total, venue, or a stable Occupancy Zone. |
+| OCCUPANCY_PRIVACY_REJECTED | Occupancy input contains prohibited person-level data. | Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion. |
+| OCCUPANCY_SIGNAL_OUT_OF_ORDER | Occupancy Signal is older than the accepted source state. | Refresh the source cursor and send a newer source version and observed instant. |
+| OCCUPANCY_REVISION_CONFLICT | Live Occupancy monitor revision conflict. | Refresh the monitor and retry only if the aggregate transition is still required. |
+| OCCUPANCY_ALERT_NOT_FOUND | Occupancy Alert is unavailable. | Refresh the Live Occupancy Monitor and select an active Alert ID. |
+| OCCUPANCY_ACKNOWLEDGEMENT_INVALID | Occupancy Alert acknowledgement is invalid. | Use an authenticated human operator, an active Alert ID, and one structured reason code. |
+| OCCUPANCY_LEDGER_INTEGRITY_FAILED | Occupancy Monitor Ledger integrity failed. | Restore the last verified monitor state before inspection or export. |
+| OCCUPANCY_MONITOR_NOT_FOUND | Live Occupancy Monitor is unavailable. | Create the monitor from the active Event Day Runbook before inspecting or changing occupancy. |
+| OCCUPANCY_TOOL_UNAVAILABLE | Live Occupancy tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Live Occupancy operations enabled. |
+| INCIDENT_BASELINE_INVALID | Incident Register baseline is invalid. | Create the register from one active Event Day Runbook with its frozen accepted Plan and Emergency Plan evidence. |
+| INCIDENT_REGISTER_NOT_FOUND | Incident Register is unavailable. | Create the register from the active Event Day Runbook before inspecting or reporting incidents. |
+| INCIDENT_NOT_FOUND | Operational Incident is unavailable. | Inspect the Incident Register and retry with an existing stable Incident ID. |
+| INCIDENT_ID_CONFLICT | Operational Incident ID conflicts with an existing record. | Use the original semantic report or generate a new stable Incident ID. |
+| INCIDENT_INVALID | Operational Incident input is invalid. | Use the published severity, category, owner, reason, reference, and transition fields. |
+| INCIDENT_PRIVACY_REJECTED | Incident input contains prohibited person-level data. | Remove identities, contacts, ticket, device, attendee, medical, and free-form person records. |
+| INCIDENT_LOCATION_INVALID | Incident Location Context is invalid. | Anchor the incident to one object or in-room coordinate in the frozen accepted Plan. |
+| INCIDENT_REVISION_CONFLICT | Operational Incident revision conflict. | Refresh the incident and retry only if the transition is still required. |
+| INCIDENT_TRANSITION_INVALID | Operational Incident transition is invalid. | Use a published state transition and supply any required structured reason or resolution code. |
+| INCIDENT_OWNER_INVALID | Incident owner evidence is invalid. | Assign one structured Runbook role, shift, Staff Post, or assignment reference. |
+| INCIDENT_ACKNOWLEDGEMENT_INVALID | Incident acknowledgement is invalid. | Use an authenticated human operator and an unacknowledged open incident. |
+| INCIDENT_ESCALATION_INVALID | Incident escalation is invalid. | Increase the structured escalation level without skipping required authority. |
+| INCIDENT_HANDOFF_INVALID | Incident handoff is invalid. | Use the current owner, a different structured next owner, and bounded open action codes. |
+| INCIDENT_EMERGENCY_ACTION_INVALID | Emergency Action Invocation is invalid. | Use an approved action, scenario, and object reference from the frozen Emergency Plan. |
+| INCIDENT_HUMAN_REQUIRED | This Incident transition requires a human operator. | Ask an authorized human operator to acknowledge, manage, hand off, or record an emergency action. |
+| INCIDENT_LEDGER_INTEGRITY_FAILED | Incident Register ledger integrity failed. | Restore the last verified register state before inspection or export. |
+| INCIDENT_TOOL_UNAVAILABLE | Incident tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Incident Register operations enabled. |
 | VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
 
 ## Error envelope
@@ -1489,7 +1546,6 @@ The complete event vocabulary for human, agent, system, planning, review, simula
 | Event | Category | Stable references |
 | --- | --- | --- |
 | plan.opened | plan | planId, version, planFingerprint |
-| schema.migrated | system | fromSchemaVersion, toSchemaVersion |
 | authorization.denied | security | policyDecisionId, permission, reason |
 | proposal.previewed | proposal | proposalId, branchId, changeIds[] |
 | template.update_previewed | proposal | proposalId, branchId, templateId, changeIds[] |
@@ -1660,22 +1716,24 @@ Human Roles, Agent Grant scopes, service-boundary permissions, and Approval auth
 
 | Role | Permissions |
 | --- | --- |
-| viewer | project.read, plan.read, proposal.read, comment.read, simulation.read |
-| planner | project.read, plan.read, proposal.read, comment.read, simulation.read, proposal.create, proposal.manage, comment.write, simulation.run, export.plan |
-| reviewer | project.read, plan.read, proposal.read, comment.read, simulation.read, proposal.review, comment.write, export.audit, audit.read |
-| approver | project.read, plan.read, proposal.read, comment.read, simulation.read, proposal.review, comment.write, export.audit, audit.read, approval.approve, approval.waive |
-| venue-administrator | project.read, plan.read, proposal.read, comment.read, simulation.read, proposal.create, proposal.manage, comment.write, simulation.run, export.plan, proposal.review, export.audit, audit.read, approval.approve, approval.waive, project.manage, plan.update, lock.manage |
-| organization-administrator | project.read, project.manage, plan.read, plan.update, proposal.read, proposal.create, proposal.manage, proposal.review, comment.read, comment.write, simulation.read, simulation.run, export.plan, export.audit, audit.read, approval.approve, approval.waive, lock.manage |
+| viewer | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read |
+| planner | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, proposal.create, proposal.manage, comment.write, simulation.run, occupancy.write, incident.report, incident.manage, export.plan |
+| reviewer | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, proposal.review, comment.write, incident.export, export.audit, audit.read |
+| approver | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, proposal.review, comment.write, incident.export, export.audit, audit.read, approval.approve, approval.waive |
+| safety-officer | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, incident.report, incident.manage, incident.emergency-act, incident.export, audit.read |
+| venue-administrator | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, proposal.create, proposal.manage, comment.write, simulation.run, occupancy.write, incident.report, incident.manage, export.plan, proposal.review, incident.export, export.audit, audit.read, approval.approve, approval.waive, incident.emergency-act, project.manage, plan.update, lock.manage |
+| organization-administrator | project.read, project.manage, plan.read, plan.update, proposal.read, proposal.create, proposal.manage, proposal.review, comment.read, comment.write, simulation.read, simulation.run, occupancy.read, occupancy.write, incident.read, incident.report, incident.manage, incident.emergency-act, incident.export, export.plan, export.audit, audit.read, approval.approve, approval.waive, lock.manage |
 
 ## Agent Grant scopes
 
 | Scope | Permissions |
 | --- | --- |
-| venue:read | project.read, plan.read, proposal.read, comment.read, simulation.read, audit.read |
+| venue:read | project.read, plan.read, proposal.read, comment.read, simulation.read, occupancy.read, incident.read, audit.read |
 | venue:propose | proposal.create, proposal.manage |
 | venue:comment | comment.read, comment.write |
 | venue:simulate | simulation.read, simulation.run |
-| venue:export | export.plan, export.audit |
+| venue:operate | occupancy.read, occupancy.write, incident.read, incident.report |
+| venue:export | export.plan, export.audit, incident.export |
 
 ## Policy decisions
 
@@ -1698,17 +1756,17 @@ Current public versions, comparison rules, migration guarantees, and the policy 
 
 | Surface | Current | Compatibility rule |
 | --- | --- | --- |
-| Project record | 10 | Migrates released snapshots from schema 5 through 10 before use. |
+| Project record | 10 | Exact current schema only; older records are rejected. |
 | Spatial geometry | 1 | Canonical metres with millimetre serialization precision. |
-| Venue Template catalog | 1 | Schema-0 inventory stock migrates to availability metadata. |
+| Venue Template catalog | 1 | Exact current schema only; older template documents are rejected. |
 | Validation engine | 2.7.0 | Comparable only when engine and immutable input fingerprints match. |
 | Simulation engine | 1.2.1 | Comparison requires matching engine and Scenario definition fingerprints. |
 | Activity Ledger | 1 | Hash-chain verification is required on load, replay, and export. |
-| Tool contracts | 1.2.0 | Shared by WebMCP, standalone MCP, schemas, examples, and skills. |
-| MCP server | 0.4.0 | Preferred protocol 2026-07-28; minimum 2025-03-26. |
+| Tool contracts | 1.4.0 | Shared by WebMCP, standalone MCP, schemas, examples, and skills. |
+| MCP server | 0.6.0 | Preferred protocol 2026-07-28; minimum 2025-03-26. |
 | TypeScript SDK | 0.1.0 | ESM-only on Node.js 22+; SDK SemVer remains independent of tool, adapter, and Project schema versions. |
-| Agent skills | 1.1.0 | Targets tool contract 1.2.0. |
-| Interchange Package | 1 | Create-only import with checksum, migration, geometry, ledger, and replay preflight. |
+| Agent skills | 1.3.0 | Targets tool contract 1.4.0. |
+| Interchange Package | 1 + Project schema 10 | Create-only import with exact schema, checksum, geometry, Locks, ledger, and replay preflight. |
 
 ## Deprecation policy
 
@@ -1733,7 +1791,7 @@ List durable VenueMind Projects available to the current authenticated or local 
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -1787,7 +1845,7 @@ Select one durable Project as the active Project for this agent session. This ne
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -1843,7 +1901,7 @@ Read versioned Venue, Room, and Inventory Item Templates, including starter room
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -1898,7 +1956,7 @@ Read the structured Event Brief, stable Requirement IDs, priorities, ownership, 
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -1966,7 +2024,7 @@ List versioned Constraints with current evaluation status, thresholds, policy so
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2018,7 +2076,7 @@ Read the active venue plan, stable object IDs, locked objects, constraints, metr
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 1048576 bytes.
@@ -2100,7 +2158,7 @@ Read one stable object with scoped accepted or Proposal geometry, operational me
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2161,7 +2219,7 @@ Search stable venue objects with bounded text, kind, layer, Lock, and accepted-v
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2231,7 +2289,7 @@ Create a non-destructive venue revision preview. The result remains pending unti
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2296,7 +2354,7 @@ Create a non-destructive Proposal containing safe Room Template differences whil
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2367,7 +2425,7 @@ Create one non-destructive, undoable spatial editing Change for placement, trans
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 262144 bytes; output limit 262144 bytes.
@@ -2441,7 +2499,7 @@ Measure deterministic center points and pairwise distances for selected Project 
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2500,7 +2558,7 @@ Validate the visible proposal or committed plan against locks, accessibility, ca
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 1048576 bytes.
@@ -2577,7 +2635,7 @@ Read deterministic evidence for the current Validation, optionally restricted to
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 1048576 bytes.
@@ -2653,7 +2711,7 @@ Compare proposal branches by base version, change count, validation status, unre
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2705,7 +2763,7 @@ Compare two Proposal Branches by spatial object differences, Change membership, 
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2771,7 +2829,7 @@ Create and activate a non-destructive proposal branch using a balanced, access-f
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2838,7 +2896,7 @@ Activate an existing proposal branch in the visible VenueMind workspace without 
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2900,7 +2958,7 @@ Update a Proposal Branch name or review notes without changing its Proposal geom
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -2965,7 +3023,7 @@ Duplicate the current or a prior Proposal revision into a new active Branch with
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3034,7 +3092,7 @@ Archive a Proposal Branch without deleting its revisions or audit history.
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3096,7 +3154,7 @@ Restore an archived Proposal Branch to the active comparison set.
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3156,7 +3214,7 @@ Detect stale-base, deleted-dependency, locked-object, same-object, and Constrain
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3220,7 +3278,7 @@ Rebase a stale Proposal Branch onto the latest accepted Plan Version while prese
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3283,7 +3341,7 @@ Create a new non-destructive Proposal revision recording an agent-requested adju
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:propose.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3344,7 +3402,7 @@ Read comments by status, author, subject kind, or decision relevance without cha
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3401,7 +3459,7 @@ Add a non-planning Comment anchored to an immutable VenueMind subject or spatial
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:comment.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3476,7 +3534,7 @@ Edit Comment text, mentions, or decision relevance while retaining immutable edi
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:comment.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3543,7 +3601,7 @@ Resolve or reopen a Comment without changing its immutable anchor or planning st
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:comment.
 - State-affecting operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3607,7 +3665,7 @@ Read the ordered human and agent Activity Ledger for the active Plan.
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3659,7 +3717,7 @@ Verify the Activity Ledger hash chain and replay accepted Plan transitions again
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3723,7 +3781,7 @@ Read stored immutable Scenario definitions without running a simulation.
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3773,7 +3831,7 @@ Read queued, running, completed, cancelled, and failed Simulation Runs, includin
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:read.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -3825,7 +3883,7 @@ Read one stable Scenario Run and its completed or partial result, with density f
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:simulate.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 1048576 bytes.
@@ -3900,7 +3958,7 @@ Run one seeded operations, ingress-egress, or spatial queue Scenario against an 
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:simulate.
 - State-affecting operation.
 - Input limit 131072 bytes; output limit 262144 bytes.
@@ -3981,7 +4039,7 @@ Compare two completed Runs with matching Scenario fingerprints and engine versio
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:simulate.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -4043,7 +4101,7 @@ Export one completed Simulation Run with its normalized Scenario parameters, eng
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:export.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 262144 bytes.
@@ -4095,13 +4153,504 @@ Portable simulation parameters, fingerprints, and results.
 
 ---
 
+# venue.inspect_live_occupancy
+
+Read the current aggregate-only Live Occupancy projection, source freshness, active Alerts, simulation deltas, and incident Ledger without person-level records.
+
+## Contract
+
+- Contract version 1.4.0.
+- Required Agent Grant scope venue:read.
+- Read-only operation.
+- Input limit 65536 bytes; output limit 1048576 bytes.
+
+## Input
+
+| Field | Type | Required | Default | Bounds | Meaning |
+| --- | --- | --- | --- | --- | --- |
+
+
+```json
+{}
+```
+
+## Output
+
+Aggregate-only current counts, operational states, source freshness, confidence, Alerts, and incident evidence.
+
+| Output field | Meaning |
+| --- | --- |
+| monitor | Published result field. |
+| projection | Published result field. |
+
+- Stable ID: monitor.id
+- Stable ID: monitor.runbookVersionId
+- Stable ID: monitor.activeAlerts[].id
+- Stable ID: monitor.ledger[].id
+- Stable ID: projection.scopes[].scopeId
+- Stable ID: projection.sources[].sourceId
+
+## Errors
+
+| Code | Message | Remediation |
+| --- | --- | --- |
+| TOOL_SCOPE_REQUIRED | Tool authorization scope is required. | Grant the published scope for this tool or use a read-only tool within the current session. |
+| AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
+| AGENT_GRANT_INVALID | Agent Grant is invalid. | Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less. |
+| TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
+| TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
+| VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
+| OCCUPANCY_MONITOR_NOT_FOUND | Live Occupancy Monitor is unavailable. | Create the monitor from the active Event Day Runbook before inspecting or changing occupancy. |
+| OCCUPANCY_TOOL_UNAVAILABLE | Live Occupancy tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Live Occupancy operations enabled. |
+| OCCUPANCY_REVISION_CONFLICT | Live Occupancy monitor revision conflict. | Refresh the monitor and retry only if the aggregate transition is still required. |
+| OCCUPANCY_SIGNAL_INVALID | Aggregate Occupancy Signal is invalid. | Send one bounded aggregate-only signal for the check-in total, venue, or a stable Occupancy Zone. |
+| OCCUPANCY_PRIVACY_REJECTED | Occupancy input contains prohibited person-level data. | Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion. |
+
+## Surfaces
+
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
+
+---
+
+# venue.ingest_occupancy_signal
+
+Ingest one bounded aggregate Occupancy Signal from a registration total, sensor, or manual counter with stable source and scope IDs.
+
+## Contract
+
+- Contract version 1.4.0.
+- Required Agent Grant scope venue:operate.
+- State-affecting operation.
+- Input limit 65536 bytes; output limit 262144 bytes.
+
+## Input
+
+| Field | Type | Required | Default | Bounds | Meaning |
+| --- | --- | --- | --- | --- | --- |
+| sourceId | string | yes | — | min 1 chars; max 160 chars | Published contract field. |
+| sourceType | registration \| sensor \| manual-counter | yes | — | — | Published contract field. |
+| sourceVersion | string | yes | — | min 1 chars; max 160 chars | Published contract field. |
+| kind | check-in \| zone-occupancy | yes | — | — | Published contract field. |
+| observedAt | string | yes | — | format date-time | Published contract field. |
+| confidence | low \| medium \| high | yes | — | — | Published contract field. |
+| readings | object[] | yes | — | min 1 items; max 100 items | Published contract field. |
+| idempotencyKey | string | yes | — | min 1 chars | Unique retry key for this semantic command. |
+| correlationId | string | no | — | min 1 chars | Optional caller correlation identifier. |
+
+```json
+{
+  "sourceId": "door-a",
+  "sourceType": "manual-counter",
+  "sourceVersion": "counter-v12",
+  "kind": "zone-occupancy",
+  "observedAt": "2026-09-12T14:30:00.000Z",
+  "confidence": "high",
+  "readings": [
+    {
+      "scopeId": "venue",
+      "count": 412
+    }
+  ],
+  "idempotencyKey": "example-occupancy-001"
+}
+```
+
+## Output
+
+Idempotent aggregate signal acceptance with the resulting Live Occupancy projection.
+
+| Output field | Meaning |
+| --- | --- |
+| monitor | Published result field. |
+| projection | Published result field. |
+| receipt | Published result field. |
+| duplicate | Published result field. |
+
+- Stable ID: monitor.id
+- Stable ID: projection.scopes[].scopeId
+- Stable ID: receipt.id
+
+## Errors
+
+| Code | Message | Remediation |
+| --- | --- | --- |
+| TOOL_SCOPE_REQUIRED | Tool authorization scope is required. | Grant the published scope for this tool or use a read-only tool within the current session. |
+| AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
+| AGENT_GRANT_INVALID | Agent Grant is invalid. | Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less. |
+| TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
+| TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
+| VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
+| IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
+| IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
+| OCCUPANCY_MONITOR_NOT_FOUND | Live Occupancy Monitor is unavailable. | Create the monitor from the active Event Day Runbook before inspecting or changing occupancy. |
+| OCCUPANCY_TOOL_UNAVAILABLE | Live Occupancy tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Live Occupancy operations enabled. |
+| OCCUPANCY_REVISION_CONFLICT | Live Occupancy monitor revision conflict. | Refresh the monitor and retry only if the aggregate transition is still required. |
+| OCCUPANCY_SIGNAL_INVALID | Aggregate Occupancy Signal is invalid. | Send one bounded aggregate-only signal for the check-in total, venue, or a stable Occupancy Zone. |
+| OCCUPANCY_PRIVACY_REJECTED | Occupancy input contains prohibited person-level data. | Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion. |
+
+## Surfaces
+
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
+
+---
+
+# venue.refresh_live_occupancy
+
+Refresh Live Occupancy freshness and derived Alerts at the server-accepted instant without changing any aggregate count.
+
+## Contract
+
+- Contract version 1.4.0.
+- Required Agent Grant scope venue:operate.
+- State-affecting operation.
+- Input limit 65536 bytes; output limit 262144 bytes.
+
+## Input
+
+| Field | Type | Required | Default | Bounds | Meaning |
+| --- | --- | --- | --- | --- | --- |
+| idempotencyKey | string | yes | — | min 1 chars | Unique retry key for this semantic command. |
+| correlationId | string | no | — | min 1 chars | Optional caller correlation identifier. |
+
+```json
+{
+  "idempotencyKey": "example-occupancy-refresh-001"
+}
+```
+
+## Output
+
+Freshness and Alert reconciliation without changing accepted aggregate counts.
+
+| Output field | Meaning |
+| --- | --- |
+| monitor | Published result field. |
+| projection | Published result field. |
+| receipt | Published result field. |
+| duplicate | Published result field. |
+
+- Stable ID: monitor.id
+- Stable ID: monitor.activeAlerts[].id
+- Stable ID: receipt.id
+
+## Errors
+
+| Code | Message | Remediation |
+| --- | --- | --- |
+| TOOL_SCOPE_REQUIRED | Tool authorization scope is required. | Grant the published scope for this tool or use a read-only tool within the current session. |
+| AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
+| AGENT_GRANT_INVALID | Agent Grant is invalid. | Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less. |
+| TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
+| TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
+| VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
+| IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
+| IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
+| OCCUPANCY_MONITOR_NOT_FOUND | Live Occupancy Monitor is unavailable. | Create the monitor from the active Event Day Runbook before inspecting or changing occupancy. |
+| OCCUPANCY_TOOL_UNAVAILABLE | Live Occupancy tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Live Occupancy operations enabled. |
+| OCCUPANCY_REVISION_CONFLICT | Live Occupancy monitor revision conflict. | Refresh the monitor and retry only if the aggregate transition is still required. |
+| OCCUPANCY_SIGNAL_INVALID | Aggregate Occupancy Signal is invalid. | Send one bounded aggregate-only signal for the check-in total, venue, or a stable Occupancy Zone. |
+| OCCUPANCY_PRIVACY_REJECTED | Occupancy input contains prohibited person-level data. | Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion. |
+
+## Surfaces
+
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
+
+---
+
+# venue.export_live_occupancy
+
+Export the verified aggregate-only Live Occupancy audit artifact with baseline, observations, Alerts, receipts, and hash-chained incident Ledger.
+
+## Contract
+
+- Contract version 1.4.0.
+- Required Agent Grant scope venue:export.
+- Read-only operation.
+- Input limit 65536 bytes; output limit 2000000 bytes.
+
+## Input
+
+| Field | Type | Required | Default | Bounds | Meaning |
+| --- | --- | --- | --- | --- | --- |
+
+
+```json
+{}
+```
+
+## Output
+
+Verified aggregate-only baseline, observations, Alerts, receipts, and Occupancy Monitor Ledger artifact.
+
+| Output field | Meaning |
+| --- | --- |
+| filename | Published result field. |
+| mimeType | Published result field. |
+| content | Published result field. |
+
+- Stable ID: content.monitor.id
+- Stable ID: content.runbookVersionId
+- Stable ID: content.ledger[].id
+
+## Errors
+
+| Code | Message | Remediation |
+| --- | --- | --- |
+| TOOL_SCOPE_REQUIRED | Tool authorization scope is required. | Grant the published scope for this tool or use a read-only tool within the current session. |
+| AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
+| AGENT_GRANT_INVALID | Agent Grant is invalid. | Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less. |
+| TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
+| TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
+| VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
+| OCCUPANCY_MONITOR_NOT_FOUND | Live Occupancy Monitor is unavailable. | Create the monitor from the active Event Day Runbook before inspecting or changing occupancy. |
+| OCCUPANCY_TOOL_UNAVAILABLE | Live Occupancy tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Live Occupancy operations enabled. |
+| OCCUPANCY_REVISION_CONFLICT | Live Occupancy monitor revision conflict. | Refresh the monitor and retry only if the aggregate transition is still required. |
+| OCCUPANCY_SIGNAL_INVALID | Aggregate Occupancy Signal is invalid. | Send one bounded aggregate-only signal for the check-in total, venue, or a stable Occupancy Zone. |
+| OCCUPANCY_PRIVACY_REJECTED | Occupancy input contains prohibited person-level data. | Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion. |
+
+## Surfaces
+
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
+
+---
+
+# venue.inspect_incidents
+
+Inspect the Runbook-bound Incident Register or one stable Operational Incident with structured severity, category, owner, location, acknowledgement, escalation, evidence, and ordered ledger state.
+
+## Contract
+
+- Contract version 1.4.0.
+- Required Agent Grant scope venue:read.
+- Read-only operation.
+- Input limit 65536 bytes; output limit 1048576 bytes.
+
+## Input
+
+| Field | Type | Required | Default | Bounds | Meaning |
+| --- | --- | --- | --- | --- | --- |
+| incidentId | string | no | — | min 1 chars; max 160 chars | Published contract field. |
+| status | open \| mitigating \| resolved \| closed | no | — | — | Published contract field. |
+| severity | low \| medium \| high \| critical | no | — | — | Published contract field. |
+| category | accessibility \| crowd-capacity \| medical \| security \| fire-life-safety \| facilities \| production-av \| catering \| staffing \| transport \| weather \| other | no | — | — | Published contract field. |
+| limit | integer | no | 50 | ≥ 1; ≤ 100 | Maximum number of returned records. |
+
+```json
+{
+  "status": "open",
+  "limit": 25
+}
+```
+
+## Output
+
+Runbook-bound Incident Register state with structured location, acknowledgement, escalation, ownership, handoff, and evidence metadata.
+
+| Output field | Meaning |
+| --- | --- |
+| register | Published result field. |
+| incidents | Published result field. |
+| incident | Published result field. |
+
+- Stable ID: register.id
+- Stable ID: register.runbookVersionId
+- Stable ID: incidents[].id
+- Stable ID: incident.id
+- Stable ID: register.ledger[].id
+
+## Errors
+
+| Code | Message | Remediation |
+| --- | --- | --- |
+| TOOL_SCOPE_REQUIRED | Tool authorization scope is required. | Grant the published scope for this tool or use a read-only tool within the current session. |
+| AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
+| AGENT_GRANT_INVALID | Agent Grant is invalid. | Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less. |
+| TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
+| TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
+| VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
+| INCIDENT_REGISTER_NOT_FOUND | Incident Register is unavailable. | Create the register from the active Event Day Runbook before inspecting or reporting incidents. |
+| INCIDENT_NOT_FOUND | Operational Incident is unavailable. | Inspect the Incident Register and retry with an existing stable Incident ID. |
+| INCIDENT_TOOL_UNAVAILABLE | Incident tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Incident Register operations enabled. |
+| INCIDENT_REVISION_CONFLICT | Operational Incident revision conflict. | Refresh the incident and retry only if the transition is still required. |
+| INCIDENT_INVALID | Operational Incident input is invalid. | Use the published severity, category, owner, reason, reference, and transition fields. |
+| INCIDENT_PRIVACY_REJECTED | Incident input contains prohibited person-level data. | Remove identities, contacts, ticket, device, attendee, medical, and free-form person records. |
+| INCIDENT_LOCATION_INVALID | Incident Location Context is invalid. | Anchor the incident to one object or in-room coordinate in the frozen accepted Plan. |
+| INCIDENT_LEDGER_INTEGRITY_FAILED | Incident Register ledger integrity failed. | Restore the last verified register state before inspection or export. |
+
+## Surfaces
+
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
+
+---
+
+# venue.report_incident
+
+Report one structured Operational Incident against an object or coordinate in the frozen accepted Plan without claiming acknowledgement, escalation, ownership, resolution, or emergency authority.
+
+## Contract
+
+- Contract version 1.4.0.
+- Required Agent Grant scope venue:operate.
+- State-affecting operation.
+- Input limit 65536 bytes; output limit 262144 bytes.
+
+## Input
+
+| Field | Type | Required | Default | Bounds | Meaning |
+| --- | --- | --- | --- | --- | --- |
+| severity | low \| medium \| high \| critical | yes | — | — | Published contract field. |
+| category | accessibility \| crowd-capacity \| medical \| security \| fire-life-safety \| facilities \| production-av \| catering \| staffing \| transport \| weather \| other | yes | — | — | Published contract field. |
+| summaryCode | string | yes | — | min 2 chars; max 64 chars; pattern ^[A-Z][A-Z0-9_]{1,63}$ | Published contract field. |
+| location | object \| object | yes | — | — | Published contract field. |
+| relatedRefs | object[] | no | — | max 20 items | Published contract field. |
+| idempotencyKey | string | yes | — | min 1 chars | Unique retry key for this semantic command. |
+| correlationId | string | no | — | min 1 chars | Optional caller correlation identifier. |
+
+```json
+{
+  "severity": "high",
+  "category": "crowd-capacity",
+  "summaryCode": "EAST_ENTRY_CONGESTION",
+  "location": {
+    "kind": "plan-object",
+    "planObjectId": "obj-entry-east"
+  },
+  "relatedRefs": [
+    {
+      "kind": "occupancy-alert",
+      "id": "occupancy-alert-east-entry"
+    }
+  ],
+  "idempotencyKey": "example-incident-report-001"
+}
+```
+
+## Output
+
+Idempotent agent report acceptance without acknowledgement, escalation, response, or resolution authority.
+
+| Output field | Meaning |
+| --- | --- |
+| register | Published result field. |
+| incident | Published result field. |
+| receipt | Published result field. |
+| duplicate | Published result field. |
+
+- Stable ID: register.id
+- Stable ID: incident.id
+- Stable ID: receipt.id
+- Stable ID: register.ledger[].id
+
+## Errors
+
+| Code | Message | Remediation |
+| --- | --- | --- |
+| TOOL_SCOPE_REQUIRED | Tool authorization scope is required. | Grant the published scope for this tool or use a read-only tool within the current session. |
+| AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
+| AGENT_GRANT_INVALID | Agent Grant is invalid. | Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less. |
+| TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
+| TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
+| VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
+| IDEMPOTENCY_KEY_REQUIRED | Idempotency key is required for mutating commands. | Retry with one stable idempotency key for this semantic action. |
+| IDEMPOTENCY_KEY_CONFLICT | Idempotency key conflict. | Use the original command input or generate a new idempotency key. |
+| INCIDENT_REGISTER_NOT_FOUND | Incident Register is unavailable. | Create the register from the active Event Day Runbook before inspecting or reporting incidents. |
+| INCIDENT_NOT_FOUND | Operational Incident is unavailable. | Inspect the Incident Register and retry with an existing stable Incident ID. |
+| INCIDENT_TOOL_UNAVAILABLE | Incident tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Incident Register operations enabled. |
+| INCIDENT_REVISION_CONFLICT | Operational Incident revision conflict. | Refresh the incident and retry only if the transition is still required. |
+| INCIDENT_INVALID | Operational Incident input is invalid. | Use the published severity, category, owner, reason, reference, and transition fields. |
+| INCIDENT_PRIVACY_REJECTED | Incident input contains prohibited person-level data. | Remove identities, contacts, ticket, device, attendee, medical, and free-form person records. |
+| INCIDENT_LOCATION_INVALID | Incident Location Context is invalid. | Anchor the incident to one object or in-room coordinate in the frozen accepted Plan. |
+| INCIDENT_LEDGER_INTEGRITY_FAILED | Incident Register ledger integrity failed. | Restore the last verified register state before inspection or export. |
+
+## Surfaces
+
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
+
+---
+
+# venue.export_incident_record
+
+Export one verified post-event Operational Incident record with frozen Plan and Emergency Plan provenance, transitions, structured handoffs, receipts, and hash-chained ledger evidence.
+
+## Contract
+
+- Contract version 1.4.0.
+- Required Agent Grant scope venue:export.
+- Read-only operation.
+- Input limit 65536 bytes; output limit 2000000 bytes.
+
+## Input
+
+| Field | Type | Required | Default | Bounds | Meaning |
+| --- | --- | --- | --- | --- | --- |
+| incidentId | string | yes | — | min 1 chars; max 160 chars | Published contract field. |
+
+```json
+{
+  "incidentId": "incident-example-001"
+}
+```
+
+## Output
+
+Verified post-event Incident record with frozen Plan provenance, structured transitions, receipts, and ledger evidence.
+
+| Output field | Meaning |
+| --- | --- |
+| filename | Published result field. |
+| mimeType | Published result field. |
+| content | Published result field. |
+
+- Stable ID: content.register.id
+- Stable ID: content.incident.id
+- Stable ID: content.ledger[].id
+
+## Errors
+
+| Code | Message | Remediation |
+| --- | --- | --- |
+| TOOL_SCOPE_REQUIRED | Tool authorization scope is required. | Grant the published scope for this tool or use a read-only tool within the current session. |
+| AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
+| AGENT_GRANT_INVALID | Agent Grant is invalid. | Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less. |
+| TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
+| TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
+| VENUE_INTERNAL_ERROR | VenueMind could not complete the operation. | Retry once; if the error persists, inspect the server log with the correlation ID. |
+| INCIDENT_REGISTER_NOT_FOUND | Incident Register is unavailable. | Create the register from the active Event Day Runbook before inspecting or reporting incidents. |
+| INCIDENT_NOT_FOUND | Operational Incident is unavailable. | Inspect the Incident Register and retry with an existing stable Incident ID. |
+| INCIDENT_TOOL_UNAVAILABLE | Incident tool Adapter is unavailable. | Open VenueMind Studio or connect an MCP Project session with Incident Register operations enabled. |
+| INCIDENT_REVISION_CONFLICT | Operational Incident revision conflict. | Refresh the incident and retry only if the transition is still required. |
+| INCIDENT_INVALID | Operational Incident input is invalid. | Use the published severity, category, owner, reason, reference, and transition fields. |
+| INCIDENT_PRIVACY_REJECTED | Incident input contains prohibited person-level data. | Remove identities, contacts, ticket, device, attendee, medical, and free-form person records. |
+| INCIDENT_LOCATION_INVALID | Incident Location Context is invalid. | Anchor the incident to one object or in-room coordinate in the frozen accepted Plan. |
+| INCIDENT_LEDGER_INTEGRITY_FAILED | Incident Register ledger integrity failed. | Restore the last verified register state before inspection or export. |
+
+## Surfaces
+
+- [WebMCP runtime](https://venue-mind-jet.vercel.app/docs/webmcp#runtime)
+- [Standalone MCP](https://venue-mind-jet.vercel.app/docs/mcp#surfaces)
+- [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
+
+---
+
 # venue.export_audit_package
 
 Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:export.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 2000000 bytes.
@@ -4157,7 +4706,7 @@ Export the validated Plan as JSON, compact text, layered SVG, print-ready plan o
 
 ## Contract
 
-- Contract version 1.2.0.
+- Contract version 1.4.0.
 - Required Agent Grant scope venue:export.
 - Read-only operation.
 - Input limit 65536 bytes; output limit 2000000 bytes.
@@ -5642,11 +6191,11 @@ Execute Recover Unsynchronized Branch through the shared VenueMind planner bound
 | sourceRevision | integer \| null | no | — | ≥ 1 | Published contract field. |
 | remoteRevision | integer \| null | no | — | ≥ 1 | Published contract field. |
 | actor | const "human" | yes | — | — | Claimed action source; policy verifies it against the principal. |
-| actorId | string | no | — | min 1 chars | Authenticated or local stable actor identity. |
 | idempotencyKey | string | yes | — | min 1 chars | Unique retry key for this semantic command. |
 | correlationId | string | no | — | min 1 chars | Optional caller correlation identifier. |
 | source | studio \| webmcp \| mcp \| system \| agent-tool | no | — | — | Surface that submitted the command. |
 | sessionId | string | no | — | min 1 chars | Calling session identity. |
+| actorId | string | no | — | min 1 chars | Authenticated or local stable actor identity. |
 
 ```json
 {
@@ -5703,11 +6252,11 @@ Execute Record Share Link Created through the shared VenueMind planner boundary.
 | proposalId | string \| null | no | — | — | Stable Proposal ID. |
 | expiresAt | string | yes | — | format date-time | Published contract field. |
 | actor | const "human" | yes | — | — | Claimed action source; policy verifies it against the principal. |
-| actorId | string | no | — | min 1 chars | Authenticated or local stable actor identity. |
 | idempotencyKey | string | yes | — | min 1 chars | Unique retry key for this semantic command. |
 | correlationId | string | no | — | min 1 chars | Optional caller correlation identifier. |
 | source | studio \| webmcp \| mcp \| system \| agent-tool | no | — | — | Surface that submitted the command. |
 | sessionId | string | no | — | min 1 chars | Calling session identity. |
+| actorId | string | no | — | min 1 chars | Authenticated or local stable actor identity. |
 
 ```json
 {
@@ -5763,11 +6312,11 @@ Execute Record Share Link Revoked through the shared VenueMind planner boundary.
 | shareLinkId | string | yes | — | min 1 chars | Published contract field. |
 | reasonCode | string | no | — | min 1 chars | Published contract field. |
 | actor | const "human" | yes | — | — | Claimed action source; policy verifies it against the principal. |
-| actorId | string | no | — | min 1 chars | Authenticated or local stable actor identity. |
 | idempotencyKey | string | yes | — | min 1 chars | Unique retry key for this semantic command. |
 | correlationId | string | no | — | min 1 chars | Optional caller correlation identifier. |
 | source | studio \| webmcp \| mcp \| system \| agent-tool | no | — | — | Surface that submitted the command. |
 | sessionId | string | no | — | min 1 chars | Calling session identity. |
+| actorId | string | no | — | min 1 chars | Authenticated or local stable actor identity. |
 
 ```json
 {
@@ -7163,7 +7712,7 @@ Execute Restore Snapshot through the shared VenueMind planner boundary.
 | Field | Type | Required | Default | Bounds | Meaning |
 | --- | --- | --- | --- | --- | --- |
 | type | const "restore_snapshot" | yes | — | — | Stable command discriminator. |
-| snapshot | planner-snapshot | yes | — | — | Complete schema-compatible planner snapshot. |
+| snapshot | planner-snapshot | yes | — | — | Complete canonical Project schema 10 planner snapshot. |
 
 ```javascript
 const snapshot = await fetch('/examples/planner-snapshot.json').then((response) => response.json());
@@ -7189,7 +7738,7 @@ Restored normalized planner state after integrity checks.
 | COMMAND_INVALID | Venue command requires a type. | Send one published Venue command with its required fields. |
 | COMMAND_UNSUPPORTED | Venue command is not supported. | Refresh the command contract and use a published command type. |
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
-| SNAPSHOT_INVALID | Invalid VenueMind snapshot. | Restore a schema-compatible snapshot containing a Plan, Proposal, and Activity Ledger. |
+| SNAPSHOT_INVALID | Invalid VenueMind snapshot. | Restore a canonical Project schema 10 snapshot containing a Plan, Proposal, and Activity Ledger. |
 | LEDGER_INTEGRITY_FAILED | Activity Ledger integrity failed. | Restore an untampered snapshot or recover the last verified Project record. |
 
 - [Complete error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
@@ -7283,7 +7832,7 @@ npm run check:generated
 
 ## Extend commands and Constraints
 
-- Commands begin in src/contracts/venue-contracts.js and execute only through VenuePlanner.execute.
+- Commands begin in src/contracts/venue-contracts.ts and execute only through VenuePlanner.execute.
 - Agent-facing commands receive one shared tool contract and authorization mapping.
 - Constraints enter the versioned evaluator registry and return deterministic stable-ID evidence.
 - Contract tests bind runtime required fields, errors, outputs, docs, examples, WebMCP, and MCP.
@@ -7315,7 +7864,7 @@ npm run check:generated
 - [Shared runtime contracts](https://venue-mind-jet.vercel.app/guides/adr/0018-shared-runtime-contracts.md)
 - [Constraint registry](https://venue-mind-jet.vercel.app/guides/adr/0019-versioned-constraint-registry.md)
 - [Ledger integrity and replay](https://venue-mind-jet.vercel.app/guides/adr/0020-hash-chained-ledger-and-replay.md)
-- [Sites identity and tenancy](https://venue-mind-jet.vercel.app/guides/adr/0021-sites-identity-and-server-owned-tenancy.md)
+- [Server-owned tenancy](https://venue-mind-jet.vercel.app/guides/adr/0021-server-owned-tenancy.md)
 - [Hashed bearer sharing](https://venue-mind-jet.vercel.app/guides/adr/0024-hashed-bearer-sharing.md)
 - [Operational Resource Snapshots](https://venue-mind-jet.vercel.app/guides/adr/0025-operational-resource-snapshots-are-not-plan-truth.md)
 - [Public SDK boundary](https://venue-mind-jet.vercel.app/guides/adr/0026-public-sdk-follows-canonical-tool-and-adapter-contracts.md)
@@ -7340,6 +7889,12 @@ JSON Schemas are generated from the runtime contract source during every product
 - [Comment](https://venue-mind-jet.vercel.app/schemas/comment.schema.json)
 - [Scenario definition](https://venue-mind-jet.vercel.app/schemas/scenario-definition.schema.json)
 - [Simulation result](https://venue-mind-jet.vercel.app/schemas/simulation-result.schema.json)
+- [Aggregate Occupancy Signal](https://venue-mind-jet.vercel.app/schemas/aggregate-occupancy-signal.schema.json)
+- [Live Occupancy projection](https://venue-mind-jet.vercel.app/schemas/live-occupancy-projection.schema.json)
+- [Live Occupancy monitor](https://venue-mind-jet.vercel.app/schemas/live-occupancy-monitor.schema.json)
+- [Incident Location Context](https://venue-mind-jet.vercel.app/schemas/incident-location-context.schema.json)
+- [Operational Incident](https://venue-mind-jet.vercel.app/schemas/operational-incident.schema.json)
+- [Incident Register](https://venue-mind-jet.vercel.app/schemas/incident-register.schema.json)
 - [Project list result](https://venue-mind-jet.vercel.app/schemas/project-list-result.schema.json)
 - [Project open result](https://venue-mind-jet.vercel.app/schemas/project-open-result.schema.json)
 - [Layout inspection](https://venue-mind-jet.vercel.app/schemas/layout-inspection.schema.json)
@@ -7366,9 +7921,9 @@ JSON Schemas are generated from the runtime contract source during every product
 
 Human Roles and Agent Grants are separate authority sources. Policy Decisions are enforced inside planner and tool-service boundaries; denied planner actions append a sanitized Activity Ledger entry without retaining command payloads or protected Project data.
 
-- Human Roles come from server-resolved Organization Memberships: viewer, planner, reviewer, approver, venue administrator, organization administrator.
+- Human Roles come from server-resolved Organization Memberships: viewer, planner, reviewer, approver, safety officer, venue administrator, organization administrator.
 - Agent Grants bind one agent to one Organization and one Project, published scopes, issuer, issue time, and expiry of one hour or less.
-- Approval, Warning Waivers, Lock management, and conflict decisions remain human-only.
+- Approval, Warning Waivers, Lock management, emergency action authority, and conflict decisions remain human-only.
 - Approval requires an approver, venue administrator, or organization administrator role in addition to passing Validation.
 
 - [Published policy](https://venue-mind-jet.vercel.app/authorization-policy.json)
@@ -7418,6 +7973,22 @@ VenueMind JSON is the only authoritative import format. DXF and PDF files remain
 
 Visible changes to VenueMind contracts, workflows, compatibility, and operational guidance.
 
+## Tool contract 1.4.0
+
+- Added shared Incident Register inspection, structured Incident reporting, and verified Incident-record export tools.
+- Kept Incident acknowledgement, escalation, response, ownership, handoff, emergency-action, resolution, closure, and reopening authority human-only.
+- Added Runbook-bound D1 Incident Register persistence, browser outbox recovery, and a non-modal Studio operations panel.
+- The current deployment stores structured Incident data only and does not accept file uploads.
+- Added one actor, one timestamp, one Plan-bound location, one receipt, and one ordered hash-ledger entry for every accepted Incident transition.
+- Updated MCP 0.6.0, the event-day skill, SDK, schemas, examples, llms.txt, llms-full.txt, and docs catalog together.
+
+## Tool contract 1.3.0
+
+- Added four shared Live Occupancy tools for aggregate inspection, signal ingestion, freshness refresh, and verified export.
+- Added the venue:operate Agent Grant scope while keeping Alert acknowledgement human-only.
+- Added D1-backed monitor persistence, browser outbox replay, distinct feed states, and an immutable Occupancy Monitor Ledger.
+- Updated the event-day skill, SDK, schemas, examples, llms.txt, llms-full.txt, and docs catalog together.
+
 ## Docs 1.2.0
 
 - Generated one contract-bound reference page for every tool and planner command.
@@ -7447,8 +8018,8 @@ Visible changes to VenueMind contracts, workflows, compatibility, and operationa
 ## Project schema 10
 
 - Added reviewed Emergency Plan evidence and Degraded Scenarios.
-- Preserved migration paths from geometry, route, Lock, accessibility, and Scenario schema generations.
-- Kept accepted Plan truth replayable through the hash-chained Activity Ledger.
+- Made schema 10 the sole Project runtime format with strict restore and import boundaries.
+- Kept accepted Plan and Event Brief truth replayable through the hash-chained Activity Ledger.
 
 ## Documentation policy
 

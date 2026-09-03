@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalOrigin": "https://venue-mind-jet.vercel.app",
-  "generatedFrom": "src/docs/content.js",
+  "generatedFrom": "src/docs/content.ts",
   "pages": [
     {
       "slug": "overview",
@@ -13,10 +13,10 @@
         "developers",
         "agents"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.2.0"
+        "Tool contract 1.4.0"
       ],
       "anchors": [
         "model",
@@ -33,10 +33,10 @@
         "operators",
         "developers"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "MCP 0.4.0",
-        "Tool contract 1.2.0"
+        "MCP 0.6.0",
+        "Tool contract 1.4.0"
       ],
       "anchors": [
         "studio",
@@ -54,7 +54,7 @@
         "developers",
         "agents"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Validation 2.7.0"
@@ -69,6 +69,8 @@
         "operations",
         "access-infrastructure",
         "occupancy-zones",
+        "live-occupancy",
+        "incident-register",
         "circulation-evidence",
         "proposal",
         "editing",
@@ -100,10 +102,10 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.2.0"
+        "Tool contract 1.4.0"
       ],
       "anchors": [
         "prerequisites",
@@ -123,10 +125,10 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.2.0"
+        "Tool contract 1.4.0"
       ],
       "anchors": [
         "prepare",
@@ -148,10 +150,10 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.2.0"
+        "Tool contract 1.4.0"
       ],
       "anchors": [
         "create-branches",
@@ -171,10 +173,10 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.2.0"
+        "Tool contract 1.4.0"
       ],
       "anchors": [
         "create-stale-state",
@@ -194,10 +196,10 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.2.0"
+        "Tool contract 1.4.0"
       ],
       "anchors": [
         "collect",
@@ -217,9 +219,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "MCP 0.4.0",
+        "MCP 0.6.0",
         "Protocol 2026-07-28"
       ],
       "anchors": [
@@ -241,10 +243,10 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "WebMCP 1.2.0",
-        "39 tools"
+        "WebMCP 1.4.0",
+        "46 tools"
       ],
       "anchors": [
         "open",
@@ -264,10 +266,10 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Skills 1.1.0",
-        "Tool contract 1.2.0"
+        "Skills 1.3.0",
+        "Tool contract 1.4.0"
       ],
       "anchors": [
         "build",
@@ -287,10 +289,10 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.2.0"
+        "Tool contract 1.4.0"
       ],
       "anchors": [
         "preview",
@@ -310,10 +312,10 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.2.0"
+        "Tool contract 1.4.0"
       ],
       "anchors": [
         "seed",
@@ -332,10 +334,10 @@
         "agent integrators",
         "developers"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "WebMCP 1.2.0",
-        "39 tools"
+        "WebMCP 1.4.0",
+        "46 tools"
       ],
       "anchors": [
         "runtime",
@@ -351,9 +353,9 @@
         "agent integrators",
         "developers"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "MCP 0.4.0",
+        "MCP 0.6.0",
         "Protocol 2026-07-28"
       ],
       "anchors": [
@@ -371,16 +373,16 @@
     {
       "slug": "skills",
       "title": "Agent skills",
-      "description": "Six versioned skill packages teach supervised VenueMind workflows against tool contract 1.2.0.",
+      "description": "Six versioned skill packages teach supervised VenueMind workflows against tool contract 1.4.0.",
       "canonicalPath": "/docs/skills",
       "audience": [
         "agents",
         "developers"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Skills 1.1.0",
-        "Tool contract 1.2.0"
+        "Skills 1.3.0",
+        "Tool contract 1.4.0"
       ],
       "anchors": [
         "plan-skill",
@@ -403,10 +405,10 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Tool contract 1.2.0",
-        "MCP server 0.4.0"
+        "Tool contract 1.4.0",
+        "MCP server 0.6.0"
       ],
       "anchors": [
         "webmcp",
@@ -427,9 +429,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Tool contract 1.2.0",
+        "Tool contract 1.4.0",
         "WebMCP + MCP"
       ],
       "anchors": [
@@ -437,7 +439,8 @@
         "venue:propose",
         "venue:comment",
         "venue:simulate",
-        "venue:export"
+        "venue:export",
+        "venue:operate"
       ]
     },
     {
@@ -449,7 +452,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Shared planner boundary"
@@ -483,10 +486,10 @@
         "operators",
         "agents"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Stable error envelope",
-        "Tool contract 1.2.0"
+        "Tool contract 1.4.0"
       ],
       "anchors": [
         "catalog",
@@ -503,7 +506,7 @@
         "developers",
         "agents"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Validation 2.7.0",
         "Spatial evidence 1"
@@ -524,7 +527,7 @@
         "developers",
         "auditors"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Ledger schema 1",
         "Hash chained"
@@ -544,7 +547,7 @@
         "developers",
         "agents"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Ledger schema 1"
@@ -566,7 +569,7 @@
         "operators",
         "developers"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "D1 repository"
@@ -592,7 +595,7 @@
         "developers",
         "security reviewers"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Authorization policy 1",
         "Agent Grant ≤ 1 hour"
@@ -613,7 +616,7 @@
         "agent integrators",
         "operators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Current release",
         "No active deprecations"
@@ -633,9 +636,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -655,9 +658,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -677,9 +680,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -699,9 +702,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -721,9 +724,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -743,9 +746,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -765,9 +768,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -787,9 +790,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -809,9 +812,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -831,9 +834,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -853,9 +856,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -875,9 +878,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -897,9 +900,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -919,9 +922,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -941,9 +944,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -963,9 +966,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -985,9 +988,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1007,9 +1010,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1029,9 +1032,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1051,9 +1054,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1073,9 +1076,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1095,9 +1098,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1117,9 +1120,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1139,9 +1142,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1161,9 +1164,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1183,9 +1186,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1205,9 +1208,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:comment"
       ],
       "anchors": [
@@ -1227,9 +1230,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:comment"
       ],
       "anchors": [
@@ -1249,9 +1252,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:comment"
       ],
       "anchors": [
@@ -1271,9 +1274,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1293,9 +1296,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1315,9 +1318,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1337,9 +1340,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1359,9 +1362,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:simulate"
       ],
       "anchors": [
@@ -1381,9 +1384,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:simulate"
       ],
       "anchors": [
@@ -1403,9 +1406,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:simulate"
       ],
       "anchors": [
@@ -1425,9 +1428,163 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
+        "Scope venue:export"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-inspect-live-occupancy",
+      "title": "venue.inspect_live_occupancy",
+      "description": "Read the current aggregate-only Live Occupancy projection, source freshness, active Alerts, simulation deltas, and incident Ledger without person-level records.",
+      "canonicalPath": "/docs/reference-tool-venue-inspect-live-occupancy",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.6.0",
+      "compatibility": [
+        "Contract 1.4.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-ingest-occupancy-signal",
+      "title": "venue.ingest_occupancy_signal",
+      "description": "Ingest one bounded aggregate Occupancy Signal from a registration total, sensor, or manual counter with stable source and scope IDs.",
+      "canonicalPath": "/docs/reference-tool-venue-ingest-occupancy-signal",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.6.0",
+      "compatibility": [
+        "Contract 1.4.0",
+        "Scope venue:operate"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-refresh-live-occupancy",
+      "title": "venue.refresh_live_occupancy",
+      "description": "Refresh Live Occupancy freshness and derived Alerts at the server-accepted instant without changing any aggregate count.",
+      "canonicalPath": "/docs/reference-tool-venue-refresh-live-occupancy",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.6.0",
+      "compatibility": [
+        "Contract 1.4.0",
+        "Scope venue:operate"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-export-live-occupancy",
+      "title": "venue.export_live_occupancy",
+      "description": "Export the verified aggregate-only Live Occupancy audit artifact with baseline, observations, Alerts, receipts, and hash-chained incident Ledger.",
+      "canonicalPath": "/docs/reference-tool-venue-export-live-occupancy",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.6.0",
+      "compatibility": [
+        "Contract 1.4.0",
+        "Scope venue:export"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-inspect-incidents",
+      "title": "venue.inspect_incidents",
+      "description": "Inspect the Runbook-bound Incident Register or one stable Operational Incident with structured severity, category, owner, location, acknowledgement, escalation, evidence, and ordered ledger state.",
+      "canonicalPath": "/docs/reference-tool-venue-inspect-incidents",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.6.0",
+      "compatibility": [
+        "Contract 1.4.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-report-incident",
+      "title": "venue.report_incident",
+      "description": "Report one structured Operational Incident against an object or coordinate in the frozen accepted Plan without claiming acknowledgement, escalation, ownership, resolution, or emergency authority.",
+      "canonicalPath": "/docs/reference-tool-venue-report-incident",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.6.0",
+      "compatibility": [
+        "Contract 1.4.0",
+        "Scope venue:operate"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-export-incident-record",
+      "title": "venue.export_incident_record",
+      "description": "Export one verified post-event Operational Incident record with frozen Plan and Emergency Plan provenance, transitions, structured handoffs, receipts, and hash-chained ledger evidence.",
+      "canonicalPath": "/docs/reference-tool-venue-export-incident-record",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.6.0",
+      "compatibility": [
+        "Contract 1.4.0",
         "Scope venue:export"
       ],
       "anchors": [
@@ -1447,9 +1604,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:export"
       ],
       "anchors": [
@@ -1469,9 +1626,9 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
-        "Contract 1.2.0",
+        "Contract 1.4.0",
         "Scope venue:export"
       ],
       "anchors": [
@@ -1491,7 +1648,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission plan.read"
@@ -1512,7 +1669,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission plan.read"
@@ -1533,7 +1690,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission plan.read"
@@ -1554,7 +1711,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission plan.read"
@@ -1575,7 +1732,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission plan.read"
@@ -1596,7 +1753,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission plan.read"
@@ -1617,7 +1774,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission plan.read"
@@ -1638,7 +1795,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission plan.read"
@@ -1659,7 +1816,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission plan.read"
@@ -1680,7 +1837,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.read"
@@ -1701,7 +1858,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.read"
@@ -1722,7 +1879,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission audit.read"
@@ -1743,7 +1900,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission audit.read"
@@ -1764,7 +1921,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission simulation.read"
@@ -1785,7 +1942,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission simulation.read"
@@ -1806,7 +1963,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission simulation.read"
@@ -1827,7 +1984,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission simulation.run"
@@ -1848,7 +2005,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission simulation.read"
@@ -1869,7 +2026,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission export.plan"
@@ -1890,7 +2047,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.read"
@@ -1911,7 +2068,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.create"
@@ -1932,7 +2089,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.create"
@@ -1953,7 +2110,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.manage"
@@ -1974,7 +2131,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.create"
@@ -1995,7 +2152,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.manage"
@@ -2016,7 +2173,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission project.manage"
@@ -2037,7 +2194,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission project.manage"
@@ -2058,7 +2215,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.manage"
@@ -2079,7 +2236,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.manage"
@@ -2100,7 +2257,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.create"
@@ -2121,7 +2278,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.manage"
@@ -2142,7 +2299,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.manage"
@@ -2163,7 +2320,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.review"
@@ -2184,7 +2341,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission comment.read"
@@ -2205,7 +2362,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission comment.write"
@@ -2226,7 +2383,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission comment.write"
@@ -2247,7 +2404,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission comment.write"
@@ -2268,7 +2425,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.manage"
@@ -2289,7 +2446,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.manage"
@@ -2310,7 +2467,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission approval.waive"
@@ -2331,7 +2488,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission lock.manage"
@@ -2352,7 +2509,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission lock.manage"
@@ -2373,7 +2530,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission approval.approve"
@@ -2394,7 +2551,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission plan.update"
@@ -2415,7 +2572,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission plan.update"
@@ -2436,7 +2593,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.manage"
@@ -2457,7 +2614,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.review"
@@ -2478,7 +2635,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission proposal.manage"
@@ -2499,7 +2656,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission project.manage"
@@ -2520,7 +2677,7 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
         "Permission export.plan"
@@ -2542,10 +2699,10 @@
         "maintainers",
         "security reviewers"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.2.0"
+        "Tool contract 1.4.0"
       ],
       "anchors": [
         "architecture",
@@ -2564,10 +2721,10 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.2.0"
+        "Tool contract 1.4.0"
       ],
       "anchors": [
         "schemas",
@@ -2590,12 +2747,14 @@
         "developers",
         "agent integrators"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Docs 1.0.0",
         "Reviewed 2026-08-27"
       ],
       "anchors": [
+        "tool-contract-1-4-0",
+        "tool-contract-1-3-0",
         "docs-1-2-0",
         "docs-1-1-0",
         "tool-contract-1-2-0",
@@ -2614,7 +2773,7 @@
         "reviewers",
         "agents"
       ],
-      "lastReviewedVersion": "VenueMind 0.4.0",
+      "lastReviewedVersion": "VenueMind 0.6.0",
       "compatibility": [
         "Authorization policy 1",
         "Ledger schema 1"

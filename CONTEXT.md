@@ -8,6 +8,10 @@ VenueMind models human-supervised spatial planning for live events. Its language
 The Organization-owned durable container for one event's accepted Plan, Proposal branches, Constraints, and Activity Ledger.
 _Avoid_: File, document
 
+**Project Schema**:
+The single canonical persisted shape accepted by the running VenueMind release. Project schema 10 is current; older Project shapes are rejected rather than upgraded inside the product runtime.
+_Avoid_: Database schema, compatibility range, import format
+
 **User**:
 A person identified by an external Identity Provider and represented by one VenueMind account across Organizations.
 _Avoid_: Member, session, actor
@@ -181,7 +185,7 @@ A versioned, checksummed representation of one complete Project used for portabl
 _Avoid_: Project file, raw snapshot
 
 **Import Preview**:
-A read-only integrity, migration, and conflict assessment of an Interchange Package before any Project is created.
+A read-only schema, checksum, geometry, stable-ID, Lock, ledger, replay, and conflict assessment of an Interchange Package before any Project is created.
 _Avoid_: Imported Project, upload result
 
 **Import Commit**:
@@ -211,6 +215,50 @@ _Avoid_: Attendee accommodation, disability record, accessibility note
 **Check-in Aggregate**:
 An event-day count by source-namespaced Ticket Class at one timestamp. It contains no scan, barcode, order, payment, device, or attendee identity record.
 _Avoid_: Check-in event, attendee timeline, scan log
+
+**Live Occupancy Monitor**:
+A Runbook-bound operational aggregate that reconciles aggregate Check-in and Occupancy Signals against the frozen Plan, event target, and simulation assumptions.
+_Avoid_: attendee tracker, live Plan, analytics dashboard
+
+**Occupancy Signal**:
+A source-versioned aggregate count for the event check-in total, whole venue, or one stable Occupancy Zone at one observed instant, with bounded confidence and no person-level record.
+_Avoid_: attendee location, scan event, sensor payload
+
+**Occupancy Alert**:
+A typed, deterministic stale-source, conflicting-feed, warning-threshold, or exceeded-capacity state for one Live Occupancy scope. Human acknowledgement records operational ownership without clearing or changing the state.
+_Avoid_: notification, free-form incident, Constraint failure
+
+**Occupancy Monitor Ledger**:
+The append-only hash-chained record of accepted Occupancy Signals and Occupancy Alert openings, human acknowledgements, and resolutions for one Live Occupancy Monitor.
+_Avoid_: Incident Register, Activity Ledger, Runbook Ledger, mutable alert history
+
+**Incident Register**:
+The Runbook-bound operational record of every Operational Incident, its ordered transitions, receipts, and audit evidence for one immutable accepted Plan baseline.
+_Avoid_: Project snapshot field, Occupancy Monitor Ledger, issue list
+
+**Operational Incident**:
+A structured event-day condition with stable identity, severity, category, location, ownership, acknowledgement, escalation, status, and timestamps.
+_Avoid_: Issue, Comment, Occupancy Alert, free-form incident
+
+**Incident Location Context**:
+One Plan-bound location identifying either a stable Project Object Instance or a coordinate inside the accepted Room Boundary.
+_Avoid_: Location label, attendee location, Proposal object
+
+**Incident Transition**:
+One authoritative change to an Operational Incident, attributed to one actor at one accepted instant and carrying the Incident Location Context in effect for that change.
+_Avoid_: Incident edit, mutable history, device timestamp
+
+**Incident Handoff**:
+A structured transfer of one active Operational Incident between two Plan- and Runbook-resolved operational owners, preserving open action codes and evidence references.
+_Avoid_: Chat summary, assignee name, Runbook Handoff
+
+**Incident Attachment**:
+Private, access-controlled photo evidence whose Incident record retains only bounded media metadata and an integrity checksum.
+_Avoid_: Public URL, inline image data, original filename
+
+**Emergency Action Invocation**:
+A human-authorized record that one action from the approved Emergency Plan baseline was invoked for an Operational Incident without changing the accepted Plan.
+_Avoid_: Emergency Review, Plan mutation, agent recommendation
 
 **Ticket Occupancy Reconciliation**:
 Deterministic evidence comparing Ticket Class totals and zone allocations with the Project attendee target and Occupancy Zone limits.

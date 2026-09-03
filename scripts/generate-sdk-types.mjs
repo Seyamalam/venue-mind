@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { compileFromFile } from "json-schema-to-typescript";
 import { compile } from "json-schema-to-typescript";
-import { VENUE_TOOL_CONTRACT_VERSION, venueToolContracts } from "../src/contracts/venue-contracts.js";
+import { VENUE_TOOL_CONTRACT_VERSION, venueToolContracts } from "../src/contracts/venue-contracts.ts";
 
 const root = path.resolve(new URL("../", import.meta.url).pathname);
 const schemaDirectory = path.join(root, "public/schemas");

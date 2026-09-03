@@ -3,6 +3,7 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "allowImportingTsExtensions": true,
     "lib": ["ES2023", "DOM"],
     "types": ["node"],
     "strict": true,
@@ -10,8 +11,8 @@
     "exactOptionalPropertyTypes": true,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outDir": "dist",
-    "rootDir": "src",
+    "outDir": "dist/.types",
+    "rootDir": "../..",
     "skipLibCheck": true
   },
   "include": ["src/**/*.ts"]

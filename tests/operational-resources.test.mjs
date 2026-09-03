@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { bookingOverlaps, normalizePreparedOperationalResourceInput, reconcileOperationalResources, resourceSatisfiesDemand } from "../src/domain/operational-resources.js";
+import { bookingOverlaps, normalizePreparedOperationalResourceInput, reconcileOperationalResources, resourceSatisfiesDemand } from "../src/domain/operational-resources.ts";
 
 const EVENT = { startAt: "2026-09-12T10:00:00.000Z", endAt: "2026-09-12T12:00:00.000Z" };
 const templateRef = { templateId: "inventory-template-laser-projector", version: "1.0.0" };
@@ -40,11 +40,11 @@ test("pure reconciliation creates deterministic conflicts and explicit compatibl
   assert.equal(Object.hasOwn(first, "selectedOptionId"), false);
 });
 
-test("prepared v1 evidence accepts legacy SHA-256 and current canonical Plan fingerprints", () => {
+test("prepared v1 evidence accepts canonical Plan fingerprints only", () => {
   assert.equal(normalizePreparedOperationalResourceInput(prepared()).project.planFingerprint, "plan-dddddddd");
-  const legacy = prepared();
-  legacy.project.planFingerprint = "d".repeat(64);
-  assert.equal(normalizePreparedOperationalResourceInput(legacy).project.planFingerprint, "d".repeat(64));
+  const unsupported = prepared();
+  unsupported.project.planFingerprint = "d".repeat(64);
+  assert.throws(() => normalizePreparedOperationalResourceInput(unsupported), (error) => error.code === "ADAPTER_CHECKSUM_INVALID");
 });
 
 test("self bookings and endpoint-adjacent bookings do not reduce availability", async () => {

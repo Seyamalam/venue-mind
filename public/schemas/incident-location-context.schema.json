@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/incident-location-context.schema.json",
+  "title": "VenueMind Incident Location Context",
+  "type": "object",
+  "required": [
+    "kind",
+    "planId",
+    "planVersion",
+    "planFingerprint"
+  ],
+  "properties": {
+    "kind": {
+      "enum": [
+        "plan-object",
+        "coordinate"
+      ]
+    },
+    "planId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "planVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "planFingerprint": {
+      "type": "string",
+      "minLength": 1
+    },
+    "planObjectId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "point": {
+      "type": "object",
+      "required": [
+        "x",
+        "y"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

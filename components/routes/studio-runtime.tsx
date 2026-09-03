@@ -1,12 +1,10 @@
 "use client";
 
-import { App } from "@/src/App.jsx";
-import { WorkspaceGate } from "@/src/auth/WorkspaceGate.jsx";
+import { App } from "@/src/App";
+import { WorkspaceGate } from "@/src/auth/WorkspaceGate";
 import { useWorkspaceNavigation } from "./use-workspace-navigation";
-
-type Workspace = { account: unknown; accountStore: unknown; organizationId: string };
 
 export function StudioRuntime({ projectId }: { projectId: string }) {
   const navigate = useWorkspaceNavigation();
-  return <WorkspaceGate>{(workspace: Workspace) => <App {...workspace} projectId={projectId} navigate={navigate} />}</WorkspaceGate>;
+  return <WorkspaceGate>{(workspace) => <App {...workspace} projectId={projectId} navigate={navigate} />}</WorkspaceGate>;
 }

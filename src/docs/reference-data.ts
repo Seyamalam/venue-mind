@@ -1,0 +1,676 @@
+import { VENUE_TOOL_CONTRACT_VERSION } from "../contracts/venue-contracts.ts";
+import { VALIDATION_ENGINE_VERSION } from "../domain/constraint-engine.ts";
+import { SIMULATION_ENGINE_VERSION } from "../domain/scenario-engine.ts";
+
+export type ToolOutputReference = Readonly<{
+  fields: readonly string[];
+  stableIds: readonly string[];
+  semantics: string;
+}>;
+
+const output = (fields: readonly string[], stableIds: readonly string[], semantics: string): ToolOutputReference =>
+  Object.freeze({ fields: Object.freeze(fields), stableIds: Object.freeze(stableIds), semantics });
+
+export const TOOL_OUTPUT_REFERENCE: Readonly<Record<string, ToolOutputReference>> = Object.freeze({
+  "venue.list_projects": output(
+    ["source", "projects[]"],
+    ["projects[].id", "projects[].activePlanId"],
+    "Bounded Project summaries visible to the current Project-scoped grant.",
+  ),
+  "venue.open_project": output(
+    ["status", "project"],
+    ["project.id", "project.activePlanId"],
+    "Selects one durable Project for subsequent tool calls.",
+  ),
+  "venue.inspect_templates": output(
+    ["schemaVersion", "venueTemplates[]", "roomTemplates[]", "inventoryTemplates[]"],
+    ["venueTemplates[].id", "roomTemplates[].id", "inventoryTemplates[].id"],
+    "Versioned reusable venue, room, and inventory definitions.",
+  ),
+  "venue.get_project_brief": output(
+    [
+      "id",
+      "eventName",
+      "date",
+      "timezone",
+      "venueId",
+      "roomId",
+      "attendeeTarget",
+      "occupancyMode",
+      "schedule",
+      "planningEffectBindings",
+      "requirements[]",
+      "coverage",
+      "coverageMatrix",
+      "ambiguities[]",
+      "summary",
+    ],
+    [
+      "id",
+      "planningEffectBindings.*.targetRequirementId",
+      "planningEffectBindings.*.affectedConstraintIds[]",
+      "requirements[].id",
+      "coverageMatrix[].constraintId",
+    ],
+    "The active Event Brief and exact requirement-to-evidence coverage.",
+  ),
+  "venue.list_constraints": output(
+    ["result[]"],
+    ["result[].id", "result[].checkId"],
+    "Filtered canonical Constraint records.",
+  ),
+  "venue.inspect_layout": output(
+    [
+      "planId",
+      "planVersion",
+      "event",
+      "venue",
+      "templateBindings",
+      "inventoryAvailability",
+      "occupancy",
+      "staffing",
+      "productionPolicy",
+      "cateringPolicy",
+      "emergencyPlan",
+      "emergencyReviews",
+      "spatial",
+      "spatialObjects[]",
+      "lockedObjects[]",
+      "projectLocks[]",
+      "comments[]",
+      "scenarios[]",
+      "scenarioRuns[]",
+      "constraints[]",
+      "metrics",
+      "proposal",
+      "activeBranchId",
+      "proposalBranches[]",
+      "commandReceiptCount",
+      "ledgerIntegrity",
+      "brief",
+    ],
+    [
+      "planId",
+      "spatialObjects[].id",
+      "constraints[].id",
+      "proposal.id",
+      "proposal.changes[].id",
+      "activeBranchId",
+      "proposalBranches[].id",
+    ],
+    "The bounded accepted Plan and visible Proposal inspection used to start every planning workflow.",
+  ),
+  "venue.get_object": output(
+    ["scope", "planId", "planVersion", "proposalId", "object"],
+    ["planId", "proposalId", "object.id"],
+    "One accepted or Proposal candidate object with geometry and metadata.",
+  ),
+  "venue.search_objects": output(
+    ["scope", "planId", "planVersion", "proposalId", "total", "limit", "truncated", "objects[]"],
+    ["planId", "proposalId", "objects[].id"],
+    "A bounded object search result.",
+  ),
+  "venue.preview_revision": output(
+    ["proposalId", "baseVersion", "revision", "changedItems", "requiresHumanApproval", "receipt"],
+    ["proposalId", "receipt.id", "receipt.resultIds.changeId"],
+    "A non-destructive Proposal revision; accepted Plan truth is unchanged.",
+  ),
+  "venue.preview_template_update": output(
+    [
+      "proposalId",
+      "branchId",
+      "baseVersion",
+      "templateId",
+      "fromVersion",
+      "toVersion",
+      "changedItems",
+      "preservedOverrides",
+      "requiresHumanApproval",
+      "receipt",
+    ],
+    ["proposalId", "branchId", "templateId", "receipt.id"],
+    "A reviewable Room Template update Proposal.",
+  ),
+  "venue.apply_edit": output(
+    ["status", "proposalId", "changeId", "operation", "changedItems", "requiresHumanApproval", "receipt"],
+    ["proposalId", "changeId", "receipt.id"],
+    "One Proposal-safe editing operation.",
+  ),
+  "venue.measure_objects": output(
+    ["objectIds[]", "centers", "distances[]"],
+    ["objectIds[]", "distances[].fromObjectId", "distances[].toObjectId"],
+    "Read-only centre and distance measurements in canonical metres.",
+  ),
+  "venue.validate_layout": output(
+    [
+      "validationId",
+      "inputFingerprint",
+      "engineVersion",
+      "evaluatedPlanVersion",
+      "evaluatedProposalId",
+      "status",
+      "checks[]",
+      "candidateMetrics",
+      "candidateGeometryFingerprint",
+      "spatialEvidence",
+      "productionEvidence",
+      "cateringEvidence",
+      "emergencyEvidence",
+      "evidenceFamilyFingerprints",
+      "planningEvidenceInvalidations",
+      "emergencyReviewRequired",
+      "emergencyChangedObjectIds[]",
+      "authorizedEmergencyReviewerRoles[]",
+      "blockingIssues",
+      "waivedWarnings",
+      "unwaivedWarnings",
+      "unresolvedIssues",
+      "inventoryAvailability",
+      "inventoryWarnings",
+    ],
+    [
+      "validationId",
+      "evaluatedProposalId",
+      "checks[].constraintId",
+      "checks[].evidenceId",
+      "emergencyChangedObjectIds[]",
+    ],
+    "Deterministic Validation for one exact immutable input fingerprint, including typed evidence-family invalidation evidence.",
+  ),
+  "venue.get_validation_evidence": output(
+    [
+      "validationId",
+      "inputFingerprint",
+      "engineVersion",
+      "evaluatedPlanVersion",
+      "evaluatedProposalId",
+      "status",
+      "unresolvedIssues",
+      "candidateGeometryFingerprint",
+      "evidenceFingerprint",
+      "evidenceFamilyFingerprints",
+      "planningEvidenceInvalidations",
+      "checks[]",
+      "spatialEvidence",
+      "productionEvidence",
+      "cateringEvidence",
+      "emergencyEvidence",
+    ],
+    ["validationId", "evaluatedProposalId", "checks[].constraintId", "checks[].evidenceId"],
+    "A bounded evidence view of one Validation result and its exact evidence-family invalidations.",
+  ),
+  "venue.list_proposal_branches": output(
+    ["result[]"],
+    ["result[].id", "result[].proposalId", "result[].revisionIds[]"],
+    "Proposal Branch summaries and current revision state.",
+  ),
+  "venue.compare_proposal_branches": output(
+    [
+      "comparisonId",
+      "planVersion",
+      "left",
+      "right",
+      "changeSet",
+      "metricDeltas",
+      "constraintDeltas",
+      "overlay",
+      "decisionEvidence",
+    ],
+    ["comparisonId", "left.branchId", "right.branchId", "changeSet[].changeId", "constraintDeltas[].constraintId"],
+    "Deterministic spatial and operational comparison of two Branches.",
+  ),
+  "venue.create_proposal_branch": output(
+    ["branchId", "proposalId", "strategy", "changedItems", "receipt"],
+    ["branchId", "proposalId", "receipt.id"],
+    "A new independent Proposal Branch.",
+  ),
+  "venue.switch_proposal_branch": output(
+    ["branchId", "proposalId", "status", "receipt"],
+    ["branchId", "proposalId", "receipt.id"],
+    "Activates one existing Branch without changing accepted Plan truth.",
+  ),
+  "venue.update_proposal_branch": output(
+    ["status", "branchId", "name", "notes", "receipt"],
+    ["branchId", "receipt.id"],
+    "Updated human-readable Branch metadata.",
+  ),
+  "venue.duplicate_proposal_branch": output(
+    ["status", "branchId", "proposalId", "sourceBranchId", "sourceProposalId", "receipt"],
+    ["branchId", "proposalId", "sourceBranchId", "sourceProposalId", "receipt.id"],
+    "A new Branch with explicit source lineage.",
+  ),
+  "venue.archive_proposal_branch": output(
+    ["status", "branchId", "activeBranchId", "receipt"],
+    ["branchId", "activeBranchId", "receipt.id"],
+    "Archived Branch state and safe active fallback.",
+  ),
+  "venue.restore_proposal_branch": output(
+    ["status", "branchId", "receipt"],
+    ["branchId", "receipt.id"],
+    "Restored Branch state.",
+  ),
+  "venue.detect_proposal_conflicts": output(
+    [
+      "status",
+      "branchId",
+      "proposalId",
+      "stale",
+      "baseVersion",
+      "currentVersion",
+      "conflicts[]",
+      "blockingConflicts",
+      "validation",
+    ],
+    ["branchId", "proposalId", "conflicts[].id", "conflicts[].changeIds[]", "conflicts[].objectIds[]"],
+    "Current stale-base, dependency, Lock, overlap, and Constraint conflicts.",
+  ),
+  "venue.rebase_proposal": output(
+    ["status", "branchId", "proposalId", "baseVersion", "receipt"],
+    ["branchId", "proposalId", "receipt.id"],
+    "Rebased Proposal lineage against current accepted truth.",
+  ),
+  "venue.request_adjustment": output(
+    ["proposalId", "revision", "status", "receipt"],
+    ["proposalId", "receipt.id"],
+    "A revised Proposal created from a bounded adjustment instruction.",
+  ),
+  "venue.list_comments": output(
+    ["result[]"],
+    ["result[].id", "result[].anchor.subjectId"],
+    "Filtered immutable-subject comments.",
+  ),
+  "venue.add_comment": output(
+    ["status", "commentId", "anchor", "receipt"],
+    ["commentId", "anchor.subjectId", "receipt.id"],
+    "Created collaboration record without planning mutation.",
+  ),
+  "venue.edit_comment": output(
+    ["status", "commentId", "editNumber", "receipt"],
+    ["commentId", "receipt.id"],
+    "New immutable edit-history entry for one Comment.",
+  ),
+  "venue.set_comment_status": output(
+    ["status", "commentId", "receipt"],
+    ["commentId", "receipt.id"],
+    "Resolved or reopened Comment state.",
+  ),
+  "venue.get_change_log": output(
+    ["result[]"],
+    ["result[].id", "result[].hash", "result[].previousHash"],
+    "Ordered hash-chained Activity Ledger entries.",
+  ),
+  "venue.replay_history": output(
+    [
+      "status",
+      "transitions[]",
+      "briefTransitions[]",
+      "currentPlanVersion",
+      "replayedFingerprint",
+      "currentFingerprint",
+      "replayedBriefFingerprint",
+      "currentBriefFingerprint",
+      "ledgerHeadHash",
+      "lockedObjectViolations[]",
+      "truthFingerprintViolations[]",
+    ],
+    [
+      "transitions[].ledgerEntryId",
+      "transitions[].planVersion",
+      "briefTransitions[].ledgerEntryId",
+      "lockedObjectViolations[].objectId",
+      "truthFingerprintViolations[].ledgerEntryId",
+    ],
+    "Replay verification from accepted transitions to current Plan and Event Brief truth.",
+  ),
+  "venue.list_scenarios": output(["result[]"], ["result[].id"], "Versioned Scenario definitions."),
+  "venue.list_scenario_runs": output(
+    ["result[]"],
+    ["result[].id", "result[].scenarioId", "result[].branchId"],
+    "Simulation Run summaries, progress, and terminal status.",
+  ),
+  "venue.get_scenario_result": output(
+    [
+      "schemaVersion",
+      "kind",
+      "model",
+      "engineVersion",
+      "inputFingerprint",
+      "scenarioFingerprint",
+      "scenarioId",
+      "branchId",
+      "planVersion",
+      "proposalId",
+      "status",
+      "parameters",
+      "progress",
+      "partial",
+      "result",
+      "confidence",
+      "startedAt",
+      "completedAt",
+    ],
+    ["scenarioId", "branchId", "proposalId", "result.runId"],
+    "One Simulation Result bound to exact Scenario and geometry fingerprints.",
+  ),
+  "venue.run_scenario": output(
+    ["status", "runId", "scenarioId", "branchId", "inputFingerprint", "cacheHit", "result", "receipt"],
+    ["runId", "scenarioId", "branchId", "receipt.id"],
+    "A deterministic-seed Simulation Run; it never becomes Constraint Validation.",
+  ),
+  "venue.compare_simulations": output(
+    ["comparisonId", "leftRunId", "rightRunId", "scenarioFingerprint", "engineVersion", "metrics", "deltas"],
+    ["comparisonId", "leftRunId", "rightRunId"],
+    "Comparison of compatible completed Simulation Runs.",
+  ),
+  "venue.export_simulation": output(
+    ["format", "filename", "mimeType", "encoding", "content"],
+    ["content.runId", "content.scenarioId", "content.branchId"],
+    "Portable simulation parameters, fingerprints, and results.",
+  ),
+  "venue.inspect_live_occupancy": output(
+    ["monitor", "projection"],
+    [
+      "monitor.id",
+      "monitor.runbookVersionId",
+      "monitor.activeAlerts[].id",
+      "monitor.ledger[].id",
+      "projection.scopes[].scopeId",
+      "projection.sources[].sourceId",
+    ],
+    "Aggregate-only current counts, operational states, source freshness, confidence, Alerts, and incident evidence.",
+  ),
+  "venue.ingest_occupancy_signal": output(
+    ["monitor", "projection", "receipt", "duplicate"],
+    ["monitor.id", "projection.scopes[].scopeId", "receipt.id"],
+    "Idempotent aggregate signal acceptance with the resulting Live Occupancy projection.",
+  ),
+  "venue.refresh_live_occupancy": output(
+    ["monitor", "projection", "receipt", "duplicate"],
+    ["monitor.id", "monitor.activeAlerts[].id", "receipt.id"],
+    "Freshness and Alert reconciliation without changing accepted aggregate counts.",
+  ),
+  "venue.export_live_occupancy": output(
+    ["filename", "mimeType", "content"],
+    ["content.monitor.id", "content.runbookVersionId", "content.ledger[].id"],
+    "Verified aggregate-only baseline, observations, Alerts, receipts, and Occupancy Monitor Ledger artifact.",
+  ),
+  "venue.inspect_incidents": output(
+    ["register", "incidents", "incident"],
+    ["register.id", "register.runbookVersionId", "incidents[].id", "incident.id", "register.ledger[].id"],
+    "Runbook-bound Incident Register state with structured location, acknowledgement, escalation, ownership, handoff, and evidence metadata.",
+  ),
+  "venue.report_incident": output(
+    ["register", "incident", "receipt", "duplicate"],
+    ["register.id", "incident.id", "receipt.id", "register.ledger[].id"],
+    "Idempotent agent report acceptance without acknowledgement, escalation, response, or resolution authority.",
+  ),
+  "venue.export_incident_record": output(
+    ["filename", "mimeType", "content"],
+    ["content.register.id", "content.incident.id", "content.ledger[].id"],
+    "Verified post-event Incident record with frozen Plan provenance, structured transitions, receipts, and ledger evidence.",
+  ),
+  "venue.export_audit_package": output(
+    ["format", "filename", "mimeType", "encoding", "content"],
+    ["content.plan.id", "content.ledger[].id", "content.validation.validationId"],
+    "Portable geometry, Validation, ledger, receipts, reviews, and replay evidence.",
+  ),
+  "venue.export_plan": output(
+    ["format", "filename", "mimeType", "encoding", "content"],
+    ["content.planId", "content.proposalId", "content.validationId"],
+    "Read-only plan export in the requested supported format.",
+  ),
+});
+
+export const CONSTRAINT_REFERENCE = Object.freeze([
+  {
+    evaluator: "minimum_metric",
+    category: "configured metric",
+    evidence: "actual, threshold, comparator",
+    units: "Constraint parameter unit",
+  },
+  {
+    evaluator: "maximum_metric",
+    category: "configured metric",
+    evidence: "actual, threshold, comparator",
+    units: "Constraint parameter unit",
+  },
+  {
+    evaluator: "protected_objects_unchanged",
+    category: "protection",
+    evidence: "changed and protected object IDs",
+    units: "count",
+  },
+  {
+    evaluator: "accessible_route_graph",
+    category: "accessibility",
+    evidence: "reachable destinations, path widths, route edges",
+    units: "m, count",
+  },
+  {
+    evaluator: "turning_clearance",
+    category: "accessibility",
+    evidence: "destination clearance diameters",
+    units: "m",
+  },
+  {
+    evaluator: "accessible_seating",
+    category: "accessibility",
+    evidence: "seat count, section distribution, companion adjacency",
+    units: "seats, sections, ratio",
+  },
+  {
+    evaluator: "accessible_seating_sightlines",
+    category: "accessibility",
+    evidence: "sampled accessible-seat rays and section coverage",
+    units: "ratio, m, degrees",
+  },
+  {
+    evaluator: "door_clearance",
+    category: "accessibility",
+    evidence: "door clear width and obstruction IDs",
+    units: "m, count",
+  },
+  {
+    evaluator: "temporary_ramp",
+    category: "accessibility",
+    evidence: "rise, run, slope, width, landing, edge protection, handrails",
+    units: "ratio, m, boolean",
+  },
+  {
+    evaluator: "occupancy_capacity",
+    category: "capacity",
+    evidence: "placed, usable-area, section, zone, venue, and operational load",
+    units: "attendees, m², ratio",
+  },
+  {
+    evaluator: "circulation_graph",
+    category: "circulation",
+    evidence: "paths, clear widths, exit approaches, bottlenecks, phase loads",
+    units: "m, persons, persons/min, index",
+  },
+  {
+    evaluator: "sightline_raycast",
+    category: "sightlines",
+    evidence: "sampled rays, viewing angles, distance, obstruction IDs",
+    units: "ratio, m, degrees",
+  },
+  {
+    evaluator: "production_readiness",
+    category: "production",
+    evidence: "throw, visibility, sound, cameras, control, cable, power, rigging, inventory",
+    units: "m, degrees, W, kg, count",
+  },
+  {
+    evaluator: "catering_readiness",
+    category: "catering",
+    evidence: "phase capacity, queue spill, separation, access, replenishment, inventory",
+    units: "persons/min, persons, m, ratio, count",
+  },
+  {
+    evaluator: "emergency_readiness",
+    category: "emergency",
+    evidence: "exit capacity, routes, assembly, responder access, equipment, backup power",
+    units: "persons, persons/min, m, min, count",
+  },
+]);
+
+export const LEDGER_EVENT_REFERENCE = Object.freeze(
+  [
+    ["plan.opened", "plan", "planId, version, planFingerprint"],
+    ["authorization.denied", "security", "policyDecisionId, permission, reason"],
+    ["proposal.previewed", "proposal", "proposalId, branchId, changeIds[]"],
+    ["template.update_previewed", "proposal", "proposalId, branchId, templateId, changeIds[]"],
+    ["proposal.adjustment_requested", "proposal", "proposalId"],
+    ["proposal.change_reverted", "proposal", "proposalId, changeId"],
+    ["proposal.branch_created", "branch", "branchId, proposalId"],
+    ["proposal.branch_metadata_updated", "branch", "branchId"],
+    ["proposal.branch_recovered", "branch", "branchId, proposalId, sourceProposalId"],
+    ["share_link.created", "sharing", "shareLinkId, proposalId"],
+    ["share_link.revoked", "sharing", "shareLinkId"],
+    ["proposal.branch_duplicated", "branch", "branchId, sourceBranchId, sourceProposalId, proposalId"],
+    ["proposal.branch_archived", "branch", "branchId"],
+    ["proposal.branch_restored", "branch", "branchId"],
+    ["proposal.branch_decision_recorded", "branch", "decisionId, chosenBranchId, rejectedBranchIds[]"],
+    ["proposal.branch_selected", "branch", "branchId, proposalId"],
+    ["proposal.rebased", "conflict", "branchId, proposalId, fromVersion, toVersion, conflictIds[]"],
+    ["proposal.conflict_resolved", "conflict", "branchId, proposalId, conflictId, resolutionId"],
+    ["proposal.lock_rejected", "security", "proposalId, changeIds[], lockIds[]"],
+    ["proposal.approved", "approval", "proposalId, branchId, validationId, fromVersion, toVersion, planFingerprint"],
+    ["editor.change_applied", "editor", "proposalId, changeId, objectIds[]"],
+    ["editor.change_undone", "editor", "proposalId, changeId"],
+    ["editor.change_redone", "editor", "proposalId, changeId"],
+    ["brief.updated", "brief", "briefId, requirementIds[]"],
+    ["comment.created", "comment", "commentId, anchor"],
+    ["comment.edited", "comment", "commentId, editNumber"],
+    ["comment.resolved", "comment", "commentId"],
+    ["comment.reopened", "comment", "commentId"],
+    ["object.lock_added", "lock", "lockId, objectId"],
+    ["object.lock_released", "lock", "lockId, objectId"],
+    ["constraint.warning_waived", "approval", "waiverId, constraintId, proposalId, validationInputFingerprint"],
+    ["plan.undone", "plan", "toVersion, planFingerprint"],
+    ["plan.redone", "plan", "toVersion, planFingerprint"],
+    ["simulation.started", "simulation", "runId, scenarioId, branchId, inputFingerprint"],
+    ["simulation.completed", "simulation", "runId, scenarioId, branchId, inputFingerprint"],
+    ["simulation.cancelled", "simulation", "runId, scenarioId, branchId, inputFingerprint"],
+  ].map(([type, category, stableReferences]) => Object.freeze({ type, category, stableReferences })),
+);
+
+export const VERSION_REFERENCE = Object.freeze([
+  { surface: "Project record", current: "10", compatibility: "Exact current schema only; older records are rejected." },
+  {
+    surface: "Spatial geometry",
+    current: "1",
+    compatibility: "Canonical metres with millimetre serialization precision.",
+  },
+  {
+    surface: "Venue Template catalog",
+    current: "1",
+    compatibility: "Exact current schema only; older template documents are rejected.",
+  },
+  {
+    surface: "Validation engine",
+    current: VALIDATION_ENGINE_VERSION,
+    compatibility: "Comparable only when engine and immutable input fingerprints match.",
+  },
+  {
+    surface: "Simulation engine",
+    current: SIMULATION_ENGINE_VERSION,
+    compatibility: "Comparison requires matching engine and Scenario definition fingerprints.",
+  },
+  {
+    surface: "Activity Ledger",
+    current: "1",
+    compatibility: "Hash-chain verification is required on load, replay, and export.",
+  },
+  {
+    surface: "Tool contracts",
+    current: VENUE_TOOL_CONTRACT_VERSION,
+    compatibility: "Shared by WebMCP, standalone MCP, schemas, examples, and skills.",
+  },
+  { surface: "MCP server", current: "0.6.0", compatibility: "Preferred protocol 2026-07-28; minimum 2025-03-26." },
+  {
+    surface: "TypeScript SDK",
+    current: "0.1.0",
+    compatibility:
+      "ESM-only on Node.js 22+; SDK SemVer remains independent of tool, adapter, and Project schema versions.",
+  },
+  { surface: "Agent skills", current: "1.3.0", compatibility: `Targets tool contract ${VENUE_TOOL_CONTRACT_VERSION}.` },
+  {
+    surface: "Interchange Package",
+    current: "1 + Project schema 10",
+    compatibility: "Create-only import with exact schema, checksum, geometry, Locks, ledger, and replay preflight.",
+  },
+]);
+
+export const DEPRECATION_POLICY = Object.freeze([
+  {
+    change: "Breaking contract or schema",
+    policy:
+      "Publish a new major contract or schema version with an explicit migration path; retain the prior published artifact.",
+  },
+  {
+    change: "Additive field or operation",
+    policy:
+      "Publish a minor tool-contract release and update generated schemas, examples, skills, and changelog together.",
+  },
+  {
+    change: "Clarification or remediation text",
+    policy: "Publish a patch release when runtime behavior is unchanged.",
+  },
+  {
+    change: "Deprecated tool or field",
+    policy:
+      "Mark it in machine-readable metadata and the changelog for at least one full minor release before removal.",
+  },
+  {
+    change: "Stable identifier",
+    policy:
+      "Preserve it across revisions and migrations; create a new ID only when identity or transformed lineage changes.",
+  },
+]);
+
+export const PERSISTENCE_REFERENCE = Object.freeze([
+  {
+    concern: "Authoritative state",
+    behavior:
+      "The Project repository is authoritative when reachable; every accepted snapshot is stored with schema version 10.",
+  },
+  {
+    concern: "Recovery cache",
+    behavior:
+      "The browser writes a Project-scoped local copy before each remote save and reports LOCAL when the endpoint is unavailable.",
+  },
+  {
+    concern: "Record revision",
+    behavior:
+      "Every authoritative Project record has a server-assigned positive revision and strong ETag. Existing writes require the exact current If-Match value.",
+  },
+  {
+    concern: "Reconciliation",
+    behavior:
+      "Base/local/remote comparison merges independent fields once. Overlapping planning state returns PROJECT_REVISION_CONFLICT and remains unsynchronized.",
+  },
+  {
+    concern: "Planning recovery",
+    behavior:
+      "The local Proposal is retained in Organization-scoped recovery storage and can become an auditable Recovery Branch on current remote truth.",
+  },
+  {
+    concern: "Reload",
+    behavior:
+      "A remote record refreshes the recovery copy; a missing or unavailable endpoint may load the local Project-scoped record.",
+  },
+  {
+    concern: "Import",
+    behavior: "Import is create-only. An existing local or remote Project ID returns PROJECT_ID_CONFLICT.",
+  },
+  {
+    concern: "Deletion",
+    behavior: "Soft deletion records deletedAt and recoveryUntil; restoration remains available for seven days.",
+  },
+  {
+    concern: "Integrity",
+    behavior:
+      "Schema normalization, geometry validation, Lock checks, ledger verification, and replay precede authoritative use.",
+  },
+]);

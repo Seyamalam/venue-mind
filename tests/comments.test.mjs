@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fingerprintPlan } from "../src/domain/activity-ledger.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
+import { fingerprintPlan } from "../src/domain/activity-ledger.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
 
 const add = (planner, id, anchor, extra = {}) => planner.execute({ type: "add_comment", anchor, body: `Comment ${id}`, actor: "human", actorId: "reviewer-1", idempotencyKey: `comment-add-${id}`, ...extra });
 

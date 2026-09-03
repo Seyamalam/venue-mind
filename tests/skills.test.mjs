@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { VENUE_TOOL_CONTRACT_VERSION } from "../src/contracts/venue-contracts.js";
+import { VENUE_TOOL_CONTRACT_VERSION } from "../src/contracts/venue-contracts.ts";
 import { validateSkills } from "../scripts/validate-skills.mjs";
 
 const readJson = async (file) => JSON.parse(await readFile(new URL(file, import.meta.url), "utf8"));

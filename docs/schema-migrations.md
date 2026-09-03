@@ -1,39 +1,19 @@
-# Schema migration guide
+# Schema boundary and database migrations
 
-Current Project schema: 10. Released migration fixtures cover schemas 5 through 10.
+Current Project schema: 10. The application runtime accepts Project schema 10 only. Current template schema: 1. Interchange Package format 1 must embed Project schema 10.
 
-Current database schema: 7. Numbered, checksummed SQL migrations and production-shaped fixtures cover database versions 1 through 7. Project schema migrations change planner snapshots; database schema migrations change durable tables and indexes. Neither substitutes for the other.
+Current database schema: 7. Numbered, checksummed SQL migrations and production-shaped fixtures cover database versions 1 through 7. Project schema describes the JSON record stored in `project_states`; database schema describes durable tables and indexes. They are separate boundaries.
 
-## Rules
+## Project runtime contract
 
-- Migration is deterministic and sequential.
-- Stable Project, Plan, object, Constraint, Proposal, Change, Lock, Comment, Scenario, receipt, and ledger IDs survive unless identity genuinely changes.
-- Accepted Plan Versions are never rewritten to look newly approved.
-- Added evidence is derived from canonical stored inputs or explicit fallback templates; guessed operational facts remain marked or blocked.
-- Every migration appends one `schema.migrated` ledger entry with a stable migration ID.
-- Restore and Import Preview verify geometry, Locks, ledger integrity, and replay after migration.
+- Load, restore, import, and export reject any Project schema other than 10.
+- Restore validates the complete canonical snapshot without adding fields, rewriting geometry, synthesizing Locks, creating branches, sealing ledgers, or appending migration events.
+- Every restored Activity Ledger must already be schema-versioned, hash chained, and capable of replaying the exact accepted Plan and Event Brief.
+- Every persisted Object carries typed Locks, including an empty array when no Lock exists.
+- Import Preview verifies schema, checksum, geometry, stable IDs, Locks, ledger integrity, and replay before create-only commit.
+- Template inputs reject every schema other than template schema 1.
 
-## Add a migration
-
-1. Increment the Project schema constant and `projectRecordSchema` in `src/contracts/venue-contracts.js`.
-2. Extend `normalizeSnapshot` in `src/domain/venue-planner.js` with one bounded `vN-to-vN+1` transformation.
-3. Record its stable migration ID in the migration list and append `schema.migrated` evidence.
-4. Update `src/persistence/project-store.js`, `src/interchange/venue-package.js`, the compatibility reference, and generated schemas.
-5. Add the oldest representative pre-migration fixture that exposes every changed field.
-6. Prove restore, export, Import Preview, import commit, ledger verification, replay, and a second load are stable.
-7. Run `npm run generate:contracts`, `npm run generate:docs`, `npm test`, and `npm run check:generated`.
-
-## Completion evidence
-
-- The legacy fixture reaches the current schema exactly once.
-- A second normalization produces no additional migration entries or data changes.
-- Stable IDs and accepted Plan fingerprints match the migration expectation.
-- Invalid or tampered legacy state fails with a stable error instead of being repaired silently.
-- The compatibility and deprecation page names the supported range and migration behavior.
-
-## Activity Ledger accepted-Brief proof
-
-Early schema-10 snapshots sealed accepted Plan truth but did not include accepted Event Brief proof. Their unkeyed legacy ledger cannot authenticate a complete edited Brief, so snapshot-derived planner seeds and caller-labelled templates never authorize migration. Restore requires an explicit human attestation supplied through the server by an authenticated Venue Administrator or Organization Administrator. The proof actor and role must match the server-resolved principal and the proof must contain the exact Brief under review; a mismatch fails with `LEDGER_INTEGRITY_FAILED`, while a missing or unauthorized proof fails with `LEGACY_BRIEF_ATTESTATION_REQUIRED`. A successful restore appends one `activity-ledger-v1-accepted-brief-proof` entry containing the accepted Plan, Brief, SHA-256 challenge bindings, and proof reference. Imported snapshots cannot self-attest, and migration never infers Brief history.
+Unsupported Project bytes should be retained outside the running product for forensic recovery. Conversion, if ever required, is an explicit offline release operation that emits a new canonical artifact; VenueMind does not ship multi-version runtime compatibility.
 
 ## Add a database migration
 

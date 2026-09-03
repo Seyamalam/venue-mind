@@ -1,22 +1,21 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { fingerprintEventBrief, fingerprintPlan, replayActivityLedger, sealActivityLedger } from "../src/domain/activity-ledger.js";
-import { normalizeEventBrief } from "../src/domain/event-brief.js";
-import { normalizeEventSchedule } from "../src/domain/event-schedule.js";
-import { normalizePlanningEffect } from "../src/domain/planning-effects.js";
-import { duplicateProjectRecord } from "../src/domain/project-lifecycle.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createVenuePlanner, validateVenueState } from "../src/domain/venue-planner.js";
-import { createHumanPrincipal } from "../src/domain/authorization.js";
-import { calendarWebhookEventSchema, eventBriefSchema, planningEffectSchema } from "../src/contracts/venue-contracts.js";
-import { calendarEventAdapter } from "../src/integrations/adapters/calendar-event-adapter.js";
-import { createAdapterRuntime } from "../src/integrations/runtime.js";
-import { createMemoryProcessedBatchStore } from "../src/integrations/processed-batch-store.js";
-import { createMemorySecretStore } from "../src/integrations/secret-store.js";
-import { assertStagingBatchIntegrity, loadAdapterProposalForReview } from "../src/integrations/staging.js";
-import { createMemoryWebhookEventStore } from "../src/integrations/webhook-event-store.js";
-import { exportProjectPackage, previewProjectImport } from "../src/interchange/venue-package.js";
+import { fingerprintEventBrief, fingerprintPlan, replayActivityLedger, sealActivityLedger } from "../src/domain/activity-ledger.ts";
+import { normalizeEventBrief } from "../src/domain/event-brief.ts";
+import { normalizeEventSchedule } from "../src/domain/event-schedule.ts";
+import { normalizePlanningEffect } from "../src/domain/planning-effects.ts";
+import { duplicateProjectRecord } from "../src/domain/project-lifecycle.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createVenuePlanner, validateVenueState } from "../src/domain/venue-planner.ts";
+import { calendarWebhookEventSchema, eventBriefSchema, planningEffectSchema } from "../src/contracts/venue-contracts.ts";
+import { calendarEventAdapter } from "../src/integrations/adapters/calendar-event-adapter.ts";
+import { createAdapterRuntime } from "../src/integrations/runtime.ts";
+import { createMemoryProcessedBatchStore } from "../src/integrations/processed-batch-store.ts";
+import { createMemorySecretStore } from "../src/integrations/secret-store.ts";
+import { assertStagingBatchIntegrity, loadAdapterProposalForReview } from "../src/integrations/staging.ts";
+import { createMemoryWebhookEventStore } from "../src/integrations/webhook-event-store.ts";
+import { exportProjectPackage, previewProjectImport } from "../src/interchange/venue-package.ts";
 
 const readFixture = async (name) => JSON.parse(await readFile(new URL(`./fixtures/${name}`, import.meta.url), "utf8"));
 const attendanceFixture = await readFixture("adapter-calendar-event-attendance-v1.json");
@@ -59,8 +58,6 @@ const plannerFor = (fixture) => {
   return planner;
 };
 
-const legacyAdminAuthorization = { principal: createHumanPrincipal({ id: "user-admin-1", roles: ["organization-administrator"] }) };
-const legacyAdminProof = (brief, suffix = "1") => ({ source: "authenticated-human-attestation", brief: structuredClone(brief), attestationId: `attestation-legacy-brief-${suffix}`, actorId: "user-admin-1", actorRole: "organization-administrator" });
 
 test("Calendar Event import retains complete sanitized source evidence and maps the external Event to a stable Project", async () => {
   const result = await runtimeFor(attendanceFixture).execute(calendarEventAdapter, "import", structuredClone(attendanceFixture), authorization);
@@ -271,97 +268,16 @@ test("Activity Ledger replay rejects accepted Brief tampering at command and res
   assert.throws(() => plannerFor(metadataFixture).execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEDGER_INTEGRITY_FAILED" && error.details.replay.replayedBriefFingerprint !== error.details.replay.currentBriefFingerprint);
 });
 
-test("resealed legacy ledgers without accepted Brief proof require explicit attestation", () => {
+test("restore rejects ledgers without accepted Brief evidence", () => {
   const source = plannerFor(metadataFixture);
   const snapshot = structuredClone(source.getSnapshot());
   snapshot.ledger = sealActivityLedger(snapshot.ledger.map((entry) => {
     const details = structuredClone(entry.details);
     delete details.acceptedBrief;
     delete details.briefFingerprint;
-    delete details.briefMigrationProof;
     return { ...entry, details };
   }));
-  snapshot.brief.attendeeTarget = 399;
-  assert.throws(() => plannerFor(metadataFixture).execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEGACY_BRIEF_ATTESTATION_REQUIRED" && error.details.reason === "accepted-brief-proof-missing");
-});
-
-test("sealed legacy ledgers migrate accepted Brief proof only from an authenticated administrator", () => {
-  const source = plannerFor(metadataFixture);
-  const snapshot = structuredClone(source.getSnapshot());
-  snapshot.ledger = sealActivityLedger(snapshot.ledger.map((entry) => {
-    const details = structuredClone(entry.details);
-    delete details.acceptedBrief;
-    delete details.briefFingerprint;
-    delete details.briefMigrationProof;
-    return { ...entry, details };
-  }));
-  const seed = planFor(metadataFixture);
-  const restored = createVenuePlanner(seed, { projectId: metadataFixture.projectId, legacyBriefProof: legacyAdminProof(seed.brief), authorization: legacyAdminAuthorization });
-  restored.execute({ type: "restore_snapshot", snapshot });
-  const migrated = restored.getSnapshot();
-  assert.equal(migrated.ledger.findLast((entry) => entry.type === "schema.migrated")?.details.migrationId, "activity-ledger-v1-accepted-brief-proof");
-  assert.equal(restored.execute({ type: "replay_history" }).status, "pass");
-  const secondRestore = plannerFor(metadataFixture);
-  secondRestore.execute({ type: "restore_snapshot", snapshot: migrated });
-  assert.equal(secondRestore.getSnapshot().ledger.filter((entry) => entry.details?.migrationId === "activity-ledger-v1-accepted-brief-proof").length, 1);
-});
-
-test("unsealed legacy migration pins the exact explicitly trusted Brief", () => {
-  const source = plannerFor(metadataFixture);
-  const snapshot = structuredClone(source.getSnapshot());
-  snapshot.ledger = snapshot.ledger.map((entry) => {
-    const details = structuredClone(entry.details);
-    delete details.acceptedBrief;
-    delete details.briefFingerprint;
-    const { hash: _hash, previousHash: _previousHash, schemaVersion: _schemaVersion, ...legacy } = entry;
-    return { ...legacy, details };
-  });
-  const seed = planFor(metadataFixture);
-  const restored = createVenuePlanner(seed, { projectId: metadataFixture.projectId, legacyBriefProof: legacyAdminProof(seed.brief, "unsealed"), authorization: legacyAdminAuthorization });
-  restored.execute({ type: "restore_snapshot", snapshot });
-  const proof = restored.getSnapshot().ledger.at(-1).details.briefMigrationProof;
-  assert.equal(proof.source, "authenticated-human-attestation");
-  assert.equal(proof.briefFingerprint, fingerprintEventBrief(restored.getSnapshot().brief));
-});
-
-test("snapshot-derived planner seeds cannot launder a modified legacy Brief", () => {
-  const source = plannerFor(metadataFixture);
-  const snapshot = structuredClone(source.getSnapshot());
-  snapshot.ledger = sealActivityLedger(snapshot.ledger.map((entry) => {
-    const details = structuredClone(entry.details);
-    delete details.acceptedBrief;
-    delete details.briefFingerprint;
-    delete details.briefMigrationProof;
-    return { ...entry, details };
-  }));
-  snapshot.brief.attendeeTarget = 417;
-  const snapshotSeed = { ...snapshot.plan, brief: snapshot.brief, proposal: snapshot.proposal };
-  const restored = createVenuePlanner(snapshotSeed, { projectId: metadataFixture.projectId });
-  assert.throws(() => restored.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEGACY_BRIEF_ATTESTATION_REQUIRED");
-});
-
-test("human legacy Brief attestation is bound to administrator identity and the exact Brief", () => {
-  const source = plannerFor(metadataFixture);
-  source.execute({ type: "update_event_brief", brief: { ...source.getSnapshot().brief, attendeeTarget: 420 }, actor: "human", idempotencyKey: "legacy-attested-update" });
-  const snapshot = structuredClone(source.getSnapshot());
-  snapshot.ledger = sealActivityLedger(snapshot.ledger.map((entry) => {
-    const details = structuredClone(entry.details);
-    delete details.acceptedBrief;
-    delete details.briefFingerprint;
-    delete details.briefMigrationProof;
-    return { ...entry, details };
-  }));
-  const seed = planFor(metadataFixture);
-  const proof = { source: "authenticated-human-attestation", brief: snapshot.brief, attestationId: "attestation-legacy-brief-1", actorId: "user-admin-1", actorRole: "organization-administrator" };
-  const restored = createVenuePlanner(seed, { projectId: metadataFixture.projectId, legacyBriefProof: proof, authorization: legacyAdminAuthorization });
-  restored.execute({ type: "restore_snapshot", snapshot });
-  assert.equal(restored.getSnapshot().brief.attendeeTarget, 420);
-  assert.deepEqual(restored.getSnapshot().ledger.at(-1).details.briefMigrationProof, { source: "authenticated-human-attestation", briefFingerprint: fingerprintEventBrief(snapshot.brief), attestationId: "attestation-legacy-brief-1", actorId: "user-admin-1", actorRole: "organization-administrator" });
-
-  const mismatched = createVenuePlanner(seed, { projectId: metadataFixture.projectId, legacyBriefProof: { ...proof, brief: seed.brief }, authorization: legacyAdminAuthorization });
-  assert.throws(() => mismatched.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEDGER_INTEGRITY_FAILED" && error.details.migration?.reason === "accepted-brief-proof-mismatch");
-  const agentAttestation = createVenuePlanner(seed, { projectId: metadataFixture.projectId, legacyBriefProof: { ...proof, actorRole: "planner" }, authorization: legacyAdminAuthorization });
-  assert.throws(() => agentAttestation.execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEGACY_BRIEF_ATTESTATION_REQUIRED" && error.details.reason === "accepted-brief-attestation-invalid");
+  assert.throws(() => plannerFor(metadataFixture).execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEDGER_INTEGRITY_FAILED");
 });
 
 test("restore normalizes active and historical Planning Effects with one stable error", async () => {
@@ -401,12 +317,6 @@ test("replay validates declared accepted truth fingerprints after a ledger is re
   assert.equal(replay.status, "fail");
   assert.deepEqual(replay.truthFingerprintViolations.map((violation) => violation.truth), ["brief"]);
   assert.throws(() => plannerFor(metadataFixture).execute({ type: "restore_snapshot", snapshot }), (error) => error.code === "LEDGER_INTEGRITY_FAILED" && error.details.replay.truthFingerprintViolations.length === 1);
-});
-
-test("legacy Event Briefs without schedule remain schema-compatible", () => {
-  const legacy = structuredClone(summitForwardPlan.brief);
-  delete legacy.schedule;
-  assert.equal(normalizeEventBrief(legacy).schedule, null);
 });
 
 test("every schedule seam requires canonical RFC3339 offsets and honors DST", async () => {

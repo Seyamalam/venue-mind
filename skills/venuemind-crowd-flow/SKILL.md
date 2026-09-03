@@ -3,7 +3,7 @@ name: venuemind-crowd-flow
 description: Run repeatable VenueMind crowd-flow scenarios and compare congestion evidence. Use for ingress, interval, egress, emergency phases, queues, bottlenecks, and circulation strategies.
 metadata:
   version: 1.1.0
-  tool-contract-version: 1.2.0
+  tool-contract-version: 1.4.0
 ---
 
 # VenueMind Crowd Flow

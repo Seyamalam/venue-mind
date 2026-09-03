@@ -1,6 +1,6 @@
-import { roomInventoryAdapter } from "../../src/integrations/adapters/room-inventory-adapter.js";
-import { createAdapterRuntime } from "../../src/integrations/runtime.js";
-import { createMemorySecretStore } from "../../src/integrations/secret-store.js";
+import { roomInventoryAdapter } from "../../src/integrations/adapters/room-inventory-adapter.ts";
+import { createAdapterRuntime } from "../../src/integrations/runtime.ts";
+import { createMemorySecretStore } from "../../src/integrations/secret-store.ts";
 
 const runtime = createAdapterRuntime();
 const result = await runtime.execute(roomInventoryAdapter, "import", {

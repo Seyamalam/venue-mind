@@ -4,6 +4,7 @@
     "planner",
     "reviewer",
     "approver",
+    "safety-officer",
     "venue-administrator",
     "organization-administrator"
   ],
@@ -12,6 +13,7 @@
     "venue:propose",
     "venue:comment",
     "venue:simulate",
+    "venue:operate",
     "venue:export"
   ],
   "permissions": [
@@ -27,6 +29,13 @@
     "comment.write",
     "simulation.read",
     "simulation.run",
+    "occupancy.read",
+    "occupancy.write",
+    "incident.read",
+    "incident.report",
+    "incident.manage",
+    "incident.emergency-act",
+    "incident.export",
     "export.plan",
     "export.audit",
     "audit.read",
@@ -40,7 +49,9 @@
       "plan.read",
       "proposal.read",
       "comment.read",
-      "simulation.read"
+      "simulation.read",
+      "occupancy.read",
+      "incident.read"
     ],
     "planner": [
       "project.read",
@@ -48,10 +59,15 @@
       "proposal.read",
       "comment.read",
       "simulation.read",
+      "occupancy.read",
+      "incident.read",
       "proposal.create",
       "proposal.manage",
       "comment.write",
       "simulation.run",
+      "occupancy.write",
+      "incident.report",
+      "incident.manage",
       "export.plan"
     ],
     "reviewer": [
@@ -60,8 +76,11 @@
       "proposal.read",
       "comment.read",
       "simulation.read",
+      "occupancy.read",
+      "incident.read",
       "proposal.review",
       "comment.write",
+      "incident.export",
       "export.audit",
       "audit.read"
     ],
@@ -71,12 +90,29 @@
       "proposal.read",
       "comment.read",
       "simulation.read",
+      "occupancy.read",
+      "incident.read",
       "proposal.review",
       "comment.write",
+      "incident.export",
       "export.audit",
       "audit.read",
       "approval.approve",
       "approval.waive"
+    ],
+    "safety-officer": [
+      "project.read",
+      "plan.read",
+      "proposal.read",
+      "comment.read",
+      "simulation.read",
+      "occupancy.read",
+      "incident.read",
+      "incident.report",
+      "incident.manage",
+      "incident.emergency-act",
+      "incident.export",
+      "audit.read"
     ],
     "venue-administrator": [
       "project.read",
@@ -84,16 +120,23 @@
       "proposal.read",
       "comment.read",
       "simulation.read",
+      "occupancy.read",
+      "incident.read",
       "proposal.create",
       "proposal.manage",
       "comment.write",
       "simulation.run",
+      "occupancy.write",
+      "incident.report",
+      "incident.manage",
       "export.plan",
       "proposal.review",
+      "incident.export",
       "export.audit",
       "audit.read",
       "approval.approve",
       "approval.waive",
+      "incident.emergency-act",
       "project.manage",
       "plan.update",
       "lock.manage"
@@ -111,6 +154,13 @@
       "comment.write",
       "simulation.read",
       "simulation.run",
+      "occupancy.read",
+      "occupancy.write",
+      "incident.read",
+      "incident.report",
+      "incident.manage",
+      "incident.emergency-act",
+      "incident.export",
       "export.plan",
       "export.audit",
       "audit.read",
@@ -126,6 +176,8 @@
       "proposal.read",
       "comment.read",
       "simulation.read",
+      "occupancy.read",
+      "incident.read",
       "audit.read"
     ],
     "venue:propose": [
@@ -140,9 +192,16 @@
       "simulation.read",
       "simulation.run"
     ],
+    "venue:operate": [
+      "occupancy.read",
+      "occupancy.write",
+      "incident.read",
+      "incident.report"
+    ],
     "venue:export": [
       "export.plan",
-      "export.audit"
+      "export.audit",
+      "incident.export"
     ]
   },
   "approvalPolicy": {

@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { AdapterContractError } from "../src/integrations/contracts.js";
-import { adapterHttpError, normalizeRetryAfter } from "../src/integrations/http-errors.js";
-import { createAdapterRuntime, createVenueAdapter } from "../src/integrations/runtime.js";
-import { createMemorySecretStore } from "../src/integrations/secret-store.js";
+import { AdapterContractError } from "../src/integrations/contracts.ts";
+import { adapterHttpError, normalizeRetryAfter } from "../src/integrations/http-errors.ts";
+import { createAdapterRuntime, createVenueAdapter } from "../src/integrations/runtime.ts";
+import { createMemorySecretStore } from "../src/integrations/secret-store.ts";
 
 test("normalizeRetryAfter accepts seconds or HTTP dates and applies the configured bound", () => {
   const now = Date.parse("2026-08-28T12:00:00.000Z");

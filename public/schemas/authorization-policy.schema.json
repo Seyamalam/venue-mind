@@ -20,6 +20,7 @@
           "planner",
           "reviewer",
           "approver",
+          "safety-officer",
           "venue-administrator",
           "organization-administrator"
         ]
@@ -34,6 +35,7 @@
           "venue:propose",
           "venue:comment",
           "venue:simulate",
+          "venue:operate",
           "venue:export"
         ]
       },
@@ -55,6 +57,13 @@
           "comment.write",
           "simulation.read",
           "simulation.run",
+          "occupancy.read",
+          "occupancy.write",
+          "incident.read",
+          "incident.report",
+          "incident.manage",
+          "incident.emergency-act",
+          "incident.export",
           "export.plan",
           "export.audit",
           "audit.read",
@@ -87,6 +96,7 @@
               "planner",
               "reviewer",
               "approver",
+              "safety-officer",
               "venue-administrator",
               "organization-administrator"
             ]

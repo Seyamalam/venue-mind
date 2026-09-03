@@ -9,14 +9,14 @@ VenueMind versions each public surface independently. Compatibility is determine
 | TypeScript SDK | `0.1.0` | Package semantic version |
 | Tool contract | Declared by `VENUE_TOOL_CONTRACT_VERSION` | Semantic version for tool names, inputs, outputs, errors, scopes, and limits |
 | Adapter contract | Declared by `ADAPTER_CONTRACT_VERSION` | Integer contract generation plus each adapter's semantic version |
-| Project Record | Declared by the Project schema | Integer schema version with explicit migrations |
+| Project Record | `10` | Exact current schema only; no multi-version runtime decoder |
 | Spatial Geometry | Declared by the geometry document | Integer schema version |
 | Validation engine | Declared by each Validation result | Semantic engine version; evidence is comparable only for matching engine and immutable input fingerprints |
 | Simulation engine | Declared by each Simulation result | Semantic engine version; comparison also requires matching Scenario fingerprints |
 | Activity Ledger | Declared by each ledger entry | Integer schema version with hash-chain verification |
-| Interchange Package | Declared by the package manifest | Integer format version plus embedded Project schema version |
+| Interchange Package | `1` with Project schema `10` | Exact current format and embedded schema only |
 
-An SDK release states which versions it can encode, decode, and call. Installing a newer SDK does not migrate persisted Projects, reinterpret old Validation evidence, or upgrade an adapter cursor automatically.
+An SDK release states which versions it can encode, decode, and call. Installing a newer SDK does not rewrite persisted Projects, reinterpret old Validation evidence, or upgrade an adapter cursor automatically.
 
 ## SDK semantic versioning
 
@@ -43,7 +43,7 @@ A package entry point, exported runtime symbol, exported type, method signature,
 | Add an enum member that callers must tolerate | Compatible only where the contract declares open-world handling; otherwise breaking |
 | Clarify documentation or remediation without behavior change | Patch release |
 | Change Validation or Simulation logic | Increment the relevant engine version; retain immutable input and evidence fingerprints |
-| Change persisted Project shape | Increment Project schema and supply a tested migration |
+| Change persisted Project shape | Increment Project schema, cut over atomically, and keep conversion outside the application runtime |
 | Change adapter staging or durable-store semantics | Increment adapter contract generation or adapter major version as appropriate |
 
 Generated TypeScript declarations follow the canonical schema and tool registry classification. A declaration-only change cannot redefine runtime compatibility.
@@ -64,7 +64,7 @@ The lifecycle is:
 2. retain the deprecated surface through at least one complete SDK minor release;
 3. keep runtime and compile-time tests for both old and replacement paths during that window;
 4. remove the surface only in the declared breaking release;
-5. retain migration documentation and prior immutable schema artifacts.
+5. retain prior immutable schema artifacts for audit, without keeping old decoders in the runtime.
 
 Security remediation may require an accelerated removal. The release notes must name the affected versions, risk, replacement, and earliest safe version.
 

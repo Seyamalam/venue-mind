@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildEditingChange, measureObjects, snapCoordinate } from "../src/domain/editing-commands.js";
-import { fingerprintPlan } from "../src/domain/activity-ledger.js";
-import { normalizePlanGeometry } from "../src/domain/geometry.js";
-import { materializeSpatialPlan } from "../src/domain/spatial-analysis.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
+import { buildEditingChange, measureObjects, snapCoordinate } from "../src/domain/editing-commands.ts";
+import { fingerprintPlan } from "../src/domain/activity-ledger.ts";
+import { normalizePlanGeometry } from "../src/domain/geometry.ts";
+import { materializeSpatialPlan } from "../src/domain/spatial-analysis.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 

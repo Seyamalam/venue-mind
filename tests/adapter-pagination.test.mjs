@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { AdapterContractError } from "../src/integrations/contracts.js";
-import { collectAdapterPages } from "../src/integrations/pagination.js";
+import { AdapterContractError } from "../src/integrations/contracts.ts";
+import { collectAdapterPages } from "../src/integrations/pagination.ts";
 
 test("collectAdapterPages returns one deterministic aggregate after every page succeeds", async () => {
   const calls = [];

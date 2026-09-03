@@ -3,7 +3,7 @@
 ## Contracts
 
 - [ ] Command, tool, error, authorization, Constraint, Project, and output changes are versioned correctly.
-- [ ] Breaking changes have a migration and deprecation path.
+- [ ] Breaking changes declare an exact version cutoff and retain prior immutable artifacts outside the runtime.
 - [ ] Approval and destructive Project deletion remain absent from agent surfaces.
 - [ ] Stable IDs, idempotency, base-version, Lock, and ledger invariants are tested.
 

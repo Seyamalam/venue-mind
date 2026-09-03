@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fingerprintPlan } from "../src/domain/activity-ledger.js";
-import { duplicateProjectRecord } from "../src/domain/project-lifecycle.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
+import { fingerprintPlan } from "../src/domain/activity-ledger.ts";
+import { duplicateProjectRecord } from "../src/domain/project-lifecycle.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
 
 test("Project duplication creates a new lineage root with new Project-scoped stable IDs", () => {
   const sourcePlanner = createVenuePlanner(summitForwardPlan);

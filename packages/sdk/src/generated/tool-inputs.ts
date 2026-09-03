@@ -464,6 +464,992 @@ export interface VenueMindToolInputMap {
   "venue.export_simulation": {
     runId: string;
   };
+  "venue.inspect_live_occupancy": {};
+  "venue.ingest_occupancy_signal": {
+    sourceId: string;
+    sourceType: "registration" | "sensor" | "manual-counter";
+    sourceVersion: string;
+    kind: "check-in" | "zone-occupancy";
+    observedAt: string;
+    confidence: "low" | "medium" | "high";
+    /**
+     * @minItems 1
+     * @maxItems 100
+     */
+    readings: [
+      {
+        scopeId: string;
+        count: number;
+      },
+      ...{
+        scopeId: string;
+        count: number;
+      }[]
+    ];
+    /**
+     * Unique retry key for this semantic command.
+     */
+    idempotencyKey: string;
+    /**
+     * Optional caller correlation identifier.
+     */
+    correlationId?: string;
+  };
+  "venue.refresh_live_occupancy": {
+    /**
+     * Unique retry key for this semantic command.
+     */
+    idempotencyKey: string;
+    /**
+     * Optional caller correlation identifier.
+     */
+    correlationId?: string;
+  };
+  "venue.export_live_occupancy": {};
+  "venue.inspect_incidents": {
+    incidentId?: string;
+    status?: "open" | "mitigating" | "resolved" | "closed";
+    severity?: "low" | "medium" | "high" | "critical";
+    category?:
+      | "accessibility"
+      | "crowd-capacity"
+      | "medical"
+      | "security"
+      | "fire-life-safety"
+      | "facilities"
+      | "production-av"
+      | "catering"
+      | "staffing"
+      | "transport"
+      | "weather"
+      | "other";
+    limit?: number;
+  };
+  "venue.report_incident": {
+    severity: "low" | "medium" | "high" | "critical";
+    category:
+      | "accessibility"
+      | "crowd-capacity"
+      | "medical"
+      | "security"
+      | "fire-life-safety"
+      | "facilities"
+      | "production-av"
+      | "catering"
+      | "staffing"
+      | "transport"
+      | "weather"
+      | "other";
+    summaryCode: string;
+    location:
+      | {
+          kind: "plan-object";
+          planObjectId: string;
+        }
+      | {
+          kind: "coordinate";
+          point: {
+            x: number;
+            y: number;
+          };
+        };
+    /**
+     * @maxItems 20
+     */
+    relatedRefs?:
+      | []
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ]
+      | [
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          },
+          {
+            kind: "occupancy-alert" | "runbook-task" | "plan-object";
+            id: string;
+          }
+        ];
+    /**
+     * Unique retry key for this semantic command.
+     */
+    idempotencyKey: string;
+    /**
+     * Optional caller correlation identifier.
+     */
+    correlationId?: string;
+  };
+  "venue.export_incident_record": {
+    incidentId: string;
+  };
   "venue.export_audit_package": {};
   "venue.export_plan": {
     format?:

@@ -2,17 +2,17 @@
   "format": "venuemind-project",
   "formatVersion": 1,
   "manifest": {
-    "packageId": "package-345b84b9b07fa700",
+    "packageId": "package-a97de39c198514dc",
     "exportedAt": "2026-08-27T00:00:00.000Z",
-    "payloadBytes": 96144,
-    "payloadSha256": "eae8b54f0d323b38ba9c8726a6ea86c23bcdf6dde0e77579b86119c02b64fa8e",
+    "payloadBytes": 96624,
+    "payloadSha256": "338bb413f1eaa0ea7b4f7f4d6413212af30e409b9f73403e7fe1c3d2e02b895b",
     "source": {
       "application": "VenueMind",
       "applicationVersion": "0.1.0",
       "projectId": "project-summit-forward",
       "projectSchemaVersion": 10
     },
-    "manifestSha256": "345b84b9b07fa7003ccb93daa7db47f1ccdb940b9ce1f56fdd74b96caa4f170f"
+    "manifestSha256": "a97de39c198514dc0c17876553b8eb8724eb178d28f2f513430884b1536df4b2"
   },
   "project": {
     "id": "project-summit-forward",
@@ -395,7 +395,7 @@
                 "objectId": "obj-stage-west",
                 "type": "position",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -404,7 +404,7 @@
                 "objectId": "obj-stage-west",
                 "type": "rotation",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -413,7 +413,7 @@
                 "objectId": "obj-stage-west",
                 "type": "dimension",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -422,7 +422,7 @@
                 "objectId": "obj-stage-west",
                 "type": "deletion",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -431,7 +431,7 @@
                 "objectId": "obj-stage-west",
                 "type": "role",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               }
@@ -676,7 +676,7 @@
                 "objectId": "obj-fire-exit-east",
                 "type": "position",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -685,7 +685,7 @@
                 "objectId": "obj-fire-exit-east",
                 "type": "rotation",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -694,7 +694,7 @@
                 "objectId": "obj-fire-exit-east",
                 "type": "dimension",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -703,7 +703,7 @@
                 "objectId": "obj-fire-exit-east",
                 "type": "deletion",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -712,7 +712,7 @@
                 "objectId": "obj-fire-exit-east",
                 "type": "role",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               }
@@ -751,7 +751,7 @@
                 "objectId": "obj-fire-exit-north",
                 "type": "position",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -760,7 +760,7 @@
                 "objectId": "obj-fire-exit-north",
                 "type": "rotation",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -769,7 +769,7 @@
                 "objectId": "obj-fire-exit-north",
                 "type": "dimension",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -778,7 +778,7 @@
                 "objectId": "obj-fire-exit-north",
                 "type": "deletion",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -787,7 +787,7 @@
                 "objectId": "obj-fire-exit-north",
                 "type": "role",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               }
@@ -874,7 +874,7 @@
                 "objectId": "obj-assembly-east",
                 "type": "position",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -883,7 +883,7 @@
                 "objectId": "obj-assembly-east",
                 "type": "rotation",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -892,7 +892,7 @@
                 "objectId": "obj-assembly-east",
                 "type": "dimension",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -901,7 +901,7 @@
                 "objectId": "obj-assembly-east",
                 "type": "deletion",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -910,7 +910,7 @@
                 "objectId": "obj-assembly-east",
                 "type": "role",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               }
@@ -945,7 +945,7 @@
                 "objectId": "obj-emergency-access-east",
                 "type": "position",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -954,7 +954,7 @@
                 "objectId": "obj-emergency-access-east",
                 "type": "rotation",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -963,7 +963,7 @@
                 "objectId": "obj-emergency-access-east",
                 "type": "dimension",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -972,7 +972,7 @@
                 "objectId": "obj-emergency-access-east",
                 "type": "deletion",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -981,7 +981,7 @@
                 "objectId": "obj-emergency-access-east",
                 "type": "role",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               }
@@ -1014,7 +1014,7 @@
                 "objectId": "obj-fire-equipment-east",
                 "type": "position",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1023,7 +1023,7 @@
                 "objectId": "obj-fire-equipment-east",
                 "type": "rotation",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1032,7 +1032,7 @@
                 "objectId": "obj-fire-equipment-east",
                 "type": "dimension",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1041,7 +1041,7 @@
                 "objectId": "obj-fire-equipment-east",
                 "type": "deletion",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1050,7 +1050,7 @@
                 "objectId": "obj-fire-equipment-east",
                 "type": "role",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               }
@@ -1142,7 +1142,7 @@
                 "objectId": "obj-column-southwest",
                 "type": "position",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1151,7 +1151,7 @@
                 "objectId": "obj-column-southwest",
                 "type": "rotation",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1160,7 +1160,7 @@
                 "objectId": "obj-column-southwest",
                 "type": "dimension",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1169,7 +1169,7 @@
                 "objectId": "obj-column-southwest",
                 "type": "deletion",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1178,7 +1178,7 @@
                 "objectId": "obj-column-southwest",
                 "type": "role",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               }
@@ -1263,7 +1263,7 @@
                 "objectId": "obj-power-west",
                 "type": "position",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1272,7 +1272,7 @@
                 "objectId": "obj-power-west",
                 "type": "rotation",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1281,7 +1281,7 @@
                 "objectId": "obj-power-west",
                 "type": "dimension",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1290,7 +1290,7 @@
                 "objectId": "obj-power-west",
                 "type": "deletion",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1299,7 +1299,7 @@
                 "objectId": "obj-power-west",
                 "type": "role",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               }
@@ -1335,7 +1335,7 @@
                 "objectId": "obj-rigging-center",
                 "type": "position",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1344,7 +1344,7 @@
                 "objectId": "obj-rigging-center",
                 "type": "rotation",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1353,7 +1353,7 @@
                 "objectId": "obj-rigging-center",
                 "type": "dimension",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1362,7 +1362,7 @@
                 "objectId": "obj-rigging-center",
                 "type": "deletion",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1371,7 +1371,7 @@
                 "objectId": "obj-rigging-center",
                 "type": "role",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               }
@@ -1736,7 +1736,7 @@
                 "objectId": "obj-accessible-entrance-south",
                 "type": "position",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1745,7 +1745,7 @@
                 "objectId": "obj-accessible-entrance-south",
                 "type": "rotation",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1754,7 +1754,7 @@
                 "objectId": "obj-accessible-entrance-south",
                 "type": "dimension",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1763,7 +1763,7 @@
                 "objectId": "obj-accessible-entrance-south",
                 "type": "deletion",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1772,7 +1772,7 @@
                 "objectId": "obj-accessible-entrance-south",
                 "type": "role",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               }
@@ -1813,7 +1813,7 @@
                 "objectId": "obj-door-south-access",
                 "type": "position",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1822,7 +1822,7 @@
                 "objectId": "obj-door-south-access",
                 "type": "rotation",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1831,7 +1831,7 @@
                 "objectId": "obj-door-south-access",
                 "type": "dimension",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1840,7 +1840,7 @@
                 "objectId": "obj-door-south-access",
                 "type": "deletion",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -1849,7 +1849,7 @@
                 "objectId": "obj-door-south-access",
                 "type": "role",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               }
@@ -2090,7 +2090,7 @@
                 "objectId": "obj-restroom-accessible",
                 "type": "position",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -2099,7 +2099,7 @@
                 "objectId": "obj-restroom-accessible",
                 "type": "rotation",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -2108,7 +2108,7 @@
                 "objectId": "obj-restroom-accessible",
                 "type": "dimension",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -2117,7 +2117,7 @@
                 "objectId": "obj-restroom-accessible",
                 "type": "deletion",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               },
@@ -2126,7 +2126,7 @@
                 "objectId": "obj-restroom-accessible",
                 "type": "role",
                 "source": "venue-template",
-                "reasonCode": "legacy-protected",
+                "reasonCode": "venue-infrastructure",
                 "authorId": "venue-template",
                 "active": true
               }
@@ -2896,8 +2896,12 @@
       },
       "proposal": {
         "id": "proposal-32-a",
+        "baseVersion": "3.2",
         "revision": 1,
+        "status": "review",
         "goal": "Restore accessibility and improve sightlines",
+        "waivers": [],
+        "validation": null,
         "changes": [
           {
             "id": "chg-seat-center-shift",
@@ -2940,6 +2944,10 @@
               "obj-route-seating-east",
               "obj-route-exit-east"
             ],
+            "effects": {
+              "accessibleRouteWidthFt": 6,
+              "peakCongestionIndex": 79
+            },
             "spatialEffects": [
               {
                 "operation": "update_footprint",
@@ -2976,11 +2984,7 @@
                   "width": 1.829
                 }
               }
-            ],
-            "effects": {
-              "accessibleRouteWidthFt": 6,
-              "peakCongestionIndex": 79
-            }
+            ]
           },
           {
             "id": "chg-av-desk-east",
@@ -3000,6 +3004,9 @@
             "targetObjectIds": [
               "obj-av-desk"
             ],
+            "effects": {
+              "sightlineCoverage": 0.92
+            },
             "spatialEffects": [
               {
                 "operation": "update_footprint",
@@ -3011,10 +3018,7 @@
                   }
                 }
               }
-            ],
-            "effects": {
-              "sightlineCoverage": 0.92
-            }
+            ]
           },
           {
             "id": "chg-refreshment-buffer",
@@ -3036,11 +3040,7 @@
               "eastRouteClear": true
             }
           }
-        ],
-        "baseVersion": "3.2",
-        "status": "review",
-        "validation": null,
-        "waivers": []
+        ]
       },
       "activeBranchId": "branch-balanced",
       "branches": [
@@ -3051,8 +3051,12 @@
           "strategy": "balanced",
           "proposal": {
             "id": "proposal-32-a",
+            "baseVersion": "3.2",
             "revision": 1,
+            "status": "review",
             "goal": "Restore accessibility and improve sightlines",
+            "waivers": [],
+            "validation": null,
             "changes": [
               {
                 "id": "chg-seat-center-shift",
@@ -3095,6 +3099,10 @@
                   "obj-route-seating-east",
                   "obj-route-exit-east"
                 ],
+                "effects": {
+                  "accessibleRouteWidthFt": 6,
+                  "peakCongestionIndex": 79
+                },
                 "spatialEffects": [
                   {
                     "operation": "update_footprint",
@@ -3131,11 +3139,7 @@
                       "width": 1.829
                     }
                   }
-                ],
-                "effects": {
-                  "accessibleRouteWidthFt": 6,
-                  "peakCongestionIndex": 79
-                }
+                ]
               },
               {
                 "id": "chg-av-desk-east",
@@ -3155,6 +3159,9 @@
                 "targetObjectIds": [
                   "obj-av-desk"
                 ],
+                "effects": {
+                  "sightlineCoverage": 0.92
+                },
                 "spatialEffects": [
                   {
                     "operation": "update_footprint",
@@ -3166,10 +3173,7 @@
                       }
                     }
                   }
-                ],
-                "effects": {
-                  "sightlineCoverage": 0.92
-                }
+                ]
               },
               {
                 "id": "chg-refreshment-buffer",
@@ -3191,11 +3195,7 @@
                   "eastRouteClear": true
                 }
               }
-            ],
-            "baseVersion": "3.2",
-            "status": "review",
-            "validation": null,
-            "waivers": []
+            ]
           },
           "revisions": [],
           "archived": false,
@@ -3604,7 +3604,7 @@
                       "objectId": "obj-stage-west",
                       "type": "position",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -3613,7 +3613,7 @@
                       "objectId": "obj-stage-west",
                       "type": "rotation",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -3622,7 +3622,7 @@
                       "objectId": "obj-stage-west",
                       "type": "dimension",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -3631,7 +3631,7 @@
                       "objectId": "obj-stage-west",
                       "type": "deletion",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -3640,7 +3640,7 @@
                       "objectId": "obj-stage-west",
                       "type": "role",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     }
@@ -3885,7 +3885,7 @@
                       "objectId": "obj-fire-exit-east",
                       "type": "position",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -3894,7 +3894,7 @@
                       "objectId": "obj-fire-exit-east",
                       "type": "rotation",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -3903,7 +3903,7 @@
                       "objectId": "obj-fire-exit-east",
                       "type": "dimension",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -3912,7 +3912,7 @@
                       "objectId": "obj-fire-exit-east",
                       "type": "deletion",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -3921,7 +3921,7 @@
                       "objectId": "obj-fire-exit-east",
                       "type": "role",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     }
@@ -3960,7 +3960,7 @@
                       "objectId": "obj-fire-exit-north",
                       "type": "position",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -3969,7 +3969,7 @@
                       "objectId": "obj-fire-exit-north",
                       "type": "rotation",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -3978,7 +3978,7 @@
                       "objectId": "obj-fire-exit-north",
                       "type": "dimension",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -3987,7 +3987,7 @@
                       "objectId": "obj-fire-exit-north",
                       "type": "deletion",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -3996,7 +3996,7 @@
                       "objectId": "obj-fire-exit-north",
                       "type": "role",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     }
@@ -4083,7 +4083,7 @@
                       "objectId": "obj-assembly-east",
                       "type": "position",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4092,7 +4092,7 @@
                       "objectId": "obj-assembly-east",
                       "type": "rotation",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4101,7 +4101,7 @@
                       "objectId": "obj-assembly-east",
                       "type": "dimension",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4110,7 +4110,7 @@
                       "objectId": "obj-assembly-east",
                       "type": "deletion",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4119,7 +4119,7 @@
                       "objectId": "obj-assembly-east",
                       "type": "role",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     }
@@ -4154,7 +4154,7 @@
                       "objectId": "obj-emergency-access-east",
                       "type": "position",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4163,7 +4163,7 @@
                       "objectId": "obj-emergency-access-east",
                       "type": "rotation",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4172,7 +4172,7 @@
                       "objectId": "obj-emergency-access-east",
                       "type": "dimension",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4181,7 +4181,7 @@
                       "objectId": "obj-emergency-access-east",
                       "type": "deletion",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4190,7 +4190,7 @@
                       "objectId": "obj-emergency-access-east",
                       "type": "role",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     }
@@ -4223,7 +4223,7 @@
                       "objectId": "obj-fire-equipment-east",
                       "type": "position",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4232,7 +4232,7 @@
                       "objectId": "obj-fire-equipment-east",
                       "type": "rotation",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4241,7 +4241,7 @@
                       "objectId": "obj-fire-equipment-east",
                       "type": "dimension",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4250,7 +4250,7 @@
                       "objectId": "obj-fire-equipment-east",
                       "type": "deletion",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4259,7 +4259,7 @@
                       "objectId": "obj-fire-equipment-east",
                       "type": "role",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     }
@@ -4351,7 +4351,7 @@
                       "objectId": "obj-column-southwest",
                       "type": "position",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4360,7 +4360,7 @@
                       "objectId": "obj-column-southwest",
                       "type": "rotation",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4369,7 +4369,7 @@
                       "objectId": "obj-column-southwest",
                       "type": "dimension",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4378,7 +4378,7 @@
                       "objectId": "obj-column-southwest",
                       "type": "deletion",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4387,7 +4387,7 @@
                       "objectId": "obj-column-southwest",
                       "type": "role",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     }
@@ -4472,7 +4472,7 @@
                       "objectId": "obj-power-west",
                       "type": "position",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4481,7 +4481,7 @@
                       "objectId": "obj-power-west",
                       "type": "rotation",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4490,7 +4490,7 @@
                       "objectId": "obj-power-west",
                       "type": "dimension",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4499,7 +4499,7 @@
                       "objectId": "obj-power-west",
                       "type": "deletion",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4508,7 +4508,7 @@
                       "objectId": "obj-power-west",
                       "type": "role",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     }
@@ -4544,7 +4544,7 @@
                       "objectId": "obj-rigging-center",
                       "type": "position",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4553,7 +4553,7 @@
                       "objectId": "obj-rigging-center",
                       "type": "rotation",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4562,7 +4562,7 @@
                       "objectId": "obj-rigging-center",
                       "type": "dimension",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4571,7 +4571,7 @@
                       "objectId": "obj-rigging-center",
                       "type": "deletion",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4580,7 +4580,7 @@
                       "objectId": "obj-rigging-center",
                       "type": "role",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     }
@@ -4945,7 +4945,7 @@
                       "objectId": "obj-accessible-entrance-south",
                       "type": "position",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4954,7 +4954,7 @@
                       "objectId": "obj-accessible-entrance-south",
                       "type": "rotation",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4963,7 +4963,7 @@
                       "objectId": "obj-accessible-entrance-south",
                       "type": "dimension",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4972,7 +4972,7 @@
                       "objectId": "obj-accessible-entrance-south",
                       "type": "deletion",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -4981,7 +4981,7 @@
                       "objectId": "obj-accessible-entrance-south",
                       "type": "role",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     }
@@ -5022,7 +5022,7 @@
                       "objectId": "obj-door-south-access",
                       "type": "position",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -5031,7 +5031,7 @@
                       "objectId": "obj-door-south-access",
                       "type": "rotation",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -5040,7 +5040,7 @@
                       "objectId": "obj-door-south-access",
                       "type": "dimension",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -5049,7 +5049,7 @@
                       "objectId": "obj-door-south-access",
                       "type": "deletion",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -5058,7 +5058,7 @@
                       "objectId": "obj-door-south-access",
                       "type": "role",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     }
@@ -5299,7 +5299,7 @@
                       "objectId": "obj-restroom-accessible",
                       "type": "position",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -5308,7 +5308,7 @@
                       "objectId": "obj-restroom-accessible",
                       "type": "rotation",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -5317,7 +5317,7 @@
                       "objectId": "obj-restroom-accessible",
                       "type": "dimension",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -5326,7 +5326,7 @@
                       "objectId": "obj-restroom-accessible",
                       "type": "deletion",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     },
@@ -5335,7 +5335,7 @@
                       "objectId": "obj-restroom-accessible",
                       "type": "role",
                       "source": "venue-template",
-                      "reasonCode": "legacy-protected",
+                      "reasonCode": "venue-infrastructure",
                       "authorId": "venue-template",
                       "active": true
                     }
@@ -5983,7 +5983,7 @@
               },
               "emergencyReviews": []
             },
-            "planFingerprint": "plan-428eaa43",
+            "planFingerprint": "plan-f4ce9ca9",
             "acceptedBrief": {
               "id": "brief-summit-forward-2026",
               "eventName": "SummitForward 2026",
@@ -6107,7 +6107,7 @@
             "briefFingerprint": "brief-1f947930"
           },
           "previousHash": "genesis",
-          "hash": "ledger-6af8c3b0"
+          "hash": "ledger-0922ee78"
         }
       ],
       "receipts": []

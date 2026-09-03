@@ -8,7 +8,7 @@ The Organization-owned durable Project record is authoritative when reachable. B
 flowchart TD
   OPEN[Open Project] --> API{Project API reachable?}
   API -->|yes| REMOTE[Load schema-10 record]
-  REMOTE --> VERIFY[Normalize, verify geometry, ledger, replay, Locks]
+  REMOTE --> VERIFY[Require schema 10; verify geometry, ledger, replay, Locks]
   VERIFY --> CACHE[Refresh local recovery copy]
   API -->|no| LOCAL{Recovery copy exists?}
   LOCAL -->|yes| VERIFY
@@ -43,7 +43,7 @@ flowchart TD
 - `LEDGER_INTEGRITY_FAILED`: quarantine the record and use the last verified export or backup.
 - `PROJECT_ID_CONFLICT`: import under an explicitly new Project lineage; import never overwrites.
 - `LOCK_CONFLICT`: keep the protected accepted object and resolve the Proposal through normal review.
-- Unsupported schema: preserve the original bytes, add a tested sequential migration, and retry Import Preview.
+- Unsupported Project schema: preserve the original bytes outside the runtime; import and restore accept schema 10 only.
 
 Each authoritative Project record carries a positive `revision` and a strong ETag. Creation uses `If-None-Match: *`; updates use the exact current ETag in `If-Match`. Missing preconditions fail with `428`, stale revisions fail with structured `412 PROJECT_REVISION_CONFLICT`, and no conflict is reported as a successful offline save.
 
@@ -60,3 +60,7 @@ Public Share Links resolve through hashed bearer tokens, expire at a fixed insta
 Event Day Runbooks do not live inside the Project snapshot. Each Runbook Version has a frozen accepted baseline, independent task revisions, transitions, idempotency receipts, and an anchored hash-chained ledger. The browser uses IndexedDB for the Runbook cache and ordered outbox; localStorage is not the operational queue.
 
 Reconnect sends the original commands in client sequence order. The server returns a result for every item and commits each accepted transition, task projection, receipt, and ledger entry atomically. Applied and already-applied items leave the outbox. Conflicts and rejections remain visible and recoverable. See `docs/event-day-runbooks.md` and ADR 0027.
+
+Each active Runbook Version owns one separate Incident Register. Its immutable baseline freezes accepted Plan, Validation, Approval, Emergency Plan, and Runbook ledger provenance. Browser recovery stores the register projection and ordered command outbox by Organization and Project. D1 is authoritative when reachable; exact retries leave the outbox and revision conflicts remain recoverable.
+
+Incident registers contain structured operational records only. File upload and object storage are intentionally outside the current deployment profile, so D1 remains the sole Cloudflare storage dependency. See `docs/event-day-incidents.md` and ADR 0028.

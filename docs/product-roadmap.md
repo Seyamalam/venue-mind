@@ -37,7 +37,7 @@ VenueMind is an agent-native venue operations product. The first vertical slice 
 
 ## 5. Product infrastructure
 
-- Sites-backed accounts, Organizations, Membership Roles, Sessions, tenant-owned Projects, export, and deletion.
+- Server-owned accounts, Organizations, Membership Roles, Sessions, tenant-owned Projects, export, and deletion.
 - Durable persistence, autosave, offline recovery, conflict resolution, and backups.
 - Real-time collaboration, presence, comments, notifications, and share links.
 - Observability for tool calls, validation latency, proposal outcomes, and failed approvals.

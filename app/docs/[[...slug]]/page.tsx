@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DocsPage as DocsPageContent, type DocsPageData } from "@/components/docs/docs-page";
-import { docsPageBySlug, docsPages } from "@/src/docs/content.js";
+import { docsPageBySlug, docsPages } from "@/src/docs/content.ts";
 
 export function generateStaticParams() {
   return docsPages.map((page) => ({ slug: page.slug === "overview" ? [] : [page.slug] }));
@@ -25,5 +25,5 @@ export default async function DocsPage({ params }: { params: Promise<{ slug?: st
   const { slug = [] } = await params;
   const page = docsPageBySlug[slug[0] ?? "overview"];
   if (slug.length > 1 || !page) notFound();
-  return <DocsPageContent page={page as DocsPageData} pages={docsPages as DocsPageData[]} />;
+  return <DocsPageContent page={page satisfies DocsPageData} pages={docsPages satisfies readonly DocsPageData[]} />;
 }

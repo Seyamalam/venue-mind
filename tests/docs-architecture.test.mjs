@@ -1,22 +1,29 @@
 import assert from "node:assert/strict";
 import { access, readdir, readFile } from "node:fs/promises";
 import test from "node:test";
-import { docsPageBySlug, docsPages, publicDocsWorkflows } from "../src/docs/content.js";
-import { buildDocsNavigation, buildTableOfContents, getDocsNeighbors } from "../src/docs/navigation.js";
-import { buildDocsSearchIndex, nextSearchSelection, searchDocs } from "../src/docs/search.js";
-import { venueToolContracts } from "../src/contracts/venue-contracts.js";
+import { docsPageBySlug, docsPages, publicDocsWorkflows } from "../src/docs/content.ts";
+import { buildDocsNavigation, buildTableOfContents, getDocsNeighbors } from "../src/docs/navigation.ts";
+import { buildDocsSearchIndex, nextSearchSelection, searchDocs } from "../src/docs/search.ts";
+import { venueToolContracts } from "../src/contracts/venue-contracts.ts";
 
 const publicFile = (pathname) => new URL(`../public${pathname}`, import.meta.url);
-const docsLinks = docsPages.flatMap((page) => page.sections.flatMap((section) => section.blocks
-  .filter((block) => block.type === "links")
-  .flatMap((block) => block.items.map((item) => item.href))));
+const docsLinks = docsPages.flatMap((page) =>
+  page.sections.flatMap((section) =>
+    section.blocks.filter((block) => block.type === "links").flatMap((block) => block.items.map((item) => item.href)),
+  ),
+);
 
 function assertDocsHref(href) {
   const url = new URL(href, "https://venuemind.test");
-  const slug = url.pathname === "/docs" || url.pathname === "/docs/" ? "overview" : url.pathname.replace(/^\/docs\//, "");
+  const slug =
+    url.pathname === "/docs" || url.pathname === "/docs/" ? "overview" : url.pathname.replace(/^\/docs\//, "");
   const page = docsPageBySlug[slug];
   assert.ok(page, `Missing docs page for ${href}`);
-  if (url.hash) assert.ok(page.sections.some((section) => section.id === url.hash.slice(1)), `Missing anchor for ${href}`);
+  if (url.hash)
+    assert.ok(
+      page.sections.some((section) => section.id === url.hash.slice(1)),
+      `Missing anchor for ${href}`,
+    );
 }
 
 test("every page has stable public metadata, unique paths, and unique anchors", () => {
@@ -28,8 +35,15 @@ test("every page has stable public metadata, unique paths, and unique anchors", 
     assert.ok(page.audience.length > 0);
     assert.match(page.lastReviewedVersion, /^VenueMind /);
     assert.ok(page.compatibility.length > 0);
-    assert.equal(new Set(page.sections.map((section) => section.id)).size, page.sections.length, `${page.slug} duplicate anchor`);
-    assert.deepEqual(buildTableOfContents(page).map((item) => item.id), page.sections.map((section) => section.id));
+    assert.equal(
+      new Set(page.sections.map((section) => section.id)).size,
+      page.sections.length,
+      `${page.slug} duplicate anchor`,
+    );
+    assert.deepEqual(
+      buildTableOfContents(page).map((item) => item.id),
+      page.sections.map((section) => section.id),
+    );
   }
 });
 
@@ -37,11 +51,16 @@ test("generated navigation and previous-next order cover every visible docs page
   const navigation = buildDocsNavigation(docsPages);
   const entries = navigation.flatMap((group) => group.pages);
   const visiblePages = docsPages.filter((page) => !page.navigation?.hidden);
-  assert.deepEqual(entries.map((entry) => entry.slug), visiblePages.map((page) => page.slug));
+  assert.deepEqual(
+    entries.map((entry) => entry.slug),
+    visiblePages.map((page) => page.slug),
+  );
   assert.equal(new Set(entries.map((entry) => entry.href)).size, visiblePages.length);
   for (const page of docsPages) {
     const sequence = page.navigation?.hidden
-      ? docsPages.filter((candidate) => candidate.navigation?.hidden && candidate.navigation.collection === page.navigation.collection)
+      ? docsPages.filter(
+          (candidate) => candidate.navigation?.hidden && candidate.navigation.collection === page.navigation.collection,
+        )
       : visiblePages;
     const index = sequence.findIndex((candidate) => candidate.slug === page.slug);
     const neighbors = getDocsNeighbors(docsPages, page.slug);
@@ -58,20 +77,31 @@ test("all structured documentation links resolve to a page, anchor, or published
 });
 
 test("every public contract, tool, skill, and workflow is reachable within two docs actions", async () => {
-  const navigationPaths = new Set(buildDocsNavigation(docsPages).flatMap((group) => group.pages.map((page) => page.href)));
-  for (const page of docsPages.filter((candidate) => !candidate.navigation?.hidden)) assert.ok(navigationPaths.has(page.canonicalPath));
+  const navigationPaths = new Set(
+    buildDocsNavigation(docsPages).flatMap((group) => group.pages.map((page) => page.href)),
+  );
+  for (const page of docsPages.filter((candidate) => !candidate.navigation?.hidden))
+    assert.ok(navigationPaths.has(page.canonicalPath));
   for (const page of docsPages.filter((candidate) => candidate.navigation?.hidden)) {
     const parent = docsPageBySlug[page.navigation.parentSlug];
     assert.ok(parent, `${page.slug} missing parent`);
     assert.ok(navigationPaths.has(parent.canonicalPath), `${page.slug} parent missing from navigation`);
-    const parentLinks = new Set(parent.sections.flatMap((section) => section.blocks
-      .filter((block) => block.type === "links")
-      .flatMap((block) => block.items.map((item) => item.href))));
+    const parentLinks = new Set(
+      parent.sections.flatMap((section) =>
+        section.blocks
+          .filter((block) => block.type === "links")
+          .flatMap((block) => block.items.map((item) => item.href)),
+      ),
+    );
     assert.ok(parentLinks.has(page.canonicalPath), `${page.slug} missing from parent index`);
   }
 
   const toolIndex = docsPageBySlug["reference-tools"];
-  const toolLinks = new Set(toolIndex.sections.flatMap((section) => section.blocks.flatMap((block) => block.type === "links" ? block.items.map((item) => item.href) : [])));
+  const toolLinks = new Set(
+    toolIndex.sections.flatMap((section) =>
+      section.blocks.flatMap((block) => (block.type === "links" ? block.items.map((item) => item.href) : [])),
+    ),
+  );
   for (const tool of venueToolContracts) {
     const path = `/docs/reference-tool-${tool.name.replaceAll(".", "-").replaceAll("_", "-")}`;
     assert.ok(toolLinks.has(path), tool.name);
@@ -81,10 +111,14 @@ test("every public contract, tool, skill, and workflow is reachable within two d
   const skillTitles = new Set(docsPageBySlug.skills.sections.map((section) => section.title));
   for (const skill of skillsManifest.packages) assert.ok(skillTitles.has(skill.name), skill.name);
 
-  const schemaFiles = (await readdir(new URL("../public/schemas/", import.meta.url))).filter((name) => name.endsWith(".json"));
-  const contractHrefs = new Set(docsPageBySlug.contracts.sections.flatMap((section) => section.blocks
-    .filter((block) => block.type === "links")
-    .flatMap((block) => block.items.map((item) => item.href))));
+  const schemaFiles = (await readdir(new URL("../public/schemas/", import.meta.url))).filter((name) =>
+    name.endsWith(".json"),
+  );
+  const contractHrefs = new Set(
+    docsPageBySlug.contracts.sections.flatMap((section) =>
+      section.blocks.filter((block) => block.type === "links").flatMap((block) => block.items.map((item) => item.href)),
+    ),
+  );
   for (const file of schemaFiles) assert.ok(contractHrefs.has(`/schemas/${file}`), file);
   for (const workflow of publicDocsWorkflows) assertDocsHref(workflow.href);
 });
@@ -93,7 +127,12 @@ test("search indexes every heading and supports wrapped keyboard selection", () 
   const index = buildDocsSearchIndex(docsPages);
   assert.equal(index.length, docsPages.length + docsPages.reduce((total, page) => total + page.sections.length, 0));
   assert.equal(searchDocs(index, "temporary ramp")[0].href, "/docs/concepts#access-infrastructure");
-  assert.equal(searchDocs(index, "venue.preview_revision").some((result) => result.href === "/docs/reference-tool-venue-preview-revision"), true);
+  assert.equal(
+    searchDocs(index, "venue.preview_revision").some(
+      (result) => result.href === "/docs/reference-tool-venue-preview-revision",
+    ),
+    true,
+  );
   assert.equal(nextSearchSelection(-1, "ArrowDown", 3), 0);
   assert.equal(nextSearchSelection(2, "ArrowDown", 3), 0);
   assert.equal(nextSearchSelection(0, "ArrowUp", 3), 2);
@@ -106,7 +145,10 @@ test("generated public metadata contains every canonical docs route", async () =
   const sitemap = await readFile(publicFile("/sitemap.xml"), "utf8");
   const robots = await readFile(publicFile("/robots.txt"), "utf8");
   assert.equal(manifest.schemaVersion, 1);
-  assert.deepEqual(manifest.pages.map((page) => page.canonicalPath), docsPages.map((page) => page.canonicalPath));
+  assert.deepEqual(
+    manifest.pages.map((page) => page.canonicalPath),
+    docsPages.map((page) => page.canonicalPath),
+  );
   assert.equal(searchIndex.schemaVersion, 1);
   assert.deepEqual(searchIndex.entries, buildDocsSearchIndex(docsPages));
   for (const page of docsPages) assert.match(sitemap, new RegExp(`${page.canonicalPath.replaceAll("/", "\\/")}<`));
@@ -123,7 +165,7 @@ test("Next docs keep content on the server and isolate search in shadcn primitiv
   assert.match(triggerSource, /dynamic\(loadDocsSearchPalette/);
   assert.match(triggerSource, /import\("@\/components\/docs\/docs-search-palette"\)/);
   assert.doesNotMatch(triggerSource, /components\/ui\/(?:dialog|command)/);
-  assert.match(triggerSource, /on(?:Focus|PointerEnter)=\{\(\) => \{ void loadDocsSearchPalette\(\); \}\}/);
+  assert.match(triggerSource, /on(?:Focus|PointerEnter)=\{\(\) => \{\s*void loadDocsSearchPalette\(\);\s*\}\}/);
   assert.match(triggerSource, /fetch\("\/docs-search\.json"/);
   assert.match(paletteSource, /from "@\/components\/ui\/dialog"/);
   assert.match(paletteSource, /from "@\/components\/ui\/command"/);

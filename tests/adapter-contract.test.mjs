@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { fingerprintPlan } from "../src/domain/activity-ledger.js";
-import { createEmptyVenuePlan } from "../src/domain/empty-project.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { AdapterContractError, createSyncCursor, defineAdapter, normalizeAdapterChange, sha256Checksum } from "../src/integrations/contracts.js";
-import { roomInventoryAdapter } from "../src/integrations/adapters/room-inventory-adapter.js";
-import { createMemoryProcessedBatchStore } from "../src/integrations/processed-batch-store.js";
-import { createAdapterRuntime, verifySyncCursor } from "../src/integrations/runtime.js";
-import { createMemorySecretStore } from "../src/integrations/secret-store.js";
-import { assertReviewableStagingBatch, createAdapterStagingBatch, createExternalIdMapping, loadAdapterProposalForReview } from "../src/integrations/staging.js";
+import { fingerprintPlan } from "../src/domain/activity-ledger.ts";
+import { createEmptyVenuePlan } from "../src/domain/empty-project.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { AdapterContractError, createSyncCursor, defineAdapter, normalizeAdapterChange, sha256Checksum } from "../src/integrations/contracts.ts";
+import { roomInventoryAdapter } from "../src/integrations/adapters/room-inventory-adapter.ts";
+import { createMemoryProcessedBatchStore } from "../src/integrations/processed-batch-store.ts";
+import { createAdapterRuntime, verifySyncCursor } from "../src/integrations/runtime.ts";
+import { createMemorySecretStore } from "../src/integrations/secret-store.ts";
+import { assertReviewableStagingBatch, createAdapterStagingBatch, createExternalIdMapping, loadAdapterProposalForReview } from "../src/integrations/staging.ts";
 
 const fixture = JSON.parse(await readFile(new URL("./fixtures/adapter-room-inventory-v1.json", import.meta.url), "utf8"));
 const exportFixture = JSON.parse(await readFile(new URL("./fixtures/adapter-room-inventory-export-v1.json", import.meta.url), "utf8"));

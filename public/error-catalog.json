@@ -22,7 +22,12 @@
   "SNAPSHOT_INVALID": {
     "code": "SNAPSHOT_INVALID",
     "message": "Invalid VenueMind snapshot.",
-    "remediation": "Restore a schema-compatible snapshot containing a Plan, Proposal, and Activity Ledger."
+    "remediation": "Restore a canonical Project schema 10 snapshot containing a Plan, Proposal, and Activity Ledger."
+  },
+  "PROJECT_SCHEMA_UNSUPPORTED": {
+    "code": "PROJECT_SCHEMA_UNSUPPORTED",
+    "message": "Project schema is unsupported.",
+    "remediation": "Use a Project schema 10 record."
   },
   "ADJUSTMENT_REQUIRED": {
     "code": "ADJUSTMENT_REQUIRED",
@@ -339,10 +344,140 @@
     "message": "Runbook task evidence is incomplete.",
     "remediation": "Attach every required structured evidence code before completing the task."
   },
-  "LEGACY_BRIEF_ATTESTATION_REQUIRED": {
-    "code": "LEGACY_BRIEF_ATTESTATION_REQUIRED",
-    "message": "Legacy Event Brief requires trusted human attestation.",
-    "remediation": "Have an organization owner or administrator review and attest the legacy Event Brief before migration."
+  "OCCUPANCY_BASELINE_INVALID": {
+    "code": "OCCUPANCY_BASELINE_INVALID",
+    "message": "Live Occupancy baseline is invalid.",
+    "remediation": "Create the monitor from one active Event Day Runbook with canonical Plan capacity and event-target evidence."
+  },
+  "OCCUPANCY_SIGNAL_INVALID": {
+    "code": "OCCUPANCY_SIGNAL_INVALID",
+    "message": "Aggregate Occupancy Signal is invalid.",
+    "remediation": "Send one bounded aggregate-only signal for the check-in total, venue, or a stable Occupancy Zone."
+  },
+  "OCCUPANCY_PRIVACY_REJECTED": {
+    "code": "OCCUPANCY_PRIVACY_REJECTED",
+    "message": "Occupancy input contains prohibited person-level data.",
+    "remediation": "Remove identities, contacts, ticket tokens, device identifiers, and individual event records before ingestion."
+  },
+  "OCCUPANCY_SIGNAL_OUT_OF_ORDER": {
+    "code": "OCCUPANCY_SIGNAL_OUT_OF_ORDER",
+    "message": "Occupancy Signal is older than the accepted source state.",
+    "remediation": "Refresh the source cursor and send a newer source version and observed instant."
+  },
+  "OCCUPANCY_REVISION_CONFLICT": {
+    "code": "OCCUPANCY_REVISION_CONFLICT",
+    "message": "Live Occupancy monitor revision conflict.",
+    "remediation": "Refresh the monitor and retry only if the aggregate transition is still required."
+  },
+  "OCCUPANCY_ALERT_NOT_FOUND": {
+    "code": "OCCUPANCY_ALERT_NOT_FOUND",
+    "message": "Occupancy Alert is unavailable.",
+    "remediation": "Refresh the Live Occupancy Monitor and select an active Alert ID."
+  },
+  "OCCUPANCY_ACKNOWLEDGEMENT_INVALID": {
+    "code": "OCCUPANCY_ACKNOWLEDGEMENT_INVALID",
+    "message": "Occupancy Alert acknowledgement is invalid.",
+    "remediation": "Use an authenticated human operator, an active Alert ID, and one structured reason code."
+  },
+  "OCCUPANCY_LEDGER_INTEGRITY_FAILED": {
+    "code": "OCCUPANCY_LEDGER_INTEGRITY_FAILED",
+    "message": "Occupancy Monitor Ledger integrity failed.",
+    "remediation": "Restore the last verified monitor state before inspection or export."
+  },
+  "OCCUPANCY_MONITOR_NOT_FOUND": {
+    "code": "OCCUPANCY_MONITOR_NOT_FOUND",
+    "message": "Live Occupancy Monitor is unavailable.",
+    "remediation": "Create the monitor from the active Event Day Runbook before inspecting or changing occupancy."
+  },
+  "OCCUPANCY_TOOL_UNAVAILABLE": {
+    "code": "OCCUPANCY_TOOL_UNAVAILABLE",
+    "message": "Live Occupancy tool Adapter is unavailable.",
+    "remediation": "Open VenueMind Studio or connect an MCP Project session with Live Occupancy operations enabled."
+  },
+  "INCIDENT_BASELINE_INVALID": {
+    "code": "INCIDENT_BASELINE_INVALID",
+    "message": "Incident Register baseline is invalid.",
+    "remediation": "Create the register from one active Event Day Runbook with its frozen accepted Plan and Emergency Plan evidence."
+  },
+  "INCIDENT_REGISTER_NOT_FOUND": {
+    "code": "INCIDENT_REGISTER_NOT_FOUND",
+    "message": "Incident Register is unavailable.",
+    "remediation": "Create the register from the active Event Day Runbook before inspecting or reporting incidents."
+  },
+  "INCIDENT_NOT_FOUND": {
+    "code": "INCIDENT_NOT_FOUND",
+    "message": "Operational Incident is unavailable.",
+    "remediation": "Inspect the Incident Register and retry with an existing stable Incident ID."
+  },
+  "INCIDENT_ID_CONFLICT": {
+    "code": "INCIDENT_ID_CONFLICT",
+    "message": "Operational Incident ID conflicts with an existing record.",
+    "remediation": "Use the original semantic report or generate a new stable Incident ID."
+  },
+  "INCIDENT_INVALID": {
+    "code": "INCIDENT_INVALID",
+    "message": "Operational Incident input is invalid.",
+    "remediation": "Use the published severity, category, owner, reason, reference, and transition fields."
+  },
+  "INCIDENT_PRIVACY_REJECTED": {
+    "code": "INCIDENT_PRIVACY_REJECTED",
+    "message": "Incident input contains prohibited person-level data.",
+    "remediation": "Remove identities, contacts, ticket, device, attendee, medical, and free-form person records."
+  },
+  "INCIDENT_LOCATION_INVALID": {
+    "code": "INCIDENT_LOCATION_INVALID",
+    "message": "Incident Location Context is invalid.",
+    "remediation": "Anchor the incident to one object or in-room coordinate in the frozen accepted Plan."
+  },
+  "INCIDENT_REVISION_CONFLICT": {
+    "code": "INCIDENT_REVISION_CONFLICT",
+    "message": "Operational Incident revision conflict.",
+    "remediation": "Refresh the incident and retry only if the transition is still required."
+  },
+  "INCIDENT_TRANSITION_INVALID": {
+    "code": "INCIDENT_TRANSITION_INVALID",
+    "message": "Operational Incident transition is invalid.",
+    "remediation": "Use a published state transition and supply any required structured reason or resolution code."
+  },
+  "INCIDENT_OWNER_INVALID": {
+    "code": "INCIDENT_OWNER_INVALID",
+    "message": "Incident owner evidence is invalid.",
+    "remediation": "Assign one structured Runbook role, shift, Staff Post, or assignment reference."
+  },
+  "INCIDENT_ACKNOWLEDGEMENT_INVALID": {
+    "code": "INCIDENT_ACKNOWLEDGEMENT_INVALID",
+    "message": "Incident acknowledgement is invalid.",
+    "remediation": "Use an authenticated human operator and an unacknowledged open incident."
+  },
+  "INCIDENT_ESCALATION_INVALID": {
+    "code": "INCIDENT_ESCALATION_INVALID",
+    "message": "Incident escalation is invalid.",
+    "remediation": "Increase the structured escalation level without skipping required authority."
+  },
+  "INCIDENT_HANDOFF_INVALID": {
+    "code": "INCIDENT_HANDOFF_INVALID",
+    "message": "Incident handoff is invalid.",
+    "remediation": "Use the current owner, a different structured next owner, and bounded open action codes."
+  },
+  "INCIDENT_EMERGENCY_ACTION_INVALID": {
+    "code": "INCIDENT_EMERGENCY_ACTION_INVALID",
+    "message": "Emergency Action Invocation is invalid.",
+    "remediation": "Use an approved action, scenario, and object reference from the frozen Emergency Plan."
+  },
+  "INCIDENT_HUMAN_REQUIRED": {
+    "code": "INCIDENT_HUMAN_REQUIRED",
+    "message": "This Incident transition requires a human operator.",
+    "remediation": "Ask an authorized human operator to acknowledge, manage, hand off, or record an emergency action."
+  },
+  "INCIDENT_LEDGER_INTEGRITY_FAILED": {
+    "code": "INCIDENT_LEDGER_INTEGRITY_FAILED",
+    "message": "Incident Register ledger integrity failed.",
+    "remediation": "Restore the last verified register state before inspection or export."
+  },
+  "INCIDENT_TOOL_UNAVAILABLE": {
+    "code": "INCIDENT_TOOL_UNAVAILABLE",
+    "message": "Incident tool Adapter is unavailable.",
+    "remediation": "Open VenueMind Studio or connect an MCP Project session with Incident Register operations enabled."
   },
   "VENUE_INTERNAL_ERROR": {
     "code": "VENUE_INTERNAL_ERROR",

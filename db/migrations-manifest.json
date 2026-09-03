@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "databaseSchemaVersion": 8,
+  "databaseSchemaVersion": 10,
   "migrations": [
     {
       "version": 1,
@@ -81,6 +81,26 @@
       "source": "/db/migrations/0008_event_day_runbooks.sql",
       "wrangler": "/db/wrangler/0008_event_day_runbooks.sql",
       "statementCount": 20
+    },
+    {
+      "version": 9,
+      "name": "live_occupancy",
+      "checksum": "1ce0ac407378f795c8a4a2e667574cb1e79d89bd6be06d1d8d24cde8690b0222",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0009_live_occupancy.sql",
+      "wrangler": "/db/wrangler/0009_live_occupancy.sql",
+      "statementCount": 3
+    },
+    {
+      "version": 10,
+      "name": "event_day_incident_registers",
+      "checksum": "7bf6326a405b1ff07cdddba95ecc4cdd55f42d5218a834d4e8378414f688be8a",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0010_event_day_incident_registers.sql",
+      "wrangler": "/db/wrangler/0010_event_day_incident_registers.sql",
+      "statementCount": 3
     }
   ]
 }

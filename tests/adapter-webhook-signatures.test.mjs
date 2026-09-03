@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { verifyWebhookHmac } from "../src/integrations/webhook-signatures.js";
+import { verifyWebhookHmac } from "../src/integrations/webhook-signatures.ts";
 
 const bytes = (value) => new TextEncoder().encode(value);
 

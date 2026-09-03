@@ -1,6 +1,6 @@
 # Generated contracts
 
-Target tool contract: `1.2.0`.
+Target tool contract: `1.4.0`.
 
 - Tool definitions and errors: `/venue-tools.json`, `/tool-error-catalog.json`
 - Activity Ledger: `/schemas/activity-ledger.schema.json`

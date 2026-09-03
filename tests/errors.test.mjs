@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { errorCatalog, errorPayload, venueError } from "../src/domain/errors.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
+import { errorCatalog, errorPayload, venueError } from "../src/domain/errors.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
 
 test("error catalog exposes stable codes, messages, and remediation metadata", () => {
   const entries = Object.entries(errorCatalog);

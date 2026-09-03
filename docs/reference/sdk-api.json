@@ -6,7 +6,7 @@
     "module": "ESM",
     "node": ">=22"
   },
-  "contractVersion": "1.2.0",
+  "contractVersion": "1.4.0",
   "entryPoints": [
     ".",
     "./types",

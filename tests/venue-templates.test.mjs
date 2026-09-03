@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createRoomTemplateUpdateProposal } from "../src/domain/template-updates.js";
-import { evaluateInventoryAvailability, migrateTemplateDocument, venueTemplateCatalog } from "../src/domain/venue-templates.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
+import { createRoomTemplateUpdateProposal } from "../src/domain/template-updates.ts";
+import { assertCurrentTemplateDocument, evaluateInventoryAvailability, venueTemplateCatalog } from "../src/domain/venue-templates.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -31,10 +31,9 @@ test("template IDs and Project instance IDs stay in separate identity scopes", (
   }
 });
 
-test("template schema migration upgrades legacy inventory stock", () => {
-  assert.deepEqual(migrateTemplateDocument({ schemaVersion: 0, kind: "inventory-item-template", id: "inventory-template-legacy", stock: 12 }).availability, { total: 12, unavailable: 0 });
-  assert.deepEqual(migrateTemplateDocument({ schemaVersion: 0, kind: "room-template", id: "room-template-legacy", roomBoundary: { outer: [], holes: [] }, infrastructure: [] }).boundary, { outer: [], holes: [] });
-  assert.deepEqual(migrateTemplateDocument({ schemaVersion: 0, kind: "venue-template", id: "venue-template-legacy", rooms: ["room-template-legacy"] }).roomTemplateIds, ["room-template-legacy"]);
+test("template boundary accepts schema 1 only", () => {
+  assert.equal(assertCurrentTemplateDocument(venueTemplateCatalog.inventoryTemplates[0]).schemaVersion, 1);
+  assert.throws(() => assertCurrentTemplateDocument({ schemaVersion: 0, kind: "inventory-item-template", id: "inventory-template-old" }), (error) => error.code === "TEMPLATE_SCHEMA_UNSUPPORTED");
 });
 
 test("inventory availability warnings are deterministic", () => {

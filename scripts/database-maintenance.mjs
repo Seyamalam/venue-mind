@@ -5,10 +5,10 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { DATABASE_MIGRATIONS, DATABASE_SCHEMA_VERSION } from "../db/generated-migrations.ts";
-import { verifyActivityLedger, fingerprintPlan } from "../src/domain/activity-ledger.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
-import { exportProjectPackage } from "../src/interchange/venue-package.js";
+import { verifyActivityLedger, fingerprintPlan } from "../src/domain/activity-ledger.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
+import { exportProjectPackage } from "../src/interchange/venue-package.ts";
 
 const args = process.argv.slice(2);
 const command = args.shift();

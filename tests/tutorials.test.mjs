@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
-import { docsPageBySlug } from "../src/docs/content.js";
-import { tutorialEvidence, tutorialPages } from "../src/docs/pages/tutorials.js";
-import { venueToolContracts } from "../src/contracts/venue-contracts.js";
+import { docsPageBySlug } from "../src/docs/content.ts";
+import { tutorialEvidence, tutorialPages } from "../src/docs/pages/tutorials.ts";
+import { venueToolContracts } from "../src/contracts/venue-contracts.ts";
 
 const requiredTutorials = [
   "first-project",

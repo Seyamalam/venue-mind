@@ -24,12 +24,12 @@ Use this runbook for Project load/save failure, corrupt generated artifacts, fai
 3. Restore the newest backup or Interchange Package whose checksum, ledger, and replay pass.
 4. Compare the last verified Plan Version with external operational exports before reopening work.
 
-## Migration failure
+## Unsupported Project schema or database migration failure
 
 1. Preserve the source schema version and original payload.
-2. Reproduce through Import Preview or `restore_snapshot` in a focused test.
-3. Add a sequential migration and fixture; never patch the stored payload manually.
-4. Prove idempotent second load, stable IDs, ledger verification, replay, and export/import round trip.
+2. Confirm the application rejects non-schema-10 Project input at load, restore, import, and export boundaries.
+3. Keep any one-off Project conversion outside the application runtime and emit a new checksummed canonical artifact.
+4. Prove the converted artifact passes stable-ID checks, ledger verification, replay, and export/import round trip before use.
 5. For database migrations, stop traffic and retain the pre-migration Project exports, SQL export, and Time Travel bookmark.
 6. Restore into a separate target first and run `npm run db:verify -- --database <target>`.
 
@@ -56,4 +56,4 @@ Use this runbook for Project load/save failure, corrupt generated artifacts, fai
 3. Run `npm run check:generated`.
 4. Review the generated diff; never hand-edit it to silence the gate.
 
-Recovery is complete when authoritative state passes schema normalization, geometry and Lock validation, ledger verification, replay, deterministic Validation, and the relevant end-to-end test.
+Recovery is complete when authoritative state passes the exact current schema, geometry and Lock validation, ledger verification, replay, deterministic Validation, and the relevant end-to-end test.

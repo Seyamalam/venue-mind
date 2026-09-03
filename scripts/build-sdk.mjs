@@ -28,5 +28,9 @@ for (const entry of entries) {
 }
 
 execFileSync(path.join(root, "node_modules/.bin/tsc"), ["-p", path.join(packageRoot, "tsconfig.json")], { cwd: root, stdio: "inherit" });
+const declarationRoot = path.join(dist, ".types/packages/sdk/src");
+for (const entry of entries) await cp(path.join(declarationRoot, `${entry}.d.ts`), path.join(dist, `${entry}.d.ts`));
+await cp(path.join(declarationRoot, "generated"), path.join(dist, "generated"), { recursive: true });
+await rm(path.join(dist, ".types"), { recursive: true, force: true });
 await rm(path.join(packageRoot, "schemas"), { recursive: true, force: true });
 await cp(path.join(root, "public/schemas"), path.join(packageRoot, "schemas"), { recursive: true });

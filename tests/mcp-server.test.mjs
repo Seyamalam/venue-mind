@@ -5,7 +5,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
 import { createFileProjectRepository, createMemoryProjectRepository, createVenueMindMcpServer } from "../packages/mcp-server/dist/index.js";
-import { venueToolContracts } from "../src/contracts/venue-contracts.js";
+import { venueToolContracts } from "../src/contracts/venue-contracts.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
 
 const silentLogger = { info() {}, error() {} };
 
@@ -51,7 +53,58 @@ test("standalone MCP server exposes the shared VenueMind tool contracts", async 
     assert.ok(tools.some((tool) => tool.name === "venue.get_validation_evidence"));
     assert.ok(tools.some((tool) => tool.name === "venue.get_scenario_result"));
     assert.ok(tools.some((tool) => tool.name === "venue.export_audit_package"));
+    assert.ok(tools.some((tool) => tool.name === "venue.inspect_live_occupancy"));
+    assert.ok(tools.some((tool) => tool.name === "venue.ingest_occupancy_signal"));
+    assert.ok(tools.some((tool) => tool.name === "venue.refresh_live_occupancy"));
+    assert.ok(tools.some((tool) => tool.name === "venue.export_live_occupancy"));
+    assert.equal(tools.some((tool) => tool.name === "venue.acknowledge_occupancy_alert"), false);
+    assert.ok(tools.some((tool) => tool.name === "venue.inspect_incidents"));
+    assert.ok(tools.some((tool) => tool.name === "venue.report_incident"));
+    assert.ok(tools.some((tool) => tool.name === "venue.export_incident_record"));
+    assert.equal(tools.some((tool) => /acknowledge_incident|escalate_incident|handoff_incident|attach_incident/.test(tool.name)), false);
   });
+});
+
+test("standalone MCP executes the aggregate Live Occupancy loop with agent acknowledgement excluded", async () => {
+  const planner = createVenuePlanner(summitForwardPlan);
+  const proposal = planner.getSnapshot().proposal;
+  planner.execute({ type: "approve_proposal", proposalId: proposal.id, baseVersion: proposal.baseVersion, actor: "human", actorId: "seed-approver", idempotencyKey: "seed-approved-occupancy" });
+  const snapshot = planner.getSnapshot();
+  const now = new Date().toISOString();
+  const repository = createMemoryProjectRepository([{ id: "project-summit-forward", organizationId: "org-local", name: "SummitForward 2026", activePlanId: snapshot.plan.id, schemaVersion: 10, snapshot, createdAt: now, updatedAt: now, archivedAt: null, deletedAt: null, recoveryUntil: null, pinned: true, lastOpenedAt: now }]);
+  await withClient(async (client) => {
+    const before = await client.callTool({ name: "venue.inspect_live_occupancy", arguments: {} });
+    const signal = await client.callTool({ name: "venue.ingest_occupancy_signal", arguments: { sourceId: "door-a", sourceType: "manual-counter", sourceVersion: "counter-v1", kind: "zone-occupancy", observedAt: new Date().toISOString(), confidence: "high", readings: [{ scopeId: "venue", count: 310 }], idempotencyKey: "mcp-occupancy-1" } });
+    const refreshed = await client.callTool({ name: "venue.refresh_live_occupancy", arguments: { idempotencyKey: "mcp-occupancy-refresh-1" } });
+    const exported = await client.callTool({ name: "venue.export_live_occupancy", arguments: {} });
+
+    assert.match(before.content[0].text, /aggregate-only/);
+    assert.match(signal.content[0].text, /"revision": 1/);
+    assert.match(refreshed.content[0].text, /"revision": 2/);
+    assert.match(exported.content[0].text, /venuemind-live-occupancy-audit/);
+  }, { repository });
+});
+
+test("standalone MCP reports and exports a Plan-anchored Incident without response authority", async () => {
+  const planner = createVenuePlanner(summitForwardPlan);
+  const proposal = planner.getSnapshot().proposal;
+  planner.execute({ type: "approve_proposal", proposalId: proposal.id, baseVersion: proposal.baseVersion, actor: "human", actorId: "seed-approver", idempotencyKey: "seed-approved-incidents" });
+  const snapshot = planner.getSnapshot();
+  const now = new Date().toISOString();
+  const repository = createMemoryProjectRepository([{ id: "project-summit-forward", organizationId: "org-local", name: "SummitForward 2026", activePlanId: snapshot.plan.id, schemaVersion: 10, snapshot, createdAt: now, updatedAt: now, archivedAt: null, deletedAt: null, recoveryUntil: null, pinned: true, lastOpenedAt: now }]);
+  await withClient(async (client) => {
+    const before = await client.callTool({ name: "venue.inspect_incidents", arguments: { status: "open" } });
+    const reported = await client.callTool({ name: "venue.report_incident", arguments: { severity: "high", category: "fire-life-safety", summaryCode: "EXIT_OBSTRUCTED", location: { kind: "plan-object", planObjectId: "obj-fire-exit-east" }, relatedRefs: [{ kind: "plan-object", id: "obj-fire-exit-east" }], idempotencyKey: "mcp-incident-1" } });
+    const incidentId = JSON.parse(reported.content[0].text).incident.id;
+    const retried = await client.callTool({ name: "venue.report_incident", arguments: { severity: "high", category: "fire-life-safety", summaryCode: "EXIT_OBSTRUCTED", location: { kind: "plan-object", planObjectId: "obj-fire-exit-east" }, relatedRefs: [{ kind: "plan-object", id: "obj-fire-exit-east" }], idempotencyKey: "mcp-incident-1" } });
+    const exported = await client.callTool({ name: "venue.export_incident_record", arguments: { incidentId } });
+
+    assert.match(before.content[0].text, /"incidents": \[\]/);
+    assert.match(reported.content[0].text, /EXIT_OBSTRUCTED/);
+    assert.match(retried.content[0].text, /"duplicate": true/);
+    assert.match(exported.content[0].text, /venuemind-incident-record/);
+    assert.equal((await client.listTools()).tools.some((tool) => /acknowledge_incident|escalate_incident|handoff_incident/.test(tool.name)), false);
+  }, { repository });
 });
 
 test("expanded shared tools expose bounded object, Constraint, evidence, Scenario, adjustment, and audit operations", async () => {
@@ -167,10 +220,17 @@ test("official MCP clients can complete the durable supervised loop across serve
   const directory = await mkdtemp(path.join(tmpdir(), "venuemind-mcp-test-"));
   try {
     const repository = createFileProjectRepository({ directory });
+    const seedPlanner = createVenuePlanner(summitForwardPlan);
+    const seedProposal = seedPlanner.getSnapshot().proposal;
+    seedPlanner.execute({ type: "approve_proposal", proposalId: seedProposal.id, baseVersion: seedProposal.baseVersion, actor: "human", actorId: "seed-approver", idempotencyKey: "seed-durable-incidents" });
+    const seedSnapshot = seedPlanner.getSnapshot();
+    const seededAt = new Date().toISOString();
+    await repository.save({ id: "project-summit-forward", organizationId: "org-local", name: "SummitForward 2026", activePlanId: seedSnapshot.plan.id, schemaVersion: 10, snapshot: seedSnapshot, createdAt: seededAt, updatedAt: seededAt, archivedAt: null, deletedAt: null, recoveryUntil: null, pinned: true, lastOpenedAt: seededAt });
     await withClient(async (client) => {
       const projects = await client.callTool({ name: "venue.list_projects", arguments: {} });
       const opened = await client.callTool({ name: "venue.open_project", arguments: { projectId: "project-summit-forward" } });
       const inspected = await client.callTool({ name: "venue.inspect_layout", arguments: {} });
+      const incident = await client.callTool({ name: "venue.report_incident", arguments: { severity: "medium", category: "facilities", summaryCode: "DURABLE_POWER_RISK", location: { kind: "plan-object", planObjectId: "obj-first-aid-north" }, relatedRefs: [], idempotencyKey: "mcp-durable-incident" } });
       const branch = await client.callTool({ name: "venue.create_proposal_branch", arguments: { name: "Durable access", strategy: "access-first", goal: "Protect accessible arrival", idempotencyKey: "mcp-durable-branch", correlationId: "mcp-durable" } });
       const preview = await client.callTool({ name: "venue.preview_revision", arguments: { goal: "Protect accessible arrival", idempotencyKey: "mcp-durable-preview", correlationId: "mcp-durable" } });
       const validation = await client.callTool({ name: "venue.validate_layout", arguments: {} });
@@ -184,6 +244,7 @@ test("official MCP clients can complete the durable supervised loop across serve
       assert.match(preview.content[0].text, /requiresHumanApproval/);
       assert.match(validation.content[0].text, /validationId/);
       assert.match(ledger.content[0].text, /proposal.previewed/);
+      assert.match(incident.content[0].text, /DURABLE_POWER_RISK/);
       assert.match(exported.content[0].text, /\.json/);
       assert.equal((await client.listTools()).tools.some((tool) => tool.name === "venue.approve_proposal"), false);
     }, { repository });
@@ -192,8 +253,10 @@ test("official MCP clients can complete the durable supervised loop across serve
       await client.callTool({ name: "venue.open_project", arguments: { projectId: "project-summit-forward" } });
       const proposal = await client.readResource({ uri: "venuemind://current/proposal" });
       const ledger = await client.callTool({ name: "venue.get_change_log", arguments: {} });
+      const incidents = await client.callTool({ name: "venue.inspect_incidents", arguments: { status: "open" } });
       assert.match(proposal.contents[0].text, /Protect accessible arrival/);
       assert.match(ledger.content[0].text, /mcp-durable/);
+      assert.match(incidents.content[0].text, /DURABLE_POWER_RISK/);
     }, { repository: createFileProjectRepository({ directory }) });
   } finally {
     await rm(directory, { recursive: true, force: true });

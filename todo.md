@@ -56,12 +56,12 @@ The following foundation exists and should be protected by regression tests:
 - [x] Human-only Approval boundary across WebMCP and MCP.
 - [x] D1 Project repository and `/api/projects` API.
 - [x] Browser recovery cache and remote/local save status.
-- [x] Project schema versioning and legacy snapshot normalization.
+- [x] Project schema 10 as the sole runtime format with strict canonical restore.
 - [x] Generated JSON Schemas for commands, planner snapshots, and Project records.
 - [x] `venuemind-plan` and `venuemind-audit` agent skills.
 - [x] Multi-route documentation site.
 - [x] Generated `/llms.txt` and `/llms-full.txt`.
-- [x] Sites-compatible production worker bundle.
+- [x] API-only production Worker bundle with D1.
 - [x] Automated domain, persistence, worker, MCP, and agent-doc tests.
 
 ---
@@ -83,7 +83,7 @@ This is the immediate next milestone. Finish every section before broadening int
 - [x] Define precision and rounding rules for geometry serialization.
 - [x] Reject self-intersecting room and zone polygons.
 - [x] Reject objects outside the room unless their type explicitly permits it.
-- [x] Add geometry migration fixtures for every supported schema version.
+- [x] Reject non-canonical geometry at the schema-10 restore boundary.
 - [x] Add deterministic geometry hashing for comparison and cache keys.
 - [x] Document the coordinate system and unit policy.
 
@@ -357,7 +357,7 @@ Completion gate:
 
 - [x] Finalize a versioned VenueMind JSON interchange format.
 - [x] Publish its JSON Schema and examples.
-- [x] Add import preview with validation and migration report.
+- [x] Add import preview with schema, integrity, validation, and conflict checks.
 - [x] Reject unknown destructive fields and malformed geometry.
 - [x] Preserve external source metadata and checksums.
 - [x] Export SVG with layers, IDs, dimensions, and accessible labels.
@@ -834,30 +834,30 @@ Completion gate:
 
 ## 8.2 Live occupancy
 
-- [ ] Ingest aggregate check-in and zone occupancy signals.
-- [ ] Display source freshness and confidence.
-- [ ] Compare live occupancy with approved capacity and simulation assumptions.
-- [ ] Trigger structured warnings for thresholds and stale data.
-- [ ] Preserve privacy by defaulting to aggregate data.
-- [ ] Record threshold events in the incident ledger.
+- [x] Ingest aggregate check-in and zone occupancy signals.
+- [x] Display source freshness and confidence.
+- [x] Compare live occupancy with approved capacity and simulation assumptions.
+- [x] Trigger structured warnings for thresholds and stale data.
+- [x] Preserve privacy by defaulting to aggregate data.
+- [x] Record threshold events in the Occupancy Monitor Ledger.
 
 Completion gate:
 
-- [ ] Stale, conflicting, and over-threshold occupancy feeds produce distinct, auditable operational states.
+- [x] Stale, conflicting, and over-threshold occupancy feeds produce distinct, auditable operational states.
 
 ## 8.3 Issues and incidents
 
-- [ ] Add issue severity, category, location, owner, status, and timestamps.
-- [ ] Anchor incidents to Plan objects or coordinates.
-- [ ] Add photos or attachments behind secure storage controls.
-- [ ] Add escalation and acknowledgement states.
-- [ ] Add structured handoffs.
-- [ ] Link emergency actions to the approved emergency Plan Version.
-- [ ] Export a post-event incident record.
+- [x] Add issue severity, category, location, owner, status, and timestamps.
+- [x] Anchor incidents to Plan objects or coordinates.
+- [ ] Add file evidence only after a zero-cost object-storage path is available.
+- [x] Add escalation and acknowledgement states.
+- [x] Add structured handoffs.
+- [x] Link emergency actions to the approved emergency Plan Version.
+- [x] Export a post-event incident record.
 
 Completion gate:
 
-- [ ] Every incident transition has one actor, one timestamp, one location context, and one ordered ledger entry.
+- [x] Every incident transition has one actor, one timestamp, one location context, and one ordered ledger entry.
 
 ## 8.4 Live plan deviations
 
@@ -1036,7 +1036,7 @@ Completion gate:
 - [x] Establish App Router ownership for Studio, Projects, Settings, Shared Review, and every generated docs page.
 - [x] Add route metadata, loading, error, not-found, typed dynamic params, and static docs params.
 - [x] Keep browser persistence, collaboration, and WebMCP behind client-only route boundaries.
-- [x] Preserve the Vite/Sites compatibility package while Next.js becomes the primary Vercel frontend.
+- [x] Make Vercel the sole frontend host and keep Cloudflare limited to the API Worker and D1.
 - [x] Add source-owned shadcn primitives and map the selected Design 2 palette into semantic tokens.
 - [x] Replace manual internal navigation with Next Link and router APIs.
 - [x] Move docs content and navigation into Server Components; retain only search, copy, and keyboard behavior on the client.
@@ -1044,7 +1044,7 @@ Completion gate:
 - [x] Replace browser prompts with accessible dialogs and confirmation flows.
 - [x] Split the heavy editor, simulations, and comments surfaces behind interaction-driven client chunks.
 - [x] Split history and sharing surfaces from the initial Studio runtime with interaction preloads and persistent close transitions.
-- [ ] Remove the obsolete Vite SPA entry after the Sites compatibility boundary has a supported Next.js handoff.
+- [x] Remove the obsolete compatibility SPA entry, dependencies, alternate-host packaging, and static Worker fallback.
 - [ ] Verify route-specific bundles, WebMCP cleanup, persistence recovery, collaboration teardown, accessibility, and visual parity.
 
 Completion gate:
@@ -1067,7 +1067,7 @@ Completion gate:
 - [ ] Add accessibility tests.
 - [ ] Add visual regression tests for critical states.
 - [x] Add import/export round-trip tests.
-- [x] Add migration tests for every schema version.
+- [x] Add rejection tests for unsupported Project and template schemas.
 - [ ] Add deterministic simulation fixtures.
 - [ ] Add security fuzz tests for geometry and tool inputs.
 
@@ -1111,7 +1111,7 @@ Completion gate:
 
 ## 12.1 Hosting
 
-- [ ] Create a production Sites project only when deployment is explicitly authorized.
+- [x] Keep Vercel as the only frontend deployment and Cloudflare as the API and D1 boundary.
 - [ ] Bind the production D1 database.
 - [ ] Configure production environment values and secrets.
 - [ ] Configure custom domain and HTTPS.
@@ -1239,7 +1239,7 @@ Use the narrow suites during development:
 ```bash
 npm run test:domain
 npm run test:mcp
-npm run test:sites
+npm run test:worker
 ```
 
 Before marking a milestone complete, also verify the live routes:

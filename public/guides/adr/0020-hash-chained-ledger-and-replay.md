@@ -12,7 +12,7 @@ A visible activity list is insufficient evidence for approvals, Locks, migration
 
 Every Activity Ledger entry carries schema version, monotonic sequence, stable ID, actor identity, source, session, timestamp, previous hash, and content hash. `sealActivityLedger` creates the chain, `verifyActivityLedger` verifies it, and `replayActivityLedger` reconstructs accepted Plan transitions and compares their fingerprint with the current Plan.
 
-Restore, import, audit export, and replay reject a failed chain. Legacy unsealed history may be sealed only through an explicit schema migration whose event remains in the resulting chain.
+Restore, import, audit export, and replay reject a failed or unsealed chain. The runtime never repairs or reseals persisted history.
 
 ## Consequences
 

@@ -1,6 +1,6 @@
 # Generated contracts
 
-Target tool contract: `1.2.0`.
+Target tool contract: `1.4.0`.
 
 - Tools and errors: `/venue-tools.json`, `/tool-error-catalog.json`
 - Constraints and Validation: `/schemas/venue-constraint.schema.json`, `/schemas/validation-result.schema.json`

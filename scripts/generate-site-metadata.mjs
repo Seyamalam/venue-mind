@@ -1,9 +1,9 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import { docsPages } from "../src/docs/content.js";
-import { buildDocsNavigation } from "../src/docs/navigation.js";
-import { buildDocsSearchIndex } from "../src/docs/search.js";
-import { referenceManifest } from "../src/docs/pages/reference.js";
-import { defaultPublicOrigin } from "../src/docs/public-origin.js";
+import { docsPages } from "../src/docs/content.ts";
+import { buildDocsNavigation } from "../src/docs/navigation.ts";
+import { buildDocsSearchIndex } from "../src/docs/search.ts";
+import { referenceManifest } from "../src/docs/pages/reference.ts";
+import { defaultPublicOrigin } from "../src/docs/public-origin.ts";
 
 const configuredOrigin = process.env.VENUEMIND_PUBLIC_ORIGIN?.trim() || defaultPublicOrigin;
 const originUrl = new URL(configuredOrigin);
@@ -29,7 +29,7 @@ ${sitemapEntries}
 const manifest = {
   schemaVersion: 1,
   canonicalOrigin: origin,
-  generatedFrom: "src/docs/content.js",
+  generatedFrom: "src/docs/content.ts",
   pages: docsPages.map(({ slug, title, description, canonicalPath, audience, lastReviewedVersion, compatibility, sections }) => ({
     slug,
     title,
@@ -44,7 +44,7 @@ const manifest = {
 };
 const searchIndex = {
   schemaVersion: 1,
-  generatedFrom: "src/docs/content.js",
+  generatedFrom: "src/docs/content.ts",
   entries: buildDocsSearchIndex(docsPages),
 };
 

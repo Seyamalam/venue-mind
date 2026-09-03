@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryCollaborationRepository, createWorker } from "../dist/server/index.js";
-import { createCollaborationClient } from "../src/collaboration/collaboration-client.js";
-import { projectCollaborationEventTypes } from "../src/domain/collaboration-events.js";
-import { createVenuePlanner } from "../src/domain/venue-planner.js";
-import { summitForwardPlan } from "../src/domain/summit-forward.js";
+import { createCollaborationClient } from "../src/collaboration/collaboration-client.ts";
+import { projectCollaborationEventTypes } from "../src/domain/collaboration-events.ts";
+import { createVenuePlanner } from "../src/domain/venue-planner.ts";
+import { summitForwardPlan } from "../src/domain/summit-forward.ts";
 
 const NOW = "2026-08-28T12:00:00.000Z";
 
@@ -41,7 +41,7 @@ const createHarness = () => {
   };
   const collaboration = createMemoryCollaborationRepository({ clock: () => NOW });
   const worker = createWorker({ secureCookies: false, clock: () => NOW, identityProvider: { authenticate: (request) => { const subject = request.headers.get("x-test-user"); return subject ? { provider: "test", subject, email: `${subject}@example.test`, displayName: subject.toUpperCase() } : null; } }, createAccountRepository: () => accounts, createProjectRepository: () => projects, createCollaborationRepository: () => collaboration });
-  const env = { ASSETS: { fetch: async () => new Response("missing", { status: 404 }) }, DB: {} };
+  const env = { DB: {} };
   const login = async (subject) => {
     const response = await worker.fetch(new Request("https://example.test/api/session", { headers: { "x-test-user": subject } }), env);
     return { cookie: response.headers.get("set-cookie").split(";", 1)[0], user: (await response.json()).user };
