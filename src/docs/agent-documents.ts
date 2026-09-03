@@ -12,6 +12,21 @@ export type AgentDocuments = Readonly<{
   publicPages: readonly PublishedDocsPage[];
 }>;
 
+const COMPACT_DOCUMENTATION_SLUGS = new Set([
+  "overview",
+  "quickstart",
+  "concepts",
+  "tutorial-supervised-loop",
+  "webmcp",
+  "mcp",
+  "skills",
+  "reference-tools",
+  "reference-errors",
+  "architecture-contributing",
+  "trust-safety",
+  "contracts",
+]);
+
 function normalizeOrigin(value = ""): string {
   if (!value.trim()) return "";
   const url = new URL(value.trim());
@@ -67,7 +82,7 @@ export function buildAgentDocuments({
   const origin = normalizeOrigin(originValue);
   const publicPages = docsPages.filter((page) => page.public !== false && !page.deprecated);
   const documentationLinks = publicPages
-    .filter((page) => !page.navigation?.hidden)
+    .filter((page) => !page.navigation?.hidden && COMPACT_DOCUMENTATION_SLUGS.has(page.slug))
     .map(
       (page) => `- [${page.slug === "overview" ? "Overview" : page.title}](${publicHref(page.canonicalPath, origin)})`,
     )
@@ -76,9 +91,9 @@ export function buildAgentDocuments({
 
   const compact = `# VenueMind
 
-> A versioned, human-supervised venue planning system for agents and operators.
+> Human-supervised, versioned venue planning for agents and operators.
 
-VenueMind lets agents inspect accepted Plans, preview non-destructive Proposals, validate spatial Constraints, compare Proposal Branches, and export validated plans.
+Agents inspect accepted Plans, preview Proposals, validate Constraints, compare Branches, and export validated plans.
 
 ## Safety boundary
 

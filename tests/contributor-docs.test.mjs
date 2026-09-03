@@ -18,6 +18,7 @@ const requiredGuides = [
   "docs/schema-migrations.md",
   "docs/development.md",
   "docs/testing.md",
+  "docs/local-verification.md",
   "docs/release-checklist.md",
   "docs/runbooks/failure-recovery.md",
 ];
@@ -25,8 +26,8 @@ const requiredGuides = [
 test("contributor entry point routes every change and recovery path without oral guidance", async () => {
   const contributing = await read("CONTRIBUTING.md");
   for (const guide of requiredGuides) await access(path.join(root, guide));
-  for (const link of ["docs/architecture.md", "docs/database-operations.md", "docs/schema-migrations.md", "docs/testing.md", "docs/release-checklist.md", "docs/runbooks/failure-recovery.md"]) assert.match(contributing, new RegExp(link.replaceAll("/", "\\/")));
-  for (const command of ["npm ci", "npm run generate:docs", "npm test", "npm run build", "npm run check:generated"]) assert.match(contributing, new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  for (const link of ["docs/architecture.md", "docs/database-operations.md", "docs/schema-migrations.md", "docs/testing.md", "docs/local-verification.md", "docs/release-checklist.md", "docs/runbooks/failure-recovery.md"]) assert.match(contributing, new RegExp(link.replaceAll("/", "\\/")));
+  for (const command of ["npm ci", "npm run verify:local"]) assert.match(contributing, new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
 
 test("architecture guide identifies every runtime boundary and complete extension paths", async () => {
@@ -54,7 +55,7 @@ test("persistence, migration, testing, release, and recovery guides carry execut
   assert.match(migrations, /without adding fields, rewriting geometry/i);
   for (const evidence of ["dry run", "checksum", "Project safety export", "staged restore", "Point-in-Time Recovery", "ledger fingerprints"]) assert.match(databaseOperations, new RegExp(evidence, "i"));
   for (const layer of ["Planner and domain", "WebMCP", "MCP server", "Persistence and worker", "Docs and examples", "Whole product"]) assert.match(testing, new RegExp(layer));
-  for (const command of ["npm run generate:contracts", "npm run generate:migrations", "npm run generate:docs", "npm run check:generated", "npm test", "npm run build"]) assert.match(release, new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  for (const command of ["npm run generate:contracts", "npm run generate:migrations", "npm run generate:docs", "npm run check:generated", "npm ci", "npm run verify:local"]) assert.match(release, new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   for (const failure of ["Project API unavailable", "Ledger or replay failure", "database migration failure", "Database restore", "MCP client failure", "Generated documentation drift"]) assert.match(recovery, new RegExp(failure));
 });
 

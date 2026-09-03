@@ -1,8 +1,8 @@
 # VenueMind
 
-> A versioned, human-supervised venue planning system for agents and operators.
+> Human-supervised, versioned venue planning for agents and operators.
 
-VenueMind lets agents inspect accepted Plans, preview non-destructive Proposals, validate spatial Constraints, compare Proposal Branches, and export validated plans.
+Agents inspect accepted Plans, preview Proposals, validate Constraints, compare Branches, and export validated plans.
 
 ## Safety boundary
 
@@ -15,36 +15,15 @@ VenueMind lets agents inspect accepted Plans, preview non-destructive Proposals,
 - [Overview](https://venue-mind-jet.vercel.app/docs)
 - [Quickstart](https://venue-mind-jet.vercel.app/docs/quickstart)
 - [Core concepts](https://venue-mind-jet.vercel.app/docs/concepts)
-- [Create your first Project](https://venue-mind-jet.vercel.app/docs/tutorial-first-project)
 - [Run the supervised planning loop](https://venue-mind-jet.vercel.app/docs/tutorial-supervised-loop)
-- [Compare access-first and capacity-first branches](https://venue-mind-jet.vercel.app/docs/tutorial-compare-branches)
-- [Resolve a stale Proposal](https://venue-mind-jet.vercel.app/docs/tutorial-stale-proposal)
-- [Audit an approved Plan Version](https://venue-mind-jet.vercel.app/docs/tutorial-audit-plan)
-- [Install the VenueMind MCP server](https://venue-mind-jet.vercel.app/docs/tutorial-mcp-install)
-- [Use VenueMind through native WebMCP](https://venue-mind-jet.vercel.app/docs/tutorial-webmcp)
-- [Install and invoke VenueMind agent skills](https://venue-mind-jet.vercel.app/docs/tutorial-skills)
-- [Import, validate, and export a venue plan](https://venue-mind-jet.vercel.app/docs/tutorial-import-export)
-- [Recover from offline local state](https://venue-mind-jet.vercel.app/docs/tutorial-offline-recovery)
 - [WebMCP tools](https://venue-mind-jet.vercel.app/docs/webmcp)
 - [MCP server](https://venue-mind-jet.vercel.app/docs/mcp)
 - [Agent skills](https://venue-mind-jet.vercel.app/docs/skills)
-- [Client examples](https://venue-mind-jet.vercel.app/docs/client-examples)
 - [Tool reference](https://venue-mind-jet.vercel.app/docs/reference-tools)
-- [Command reference](https://venue-mind-jet.vercel.app/docs/reference-commands)
 - [Error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
-- [Constraint and evidence reference](https://venue-mind-jet.vercel.app/docs/reference-constraints)
-- [Activity Ledger events](https://venue-mind-jet.vercel.app/docs/reference-ledger)
-- [Plan and Proposal lifecycle](https://venue-mind-jet.vercel.app/docs/reference-plan-lifecycle)
-- [Persistence and recovery](https://venue-mind-jet.vercel.app/docs/reference-persistence)
-- [Authorization reference](https://venue-mind-jet.vercel.app/docs/reference-authorization)
-- [Compatibility and deprecation](https://venue-mind-jet.vercel.app/docs/reference-compatibility)
 - [Architecture and contributing](https://venue-mind-jet.vercel.app/docs/architecture-contributing)
-- [Privacy notice](https://venue-mind-jet.vercel.app/docs/privacy)
-- [Preview terms](https://venue-mind-jet.vercel.app/docs/terms)
-- [Trust and safety](https://venue-mind-jet.vercel.app/docs/trust-safety)
 - [Schemas and contracts](https://venue-mind-jet.vercel.app/docs/contracts)
-- [Documentation changelog](https://venue-mind-jet.vercel.app/docs/changelog)
-- [Safety and supervision](https://venue-mind-jet.vercel.app/docs/safety)
+- [Trust and safety](https://venue-mind-jet.vercel.app/docs/trust-safety)
 - [Complete agent reference](https://venue-mind-jet.vercel.app/llms-full.txt)
 
 ## Golden loop

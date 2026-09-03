@@ -21,9 +21,9 @@ export const contributingPage = {
       id: "first-change",
       title: "First contributor change",
       blocks: [
-        steps("Read the source map and choose the command, Constraint, migration, or documentation path.", "Change the authoritative runtime source and its focused tests.", "Regenerate contracts, docs, examples, and skills.", "Run the full tests, production build, and drift gate."),
-        code("npm ci\nnpm run generate:contracts\nnpm run generate:migrations\nnpm run generate:docs\nnpm test\nnpm run build\nnpm run check:generated", "bash"),
-        links({ label: "Contributor entry point", href: "/guides/contributing.md" }, { label: "Local development", href: "/guides/development.md" }, { label: "Testing by layer", href: "/guides/testing.md" }),
+        steps("Read the source map and choose the command, Constraint, migration, or documentation path.", "Change the authoritative runtime source and its focused tests.", "Regenerate contracts, docs, examples, and skills.", "Run the complete local verification gate."),
+        code("npm ci\nnpm run verify:local", "bash"),
+        links({ label: "Contributor entry point", href: "/guides/contributing.md" }, { label: "Local development", href: "/guides/development.md" }, { label: "Testing by layer", href: "/guides/testing.md" }, { label: "Local verification", href: "/guides/local-verification.md" }),
       ],
     },
     {

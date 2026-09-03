@@ -542,7 +542,7 @@ Completion gate:
 - [x] Add `venuemind-event-day` for live runbooks and issue triage.
 - [x] Add references that point to generated schemas rather than duplicating them.
 - [x] Add adversarial fixtures for premature Approval, ignored locks, stale versions, and missing evidence.
-- [x] Validate every skill package in CI.
+- [x] Validate every skill package in local verification.
 - [x] Add evaluation prompts and expected behavioral invariants.
 - [x] Measure tool-selection accuracy and unnecessary-call rate.
 
@@ -630,7 +630,7 @@ Completion gate:
 - [x] Add absolute production URLs during deployment builds.
 - [x] Include tool names, safety boundary, schema URLs, skill names, and compatibility versions.
 - [x] Exclude stale or private documentation.
-- [x] Add size and content checks in CI.
+- [x] Add size and content checks in local verification.
 - [x] Add a generation-drift check that fails on uncommitted output changes.
 
 Completion gate:
@@ -651,7 +651,7 @@ Completion gate:
 
 Completion gate:
 
-- [x] Every published example is executed or schema-validated in CI.
+- [x] Every published example is executed or schema-validated in local verification.
 
 ## 5.6 Architecture and contributor docs
 
@@ -1077,18 +1077,18 @@ Completion gate:
 
 ## 11.2 Local verification
 
-- [ ] Add install, format, lint, typecheck, test, build, and artifact verification jobs.
-- [ ] Add generated-contract and generated-doc drift checks.
-- [ ] Add skill validation.
-- [ ] Add dependency and secret scanning.
-- [ ] Add migration tests.
-- [ ] Add browser tests on protected branches.
-- [ ] Cache dependencies without caching generated truth incorrectly.
-- [ ] Upload useful test artifacts on failure.
+- [x] Add clean-install preconditions plus format, lint, typecheck, test, build, and artifact verification phases.
+- [x] Add generated-contract, generated-doc, and release-integrity drift checks.
+- [x] Add skill validation.
+- [x] Add dependency and redacted secret scanning.
+- [x] Add migration tests.
+- [x] Add local browser capability and responsive contract tests.
+- [x] Permit only disposable dependency caching; never cache or treat generated output as source truth.
+- [x] Preserve useful local test artifacts on failure without uploading them.
 
 Completion gate:
 
-- [ ] A clean local verification run proves source, generated artifacts, tests, production build, worker bundle, MCP bundle, and skills are mutually compatible.
+- [x] A clean local verification run proves source, generated artifacts, tests, Vercel build, Worker bundle, MCP bundle, SDK, and skills are mutually compatible.
 
 ## 11.3 Release process
 

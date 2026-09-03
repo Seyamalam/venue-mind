@@ -12,6 +12,7 @@
 | Docs and examples       | `node --test tests/docs-architecture.test.mjs tests/reference-docs.test.mjs tests/client-examples.test.mjs`                                | reachability, contract drift, executable clients                        |
 | Skills                  | `npm run test:skills`                                                                                                                      | package structure, version compatibility, adversarial evals             |
 | Whole product           | `npm test`                                                                                                                                 | every supported layer                                                   |
+| Local completion gate   | `npm run verify:local`                                                                                                                     | source, generated artifacts, security scans, builds, and every test     |
 
 ## Test contract
 
@@ -26,4 +27,4 @@
 
 ## Failure triage
 
-Run the smallest failing file while diagnosing, then run `npm test` before completion. A generated-file diff is fixed in its source registry or generator. A snapshot mismatch is investigated as a behavior change; update an expectation only after the new behavior is intentionally specified.
+Run the smallest failing file while diagnosing, then run `npm run verify:local` before completion. A generated-file diff is fixed in its source registry or generator. A snapshot mismatch is investigated as a behavior change; update an expectation only after the new behavior is intentionally specified. See [Local verification](local-verification.md) for the fail-closed phase order and local evidence paths.

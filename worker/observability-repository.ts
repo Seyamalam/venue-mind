@@ -37,6 +37,17 @@ export interface ObservabilityRepository {
 const DEFAULT_SCOPE_HASH = "0".repeat(64);
 const initialization = new WeakMap<object, Promise<void>>();
 
+export async function hashObservabilityScope(organizationId: string): Promise<string> {
+  if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,159}$/.test(organizationId)) {
+    throw new TypeError("Observability organization scope is invalid");
+  }
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(`venuemind:observability-scope:${organizationId}`),
+  );
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 const eventFromRow = (row: TelemetryRow): TelemetryEvent => {
   const event: TelemetryEvent = Object.freeze({
     schemaVersion: TELEMETRY_SCHEMA_VERSION,

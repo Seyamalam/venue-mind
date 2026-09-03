@@ -6,11 +6,9 @@ Start with [the architecture map](docs/architecture.md). It names every runtime 
 
 1. Install Node.js 22 or newer.
 2. Run `npm ci`.
-3. Run `npm run generate:docs`.
-4. Run `npm test`.
-5. Run `npm run build`.
+3. Run `npm run verify:local`.
 
-Completion means the build succeeds, every test passes, and `npm run check:generated` reports no drift.
+Completion means the local verification summary records every phase as passed.
 
 ## Choose the change path
 
@@ -21,6 +19,7 @@ Completion means the build succeeds, every test passes, and `npm run check:gener
 - Database migration, backup, or restore: follow [Database operations](docs/database-operations.md).
 - Share Link or notification change: follow [Sharing and notifications](docs/sharing-and-notifications.md).
 - Test selection: use [Testing by layer](docs/testing.md).
+- Complete change verification: use [Local verification](docs/local-verification.md).
 - Release preparation: use the [Release checklist](docs/release-checklist.md).
 - Broken local or generated state: use the [Failure recovery runbook](docs/runbooks/failure-recovery.md).
 - Vulnerability report or security-sensitive finding: follow [the private reporting policy](SECURITY.md).

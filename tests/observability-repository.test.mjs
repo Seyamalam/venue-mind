@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 import { createTelemetryEvent } from "../src/observability/telemetry.ts";
-import { createD1ObservabilityRepository } from "../worker/observability-repository.ts";
+import { createD1ObservabilityRepository, hashObservabilityScope } from "../worker/observability-repository.ts";
 
 class SqliteStatement {
   constructor(database, sql, values = []) {
@@ -86,4 +86,12 @@ test("D1 observability keeps exact events isolated by opaque organization scope"
   const rows = await db.prepare("SELECT * FROM observability_events ORDER BY event_id").all();
   assert.deepEqual(rows.results.map((row) => row.scope_hash), [scopeA, scopeB]);
   assert.doesNotMatch(JSON.stringify(rows.results), /payload|geometry|identity|secret@example/i);
+});
+
+test("organization observability scopes are stable opaque SHA-256 values", async () => {
+  const first = await hashObservabilityScope("org-alpha");
+  assert.match(first, /^[0-9a-f]{64}$/);
+  assert.equal(await hashObservabilityScope("org-alpha"), first);
+  assert.notEqual(await hashObservabilityScope("org-beta"), first);
+  await assert.rejects(() => hashObservabilityScope("unsafe organization"), /scope is invalid/);
 });
