@@ -21,10 +21,11 @@ The command runs these phases sequentially and stops at the first failure:
 2. source format, lint, and all application, Worker, MCP, and SDK typechecks;
 3. generated contract, migration, SDK, example, guide, license, and agent-document drift;
 4. skill validation, npm dependency advisories at high severity or above, and redacted credential-signature scanning;
-5. the Vercel Next.js, Cloudflare Worker, MCP server, SDK, and skill builds;
-6. migration fixtures and integrity tests;
-7. responsive/browser capability contract tests;
-8. the complete test suite.
+5. production hosting configuration plus the Vercel Next.js build and route-specific frontend boundary;
+6. the Cloudflare Worker, MCP server, SDK, and skill builds;
+7. migration fixtures and integrity tests;
+8. responsive/browser capability contract tests;
+9. the complete test suite.
 
 `npm run format:check` enforces the repository's existing source baseline: LF endings, no tabs or trailing whitespace, no merge markers, and one final newline. Generated files are excluded from that source-style decision and are checked by deterministic regeneration instead.
 
