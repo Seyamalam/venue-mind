@@ -241,7 +241,7 @@ function RunbookTaskRow({
   onOpenEvidence,
 }: {
   task: RunbookTaskView;
-  onTaskTransition?: ((input: RunbookTransitionInput) => unknown) | undefined;
+  onTaskTransition?: ((input: RunbookTransitionInput) => void) | undefined;
   onOpenEvidence?: ((task: RunbookTaskView) => void) | null | undefined;
 }) {
   const status = normalizedTaskStatus(task.status);
@@ -358,7 +358,7 @@ function RunbookEvidenceDialog({
   task?: RunbookTaskView | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddEvidence?: ((input: RunbookEvidenceInput) => unknown) | undefined;
+  onAddEvidence?: ((input: RunbookEvidenceInput) => void) | undefined;
 }) {
   const evidenceCodes: string[] = task?.requiredEvidenceCodes?.length ? task.requiredEvidenceCodes : ["STATUS_CHECK"];
   const [code, setCode] = useState(evidenceCodes[0] ?? "STATUS_CHECK");
@@ -442,9 +442,9 @@ function RunbookHandoffList({
   roleOptions: readonly OptionView[];
   ownerOptions: OptionView[];
   handoffs: RunbookHandoffView[];
-  onCreateHandoff?: ((input: RunbookHandoffInput) => unknown) | undefined;
-  onCopyHandoff?: ((handoff: RunbookHandoffView) => unknown) | undefined;
-  onExportHandoff?: ((handoff: RunbookHandoffView) => unknown) | undefined;
+  onCreateHandoff?: ((input: RunbookHandoffInput) => void) | undefined;
+  onCopyHandoff?: ((handoff: RunbookHandoffView) => void) | undefined;
+  onExportHandoff?: ((handoff: RunbookHandoffView) => void) | undefined;
 }) {
   const [outgoingOwnerId, setOutgoingOwnerId] = useState(ownerOptions[0]?.id ?? "");
   const [incomingOwnerId, setIncomingOwnerId] = useState(ownerOptions[1]?.id ?? ownerOptions[0]?.id ?? "");
@@ -617,11 +617,11 @@ export type RunbookPanelProps = {
   onCreate?: VoidCallback;
   onPhaseFilterChange?: ValueCallback;
   onRoleFilterChange?: ValueCallback;
-  onTaskTransition?: (input: RunbookTransitionInput) => unknown;
-  onAddEvidence?: (input: RunbookEvidenceInput) => unknown;
-  onCreateHandoff?: (input: RunbookHandoffInput) => unknown;
-  onCopyHandoff?: (handoff: RunbookHandoffView) => unknown;
-  onExportHandoff?: (handoff: RunbookHandoffView) => unknown;
+  onTaskTransition?: (input: RunbookTransitionInput) => void;
+  onAddEvidence?: (input: RunbookEvidenceInput) => void;
+  onCreateHandoff?: (input: RunbookHandoffInput) => void;
+  onCopyHandoff?: (handoff: RunbookHandoffView) => void;
+  onExportHandoff?: (handoff: RunbookHandoffView) => void;
   onSync?: VoidCallback;
   onResolveSyncConflict?: VoidCallback;
 };

@@ -58,15 +58,58 @@ export interface AdapterHandlerContext {
   readonly secrets: AdapterSecretReader;
 }
 
-export type AdapterHandler<Input = unknown, Output = unknown> = (
-  input: Input,
-  context: AdapterHandlerContext,
-) => Promise<Output> | Output;
-export type AdapterHandlers = Partial<Record<AdapterCapability, AdapterHandler>>;
+export type AdapterHandler<Input, Output> = (input: Input, context: AdapterHandlerContext) => Promise<Output> | Output;
 
-export interface VenueAdapter {
+export interface AdapterCapabilityContract<Input, Output, HandlerOutput = Output> {
+  readonly input: Input;
+  readonly output: Output;
+  readonly handlerOutput?: HandlerOutput;
+}
+
+export type AdapterContractMap = Readonly<
+  Partial<Record<AdapterCapability, AdapterCapabilityContract<unknown, unknown>>>
+>;
+export type LooseAdapterContractMap = Readonly<Record<AdapterCapability, AdapterCapabilityContract<unknown, unknown>>>;
+declare const adapterContractType: unique symbol;
+
+export type AdapterContractCapability<Contracts extends AdapterContractMap> = Extract<
+  keyof Contracts,
+  AdapterCapability
+>;
+
+export type AdapterInput<
+  Contracts extends AdapterContractMap,
+  Capability extends AdapterContractCapability<Contracts>,
+> = NonNullable<Contracts[Capability]>["input"];
+
+export type AdapterOutput<
+  Contracts extends AdapterContractMap,
+  Capability extends AdapterContractCapability<Contracts>,
+> = NonNullable<Contracts[Capability]>["output"];
+
+export type AdapterHandlerOutput<
+  Contracts extends AdapterContractMap,
+  Capability extends AdapterContractCapability<Contracts>,
+> =
+  NonNullable<Contracts[Capability]> extends AdapterCapabilityContract<unknown, unknown, infer HandlerOutput>
+    ? HandlerOutput
+    : never;
+
+export type AdapterHandlers<Contracts extends AdapterContractMap> = Readonly<{
+  [Capability in AdapterContractCapability<Contracts>]?: AdapterHandler<
+    AdapterInput<Contracts, Capability>,
+    AdapterHandlerOutput<Contracts, Capability>
+  >;
+}>;
+
+export interface VenueAdapter<Contracts extends AdapterContractMap = LooseAdapterContractMap> {
   readonly definition: AdapterDefinition;
-  invoke(capability: AdapterCapability, input: unknown, context: AdapterHandlerContext): Promise<unknown>;
+  readonly [adapterContractType]?: Contracts;
+  invoke<Capability extends AdapterContractCapability<Contracts>>(
+    capability: Capability,
+    input: AdapterInput<Contracts, Capability>,
+    context: AdapterHandlerContext,
+  ): Promise<AdapterOutput<Contracts, Capability>>;
   prepareInput?(capability: AdapterCapability, input: unknown, context: Readonly<{ adapterContext: unknown }>): unknown;
   assertImportResult?(
     output: unknown,
@@ -115,19 +158,45 @@ export interface AdapterRuntimeResult<Output = unknown> {
   readonly error?: AdapterContractError;
 }
 
+export interface NormalizedWebhookEvent<Payload = unknown> {
+  readonly schemaVersion: 1;
+  readonly adapterId: string;
+  readonly adapterVersion: string;
+  readonly sourceSystem: string;
+  readonly eventId: string;
+  readonly eventType: string;
+  readonly occurredAt: string;
+  readonly sourceVersion: string;
+  readonly payload: Payload;
+  readonly checksum: string;
+}
+
+export interface NormalizedAdapterExport<Data = unknown> {
+  readonly schemaVersion: 1;
+  readonly adapterId: string;
+  readonly adapterVersion: string;
+  readonly sourceSystem: string;
+  readonly mediaType: string;
+  readonly sourceVersion: string;
+  readonly data: Data;
+  readonly checksum: string;
+}
+
 export interface AdapterRuntime {
-  execute(
-    adapter: VenueAdapter,
-    capability: AdapterCapability,
-    input: unknown,
+  execute<Contracts extends AdapterContractMap, Capability extends AdapterContractCapability<Contracts>>(
+    adapter: VenueAdapter<Contracts>,
+    capability: Capability,
+    input: AdapterInput<Contracts, Capability>,
     authorization?: AdapterAuthorization,
-  ): Promise<AdapterRuntimeResult>;
-  acceptWebhook(
-    adapter: VenueAdapter,
-    input: unknown,
+  ): Promise<AdapterRuntimeResult<AdapterOutput<Contracts, Capability>>>;
+  acceptWebhook<
+    Contracts extends AdapterContractMap & Readonly<Record<"webhook", AdapterCapabilityContract<unknown, unknown>>>,
+  >(
+    adapter: VenueAdapter<Contracts>,
+    input: Contracts["webhook"] extends AdapterCapabilityContract<infer Input, unknown> ? Input : never,
     authorization?: AdapterAuthorization,
-  ): Promise<AdapterRuntimeResult>;
-  inspectRateLimit(adapter: VenueAdapter): number[];
+  ): Promise<AdapterRuntimeResult<Readonly<NormalizedWebhookEvent>>>;
+  inspectRateLimit<Contracts extends AdapterContractMap>(adapter: VenueAdapter<Contracts>): number[];
 }
 
 export interface AdapterDeadLetterSink {
@@ -157,15 +226,17 @@ export function defineAdapter(input: AdapterDefinitionInput): Readonly<AdapterDe
   return contracts.defineAdapter(input);
 }
 
-export function createVenueAdapter(
+export function createVenueAdapter<Contracts extends AdapterContractMap>(
   definition: AdapterDefinitionInput | AdapterDefinition,
-  handlers: AdapterHandlers,
-): Readonly<VenueAdapter> {
-  return runtime.createVenueAdapter(definition, handlers);
+  handlers: AdapterHandlers<Contracts>,
+): Readonly<VenueAdapter<Contracts>> {
+  return runtime.createVenueAdapter<Contracts>(definition, handlers);
 }
 
 export function createAdapterRuntime(options: AdapterRuntimeOptions = {}): Readonly<AdapterRuntime> {
-  return runtime.createAdapterRuntime(options);
+  // The public SDK mirrors the runtime contract structurally while keeping its declarations repository-independent.
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+  return runtime.createAdapterRuntime(options) as Readonly<AdapterRuntime>;
 }
 
 export const canonicalStringify = (value: unknown): string => contracts.canonicalStringify(value);

@@ -2434,7 +2434,7 @@ Create one non-destructive, undoable spatial editing Change for placement, trans
 
 | Field | Type | Required | Default | Bounds | Meaning |
 | --- | --- | --- | --- | --- | --- |
-| edit | object | yes | — | — | Published contract field. |
+| edit | object \| object \| object \| object \| object \| object \| object \| object \| object \| object \| object \| object \| object \| object | yes | — | — | Published contract field. |
 | idempotencyKey | string | yes | — | min 1 chars | Unique retry key for this semantic command. |
 | correlationId | string | no | — | min 1 chars | Optional caller correlation identifier. |
 

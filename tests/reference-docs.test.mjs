@@ -39,17 +39,36 @@ function validateExample(value, schema, location = "input") {
   if (schema.$ref) return validateExample(value, schemaRegistry.get(schema.$ref), location);
   if (schema.const !== undefined) assert.deepEqual(value, schema.const, location);
   if (schema.enum) assert.ok(schema.enum.includes(value), `${location} must match enum`);
-  if (schema.oneOf) assert.doesNotThrow(() => validateExample(value, schema.oneOf[0], location));
+  if (schema.oneOf) {
+    const matches = schema.oneOf.filter((candidate) => {
+      try {
+        validateExample(value, candidate, location);
+        return true;
+      } catch {
+        return false;
+      }
+    });
+    assert.equal(matches.length, 1, `${location} must match exactly one schema`);
+  }
   if (schema.anyOf) {
     const matches = schema.anyOf.some((candidate) => {
-      try { validateExample(value, candidate, location); return true; } catch { return false; }
+      try {
+        validateExample(value, candidate, location);
+        return true;
+      } catch {
+        return false;
+      }
     });
     assert.equal(matches, true, `${location} must match anyOf`);
   }
   const allowedTypes = Array.isArray(schema.type) ? schema.type : schema.type ? [schema.type] : [];
   if (allowedTypes.length) {
-    const actualType = value === null ? "null" : Array.isArray(value) ? "array" : Number.isInteger(value) ? "integer" : typeof value;
-    assert.ok(allowedTypes.includes(actualType) || (actualType === "integer" && allowedTypes.includes("number")), `${location} expected ${allowedTypes.join("|")}, got ${actualType}`);
+    const actualType =
+      value === null ? "null" : Array.isArray(value) ? "array" : Number.isInteger(value) ? "integer" : typeof value;
+    assert.ok(
+      allowedTypes.includes(actualType) || (actualType === "integer" && allowedTypes.includes("number")),
+      `${location} expected ${allowedTypes.join("|")}, got ${actualType}`,
+    );
   }
   if (typeof value === "string") {
     if (schema.minLength !== undefined) assert.ok(value.length >= schema.minLength, location);
@@ -67,9 +86,11 @@ function validateExample(value, schema, location = "input") {
     for (const [index, item] of value.entries()) validateExample(item, schema.items ?? {}, `${location}[${index}]`);
   }
   if (value && typeof value === "object" && !Array.isArray(value)) {
-    for (const required of schema.required ?? []) assert.ok(Object.hasOwn(value, required), `${location}.${required} is required`);
+    for (const required of schema.required ?? [])
+      assert.ok(Object.hasOwn(value, required), `${location}.${required} is required`);
     if (schema.additionalProperties === false) {
-      for (const key of Object.keys(value)) assert.ok(Object.hasOwn(schema.properties ?? {}, key), `${location}.${key} is not allowed`);
+      for (const key of Object.keys(value))
+        assert.ok(Object.hasOwn(schema.properties ?? {}, key), `${location}.${key} is not allowed`);
     }
     for (const [key, child] of Object.entries(value)) {
       if (schema.properties?.[key]) validateExample(child, schema.properties[key], `${location}.${key}`);
@@ -78,13 +99,25 @@ function validateExample(value, schema, location = "input") {
 }
 
 test("reference publishes exactly one page for every runtime tool and command", () => {
-  assert.deepEqual(toolReferencePages.map((page) => page.reference.name), venueToolContracts.map((tool) => tool.name));
-  assert.deepEqual(commandReferencePages.map((page) => page.reference.name), commandSchemas.map(([type]) => type));
-  assert.equal(new Set([...toolReferencePages, ...commandReferencePages].map((page) => page.slug)).size, toolReferencePages.length + commandReferencePages.length);
+  assert.deepEqual(
+    toolReferencePages.map((page) => page.reference.name),
+    venueToolContracts.map((tool) => tool.name),
+  );
+  assert.deepEqual(
+    commandReferencePages.map((page) => page.reference.name),
+    commandSchemas.map(([type]) => type),
+  );
+  assert.equal(
+    new Set([...toolReferencePages, ...commandReferencePages].map((page) => page.slug)).size,
+    toolReferencePages.length + commandReferencePages.length,
+  );
 });
 
 test("tool pages match required inputs, examples, errors, and output references", () => {
-  assert.deepEqual(Object.keys(TOOL_OUTPUT_REFERENCE), venueToolContracts.map((tool) => tool.name));
+  assert.deepEqual(
+    Object.keys(TOOL_OUTPUT_REFERENCE),
+    venueToolContracts.map((tool) => tool.name),
+  );
   for (const tool of venueToolContracts) {
     const page = toolReferencePages.find((candidate) => candidate.reference.name === tool.name);
     assert.deepEqual(page.reference.requiredFields, tool.inputSchema.required ?? [], tool.name);
@@ -113,7 +146,11 @@ test("command pages match schemas, permissions, examples, and published errors",
 test("generated Event Brief schedule example executes through the planner", async () => {
   const page = commandReferencePages.find((candidate) => candidate.reference.name === "update_event_brief");
   const schedule = page.reference.example.brief.schedule;
-  assert.deepEqual(schedule, { startAt: "2026-09-18T09:00:00+06:00", endAt: "2026-09-18T17:00:00+06:00", timezone: "Asia/Dhaka" });
+  assert.deepEqual(schedule, {
+    startAt: "2026-09-18T09:00:00+06:00",
+    endAt: "2026-09-18T17:00:00+06:00",
+    timezone: "Asia/Dhaka",
+  });
   assert.ok(Date.parse(schedule.endAt) > Date.parse(schedule.startAt));
   assert.doesNotThrow(() => createVenuePlanner(summitForwardPlan).execute(page.reference.example));
   const generated = await readFile(new URL("../public/llms-full.txt", import.meta.url), "utf8");
@@ -127,21 +164,41 @@ test("generated Event Brief schedule example executes through the planner", asyn
 test("published Validation schema exactly covers every runtime top-level field", () => {
   const validation = createVenuePlanner(summitForwardPlan).execute({ type: "validate_layout" });
   assert.deepEqual(Object.keys(validation).sort(), Object.keys(validationResultSchema.properties).sort());
-  assert.deepEqual(validationResultSchema.required.slice().sort(), Object.keys(validationResultSchema.properties).sort());
+  assert.deepEqual(
+    validationResultSchema.required.slice().sort(),
+    Object.keys(validationResultSchema.properties).sort(),
+  );
   assert.equal(validationResultSchema.additionalProperties, false);
-  assert.deepEqual(Object.keys(validation.evidenceFamilyFingerprints).sort(), validationResultSchema.properties.evidenceFamilyFingerprints.required.slice().sort());
+  assert.deepEqual(
+    Object.keys(validation.evidenceFamilyFingerprints).sort(),
+    validationResultSchema.properties.evidenceFamilyFingerprints.required.slice().sort(),
+  );
   assert.deepEqual(validation.planningEvidenceInvalidations, { affectedConstraintIds: [], evidenceFamilies: [] });
 });
 
 test("published Planning Effect and calendar webhook contracts are closed and exact", () => {
-  assert.deepEqual(planningEffectSchema.oneOf.map((variant) => variant.properties.operation.const), ["set_attendance_target", "set_event_schedule"]);
-  assert.equal(planningEffectSchema.oneOf.every((variant) => variant.additionalProperties === false), true);
-  assert.deepEqual(calendarWebhookEventSchema.properties.type.enum, ["event.created", "event.updated", "event.cancelled", "event.deleted"]);
+  assert.deepEqual(
+    planningEffectSchema.oneOf.map((variant) => variant.properties.operation.const),
+    ["set_attendance_target", "set_event_schedule"],
+  );
+  assert.equal(
+    planningEffectSchema.oneOf.every((variant) => variant.additionalProperties === false),
+    true,
+  );
+  assert.deepEqual(calendarWebhookEventSchema.properties.type.enum, [
+    "event.created",
+    "event.updated",
+    "event.cancelled",
+    "event.deleted",
+  ]);
   assert.equal(calendarWebhookEventSchema.additionalProperties, false);
 });
 
 test("constraint and version references are bound to runtime constants", () => {
-  assert.deepEqual(CONSTRAINT_REFERENCE.map((item) => item.evaluator), venueConstraintSchema.properties.evaluator.enum);
+  assert.deepEqual(
+    CONSTRAINT_REFERENCE.map((item) => item.evaluator),
+    venueConstraintSchema.properties.evaluator.enum,
+  );
   assert.deepEqual(publishedConstraintEvaluators, venueConstraintSchema.properties.evaluator.enum);
   assert.equal(publishedLedgerSchemaVersion, 1);
   assert.equal(VERSION_REFERENCE.find((item) => item.surface === "Project record").current, "10");
@@ -153,7 +210,8 @@ test("ledger event reference exactly matches events emitted by the planner", asy
   const source = await readFile(new URL("../src/domain/venue-planner.ts", import.meta.url), "utf8");
   const literalPattern = /(?:appendLedger|createActivityEntry)\([^,]+,\s*"([a-z_]+\.[a-z_]+)"/g;
   const emitted = new Set([...source.matchAll(literalPattern)].map((match) => match[1]));
-  for (const event of ["comment.resolved", "comment.reopened", "simulation.completed", "simulation.cancelled"]) emitted.add(event);
+  for (const event of ["comment.resolved", "comment.reopened", "simulation.completed", "simulation.cancelled"])
+    emitted.add(event);
   assert.deepEqual([...LEDGER_EVENT_REFERENCE.map((item) => item.type)].sort(), [...emitted].sort());
 });
 
@@ -165,7 +223,9 @@ test("generated reference manifest is byte-equivalent to the runtime projection"
 });
 
 test("the documented recovery snapshot restores through the production planner", async () => {
-  const snapshot = JSON.parse(await readFile(new URL("../public/examples/planner-snapshot.json", import.meta.url), "utf8"));
+  const snapshot = JSON.parse(
+    await readFile(new URL("../public/examples/planner-snapshot.json", import.meta.url), "utf8"),
+  );
   const planner = createVenuePlanner(summitForwardPlan);
   const restored = planner.execute({ type: "restore_snapshot", snapshot });
   assert.equal(restored.status, "restored");

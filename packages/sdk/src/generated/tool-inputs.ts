@@ -109,24 +109,2119 @@ export interface VenueMindToolInputMap {
     correlationId?: string;
   };
   "venue.apply_edit": {
-    edit: {
-      operation:
-        | "place"
-        | "move"
-        | "rotate"
-        | "resize"
-        | "duplicate"
-        | "align"
-        | "distribute"
-        | "delete"
-        | "group"
-        | "ungroup"
-        | "create-zone"
-        | "edit-zone-vertices"
-        | "paste"
-        | "apply-layout";
-      [k: string]: unknown;
-    };
+    edit:
+      | {
+          operation: "apply-layout";
+          label?: string;
+          shortLabel?: string;
+          metrics?: [string, string][];
+          roomBoundary: {
+            /**
+             * @minItems 3
+             */
+            outer: [
+              {
+                x: number;
+                y: number;
+              },
+              {
+                x: number;
+                y: number;
+              },
+              {
+                x: number;
+                y: number;
+              },
+              ...{
+                x: number;
+                y: number;
+              }[]
+            ];
+            holes: [
+              {
+                x: number;
+                y: number;
+              },
+              {
+                x: number;
+                y: number;
+              },
+              {
+                x: number;
+                y: number;
+              },
+              ...{
+                x: number;
+                y: number;
+              }[]
+            ][];
+          };
+          /**
+           * @minItems 1
+           */
+          objects: [
+            {
+              id: string;
+              kind: string;
+              label?: string;
+              layer?: "architecture" | "furniture" | "access" | "production" | "catering" | "safety" | "annotations";
+              elevationM?: number;
+              footprint:
+                | {
+                    kind: "rectangle";
+                    center: {
+                      x: number;
+                      y: number;
+                    };
+                    width: number;
+                    depth: number;
+                    rotationDegrees: number;
+                  }
+                | {
+                    kind: "circle";
+                    center: {
+                      x: number;
+                      y: number;
+                    };
+                    radius: number;
+                  }
+                | {
+                    kind: "line";
+                    start: {
+                      x: number;
+                      y: number;
+                    };
+                    end: {
+                      x: number;
+                      y: number;
+                    };
+                    width: number;
+                  }
+                | {
+                    kind: "polygon";
+                    /**
+                     * @minItems 3
+                     */
+                    points: [
+                      {
+                        x: number;
+                        y: number;
+                      },
+                      {
+                        x: number;
+                        y: number;
+                      },
+                      {
+                        x: number;
+                        y: number;
+                      },
+                      ...{
+                        x: number;
+                        y: number;
+                      }[]
+                    ];
+                    rotationDegrees: number;
+                  };
+              capacity?: number;
+              placement?: {
+                collisionMode: "solid";
+              };
+              circulation?: {
+                blocksPath?: boolean;
+                blocksExitApproach?: boolean;
+                role?: "queue" | "checkpoint";
+                demandPersons?: number;
+                capacityPersons?: number;
+                capacityPersonsPerMinute?: number;
+                clearWidthM?: number;
+                carCapacityPersons?: number;
+                cycleSeconds?: number;
+                servesZoneIds?: string[];
+              };
+              queue?: {
+                category:
+                  | "registration"
+                  | "security"
+                  | "cloakroom"
+                  | "food"
+                  | "beverage"
+                  | "restroom"
+                  | "merchandise"
+                  | "transport";
+                servers: number;
+                serviceRatePerServerMinute: number;
+                priorityLaneCount: number;
+              };
+              staffPost?: {
+                coverageZoneObjectIds: string[];
+                /**
+                 * @minItems 1
+                 */
+                assignments: [
+                  {
+                    shiftId: string;
+                    roleId: string;
+                    count: number;
+                  },
+                  ...{
+                    shiftId: string;
+                    roleId: string;
+                    count: number;
+                  }[]
+                ];
+              };
+              utility?: {
+                type: "power";
+                circuitId: string;
+                rating?: string;
+                voltage: number;
+                maxWatts: number;
+                powerKw?: number;
+              };
+              rigging?: {
+                safeWorkingLoadKg: number;
+              };
+              productionZone?: {
+                access: "crew-only" | "performer-only" | "mixed";
+              };
+              resourceBinding?: {
+                schemaVersion: 1;
+                resourceId: string;
+                kind: "inventory" | "av" | "power" | "catering" | "staffing";
+                quantity: number;
+              };
+              production?: {
+                equipmentType:
+                  | "screen"
+                  | "projector"
+                  | "speaker"
+                  | "camera"
+                  | "control-desk"
+                  | "cable-route"
+                  | "power-distribution"
+                  | "rigged-equipment";
+                targetObjectId?: string;
+                targetObjectIds?: string[];
+                targetZoneObjectIds?: string[];
+                sourceObjectId?: string;
+                circuitId?: string;
+                riggingPointId?: string;
+                viewableWidthM?: number;
+                viewableHeightM?: number;
+                throwRatioMin?: number;
+                throwRatioMax?: number;
+                powerWatts?: number;
+                weightKg?: number;
+                requiresRigging?: boolean;
+                aimPoint?: {
+                  x: number;
+                  y: number;
+                };
+                coverageRangeM?: number;
+                coverageAngleDegrees?: number;
+                minimumDistanceM?: number;
+                maximumDistanceM?: number;
+                cableType?: string;
+                crossingTreatment?: "none" | "overhead" | "cable-ramp" | "floor-channel";
+              };
+              catering?: {
+                type:
+                  | "bar"
+                  | "buffet"
+                  | "service-counter"
+                  | "kitchen"
+                  | "prep"
+                  | "waste"
+                  | "water"
+                  | "queue-zone"
+                  | "replenishment-route";
+                servers?: number;
+                serviceRatePerServerMinute?: number;
+                demandShare?: number;
+                queueZoneObjectId?: string;
+                queueBufferPersons?: number;
+                accessibleServicePoint?: boolean;
+                serviceHeightM?: number;
+                dietaryOptions?: string[];
+                allergenLabels?: string[];
+                replenishmentSourceObjectId?: string;
+                waterSourceObjectId?: string;
+                sourceObjectId?: string;
+                /**
+                 * @minItems 1
+                 */
+                targetObjectIds?: [string, ...string[]];
+                crossingControl?: string;
+              };
+              emergency?: {
+                type: "assembly-point" | "emergency-access-lane" | "fire-equipment" | "first-aid" | "command-post";
+                capacityPersons?: number;
+                /**
+                 * @minItems 1
+                 */
+                designatedExitObjectIds?: [string, ...string[]];
+                responderOnly?: boolean;
+                equipmentClass?: string;
+                coverageRadiusM?: number;
+                clearanceM?: number;
+                accessible?: boolean;
+                powerSourceCircuitId?: string;
+                backupPowerMinutes?: number;
+              };
+              entrance?: {
+                clearWidthM?: number;
+                accessible?: boolean;
+              };
+              door?: {
+                clearWidthM: number;
+                swing: "inward" | "outward" | "sliding" | "revolving";
+                accessible: boolean;
+                clearance?: {
+                  side: "left" | "right" | "both";
+                  depthM: number;
+                  latchSideM: number;
+                };
+              };
+              exit?: {
+                clearWidthM: number;
+                emergency: boolean;
+                capacityPersons: number;
+              };
+              route?: {
+                direction: "one-way" | "bidirectional";
+                accessible: boolean;
+                purpose: string;
+                staffOnly?: boolean;
+              };
+              restriction?: {
+                access: "prohibited" | "staff-only" | "conditional";
+                reasonCode: string;
+                blocksPlacement: boolean;
+              };
+              ramp?: {
+                riseM: number;
+                runM: number;
+                clearWidthM: number;
+                landingLengthM: number;
+                edgeProtectionHeightM: number;
+                handrails: boolean;
+              };
+              locks?: VenueMindObjectLock[];
+              locked?: boolean;
+              occupancy?: {
+                expected?: number;
+                maximum?: number;
+                minimumCapacity?: number;
+                maximumCapacity?: number;
+                zoneId?: string | null;
+                excludesUsableArea?: boolean;
+              };
+              accessibility?: {
+                accessible?: boolean;
+                destination?: boolean;
+                accessibleSeats?: number;
+                companionSeats?: number;
+                accessibleSeatSampleIds?: string[];
+                clearanceExempt?: boolean;
+              };
+              sightline?: {
+                focalPoints?: {
+                  id: string;
+                  point: {
+                    x: number;
+                    y: number;
+                  };
+                  elevationM: number;
+                  priority?: "primary" | "secondary";
+                }[];
+                samples?: {
+                  id: string;
+                  point: {
+                    x: number;
+                    y: number;
+                  };
+                  eyeHeightM: number;
+                }[];
+                opacity?: number;
+                heightM?: number;
+              };
+              templateRef?: {
+                kind: "venue-template" | "room-template" | "inventory-item-template";
+                templateId: string;
+                templateObjectId?: string;
+                version: string;
+              };
+              templateOverrides?: string[];
+              inventoryCount?: number;
+              groupId?: string | null;
+              specification?: {
+                dimensions?: {
+                  [k: string]: number;
+                };
+                weightKg?: number;
+                power?: {
+                  watts: number;
+                  connector: string;
+                };
+                capacity?: number;
+                cost?: {
+                  amount: number;
+                  currency?: string;
+                  basis?: string;
+                };
+              };
+            },
+            ...{
+              id: string;
+              kind: string;
+              label?: string;
+              layer?: "architecture" | "furniture" | "access" | "production" | "catering" | "safety" | "annotations";
+              elevationM?: number;
+              footprint:
+                | {
+                    kind: "rectangle";
+                    center: {
+                      x: number;
+                      y: number;
+                    };
+                    width: number;
+                    depth: number;
+                    rotationDegrees: number;
+                  }
+                | {
+                    kind: "circle";
+                    center: {
+                      x: number;
+                      y: number;
+                    };
+                    radius: number;
+                  }
+                | {
+                    kind: "line";
+                    start: {
+                      x: number;
+                      y: number;
+                    };
+                    end: {
+                      x: number;
+                      y: number;
+                    };
+                    width: number;
+                  }
+                | {
+                    kind: "polygon";
+                    /**
+                     * @minItems 3
+                     */
+                    points: [
+                      {
+                        x: number;
+                        y: number;
+                      },
+                      {
+                        x: number;
+                        y: number;
+                      },
+                      {
+                        x: number;
+                        y: number;
+                      },
+                      ...{
+                        x: number;
+                        y: number;
+                      }[]
+                    ];
+                    rotationDegrees: number;
+                  };
+              capacity?: number;
+              placement?: {
+                collisionMode: "solid";
+              };
+              circulation?: {
+                blocksPath?: boolean;
+                blocksExitApproach?: boolean;
+                role?: "queue" | "checkpoint";
+                demandPersons?: number;
+                capacityPersons?: number;
+                capacityPersonsPerMinute?: number;
+                clearWidthM?: number;
+                carCapacityPersons?: number;
+                cycleSeconds?: number;
+                servesZoneIds?: string[];
+              };
+              queue?: {
+                category:
+                  | "registration"
+                  | "security"
+                  | "cloakroom"
+                  | "food"
+                  | "beverage"
+                  | "restroom"
+                  | "merchandise"
+                  | "transport";
+                servers: number;
+                serviceRatePerServerMinute: number;
+                priorityLaneCount: number;
+              };
+              staffPost?: {
+                coverageZoneObjectIds: string[];
+                /**
+                 * @minItems 1
+                 */
+                assignments: [
+                  {
+                    shiftId: string;
+                    roleId: string;
+                    count: number;
+                  },
+                  ...{
+                    shiftId: string;
+                    roleId: string;
+                    count: number;
+                  }[]
+                ];
+              };
+              utility?: {
+                type: "power";
+                circuitId: string;
+                rating?: string;
+                voltage: number;
+                maxWatts: number;
+                powerKw?: number;
+              };
+              rigging?: {
+                safeWorkingLoadKg: number;
+              };
+              productionZone?: {
+                access: "crew-only" | "performer-only" | "mixed";
+              };
+              resourceBinding?: {
+                schemaVersion: 1;
+                resourceId: string;
+                kind: "inventory" | "av" | "power" | "catering" | "staffing";
+                quantity: number;
+              };
+              production?: {
+                equipmentType:
+                  | "screen"
+                  | "projector"
+                  | "speaker"
+                  | "camera"
+                  | "control-desk"
+                  | "cable-route"
+                  | "power-distribution"
+                  | "rigged-equipment";
+                targetObjectId?: string;
+                targetObjectIds?: string[];
+                targetZoneObjectIds?: string[];
+                sourceObjectId?: string;
+                circuitId?: string;
+                riggingPointId?: string;
+                viewableWidthM?: number;
+                viewableHeightM?: number;
+                throwRatioMin?: number;
+                throwRatioMax?: number;
+                powerWatts?: number;
+                weightKg?: number;
+                requiresRigging?: boolean;
+                aimPoint?: {
+                  x: number;
+                  y: number;
+                };
+                coverageRangeM?: number;
+                coverageAngleDegrees?: number;
+                minimumDistanceM?: number;
+                maximumDistanceM?: number;
+                cableType?: string;
+                crossingTreatment?: "none" | "overhead" | "cable-ramp" | "floor-channel";
+              };
+              catering?: {
+                type:
+                  | "bar"
+                  | "buffet"
+                  | "service-counter"
+                  | "kitchen"
+                  | "prep"
+                  | "waste"
+                  | "water"
+                  | "queue-zone"
+                  | "replenishment-route";
+                servers?: number;
+                serviceRatePerServerMinute?: number;
+                demandShare?: number;
+                queueZoneObjectId?: string;
+                queueBufferPersons?: number;
+                accessibleServicePoint?: boolean;
+                serviceHeightM?: number;
+                dietaryOptions?: string[];
+                allergenLabels?: string[];
+                replenishmentSourceObjectId?: string;
+                waterSourceObjectId?: string;
+                sourceObjectId?: string;
+                /**
+                 * @minItems 1
+                 */
+                targetObjectIds?: [string, ...string[]];
+                crossingControl?: string;
+              };
+              emergency?: {
+                type: "assembly-point" | "emergency-access-lane" | "fire-equipment" | "first-aid" | "command-post";
+                capacityPersons?: number;
+                /**
+                 * @minItems 1
+                 */
+                designatedExitObjectIds?: [string, ...string[]];
+                responderOnly?: boolean;
+                equipmentClass?: string;
+                coverageRadiusM?: number;
+                clearanceM?: number;
+                accessible?: boolean;
+                powerSourceCircuitId?: string;
+                backupPowerMinutes?: number;
+              };
+              entrance?: {
+                clearWidthM?: number;
+                accessible?: boolean;
+              };
+              door?: {
+                clearWidthM: number;
+                swing: "inward" | "outward" | "sliding" | "revolving";
+                accessible: boolean;
+                clearance?: {
+                  side: "left" | "right" | "both";
+                  depthM: number;
+                  latchSideM: number;
+                };
+              };
+              exit?: {
+                clearWidthM: number;
+                emergency: boolean;
+                capacityPersons: number;
+              };
+              route?: {
+                direction: "one-way" | "bidirectional";
+                accessible: boolean;
+                purpose: string;
+                staffOnly?: boolean;
+              };
+              restriction?: {
+                access: "prohibited" | "staff-only" | "conditional";
+                reasonCode: string;
+                blocksPlacement: boolean;
+              };
+              ramp?: {
+                riseM: number;
+                runM: number;
+                clearWidthM: number;
+                landingLengthM: number;
+                edgeProtectionHeightM: number;
+                handrails: boolean;
+              };
+              locks?: VenueMindObjectLock[];
+              locked?: boolean;
+              occupancy?: {
+                expected?: number;
+                maximum?: number;
+                minimumCapacity?: number;
+                maximumCapacity?: number;
+                zoneId?: string | null;
+                excludesUsableArea?: boolean;
+              };
+              accessibility?: {
+                accessible?: boolean;
+                destination?: boolean;
+                accessibleSeats?: number;
+                companionSeats?: number;
+                accessibleSeatSampleIds?: string[];
+                clearanceExempt?: boolean;
+              };
+              sightline?: {
+                focalPoints?: {
+                  id: string;
+                  point: {
+                    x: number;
+                    y: number;
+                  };
+                  elevationM: number;
+                  priority?: "primary" | "secondary";
+                }[];
+                samples?: {
+                  id: string;
+                  point: {
+                    x: number;
+                    y: number;
+                  };
+                  eyeHeightM: number;
+                }[];
+                opacity?: number;
+                heightM?: number;
+              };
+              templateRef?: {
+                kind: "venue-template" | "room-template" | "inventory-item-template";
+                templateId: string;
+                templateObjectId?: string;
+                version: string;
+              };
+              templateOverrides?: string[];
+              inventoryCount?: number;
+              groupId?: string | null;
+              specification?: {
+                dimensions?: {
+                  [k: string]: number;
+                };
+                weightKg?: number;
+                power?: {
+                  watts: number;
+                  connector: string;
+                };
+                capacity?: number;
+                cost?: {
+                  amount: number;
+                  currency?: string;
+                  basis?: string;
+                };
+              };
+            }[]
+          ];
+        }
+      | {
+          operation: "move";
+          label?: string;
+          shortLabel?: string;
+          metrics?: [string, string][];
+          /**
+           * @minItems 1
+           */
+          objectIds: [string, ...string[]];
+          delta: {
+            x: number;
+            y: number;
+          };
+          snap?: {
+            enabled?: boolean;
+            sizeM?: number;
+            toleranceM?: number;
+          };
+        }
+      | {
+          operation: "rotate";
+          label?: string;
+          shortLabel?: string;
+          metrics?: [string, string][];
+          /**
+           * @minItems 1
+           */
+          objectIds: [string, ...string[]];
+          rotationDegrees: number;
+        }
+      | {
+          operation: "resize";
+          label?: string;
+          shortLabel?: string;
+          metrics?: [string, string][];
+          /**
+           * @minItems 1
+           */
+          objectIds: [string, ...string[]];
+          dimensions: {
+            width?: number;
+            depth?: number;
+            radius?: number;
+          };
+        }
+      | {
+          operation: "delete";
+          label?: string;
+          shortLabel?: string;
+          metrics?: [string, string][];
+          /**
+           * @minItems 1
+           */
+          objectIds: [string, ...string[]];
+        }
+      | {
+          operation: "group";
+          label?: string;
+          shortLabel?: string;
+          metrics?: [string, string][];
+          /**
+           * @minItems 1
+           */
+          objectIds: [string, ...string[]];
+          groupId: string;
+        }
+      | {
+          operation: "ungroup";
+          label?: string;
+          shortLabel?: string;
+          metrics?: [string, string][];
+          /**
+           * @minItems 1
+           */
+          objectIds: [string, ...string[]];
+        }
+      | {
+          operation: "edit-zone-vertices";
+          label?: string;
+          shortLabel?: string;
+          metrics?: [string, string][];
+          /**
+           * @minItems 1
+           * @maxItems 1
+           */
+          objectIds: [string];
+          /**
+           * @minItems 3
+           */
+          points: [
+            {
+              x: number;
+              y: number;
+            },
+            {
+              x: number;
+              y: number;
+            },
+            {
+              x: number;
+              y: number;
+            },
+            ...{
+              x: number;
+              y: number;
+            }[]
+          ];
+          snap?: {
+            enabled?: boolean;
+            sizeM?: number;
+            toleranceM?: number;
+          };
+        }
+      | {
+          operation: "align";
+          label?: string;
+          shortLabel?: string;
+          metrics?: [string, string][];
+          /**
+           * @minItems 2
+           */
+          objectIds: [string, string, ...string[]];
+          axis: "x" | "y";
+          edge?: "min" | "max" | "center";
+          value?: number;
+        }
+      | {
+          operation: "distribute";
+          label?: string;
+          shortLabel?: string;
+          metrics?: [string, string][];
+          /**
+           * @minItems 2
+           */
+          objectIds: [string, string, ...string[]];
+          axis: "x" | "y";
+        }
+      | {
+          operation: "duplicate";
+          label?: string;
+          shortLabel?: string;
+          metrics?: [string, string][];
+          /**
+           * @minItems 1
+           */
+          objectIds: [string, ...string[]];
+          /**
+           * @minItems 1
+           */
+          newObjectIds: [string, ...string[]];
+          /**
+           * @minItems 1
+           */
+          labels?: [string, ...string[]];
+          offset?: {
+            x: number;
+            y: number;
+          };
+        }
+      | {
+          operation: "paste";
+          label?: string;
+          shortLabel?: string;
+          metrics?: [string, string][];
+          /**
+           * @minItems 1
+           */
+          objects: [
+            {
+              id: string;
+              kind: string;
+              label?: string;
+              layer?: "architecture" | "furniture" | "access" | "production" | "catering" | "safety" | "annotations";
+              elevationM?: number;
+              footprint:
+                | {
+                    kind: "rectangle";
+                    center: {
+                      x: number;
+                      y: number;
+                    };
+                    width: number;
+                    depth: number;
+                    rotationDegrees: number;
+                  }
+                | {
+                    kind: "circle";
+                    center: {
+                      x: number;
+                      y: number;
+                    };
+                    radius: number;
+                  }
+                | {
+                    kind: "line";
+                    start: {
+                      x: number;
+                      y: number;
+                    };
+                    end: {
+                      x: number;
+                      y: number;
+                    };
+                    width: number;
+                  }
+                | {
+                    kind: "polygon";
+                    /**
+                     * @minItems 3
+                     */
+                    points: [
+                      {
+                        x: number;
+                        y: number;
+                      },
+                      {
+                        x: number;
+                        y: number;
+                      },
+                      {
+                        x: number;
+                        y: number;
+                      },
+                      ...{
+                        x: number;
+                        y: number;
+                      }[]
+                    ];
+                    rotationDegrees: number;
+                  };
+              capacity?: number;
+              placement?: {
+                collisionMode: "solid";
+              };
+              circulation?: {
+                blocksPath?: boolean;
+                blocksExitApproach?: boolean;
+                role?: "queue" | "checkpoint";
+                demandPersons?: number;
+                capacityPersons?: number;
+                capacityPersonsPerMinute?: number;
+                clearWidthM?: number;
+                carCapacityPersons?: number;
+                cycleSeconds?: number;
+                servesZoneIds?: string[];
+              };
+              queue?: {
+                category:
+                  | "registration"
+                  | "security"
+                  | "cloakroom"
+                  | "food"
+                  | "beverage"
+                  | "restroom"
+                  | "merchandise"
+                  | "transport";
+                servers: number;
+                serviceRatePerServerMinute: number;
+                priorityLaneCount: number;
+              };
+              staffPost?: {
+                coverageZoneObjectIds: string[];
+                /**
+                 * @minItems 1
+                 */
+                assignments: [
+                  {
+                    shiftId: string;
+                    roleId: string;
+                    count: number;
+                  },
+                  ...{
+                    shiftId: string;
+                    roleId: string;
+                    count: number;
+                  }[]
+                ];
+              };
+              utility?: {
+                type: "power";
+                circuitId: string;
+                rating?: string;
+                voltage: number;
+                maxWatts: number;
+                powerKw?: number;
+              };
+              rigging?: {
+                safeWorkingLoadKg: number;
+              };
+              productionZone?: {
+                access: "crew-only" | "performer-only" | "mixed";
+              };
+              resourceBinding?: {
+                schemaVersion: 1;
+                resourceId: string;
+                kind: "inventory" | "av" | "power" | "catering" | "staffing";
+                quantity: number;
+              };
+              production?: {
+                equipmentType:
+                  | "screen"
+                  | "projector"
+                  | "speaker"
+                  | "camera"
+                  | "control-desk"
+                  | "cable-route"
+                  | "power-distribution"
+                  | "rigged-equipment";
+                targetObjectId?: string;
+                targetObjectIds?: string[];
+                targetZoneObjectIds?: string[];
+                sourceObjectId?: string;
+                circuitId?: string;
+                riggingPointId?: string;
+                viewableWidthM?: number;
+                viewableHeightM?: number;
+                throwRatioMin?: number;
+                throwRatioMax?: number;
+                powerWatts?: number;
+                weightKg?: number;
+                requiresRigging?: boolean;
+                aimPoint?: {
+                  x: number;
+                  y: number;
+                };
+                coverageRangeM?: number;
+                coverageAngleDegrees?: number;
+                minimumDistanceM?: number;
+                maximumDistanceM?: number;
+                cableType?: string;
+                crossingTreatment?: "none" | "overhead" | "cable-ramp" | "floor-channel";
+              };
+              catering?: {
+                type:
+                  | "bar"
+                  | "buffet"
+                  | "service-counter"
+                  | "kitchen"
+                  | "prep"
+                  | "waste"
+                  | "water"
+                  | "queue-zone"
+                  | "replenishment-route";
+                servers?: number;
+                serviceRatePerServerMinute?: number;
+                demandShare?: number;
+                queueZoneObjectId?: string;
+                queueBufferPersons?: number;
+                accessibleServicePoint?: boolean;
+                serviceHeightM?: number;
+                dietaryOptions?: string[];
+                allergenLabels?: string[];
+                replenishmentSourceObjectId?: string;
+                waterSourceObjectId?: string;
+                sourceObjectId?: string;
+                /**
+                 * @minItems 1
+                 */
+                targetObjectIds?: [string, ...string[]];
+                crossingControl?: string;
+              };
+              emergency?: {
+                type: "assembly-point" | "emergency-access-lane" | "fire-equipment" | "first-aid" | "command-post";
+                capacityPersons?: number;
+                /**
+                 * @minItems 1
+                 */
+                designatedExitObjectIds?: [string, ...string[]];
+                responderOnly?: boolean;
+                equipmentClass?: string;
+                coverageRadiusM?: number;
+                clearanceM?: number;
+                accessible?: boolean;
+                powerSourceCircuitId?: string;
+                backupPowerMinutes?: number;
+              };
+              entrance?: {
+                clearWidthM?: number;
+                accessible?: boolean;
+              };
+              door?: {
+                clearWidthM: number;
+                swing: "inward" | "outward" | "sliding" | "revolving";
+                accessible: boolean;
+                clearance?: {
+                  side: "left" | "right" | "both";
+                  depthM: number;
+                  latchSideM: number;
+                };
+              };
+              exit?: {
+                clearWidthM: number;
+                emergency: boolean;
+                capacityPersons: number;
+              };
+              route?: {
+                direction: "one-way" | "bidirectional";
+                accessible: boolean;
+                purpose: string;
+                staffOnly?: boolean;
+              };
+              restriction?: {
+                access: "prohibited" | "staff-only" | "conditional";
+                reasonCode: string;
+                blocksPlacement: boolean;
+              };
+              ramp?: {
+                riseM: number;
+                runM: number;
+                clearWidthM: number;
+                landingLengthM: number;
+                edgeProtectionHeightM: number;
+                handrails: boolean;
+              };
+              locks?: VenueMindObjectLock[];
+              locked?: boolean;
+              occupancy?: {
+                expected?: number;
+                maximum?: number;
+                minimumCapacity?: number;
+                maximumCapacity?: number;
+                zoneId?: string | null;
+                excludesUsableArea?: boolean;
+              };
+              accessibility?: {
+                accessible?: boolean;
+                destination?: boolean;
+                accessibleSeats?: number;
+                companionSeats?: number;
+                accessibleSeatSampleIds?: string[];
+                clearanceExempt?: boolean;
+              };
+              sightline?: {
+                focalPoints?: {
+                  id: string;
+                  point: {
+                    x: number;
+                    y: number;
+                  };
+                  elevationM: number;
+                  priority?: "primary" | "secondary";
+                }[];
+                samples?: {
+                  id: string;
+                  point: {
+                    x: number;
+                    y: number;
+                  };
+                  eyeHeightM: number;
+                }[];
+                opacity?: number;
+                heightM?: number;
+              };
+              templateRef?: {
+                kind: "venue-template" | "room-template" | "inventory-item-template";
+                templateId: string;
+                templateObjectId?: string;
+                version: string;
+              };
+              templateOverrides?: string[];
+              inventoryCount?: number;
+              groupId?: string | null;
+              specification?: {
+                dimensions?: {
+                  [k: string]: number;
+                };
+                weightKg?: number;
+                power?: {
+                  watts: number;
+                  connector: string;
+                };
+                capacity?: number;
+                cost?: {
+                  amount: number;
+                  currency?: string;
+                  basis?: string;
+                };
+              };
+            },
+            ...{
+              id: string;
+              kind: string;
+              label?: string;
+              layer?: "architecture" | "furniture" | "access" | "production" | "catering" | "safety" | "annotations";
+              elevationM?: number;
+              footprint:
+                | {
+                    kind: "rectangle";
+                    center: {
+                      x: number;
+                      y: number;
+                    };
+                    width: number;
+                    depth: number;
+                    rotationDegrees: number;
+                  }
+                | {
+                    kind: "circle";
+                    center: {
+                      x: number;
+                      y: number;
+                    };
+                    radius: number;
+                  }
+                | {
+                    kind: "line";
+                    start: {
+                      x: number;
+                      y: number;
+                    };
+                    end: {
+                      x: number;
+                      y: number;
+                    };
+                    width: number;
+                  }
+                | {
+                    kind: "polygon";
+                    /**
+                     * @minItems 3
+                     */
+                    points: [
+                      {
+                        x: number;
+                        y: number;
+                      },
+                      {
+                        x: number;
+                        y: number;
+                      },
+                      {
+                        x: number;
+                        y: number;
+                      },
+                      ...{
+                        x: number;
+                        y: number;
+                      }[]
+                    ];
+                    rotationDegrees: number;
+                  };
+              capacity?: number;
+              placement?: {
+                collisionMode: "solid";
+              };
+              circulation?: {
+                blocksPath?: boolean;
+                blocksExitApproach?: boolean;
+                role?: "queue" | "checkpoint";
+                demandPersons?: number;
+                capacityPersons?: number;
+                capacityPersonsPerMinute?: number;
+                clearWidthM?: number;
+                carCapacityPersons?: number;
+                cycleSeconds?: number;
+                servesZoneIds?: string[];
+              };
+              queue?: {
+                category:
+                  | "registration"
+                  | "security"
+                  | "cloakroom"
+                  | "food"
+                  | "beverage"
+                  | "restroom"
+                  | "merchandise"
+                  | "transport";
+                servers: number;
+                serviceRatePerServerMinute: number;
+                priorityLaneCount: number;
+              };
+              staffPost?: {
+                coverageZoneObjectIds: string[];
+                /**
+                 * @minItems 1
+                 */
+                assignments: [
+                  {
+                    shiftId: string;
+                    roleId: string;
+                    count: number;
+                  },
+                  ...{
+                    shiftId: string;
+                    roleId: string;
+                    count: number;
+                  }[]
+                ];
+              };
+              utility?: {
+                type: "power";
+                circuitId: string;
+                rating?: string;
+                voltage: number;
+                maxWatts: number;
+                powerKw?: number;
+              };
+              rigging?: {
+                safeWorkingLoadKg: number;
+              };
+              productionZone?: {
+                access: "crew-only" | "performer-only" | "mixed";
+              };
+              resourceBinding?: {
+                schemaVersion: 1;
+                resourceId: string;
+                kind: "inventory" | "av" | "power" | "catering" | "staffing";
+                quantity: number;
+              };
+              production?: {
+                equipmentType:
+                  | "screen"
+                  | "projector"
+                  | "speaker"
+                  | "camera"
+                  | "control-desk"
+                  | "cable-route"
+                  | "power-distribution"
+                  | "rigged-equipment";
+                targetObjectId?: string;
+                targetObjectIds?: string[];
+                targetZoneObjectIds?: string[];
+                sourceObjectId?: string;
+                circuitId?: string;
+                riggingPointId?: string;
+                viewableWidthM?: number;
+                viewableHeightM?: number;
+                throwRatioMin?: number;
+                throwRatioMax?: number;
+                powerWatts?: number;
+                weightKg?: number;
+                requiresRigging?: boolean;
+                aimPoint?: {
+                  x: number;
+                  y: number;
+                };
+                coverageRangeM?: number;
+                coverageAngleDegrees?: number;
+                minimumDistanceM?: number;
+                maximumDistanceM?: number;
+                cableType?: string;
+                crossingTreatment?: "none" | "overhead" | "cable-ramp" | "floor-channel";
+              };
+              catering?: {
+                type:
+                  | "bar"
+                  | "buffet"
+                  | "service-counter"
+                  | "kitchen"
+                  | "prep"
+                  | "waste"
+                  | "water"
+                  | "queue-zone"
+                  | "replenishment-route";
+                servers?: number;
+                serviceRatePerServerMinute?: number;
+                demandShare?: number;
+                queueZoneObjectId?: string;
+                queueBufferPersons?: number;
+                accessibleServicePoint?: boolean;
+                serviceHeightM?: number;
+                dietaryOptions?: string[];
+                allergenLabels?: string[];
+                replenishmentSourceObjectId?: string;
+                waterSourceObjectId?: string;
+                sourceObjectId?: string;
+                /**
+                 * @minItems 1
+                 */
+                targetObjectIds?: [string, ...string[]];
+                crossingControl?: string;
+              };
+              emergency?: {
+                type: "assembly-point" | "emergency-access-lane" | "fire-equipment" | "first-aid" | "command-post";
+                capacityPersons?: number;
+                /**
+                 * @minItems 1
+                 */
+                designatedExitObjectIds?: [string, ...string[]];
+                responderOnly?: boolean;
+                equipmentClass?: string;
+                coverageRadiusM?: number;
+                clearanceM?: number;
+                accessible?: boolean;
+                powerSourceCircuitId?: string;
+                backupPowerMinutes?: number;
+              };
+              entrance?: {
+                clearWidthM?: number;
+                accessible?: boolean;
+              };
+              door?: {
+                clearWidthM: number;
+                swing: "inward" | "outward" | "sliding" | "revolving";
+                accessible: boolean;
+                clearance?: {
+                  side: "left" | "right" | "both";
+                  depthM: number;
+                  latchSideM: number;
+                };
+              };
+              exit?: {
+                clearWidthM: number;
+                emergency: boolean;
+                capacityPersons: number;
+              };
+              route?: {
+                direction: "one-way" | "bidirectional";
+                accessible: boolean;
+                purpose: string;
+                staffOnly?: boolean;
+              };
+              restriction?: {
+                access: "prohibited" | "staff-only" | "conditional";
+                reasonCode: string;
+                blocksPlacement: boolean;
+              };
+              ramp?: {
+                riseM: number;
+                runM: number;
+                clearWidthM: number;
+                landingLengthM: number;
+                edgeProtectionHeightM: number;
+                handrails: boolean;
+              };
+              locks?: VenueMindObjectLock[];
+              locked?: boolean;
+              occupancy?: {
+                expected?: number;
+                maximum?: number;
+                minimumCapacity?: number;
+                maximumCapacity?: number;
+                zoneId?: string | null;
+                excludesUsableArea?: boolean;
+              };
+              accessibility?: {
+                accessible?: boolean;
+                destination?: boolean;
+                accessibleSeats?: number;
+                companionSeats?: number;
+                accessibleSeatSampleIds?: string[];
+                clearanceExempt?: boolean;
+              };
+              sightline?: {
+                focalPoints?: {
+                  id: string;
+                  point: {
+                    x: number;
+                    y: number;
+                  };
+                  elevationM: number;
+                  priority?: "primary" | "secondary";
+                }[];
+                samples?: {
+                  id: string;
+                  point: {
+                    x: number;
+                    y: number;
+                  };
+                  eyeHeightM: number;
+                }[];
+                opacity?: number;
+                heightM?: number;
+              };
+              templateRef?: {
+                kind: "venue-template" | "room-template" | "inventory-item-template";
+                templateId: string;
+                templateObjectId?: string;
+                version: string;
+              };
+              templateOverrides?: string[];
+              inventoryCount?: number;
+              groupId?: string | null;
+              specification?: {
+                dimensions?: {
+                  [k: string]: number;
+                };
+                weightKg?: number;
+                power?: {
+                  watts: number;
+                  connector: string;
+                };
+                capacity?: number;
+                cost?: {
+                  amount: number;
+                  currency?: string;
+                  basis?: string;
+                };
+              };
+            }[]
+          ];
+          /**
+           * @minItems 1
+           */
+          newObjectIds: [string, ...string[]];
+          /**
+           * @minItems 1
+           */
+          labels?: [string, ...string[]];
+          offset?: {
+            x: number;
+            y: number;
+          };
+        }
+      | {
+          operation: "place";
+          label?: string;
+          shortLabel?: string;
+          metrics?: [string, string][];
+          object: {
+            id: string;
+            kind: string;
+            label?: string;
+            layer?: "architecture" | "furniture" | "access" | "production" | "catering" | "safety" | "annotations";
+            elevationM?: number;
+            footprint:
+              | {
+                  kind: "rectangle";
+                  center: {
+                    x: number;
+                    y: number;
+                  };
+                  width: number;
+                  depth: number;
+                  rotationDegrees: number;
+                }
+              | {
+                  kind: "circle";
+                  center: {
+                    x: number;
+                    y: number;
+                  };
+                  radius: number;
+                }
+              | {
+                  kind: "line";
+                  start: {
+                    x: number;
+                    y: number;
+                  };
+                  end: {
+                    x: number;
+                    y: number;
+                  };
+                  width: number;
+                }
+              | {
+                  kind: "polygon";
+                  /**
+                   * @minItems 3
+                   */
+                  points: [
+                    {
+                      x: number;
+                      y: number;
+                    },
+                    {
+                      x: number;
+                      y: number;
+                    },
+                    {
+                      x: number;
+                      y: number;
+                    },
+                    ...{
+                      x: number;
+                      y: number;
+                    }[]
+                  ];
+                  rotationDegrees: number;
+                };
+            capacity?: number;
+            placement?: {
+              collisionMode: "solid";
+            };
+            circulation?: {
+              blocksPath?: boolean;
+              blocksExitApproach?: boolean;
+              role?: "queue" | "checkpoint";
+              demandPersons?: number;
+              capacityPersons?: number;
+              capacityPersonsPerMinute?: number;
+              clearWidthM?: number;
+              carCapacityPersons?: number;
+              cycleSeconds?: number;
+              servesZoneIds?: string[];
+            };
+            queue?: {
+              category:
+                | "registration"
+                | "security"
+                | "cloakroom"
+                | "food"
+                | "beverage"
+                | "restroom"
+                | "merchandise"
+                | "transport";
+              servers: number;
+              serviceRatePerServerMinute: number;
+              priorityLaneCount: number;
+            };
+            staffPost?: {
+              coverageZoneObjectIds: string[];
+              /**
+               * @minItems 1
+               */
+              assignments: [
+                {
+                  shiftId: string;
+                  roleId: string;
+                  count: number;
+                },
+                ...{
+                  shiftId: string;
+                  roleId: string;
+                  count: number;
+                }[]
+              ];
+            };
+            utility?: {
+              type: "power";
+              circuitId: string;
+              rating?: string;
+              voltage: number;
+              maxWatts: number;
+              powerKw?: number;
+            };
+            rigging?: {
+              safeWorkingLoadKg: number;
+            };
+            productionZone?: {
+              access: "crew-only" | "performer-only" | "mixed";
+            };
+            resourceBinding?: {
+              schemaVersion: 1;
+              resourceId: string;
+              kind: "inventory" | "av" | "power" | "catering" | "staffing";
+              quantity: number;
+            };
+            production?: {
+              equipmentType:
+                | "screen"
+                | "projector"
+                | "speaker"
+                | "camera"
+                | "control-desk"
+                | "cable-route"
+                | "power-distribution"
+                | "rigged-equipment";
+              targetObjectId?: string;
+              targetObjectIds?: string[];
+              targetZoneObjectIds?: string[];
+              sourceObjectId?: string;
+              circuitId?: string;
+              riggingPointId?: string;
+              viewableWidthM?: number;
+              viewableHeightM?: number;
+              throwRatioMin?: number;
+              throwRatioMax?: number;
+              powerWatts?: number;
+              weightKg?: number;
+              requiresRigging?: boolean;
+              aimPoint?: {
+                x: number;
+                y: number;
+              };
+              coverageRangeM?: number;
+              coverageAngleDegrees?: number;
+              minimumDistanceM?: number;
+              maximumDistanceM?: number;
+              cableType?: string;
+              crossingTreatment?: "none" | "overhead" | "cable-ramp" | "floor-channel";
+            };
+            catering?: {
+              type:
+                | "bar"
+                | "buffet"
+                | "service-counter"
+                | "kitchen"
+                | "prep"
+                | "waste"
+                | "water"
+                | "queue-zone"
+                | "replenishment-route";
+              servers?: number;
+              serviceRatePerServerMinute?: number;
+              demandShare?: number;
+              queueZoneObjectId?: string;
+              queueBufferPersons?: number;
+              accessibleServicePoint?: boolean;
+              serviceHeightM?: number;
+              dietaryOptions?: string[];
+              allergenLabels?: string[];
+              replenishmentSourceObjectId?: string;
+              waterSourceObjectId?: string;
+              sourceObjectId?: string;
+              /**
+               * @minItems 1
+               */
+              targetObjectIds?: [string, ...string[]];
+              crossingControl?: string;
+            };
+            emergency?: {
+              type: "assembly-point" | "emergency-access-lane" | "fire-equipment" | "first-aid" | "command-post";
+              capacityPersons?: number;
+              /**
+               * @minItems 1
+               */
+              designatedExitObjectIds?: [string, ...string[]];
+              responderOnly?: boolean;
+              equipmentClass?: string;
+              coverageRadiusM?: number;
+              clearanceM?: number;
+              accessible?: boolean;
+              powerSourceCircuitId?: string;
+              backupPowerMinutes?: number;
+            };
+            entrance?: {
+              clearWidthM?: number;
+              accessible?: boolean;
+            };
+            door?: {
+              clearWidthM: number;
+              swing: "inward" | "outward" | "sliding" | "revolving";
+              accessible: boolean;
+              clearance?: {
+                side: "left" | "right" | "both";
+                depthM: number;
+                latchSideM: number;
+              };
+            };
+            exit?: {
+              clearWidthM: number;
+              emergency: boolean;
+              capacityPersons: number;
+            };
+            route?: {
+              direction: "one-way" | "bidirectional";
+              accessible: boolean;
+              purpose: string;
+              staffOnly?: boolean;
+            };
+            restriction?: {
+              access: "prohibited" | "staff-only" | "conditional";
+              reasonCode: string;
+              blocksPlacement: boolean;
+            };
+            ramp?: {
+              riseM: number;
+              runM: number;
+              clearWidthM: number;
+              landingLengthM: number;
+              edgeProtectionHeightM: number;
+              handrails: boolean;
+            };
+            locks?: VenueMindObjectLock[];
+            locked?: boolean;
+            occupancy?: {
+              expected?: number;
+              maximum?: number;
+              minimumCapacity?: number;
+              maximumCapacity?: number;
+              zoneId?: string | null;
+              excludesUsableArea?: boolean;
+            };
+            accessibility?: {
+              accessible?: boolean;
+              destination?: boolean;
+              accessibleSeats?: number;
+              companionSeats?: number;
+              accessibleSeatSampleIds?: string[];
+              clearanceExempt?: boolean;
+            };
+            sightline?: {
+              focalPoints?: {
+                id: string;
+                point: {
+                  x: number;
+                  y: number;
+                };
+                elevationM: number;
+                priority?: "primary" | "secondary";
+              }[];
+              samples?: {
+                id: string;
+                point: {
+                  x: number;
+                  y: number;
+                };
+                eyeHeightM: number;
+              }[];
+              opacity?: number;
+              heightM?: number;
+            };
+            templateRef?: {
+              kind: "venue-template" | "room-template" | "inventory-item-template";
+              templateId: string;
+              templateObjectId?: string;
+              version: string;
+            };
+            templateOverrides?: string[];
+            inventoryCount?: number;
+            groupId?: string | null;
+            specification?: {
+              dimensions?: {
+                [k: string]: number;
+              };
+              weightKg?: number;
+              power?: {
+                watts: number;
+                connector: string;
+              };
+              capacity?: number;
+              cost?: {
+                amount: number;
+                currency?: string;
+                basis?: string;
+              };
+            };
+          };
+        }
+      | {
+          operation: "create-zone";
+          label?: string;
+          shortLabel?: string;
+          metrics?: [string, string][];
+          object: {
+            id: string;
+            kind: string;
+            label?: string;
+            layer?: "architecture" | "furniture" | "access" | "production" | "catering" | "safety" | "annotations";
+            elevationM?: number;
+            footprint:
+              | {
+                  kind: "rectangle";
+                  center: {
+                    x: number;
+                    y: number;
+                  };
+                  width: number;
+                  depth: number;
+                  rotationDegrees: number;
+                }
+              | {
+                  kind: "circle";
+                  center: {
+                    x: number;
+                    y: number;
+                  };
+                  radius: number;
+                }
+              | {
+                  kind: "line";
+                  start: {
+                    x: number;
+                    y: number;
+                  };
+                  end: {
+                    x: number;
+                    y: number;
+                  };
+                  width: number;
+                }
+              | {
+                  kind: "polygon";
+                  /**
+                   * @minItems 3
+                   */
+                  points: [
+                    {
+                      x: number;
+                      y: number;
+                    },
+                    {
+                      x: number;
+                      y: number;
+                    },
+                    {
+                      x: number;
+                      y: number;
+                    },
+                    ...{
+                      x: number;
+                      y: number;
+                    }[]
+                  ];
+                  rotationDegrees: number;
+                };
+            capacity?: number;
+            placement?: {
+              collisionMode: "solid";
+            };
+            circulation?: {
+              blocksPath?: boolean;
+              blocksExitApproach?: boolean;
+              role?: "queue" | "checkpoint";
+              demandPersons?: number;
+              capacityPersons?: number;
+              capacityPersonsPerMinute?: number;
+              clearWidthM?: number;
+              carCapacityPersons?: number;
+              cycleSeconds?: number;
+              servesZoneIds?: string[];
+            };
+            queue?: {
+              category:
+                | "registration"
+                | "security"
+                | "cloakroom"
+                | "food"
+                | "beverage"
+                | "restroom"
+                | "merchandise"
+                | "transport";
+              servers: number;
+              serviceRatePerServerMinute: number;
+              priorityLaneCount: number;
+            };
+            staffPost?: {
+              coverageZoneObjectIds: string[];
+              /**
+               * @minItems 1
+               */
+              assignments: [
+                {
+                  shiftId: string;
+                  roleId: string;
+                  count: number;
+                },
+                ...{
+                  shiftId: string;
+                  roleId: string;
+                  count: number;
+                }[]
+              ];
+            };
+            utility?: {
+              type: "power";
+              circuitId: string;
+              rating?: string;
+              voltage: number;
+              maxWatts: number;
+              powerKw?: number;
+            };
+            rigging?: {
+              safeWorkingLoadKg: number;
+            };
+            productionZone?: {
+              access: "crew-only" | "performer-only" | "mixed";
+            };
+            resourceBinding?: {
+              schemaVersion: 1;
+              resourceId: string;
+              kind: "inventory" | "av" | "power" | "catering" | "staffing";
+              quantity: number;
+            };
+            production?: {
+              equipmentType:
+                | "screen"
+                | "projector"
+                | "speaker"
+                | "camera"
+                | "control-desk"
+                | "cable-route"
+                | "power-distribution"
+                | "rigged-equipment";
+              targetObjectId?: string;
+              targetObjectIds?: string[];
+              targetZoneObjectIds?: string[];
+              sourceObjectId?: string;
+              circuitId?: string;
+              riggingPointId?: string;
+              viewableWidthM?: number;
+              viewableHeightM?: number;
+              throwRatioMin?: number;
+              throwRatioMax?: number;
+              powerWatts?: number;
+              weightKg?: number;
+              requiresRigging?: boolean;
+              aimPoint?: {
+                x: number;
+                y: number;
+              };
+              coverageRangeM?: number;
+              coverageAngleDegrees?: number;
+              minimumDistanceM?: number;
+              maximumDistanceM?: number;
+              cableType?: string;
+              crossingTreatment?: "none" | "overhead" | "cable-ramp" | "floor-channel";
+            };
+            catering?: {
+              type:
+                | "bar"
+                | "buffet"
+                | "service-counter"
+                | "kitchen"
+                | "prep"
+                | "waste"
+                | "water"
+                | "queue-zone"
+                | "replenishment-route";
+              servers?: number;
+              serviceRatePerServerMinute?: number;
+              demandShare?: number;
+              queueZoneObjectId?: string;
+              queueBufferPersons?: number;
+              accessibleServicePoint?: boolean;
+              serviceHeightM?: number;
+              dietaryOptions?: string[];
+              allergenLabels?: string[];
+              replenishmentSourceObjectId?: string;
+              waterSourceObjectId?: string;
+              sourceObjectId?: string;
+              /**
+               * @minItems 1
+               */
+              targetObjectIds?: [string, ...string[]];
+              crossingControl?: string;
+            };
+            emergency?: {
+              type: "assembly-point" | "emergency-access-lane" | "fire-equipment" | "first-aid" | "command-post";
+              capacityPersons?: number;
+              /**
+               * @minItems 1
+               */
+              designatedExitObjectIds?: [string, ...string[]];
+              responderOnly?: boolean;
+              equipmentClass?: string;
+              coverageRadiusM?: number;
+              clearanceM?: number;
+              accessible?: boolean;
+              powerSourceCircuitId?: string;
+              backupPowerMinutes?: number;
+            };
+            entrance?: {
+              clearWidthM?: number;
+              accessible?: boolean;
+            };
+            door?: {
+              clearWidthM: number;
+              swing: "inward" | "outward" | "sliding" | "revolving";
+              accessible: boolean;
+              clearance?: {
+                side: "left" | "right" | "both";
+                depthM: number;
+                latchSideM: number;
+              };
+            };
+            exit?: {
+              clearWidthM: number;
+              emergency: boolean;
+              capacityPersons: number;
+            };
+            route?: {
+              direction: "one-way" | "bidirectional";
+              accessible: boolean;
+              purpose: string;
+              staffOnly?: boolean;
+            };
+            restriction?: {
+              access: "prohibited" | "staff-only" | "conditional";
+              reasonCode: string;
+              blocksPlacement: boolean;
+            };
+            ramp?: {
+              riseM: number;
+              runM: number;
+              clearWidthM: number;
+              landingLengthM: number;
+              edgeProtectionHeightM: number;
+              handrails: boolean;
+            };
+            locks?: VenueMindObjectLock[];
+            locked?: boolean;
+            occupancy?: {
+              expected?: number;
+              maximum?: number;
+              minimumCapacity?: number;
+              maximumCapacity?: number;
+              zoneId?: string | null;
+              excludesUsableArea?: boolean;
+            };
+            accessibility?: {
+              accessible?: boolean;
+              destination?: boolean;
+              accessibleSeats?: number;
+              companionSeats?: number;
+              accessibleSeatSampleIds?: string[];
+              clearanceExempt?: boolean;
+            };
+            sightline?: {
+              focalPoints?: {
+                id: string;
+                point: {
+                  x: number;
+                  y: number;
+                };
+                elevationM: number;
+                priority?: "primary" | "secondary";
+              }[];
+              samples?: {
+                id: string;
+                point: {
+                  x: number;
+                  y: number;
+                };
+                eyeHeightM: number;
+              }[];
+              opacity?: number;
+              heightM?: number;
+            };
+            templateRef?: {
+              kind: "venue-template" | "room-template" | "inventory-item-template";
+              templateId: string;
+              templateObjectId?: string;
+              version: string;
+            };
+            templateOverrides?: string[];
+            inventoryCount?: number;
+            groupId?: string | null;
+            specification?: {
+              dimensions?: {
+                [k: string]: number;
+              };
+              weightKg?: number;
+              power?: {
+                watts: number;
+                connector: string;
+              };
+              capacity?: number;
+              cost?: {
+                amount: number;
+                currency?: string;
+                basis?: string;
+              };
+            };
+          };
+        };
     /**
      * Unique retry key for this semantic command.
      */
@@ -1469,4 +3564,17 @@ export interface VenueMindToolInputMap {
       | "csv-replenishment"
       | "audit";
   };
+}
+export interface VenueMindObjectLock {
+  id: string;
+  objectId: string;
+  type: "position" | "rotation" | "dimension" | "deletion" | "role";
+  source: "venue-template" | "project";
+  reasonCode: string;
+  authorId: string;
+  createdAt?: string;
+  expiresAt?: string | null;
+  releasedAt?: string;
+  releasedBy?: string;
+  active: boolean;
 }
