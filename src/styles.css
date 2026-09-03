@@ -1089,6 +1089,117 @@ button {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.health-button .status-dot {
+  background: #3f986f;
+}
+.health-button.is-warn .status-dot {
+  background: #c27b25;
+}
+.health-button.is-error .status-dot {
+  background: #b44a42;
+}
+.health-panel {
+  top: 70px !important;
+  right: 14px !important;
+  bottom: 14px !important;
+  width: min(460px, calc(100vw - 28px)) !important;
+  border: 1px solid color-mix(in srgb, #353633 18%, transparent);
+  background: color-mix(in srgb, #f6f3ec 97%, white);
+  box-shadow: 0 20px 70px rgba(33, 31, 26, 0.16);
+}
+.health-panel-header {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 54px;
+  padding: 8px 12px 8px 16px;
+  border-bottom: 1px solid rgba(53, 54, 51, 0.15);
+}
+.health-panel-header > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.11em;
+}
+.health-panel-header svg {
+  width: 16px;
+  height: 16px;
+}
+.health-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid rgba(53, 54, 51, 0.15);
+}
+.health-summary > span {
+  display: grid;
+  gap: 5px;
+  padding: 13px 12px;
+  border-right: 1px solid rgba(53, 54, 51, 0.12);
+}
+.health-summary > span:last-child {
+  border-right: 0;
+}
+.health-summary b,
+.health-section h3 {
+  margin: 0;
+  color: #777873;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+.health-summary strong {
+  font-size: 18px;
+  font-weight: 650;
+}
+.health-scroll {
+  height: calc(100% - 111px);
+}
+.health-section {
+  padding: 16px;
+  border-bottom: 1px solid rgba(53, 54, 51, 0.12);
+}
+.health-section h3 {
+  margin-bottom: 10px;
+}
+.health-metric,
+.health-trace,
+.health-alert {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  border-top: 1px solid rgba(53, 54, 51, 0.09);
+  font-size: 10px;
+  font-weight: 650;
+}
+.health-metric {
+  grid-template-columns: 58px 1fr 1fr 42px;
+}
+.health-alert {
+  grid-template-columns: 1fr auto auto;
+}
+.health-alert.is-error {
+  color: #9f342f;
+}
+.health-trace {
+  grid-template-columns: 54px 44px 68px 1fr;
+}
+.health-trace code {
+  overflow: hidden;
+  color: #6845e8;
+  font: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.health-empty {
+  padding: 10px 0;
+  color: #777873;
+  font-size: 10px;
+  font-weight: 650;
+}
 .status-separator {
   color: #b4b3ae;
 }

@@ -111,10 +111,7 @@ import {
 } from "./persistence/deviation-store";
 import { createDeviationRemote } from "./persistence/deviation-remote";
 import { synchronizeDeviations } from "./persistence/deviation-sync";
-import {
-  createPostEventReviewStore,
-  type PostEventReviewOutboxCommand,
-} from "./persistence/post-event-review-store";
+import { createPostEventReviewStore, type PostEventReviewOutboxCommand } from "./persistence/post-event-review-store";
 import { createPostEventReviewRemote } from "./persistence/post-event-review-remote";
 import { synchronizePostEventReview } from "./persistence/post-event-review-sync";
 import { registerVenueTools } from "./webmcp/register-venue-tools";
@@ -162,6 +159,12 @@ import type {
   PostEventProposalReviewInput,
 } from "./PostEventReviewPanel";
 import { describeVenueObject, validationAnnouncement } from "./accessibility/studio-accessibility";
+import {
+  createMemoryTelemetry,
+  startTelemetrySpan,
+  telemetryErrorCode,
+  type TelemetryRecorder,
+} from "./observability/telemetry";
 
 const briefIcons: Record<string, PhosphorIcon> = {
   accessibility: Wheelchair,
@@ -208,6 +211,8 @@ const LazyDeviationPanel = lazy(loadDeviationPanel);
 const loadPostEventReviewPanel = () =>
   import("./PostEventReviewPanel").then((module) => ({ default: module.PostEventReviewPanel }));
 const LazyPostEventReviewPanel = lazy(loadPostEventReviewPanel);
+const loadHealthPanel = () => import("./HealthPanel").then((module) => ({ default: module.HealthPanel }));
+const LazyHealthPanel = lazy(loadHealthPanel);
 
 const studioSessionId = `studio-session-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 const uniqueToken = (): string => globalThis.crypto?.randomUUID?.() ?? `${performance.timeOrigin}-${performance.now()}`;
@@ -243,6 +248,7 @@ type ToolRegistrationProps = {
   authorizationProvider: NonNullable<RegisterVenueToolOptions["authorizationProvider"]>;
   onLifecycle: (lifecycle: ToolRegistrationLifecycle) => void;
   navigate: (href: string) => void;
+  observability: TelemetryRecorder;
 };
 
 function ToolRegistration({
@@ -256,6 +262,7 @@ function ToolRegistration({
   authorizationProvider,
   onLifecycle,
   navigate,
+  observability,
 }: ToolRegistrationProps) {
   const occupancyOperationsRef = useRef(occupancyOperations);
   const incidentOperationsRef = useRef(incidentOperations);
@@ -390,6 +397,7 @@ function ToolRegistration({
           postEventOperations: forwardedPostEventOperations,
           authorizationProvider,
           onLifecycle,
+          observability,
         });
       } catch {
         // registerVenueTools publishes the terminal failure state.
@@ -398,7 +406,7 @@ function ToolRegistration({
 
     void register();
     return () => controller.abort();
-  }, [authorizationProvider, navigate, onLifecycle, organizationId, planner, projectId, projectStore]);
+  }, [authorizationProvider, navigate, observability, onLifecycle, organizationId, planner, projectId, projectStore]);
   return null;
 }
 
@@ -521,7 +529,9 @@ const isUnknownArray = (value: unknown): value is unknown[] => Array.isArray(val
 const unknownProperty = (value: unknown, field: string): unknown => (isJsonObject(value) ? value[field] : undefined);
 const postEventErrorCode = (error: unknown, fallback: string): string => {
   const reason = unknownProperty(unknownProperty(error, "details"), "reason");
-  return typeof reason === "string" ? `${errorCode(error, fallback)} · ${reason.toUpperCase()}` : errorCode(error, fallback);
+  return typeof reason === "string"
+    ? `${errorCode(error, fallback)} · ${reason.toUpperCase()}`
+    : errorCode(error, fallback);
 };
 const syncCommandResult = (result: object | Promise<object>): object => {
   if ("then" in result && typeof result.then === "function")
@@ -641,7 +651,8 @@ const isDeviationMutationResult = (value: object): value is DeviationMutationRes
   (value.deviation === null ||
     (typeof value.deviation === "object" && value.deviation !== null && "id" in value.deviation)) &&
   "proposal" in value &&
-  (value.proposal === null || (typeof value.proposal === "object" && value.proposal !== null && "id" in value.proposal)) &&
+  (value.proposal === null ||
+    (typeof value.proposal === "object" && value.proposal !== null && "id" in value.proposal)) &&
   "receipt" in value &&
   typeof value.receipt === "object" &&
   value.receipt !== null &&
@@ -867,6 +878,7 @@ export function App({
   const canManageSharing = organizationRoles.some((role: string) =>
     ["venue-administrator", "organization-administrator"].includes(role),
   );
+  const observability = useMemo(() => createMemoryTelemetry(), []);
   const planner = useMemo(() => {
     const generatedPlan = createEmptyVenuePlan({ projectId });
     const initialPlan: VenuePlanDocument =
@@ -886,10 +898,13 @@ export function App({
           };
     return createVenuePlanner(
       { ...normalizePlanGeometry(initialPlan), brief: initialPlan.brief, proposal: initialPlan.proposal },
-      { authorization: studioAuthorization, projectId },
+      { authorization: studioAuthorization, projectId, observability },
     );
-  }, [projectId, studioAuthorization]);
-  const projectStore = useMemo(() => createProjectStore({ organizationId }), [organizationId]);
+  }, [observability, projectId, studioAuthorization]);
+  const projectStore = useMemo(
+    () => createProjectStore({ organizationId, observability }),
+    [observability, organizationId],
+  );
   const runbookStore = useMemo(() => createRunbookStore(), []);
   const runbookRemote = useMemo(() => createRunbookRemote({ organizationId }), [organizationId]);
   const occupancyStore = useMemo(
@@ -903,10 +918,7 @@ export function App({
   const incidentBus = useMemo(() => createIncidentCommandBus(), []);
   const deviationRemote = useMemo(() => createDeviationRemote({ organizationId }), [organizationId]);
   const deviationBus = useMemo(() => createDeviationCommandBus(), []);
-  const postEventReviewRemote = useMemo(
-    () => createPostEventReviewRemote({ organizationId }),
-    [organizationId],
-  );
+  const postEventReviewRemote = useMemo(() => createPostEventReviewRemote({ organizationId }), [organizationId]);
   const postEventReviewBus = useMemo(() => createPostEventReviewCommandBus(), []);
   const subscribeToPlanner = useCallback((listener: () => void) => planner.subscribe(listener), [planner]);
   const plannerSnapshot = useCallback(() => planner.getSnapshot(), [planner]);
@@ -972,6 +984,9 @@ export function App({
     ToolRegistrationLifecycle | Readonly<{ state: "detecting"; registered: 0; total: number; errorCode: null }>
   >({ state: "detecting", registered: 0, total: venueToolContracts.length, errorCode: null });
   const [webMcpDiagnosticsOpen, setWebMcpDiagnosticsOpen] = useState(false);
+  const [healthOpen, setHealthOpen] = useState(false);
+  const [healthMounted, setHealthMounted] = useState(false);
+  const [healthSnapshot, setHealthSnapshot] = useState(() => observability.snapshot());
   const [adjustmentOpen, setAdjustmentOpen] = useState(false);
   const [adjustment, setAdjustment] = useState("");
   const [toast, setToast] = useState("");
@@ -1052,20 +1067,22 @@ export function App({
     conflictCount: number;
     lastSyncedAt: string | null;
   }>({ state: "offline", pendingCount: 0, conflictCount: 0, lastSyncedAt: null });
+  const healthCorrelationId = healthSnapshot.recentCorrelationIds[0] ?? null;
+  const healthTrace = useMemo(
+    () => (healthCorrelationId ? observability.trace(healthCorrelationId) : []),
+    [healthCorrelationId, observability],
+  );
+  const refreshHealth = useCallback(() => setHealthSnapshot(observability.snapshot()), [observability]);
   const deviationRegisterId = runbook ? `deviations-${runbook.versionId}` : null;
   const deviationStore = useMemo(
     () =>
-      deviationRegisterId
-        ? createDeviationStore({ organizationId, projectId, registerId: deviationRegisterId })
-        : null,
+      deviationRegisterId ? createDeviationStore({ organizationId, projectId, registerId: deviationRegisterId }) : null,
     [deviationRegisterId, organizationId, projectId],
   );
   const postEventReviewId = runbook ? `post-event-${runbook.versionId}` : null;
   const postEventReviewStore = useMemo(
     () =>
-      postEventReviewId
-        ? createPostEventReviewStore({ organizationId, projectId, reviewId: postEventReviewId })
-        : null,
+      postEventReviewId ? createPostEventReviewStore({ organizationId, projectId, reviewId: postEventReviewId }) : null,
     [organizationId, postEventReviewId, projectId],
   );
   const postEventComparisons = useMemo(
@@ -1434,14 +1451,13 @@ export function App({
       void Promise.resolve().then(() => {
         if (active) setPostEventReview(null);
       });
-      return () => { active = false; };
+      return () => {
+        active = false;
+      };
     }
     void postEventReviewStore.hydrate().then(async ({ review: cached, outbox, recovery }) => {
       if (!active) return;
-      postEventReviewClientSequence.current = Math.max(
-        0,
-        ...outbox.map((entry) => entry.command.clientSequence),
-      );
+      postEventReviewClientSequence.current = Math.max(0, ...outbox.map((entry) => entry.command.clientSequence));
       if (recovery)
         setPostEventReviewSyncState({
           state: "recovery",
@@ -1480,14 +1496,10 @@ export function App({
         });
       }
     });
-    return () => { active = false; };
-  }, [
-    postEventReviewBus,
-    postEventReviewId,
-    postEventReviewRemote,
-    postEventReviewStore,
-    projectId,
-  ]);
+    return () => {
+      active = false;
+    };
+  }, [postEventReviewBus, postEventReviewId, postEventReviewRemote, postEventReviewStore, projectId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1697,6 +1709,13 @@ export function App({
   };
 
   const handleApprove = () => {
+    const metadata = commandMetadata("approve");
+    const span = startTelemetrySpan(observability, {
+      component: "client",
+      operation: "approval",
+      correlationId: metadata.correlationId,
+      action: "approve_proposal",
+    });
     try {
       const result = planner.execute({
         type: "approve_proposal",
@@ -1713,12 +1732,16 @@ export function App({
               },
             }
           : {}),
-        ...commandMetadata("approve"),
+        ...metadata,
       });
+      span.end("approved");
+      refreshHealth();
       setAdjustmentOpen(false);
       setViewMode("proposed");
       notify(`Plan v${resultString(result, "planVersion")} applied`);
     } catch (error) {
+      span.end("rejected", error instanceof Error ? telemetryErrorCode(error) : "APPROVAL_FAILED");
+      refreshHealth();
       notify(errorMessage(error, "APPROVAL FAILED"));
     }
   };
@@ -2991,7 +3014,8 @@ export function App({
     try {
       const register = await ensureDeviationRegister();
       const sourceObject = register.baseline.acceptedPlan.objects.find((object) => object.id === input.objectId);
-      if (!sourceObject) throw venueError("DEVIATION_INVALID", { reason: "object-not-found", objectId: input.objectId });
+      if (!sourceObject)
+        throw venueError("DEVIATION_INVALID", { reason: "object-not-found", objectId: input.objectId });
       const identity = uniqueToken();
       const spatialEffect =
         input.mode === "unavailable"
@@ -3141,9 +3165,10 @@ export function App({
     if (cached) return cached;
     if (!runbook || !postEventReviewStore || !postEventReviewId)
       throw venueError("POST_EVENT_BASELINE_INVALID", { reason: "runbook-required" });
-    const occupancy = occupancyMonitor && occupancyProjection
-      ? { monitor: occupancyMonitor, projection: occupancyProjection }
-      : await handleCreateOccupancy();
+    const occupancy =
+      occupancyMonitor && occupancyProjection
+        ? { monitor: occupancyMonitor, projection: occupancyProjection }
+        : await handleCreateOccupancy();
     if (!occupancy) throw venueError("POST_EVENT_BASELINE_INVALID", { reason: "occupancy-required" });
     const incident = await ensureIncidentRegister();
     const deviation = await ensureDeviationRegister();
@@ -3324,10 +3349,28 @@ export function App({
   const postEventObservationEvidence = (review: PostEventReview, predictionKey: string): PostEventEvidenceRef[] => {
     const family = review.predictions.find(({ key }) => key === predictionKey)?.family;
     if (family === "incidents")
-      return [{ kind: "incident-register", id: review.baseline.incidentRegister.id, fingerprint: review.source.incidentRegisterFingerprint }];
+      return [
+        {
+          kind: "incident-register",
+          id: review.baseline.incidentRegister.id,
+          fingerprint: review.source.incidentRegisterFingerprint,
+        },
+      ];
     if (family === "flow")
-      return [{ kind: "deviation-register", id: review.baseline.deviationRegister.id, fingerprint: review.source.deviationRegisterFingerprint }];
-    return [{ kind: "occupancy-projection", id: review.baseline.occupancyMonitor.id, fingerprint: review.source.occupancyProjectionFingerprint }];
+      return [
+        {
+          kind: "deviation-register",
+          id: review.baseline.deviationRegister.id,
+          fingerprint: review.source.deviationRegisterFingerprint,
+        },
+      ];
+    return [
+      {
+        kind: "occupancy-projection",
+        id: review.baseline.occupancyMonitor.id,
+        fingerprint: review.source.occupancyProjectionFingerprint,
+      },
+    ];
   };
 
   const handlePostEventObservation = async (input: PostEventObservationInput) => {
@@ -3385,8 +3428,12 @@ export function App({
   const handlePostEventTemplateProposal = async (lessonIds: readonly string[]) => {
     try {
       const review = await ensurePostEventReview();
-      const lessons = lessonIds.map((lessonId) =>
-        review.lessons.find(({ id }) => id === lessonId) ?? (() => { throw venueError("POST_EVENT_LESSON_NOT_FOUND", { lessonId }); })(),
+      const lessons = lessonIds.map(
+        (lessonId) =>
+          review.lessons.find(({ id }) => id === lessonId) ??
+          (() => {
+            throw venueError("POST_EVENT_LESSON_NOT_FOUND", { lessonId });
+          })(),
       );
       const binding = review.baseline.runbook.baseline.acceptedPlan.templateBindings?.venue;
       if (!binding) throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "venue-template-required" });
@@ -3445,13 +3492,16 @@ export function App({
     const review = postEventReviewBus.getSnapshot();
     if (!review) return null;
     try {
-      const artifact = postEventReviewSyncState.state === "online"
-        ? (await postEventReviewRemote.export(projectId, review.id, format)).artifact
-        : downloadArtifact(postEventReviewBus.execute({
-            type: "export_post_event_report",
-            format,
-            exportedAt: new Date().toISOString(),
-          }));
+      const artifact =
+        postEventReviewSyncState.state === "online"
+          ? (await postEventReviewRemote.export(projectId, review.id, format)).artifact
+          : downloadArtifact(
+              postEventReviewBus.execute({
+                type: "export_post_event_report",
+                format,
+                exportedAt: new Date().toISOString(),
+              }),
+            );
       downloadExport(downloadArtifact(artifact));
       notify("POST-EVENT EXPORT READY");
       return artifact;
@@ -3718,17 +3768,23 @@ export function App({
       const id = value["id"];
       const fingerprint = value["fingerprint"];
       if (
-        (kind !== "accepted-plan" && kind !== "runbook" && kind !== "occupancy-monitor" &&
-          kind !== "occupancy-projection" && kind !== "incident-register" && kind !== "deviation-register" &&
+        (kind !== "accepted-plan" &&
+          kind !== "runbook" &&
+          kind !== "occupancy-monitor" &&
+          kind !== "occupancy-projection" &&
+          kind !== "incident-register" &&
+          kind !== "deviation-register" &&
           kind !== "scenario-run") ||
         typeof id !== "string" ||
         typeof fingerprint !== "string"
-      ) throw venueError("POST_EVENT_EVIDENCE_INVALID", { reason: "evidence-ref-invalid" });
+      )
+        throw venueError("POST_EVENT_EVIDENCE_INVALID", { reason: "evidence-ref-invalid" });
       return { kind, id, fingerprint };
     });
   };
   const postEventChangesFromToolInput = (input: VenueToolInput): readonly PlanningChange[] => {
-    if (!input.changes?.length) throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "changes-required" });
+    if (!input.changes?.length)
+      throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "changes-required" });
     return input.changes.map((value) => {
       const id = value["id"];
       const effects = value["effects"];
@@ -3747,7 +3803,9 @@ export function App({
           typeof effect["sourceChecksum"] === "string"
         ) {
           normalizedEffects[key] = {
-            kind: effect["kind"], sourceId: effect["sourceId"], sourceChecksum: effect["sourceChecksum"],
+            kind: effect["kind"],
+            sourceId: effect["sourceId"],
+            sourceChecksum: effect["sourceChecksum"],
           };
           continue;
         }
@@ -3762,7 +3820,11 @@ export function App({
           ? { targetObjectIds: value["targetObjectIds"].filter((item): item is string => typeof item === "string") }
           : {}),
         ...(Array.isArray(value["targetRequirementIds"])
-          ? { targetRequirementIds: value["targetRequirementIds"].filter((item): item is string => typeof item === "string") }
+          ? {
+              targetRequirementIds: value["targetRequirementIds"].filter(
+                (item): item is string => typeof item === "string",
+              ),
+            }
           : {}),
         effects: normalizedEffects,
       };
@@ -3814,11 +3876,16 @@ export function App({
         (target["kind"] !== "venue" && target["kind"] !== "room") ||
         typeof target["templateId"] !== "string" ||
         typeof target["version"] !== "string"
-      ) throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "target-invalid" });
+      )
+        throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "target-invalid" });
       const changeLessonLinks = (input.changeLessonLinks ?? []).map((value) => {
         const changeId = value["changeId"];
         const lessonIds = value["lessonIds"];
-        if (typeof changeId !== "string" || !Array.isArray(lessonIds) || !lessonIds.every((item) => typeof item === "string"))
+        if (
+          typeof changeId !== "string" ||
+          !Array.isArray(lessonIds) ||
+          !lessonIds.every((item) => typeof item === "string")
+        )
           throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "change-lesson-link-invalid" });
         return { changeId, lessonIds };
       });
@@ -3839,7 +3906,13 @@ export function App({
       const format = input.format === "text" ? "text" : "json";
       return postEventReviewSyncState.state === "online"
         ? (await postEventReviewRemote.export(projectId, review.id, format)).artifact
-        : downloadArtifact(postEventReviewBus.execute({ type: "export_post_event_report", format, exportedAt: new Date().toISOString() }));
+        : downloadArtifact(
+            postEventReviewBus.execute({
+              type: "export_post_event_report",
+              format,
+              exportedAt: new Date().toISOString(),
+            }),
+          );
     },
   };
 
@@ -3856,6 +3929,7 @@ export function App({
         authorizationProvider={webMcpAuthorizationProvider}
         onLifecycle={setWebMcpLifecycle}
         navigate={navigate}
+        observability={observability}
       />
 
       <header className="topbar">
@@ -3900,6 +3974,23 @@ export function App({
             proposalId={plannerState.proposal.id}
             canManage={canManageSharing}
           />
+          <HeaderButton
+            className={`health-button is-${healthSnapshot.status}`}
+            ariaLabel="Open system health"
+            onPointerEnter={() => {
+              void loadHealthPanel();
+            }}
+            onFocus={() => {
+              void loadHealthPanel();
+            }}
+            onClick={() => {
+              setHealthMounted(true);
+              refreshHealth();
+              setHealthOpen(true);
+            }}
+          >
+            HEALTH <span className="status-dot" />
+          </HeaderButton>
           <Popover open={collaborationOpen} onOpenChange={setCollaborationOpen}>
             <div className="collaboration-control">
               <PopoverTrigger asChild>
@@ -4169,8 +4260,12 @@ export function App({
               <DropdownMenuItem
                 className="export-menu-item"
                 disabled={!runbook}
-                onPointerEnter={() => { void loadPostEventReviewPanel(); }}
-                onFocus={() => { void loadPostEventReviewPanel(); }}
+                onPointerEnter={() => {
+                  void loadPostEventReviewPanel();
+                }}
+                onFocus={() => {
+                  void loadPostEventReviewPanel();
+                }}
                 onSelect={() => {
                   setPostEventReviewMounted(true);
                   setPostEventReviewOpen(true);
@@ -5014,6 +5109,25 @@ export function App({
           )}
         </section>
       </main>
+      {healthMounted && (
+        <Suspense
+          fallback={
+            healthOpen ? (
+              <div className="panel-loading is-side" role="status">
+                HEALTH
+              </div>
+            ) : null
+          }
+        >
+          <LazyHealthPanel
+            open={healthOpen}
+            snapshot={healthSnapshot}
+            trace={healthTrace}
+            onClose={() => setHealthOpen(false)}
+            onRefresh={refreshHealth}
+          />
+        </Suspense>
+      )}
       {historyMounted && (
         <Suspense
           fallback={
@@ -5307,12 +5421,24 @@ export function App({
             comparisons={postEventComparisons}
             syncState={postEventReviewSyncState}
             onClose={() => setPostEventReviewOpen(false)}
-            onRecordObservation={(input) => { void handlePostEventObservation(input); }}
-            onRecordLesson={(input) => { void handlePostEventLesson(input); }}
-            onCreateTemplateProposal={(lessonIds) => { void handlePostEventTemplateProposal(lessonIds); }}
-            onReviewTemplateProposal={(input) => { void handlePostEventProposalReview(input); }}
-            onRecover={() => { void handlePostEventReviewRecover(); }}
-            onDiscardConflicts={() => { void handlePostEventReviewDiscardConflicts(); }}
+            onRecordObservation={(input) => {
+              void handlePostEventObservation(input);
+            }}
+            onRecordLesson={(input) => {
+              void handlePostEventLesson(input);
+            }}
+            onCreateTemplateProposal={(lessonIds) => {
+              void handlePostEventTemplateProposal(lessonIds);
+            }}
+            onReviewTemplateProposal={(input) => {
+              void handlePostEventProposalReview(input);
+            }}
+            onRecover={() => {
+              void handlePostEventReviewRecover();
+            }}
+            onDiscardConflicts={() => {
+              void handlePostEventReviewDiscardConflicts();
+            }}
             onSync={() => {
               void (postEventReview
                 ? handlePostEventReviewSync()
@@ -5320,7 +5446,9 @@ export function App({
                     .then(() => handlePostEventReviewSync())
                     .catch((error: unknown) => notify(errorCode(error, "POST-EVENT BLOCKED"))));
             }}
-            onExport={(format) => { void handlePostEventReviewExport(format); }}
+            onExport={(format) => {
+              void handlePostEventReviewExport(format);
+            }}
           />
         </Suspense>
       )}
