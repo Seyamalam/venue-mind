@@ -9,6 +9,12 @@ import {
   type SaveProjectInput,
 } from "../domain/project-types.ts";
 import { measureJsonResource, VENUE_RESOURCE_LIMITS } from "../security/resource-limits.ts";
+import {
+  createRecoveryEnvelope,
+  inspectRecoveryEnvelope,
+  selectRecoveryEnvelope,
+  type RecoveryIntegrityStatus,
+} from "./recovery-envelope.ts";
 
 const STORAGE_PREFIX = "venuemind.organization.";
 
@@ -18,6 +24,7 @@ interface StorageLike {
   key(index: number): string | null;
   removeItem(key: string): void;
   setItem(key: string, value: string): void;
+  removeItem?(key: string): void;
 }
 
 export interface ProjectDeletionReceipt {
@@ -51,6 +58,14 @@ export interface ProjectStoreResult<RecordType extends LocalProjectRecord = Loca
     localFields: readonly string[];
     remoteFields: readonly string[];
   }>;
+}
+
+export interface ProjectRecoveryIntegrity {
+  readonly status: RecoveryIntegrityStatus;
+  readonly projectId: string;
+  readonly sequence: number | null;
+  readonly committedAt: string | null;
+  readonly reason: string;
 }
 
 interface RecoveryRecord extends ProjectConflict {
@@ -190,19 +205,60 @@ export function createProjectStore({
   const organizationPrefix = `${STORAGE_PREFIX}${organizationId}.project.`;
   const syncBasePrefix = `${STORAGE_PREFIX}${organizationId}.sync-base.`;
   const recoveryPrefix = `${STORAGE_PREFIX}${organizationId}.recovery.`;
+  const autosavePrefix = `${STORAGE_PREFIX}${organizationId}.autosave.`;
+  const quarantinePrefix = `${STORAGE_PREFIX}${organizationId}.quarantine.`;
   const localKey = (projectId: string): string => `${organizationPrefix}${projectId}`;
   const syncBaseKey = (projectId: string): string => `${syncBasePrefix}${projectId}`;
+  const autosaveKey = (projectId: string): string => `${autosavePrefix}${projectId}`;
   const requestHeaders = (headers: Readonly<Record<string, string>> = {}): Record<string, string> => ({
     ...headers,
     "x-venuemind-organization-id": organizationId,
   });
+  const inspectLocal = (projectId: string) => {
+    const committed = inspectRecoveryEnvelope(storage.getItem(localKey(projectId)), isLocalProjectRecord);
+    const journal = inspectRecoveryEnvelope(storage.getItem(autosaveKey(projectId)), isLocalProjectRecord);
+    return selectRecoveryEnvelope(committed, journal);
+  };
+  const quarantineLocal = (projectId: string, reason: string): void => {
+    try {
+      storage.setItem(
+        `${quarantinePrefix}${projectId}`,
+        JSON.stringify({ schemaVersion: 1, projectId, reason, quarantinedAt: clock() }),
+      );
+      storage.removeItem?.(localKey(projectId));
+      storage.removeItem?.(autosaveKey(projectId));
+    } catch {
+      // Quarantine evidence is best effort when browser storage itself is unavailable.
+    }
+  };
   const readLocal = (projectId: string): LocalProjectRecord | null => {
-    const value = parseJson(storage.getItem(localKey(projectId)));
-    return isLocalProjectRecord(value) ? value : null;
+    const inspection = inspectLocal(projectId);
+    if (!inspection.envelope) {
+      if (inspection.status === "quarantined") quarantineLocal(projectId, inspection.reason);
+      return null;
+    }
+    if (inspection.status === "recovered") {
+      try {
+        storage.setItem(localKey(projectId), JSON.stringify(inspection.envelope));
+        storage.removeItem?.(autosaveKey(projectId));
+      } catch {
+        // The verified journal remains the recovery source until the next successful write.
+      }
+    }
+    return inspection.envelope.value;
   };
   const writeLocal = (record: LocalProjectRecord): void => {
     try {
-      storage.setItem(localKey(record.id), JSON.stringify(record));
+      const prior = inspectLocal(record.id).envelope;
+      const envelope = createRecoveryEnvelope(record, (prior?.sequence ?? 0) + 1, clock());
+      const encoded = JSON.stringify(envelope);
+      storage.setItem(autosaveKey(record.id), encoded);
+      storage.setItem(localKey(record.id), encoded);
+      const committed = inspectRecoveryEnvelope(storage.getItem(localKey(record.id)), isLocalProjectRecord);
+      if (!committed.envelope || committed.envelope.checksum !== envelope.checksum) {
+        throw new Error("RECOVERY_COMMIT_VERIFY_FAILED");
+      }
+      storage.removeItem?.(autosaveKey(record.id));
     } catch {
       // The remote record remains authoritative when the local recovery cache is unavailable.
     }
@@ -556,6 +612,27 @@ export function createProjectStore({
         recoveries.push({ ...value, createdAt: value["createdAt"], key });
       }
       return recoveries.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    },
+
+    inspectRecovery(projectId: string): ProjectRecoveryIntegrity {
+      const inspection = inspectLocal(projectId);
+      const quarantine = parseJson(storage.getItem(`${quarantinePrefix}${projectId}`));
+      if (!inspection.envelope && isObject(quarantine) && typeof quarantine["reason"] === "string") {
+        return {
+          status: "quarantined",
+          projectId,
+          sequence: null,
+          committedAt: null,
+          reason: quarantine["reason"],
+        };
+      }
+      return {
+        status: inspection.status,
+        projectId,
+        sequence: inspection.envelope?.sequence ?? null,
+        committedAt: inspection.envelope?.committedAt ?? null,
+        reason: inspection.reason,
+      };
     },
   };
 
