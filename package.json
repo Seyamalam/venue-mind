@@ -48,6 +48,8 @@
     "test:skills": "npm run build:skills && node --test tests/skills.test.mjs",
     "test:tutorials": "node scripts/verify-tutorials.mjs",
     "test:browser": "node --test tests/browser-platform.test.mjs tests/responsive-browser-ui.test.mjs",
+    "test:frontend-platform": "npm run build:worker && node --test tests/frontend-platform-verifier.test.mjs tests/next-route-boundaries.test.mjs tests/next-route-css.test.mjs tests/studio-code-splitting.test.mjs tests/webmcp-lifecycle.test.mjs tests/project-store.test.mjs tests/collaboration.test.mjs tests/studio-accessibility.test.mjs tests/responsive-browser-ui.test.mjs tests/visual-system.test.mjs",
+    "verify:frontend-platform": "npm run build:next && node scripts/verify-next-platform.mjs && npm run test:frontend-platform",
     "validate:skills": "node scripts/validate-skills.mjs",
     "prepare": "husky"
   },
