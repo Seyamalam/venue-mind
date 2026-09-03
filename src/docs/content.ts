@@ -3,6 +3,7 @@ import { conceptsPage } from "./pages/concepts.ts";
 import { clientExamplesPage } from "./pages/examples.ts";
 import { contributingPage } from "./pages/contributing.ts";
 import { referencePages } from "./pages/reference.ts";
+import { trustPages } from "./pages/trust.ts";
 import { tutorialPages } from "./pages/tutorials.ts";
 
 const contentPages: readonly DocsPage[] = [
@@ -368,6 +369,7 @@ const contentPages: readonly DocsPage[] = [
   clientExamplesPage,
   ...referencePages,
   contributingPage,
+  ...trustPages,
   {
     slug: "contracts",
     group: "Reference",

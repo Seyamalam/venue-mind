@@ -1127,17 +1127,17 @@ Completion gate:
 
 ## 12.2 Legal and trust surfaces
 
-- [ ] Add privacy policy matching actual data flows.
-- [ ] Add terms appropriate to the product stage.
-- [ ] Add security and responsible disclosure contact.
-- [ ] Add data export and deletion instructions.
-- [ ] Add operational disclaimer boundaries for safety-sensitive planning.
-- [ ] Add third-party license notices.
-- [ ] Document which checks are configurable policies rather than legal determinations.
+- [x] Add privacy policy matching actual data flows.
+- [x] Add terms appropriate to the product stage.
+- [x] Add security and responsible disclosure contact.
+- [x] Add data export and deletion instructions.
+- [x] Add operational disclaimer boundaries for safety-sensitive planning.
+- [x] Add third-party license notices.
+- [x] Document which checks are configurable policies rather than legal determinations.
 
 Completion gate:
 
-- [ ] Public trust documents match implemented collection, storage, retention, and deletion behavior.
+- [x] Public trust documents match implemented collection, storage, retention, and deletion behavior.
 
 ## 12.3 Product analytics
 

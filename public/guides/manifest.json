@@ -31,6 +31,21 @@
       "title": "Threat model"
     },
     {
+      "sourcePath": "docs/data-protection.md",
+      "publicPath": "/guides/data-protection.md",
+      "title": "Data protection"
+    },
+    {
+      "sourcePath": "docs/terms.md",
+      "publicPath": "/guides/terms.md",
+      "title": "Preview terms"
+    },
+    {
+      "sourcePath": "docs/trust-and-safety.md",
+      "publicPath": "/guides/trust-and-safety.md",
+      "title": "Trust and safety boundaries"
+    },
+    {
       "sourcePath": "docs/resource-limits.md",
       "publicPath": "/guides/resource-limits.md",
       "title": "Resource limits"

@@ -32,6 +32,9 @@ const generatedPaths = [
   ...exampleManifest.files.map((item) => `public/examples/client/${item.path}`),
   "public/guides/manifest.json",
   ...guideManifest.guides.map((item) => `public${item.publicPath}`),
+  "public/third-party-licenses.json",
+  "public/THIRD_PARTY_NOTICES.txt",
+  "public/LICENSE.txt",
   "db/generated-migrations.ts",
   "db/migrations-manifest.json",
   ...migrationManifest.migrations.map((item) => item.wrangler.slice(1)),
@@ -43,6 +46,7 @@ execFileSync(process.execPath, ["scripts/generate-sdk-types.mjs"], { cwd: root, 
 execFileSync(process.execPath, ["scripts/generate-client-examples.mjs"], { cwd: root, stdio: "inherit" });
 execFileSync(process.execPath, ["scripts/generate-db-migrations.mjs"], { cwd: root, stdio: "inherit" });
 execFileSync(process.execPath, ["scripts/generate-contributor-guides.mjs"], { cwd: root, stdio: "inherit" });
+execFileSync(process.execPath, ["scripts/generate-license-notices.mjs"], { cwd: root, stdio: "inherit" });
 execFileSync(process.execPath, ["scripts/generate-agent-docs.mjs"], { cwd: root, stdio: "inherit" });
 execFileSync(process.execPath, ["scripts/generate-site-metadata.mjs"], { cwd: root, stdio: "inherit" });
 
