@@ -47,7 +47,7 @@ import {
 import type { PlanningChange } from "./planning-effects.ts";
 import type { ObjectLock } from "./locks.ts";
 import type { VenueComment } from "./comments.ts";
-import type { ApprovalPolicy, VenuePrincipal } from "./authorization.ts";
+import type { AgentGrant, ApprovalPolicy, HumanPrincipal, VenuePrincipal } from "./authorization.ts";
 import { assertCollectionLimit, measureJsonResource, VENUE_RESOURCE_LIMITS } from "../security/resource-limits.ts";
 import {
   safeCorrelationId,
@@ -178,11 +178,18 @@ export type PlannerReadResult<C extends PlannerReadCommand> = C["type"] extends 
                     ? ScenarioRun
                     : never;
 export interface PlannerExecutionOptions {
-  authorization?: { principal: VenuePrincipal; projectId?: string; approvalPolicy?: ApprovalPolicy };
+  authorization?: {
+    principal: VenuePrincipal;
+    grant?: AgentGrant;
+    delegatedBy?: HumanPrincipal;
+    organizationId?: string;
+    projectId?: string;
+    approvalPolicy?: ApprovalPolicy;
+  };
   projectId?: string;
 }
 interface PlannerFactoryOptions {
-  authorization?: { principal: VenuePrincipal; projectId?: string; approvalPolicy?: ApprovalPolicy };
+  authorization?: PlannerExecutionOptions["authorization"];
   projectId?: string | null;
   approvalPolicy?: ApprovalPolicy;
   adapterPlanningBindings?: NonNullable<EventBrief["planningEffectBindings"]>;

@@ -95,6 +95,7 @@ test("privacy screening rejects person-level fields before signal storage", () =
 
 test("exact retries are duplicate-safe while stale revisions and source rollback fail", () => {
   const initial = makeMonitor();
+  const initialEvidence = clone(initial);
   const signal = zoneSignal("sensor-east", 100);
   const input = command(initial, signal);
   const first = ingestOccupancySignal(initial, input, { acceptedAt: "2026-09-12T12:00:05.000Z" });
@@ -105,6 +106,9 @@ test("exact retries are duplicate-safe while stale revisions and source rollback
   assert.throws(() => ingestOccupancySignal(first.monitor, { ...command(first.monitor, zoneSignal("sensor-west", 90)), expectedRevision: 0 }, { acceptedAt: "2026-09-12T12:00:10.000Z" }), (error) => error.code === "OCCUPANCY_REVISION_CONFLICT");
   const older = zoneSignal("sensor-east", 95, { sourceVersion: "sensor-east-000", observedAt: "2026-09-12T11:59:59.000Z" });
   assert.throws(() => ingestOccupancySignal(first.monitor, command(first.monitor, older), { acceptedAt: "2026-09-12T12:00:10.000Z" }), (error) => error.code === "OCCUPANCY_SIGNAL_OUT_OF_ORDER");
+  assert.deepEqual(initial, initialEvidence);
+  assert.equal(first.monitor.observations.length, 1);
+  assert.equal(first.monitor.receipts.length, 1);
 });
 
 test("Registration Snapshot bridge retains only canonical aggregate check-in evidence", () => {

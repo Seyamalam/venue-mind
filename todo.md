@@ -1057,23 +1057,23 @@ Completion gate:
 
 ## 11.1 Test architecture
 
-- [ ] Keep fast domain tests independent of React and network services.
-- [ ] Add geometry unit and property tests.
-- [ ] Add command contract tests generated from schemas.
-- [ ] Add persistence integration tests against a real local database runtime.
-- [ ] Add WebMCP browser tests.
-- [ ] Add MCP black-box tests.
-- [ ] Add end-to-end golden-loop tests.
-- [ ] Add accessibility tests.
-- [ ] Add visual regression tests for critical states.
+- [x] Keep fast domain tests independent of React and network services.
+- [x] Add geometry unit and property tests.
+- [x] Add command contract tests generated from schemas.
+- [x] Add persistence integration tests against a real local database runtime.
+- [x] Add WebMCP browser tests.
+- [x] Add MCP black-box tests.
+- [x] Add end-to-end golden-loop tests.
+- [x] Add accessibility tests.
+- [x] Add visual regression tests for critical states.
 - [x] Add import/export round-trip tests.
 - [x] Add rejection tests for unsupported Project and template schemas.
-- [ ] Add deterministic simulation fixtures.
-- [ ] Add security fuzz tests for geometry and tool inputs.
+- [x] Add deterministic simulation fixtures.
+- [x] Add security fuzz tests for geometry and tool inputs.
 
 Completion gate:
 
-- [ ] Each production boundary has at least one failure test proving errors do not partially mutate accepted state.
+- [x] Each production boundary has at least one failure test proving errors do not partially mutate accepted state.
 
 ## 11.2 Local verification
 

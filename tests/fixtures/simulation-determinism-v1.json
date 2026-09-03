@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "engineVersion": "1.2.1",
+  "scenario": {
+    "id": "fixture-operations-v1",
+    "name": "Fixture operations",
+    "seed": 421337,
+    "horizonSeconds": 900,
+    "sampleCount": 32,
+    "phases": [
+      { "id": "ingress", "label": "Ingress", "startSecond": 0, "endSecond": 450, "demandShare": 0.7 },
+      { "id": "settle", "label": "Settle", "startSecond": 450, "endSecond": 900, "demandShare": 0.3 }
+    ],
+    "inputs": {
+      "population": 400,
+      "arrivalRatePerMinute": 28,
+      "serviceRatePerMinute": 9,
+      "servers": 3,
+      "mobilityFactor": 1.05
+    }
+  },
+  "expected": {
+    "schemaVersion": 1,
+    "kind": "simulation-result",
+    "model": "operations",
+    "engineVersion": "1.2.1",
+    "inputFingerprint": "simulation-input-83c013f2",
+    "scenarioFingerprint": "scenario-definition-4fddab39",
+    "scenarioId": "fixture-operations-v1",
+    "planId": "plan-summit-forward-2026",
+    "planVersion": "3.2",
+    "branchId": "branch-balanced",
+    "seed": 421337,
+    "horizonSeconds": 900,
+    "sampleCount": 32,
+    "confidence": {
+      "method": "seeded-percentile-sampling",
+      "level": 0.95,
+      "uncertaintyDrivers": ["arrival-variation", "service-variation", "mobility-variation"]
+    },
+    "phases": [
+      {
+        "phaseId": "ingress",
+        "demandPersons": 280,
+        "meanProcessedPersons": 193.8,
+        "meanBacklogPersons": 86.2,
+        "p95BacklogPersons": 100,
+        "meanUtilization": 1.393,
+        "p95Utilization": 1.528
+      },
+      {
+        "phaseId": "settle",
+        "demandPersons": 120,
+        "meanProcessedPersons": 118.6,
+        "meanBacklogPersons": 6.4,
+        "p95BacklogPersons": 18.6,
+        "meanUtilization": 0.592,
+        "p95Utilization": 0.664
+      }
+    ],
+    "summary": {
+      "meanProcessedPersons": 312.4,
+      "maximumP95BacklogPersons": 100,
+      "maximumP95Utilization": 1.528
+    }
+  }
+}

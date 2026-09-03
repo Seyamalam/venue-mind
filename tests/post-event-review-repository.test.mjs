@@ -74,6 +74,7 @@ test("repository conditionally advances one verified revision and rejects stale 
   await assert.rejects(() => repository.put("org-alpha", projectId, next, 0), (error) => error instanceof PostEventReviewConflict && error.code === "POST_EVENT_REVIEW_REVISION_CONFLICT");
   const forged = structuredClone(next); forged.baseline.runbook.versionId = "forged"; forged.revision = 2;
   await assert.rejects(() => repository.put("org-alpha", projectId, forged, 1), (error) => error instanceof PostEventReviewConflict && error.code === "POST_EVENT_REVIEW_BASELINE_IMMUTABLE");
+  assert.deepEqual(await repository.get("org-alpha", projectId, review.id), next);
 });
 
 test("repository reads fail closed on stored state tampering", async (t) => {

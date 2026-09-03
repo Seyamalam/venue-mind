@@ -341,10 +341,8 @@ function ToolRegistration({
               command,
               authorization
                 ? {
-                    authorization: {
-                      principal: authorization.principal,
-                      ...(authorization.projectId ? { projectId: authorization.projectId } : {}),
-                    },
+                    authorization,
+                    ...(context.projectId ? { projectId: context.projectId } : {}),
                   }
                 : {},
             );
