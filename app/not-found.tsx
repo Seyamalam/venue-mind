@@ -1,10 +1,6 @@
 import Link from "next/link";
+import { RouteState } from "@/components/route-state";
 
 export default function NotFound() {
-  return (
-    <main className="route-state" role="main">
-      <strong>404</strong>
-      <Link href="/projects">PROJECTS</Link>
-    </main>
-  );
+  return <RouteState state="empty" label="404" role="main" action={<Link href="/projects">PROJECTS</Link>} />;
 }
