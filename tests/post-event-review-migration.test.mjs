@@ -30,8 +30,8 @@ test("migration 12 installs tenant-scoped immutable Post-event Reviews", async (
   const db = new SqliteD1();
   t.after(() => db.close());
   const migrated = await applyDatabaseMigrations(db);
-  assert.equal(DATABASE_SCHEMA_VERSION, 13);
-  assert.equal(migrated.currentVersion, 13);
+  assert.equal(DATABASE_SCHEMA_VERSION, 14);
+  assert.equal(migrated.currentVersion, 14);
   const columns = await db.prepare("PRAGMA table_info(post_event_reviews)").all();
   assert.deepEqual(columns.results.map(({ name }) => name), [
     "id", "organization_id", "project_id", "runbook_id", "schema_version", "baseline_fingerprint",
