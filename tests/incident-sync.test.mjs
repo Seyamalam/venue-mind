@@ -17,15 +17,26 @@ test("Incident sync sends the ordered outbox and retains conflicts for recovery"
   const calls = [];
   let outbox = [
     { idempotencyKey: "incident-1", command: { clientId: "browser-a", clientSequence: 1, type: "report_incident" } },
-    { idempotencyKey: "incident-2", command: { clientId: "browser-a", clientSequence: 2, type: "acknowledge_incident" } },
+    {
+      idempotencyKey: "incident-2",
+      command: { clientId: "browser-a", clientSequence: 2, type: "acknowledge_incident" },
+    },
   ];
   const store = {
-    async listOutbox() { return outbox; },
-    async markAttempted(keys) { calls.push(["attempted", keys]); },
-    async saveRegister(value) { calls.push(["saved", value.revision]); },
+    async listOutbox() {
+      return outbox;
+    },
+    async markAttempted(keys) {
+      calls.push(["attempted", keys]);
+    },
+    async saveRegister(value) {
+      calls.push(["saved", value.revision]);
+    },
     async acknowledge(acknowledgements) {
       calls.push(["acknowledged", acknowledgements.map((item) => item.status)]);
-      outbox = outbox.filter((entry) => acknowledgements.find((item) => item.idempotencyKey === entry.idempotencyKey)?.status !== "applied");
+      outbox = outbox.filter(
+        (entry) => acknowledgements.find((item) => item.idempotencyKey === entry.idempotencyKey)?.status !== "applied",
+      );
       return { removed: ["incident-1"], retained: ["incident-2"], ignored: [] };
     },
   };
@@ -42,7 +53,12 @@ test("Incident sync sends the ordered outbox and retains conflicts for recovery"
     },
   };
 
-  const result = await synchronizeIncidents({ projectId: "project-alpha", registerId: "incident-register-1", store, remote });
+  const result = await synchronizeIncidents({
+    projectId: "project-alpha",
+    registerId: "incident-register-1",
+    store,
+    remote,
+  });
 
   assert.deepEqual(calls, [
     ["attempted", ["incident-1", "incident-2"]],
@@ -56,12 +72,27 @@ test("Incident sync sends the ordered outbox and retains conflicts for recovery"
 
 test("Incident sync refreshes the authoritative register when the outbox is empty", async () => {
   const saved = [];
-  const store = { async listOutbox() { return []; }, async saveRegister(value) { saved.push(value); } };
-  const remote = { async get(projectId, registerId) { return { projectId, registerId, register: register(4) }; } };
+  const store = {
+    async listOutbox() {
+      return [];
+    },
+    async saveRegister(value) {
+      saved.push(value);
+    },
+  };
+  const remote = {
+    async get(projectId, registerId) {
+      return { projectId, registerId, register: register(4) };
+    },
+  };
 
-  const result = await synchronizeIncidents({ projectId: "project-alpha", registerId: "incident-register-1", store, remote });
+  const result = await synchronizeIncidents({
+    projectId: "project-alpha",
+    registerId: "incident-register-1",
+    store,
+    remote,
+  });
 
   assert.deepEqual(saved, [register(4)]);
   assert.deepEqual(result.syncState, { state: "online", pendingCount: 0, lastSyncedAt: "2026-09-12T10:04:00.000Z" });
 });
-
