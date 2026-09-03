@@ -1,21 +1,28 @@
 "use client";
 
-import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
-const isWorkspaceRoute = (href: string): href is Route =>
+interface WorkspaceRouter {
+  push(href: string): void;
+}
+
+const isWorkspaceRoute = (href: string): boolean =>
   href === "/" ||
   /^\/projects(?:[?#]|$)/u.test(href) ||
   /^\/studio\/[^/?#]+(?:[?#].*)?$/u.test(href) ||
   /^\/settings(?:[/?#]|$)/u.test(href);
 
+const pushWorkspaceRoute = (router: WorkspaceRouter, href: string): void => {
+  if (!isWorkspaceRoute(href)) throw new TypeError(`Invalid workspace route: ${href}`);
+  router.push(href);
+};
+
 export function useWorkspaceNavigation() {
   const router = useRouter();
   return useCallback(
     (href: string) => {
-      if (!isWorkspaceRoute(href)) throw new TypeError(`Invalid workspace route: ${href}`);
-      router.push(href);
+      pushWorkspaceRoute(router, href);
     },
     [router],
   );

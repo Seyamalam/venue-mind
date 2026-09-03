@@ -62,7 +62,7 @@ const isPolicyFailure = (error: AdapterContractError): boolean =>
   error.code === "ADAPTER_PERSONAL_DATA_REJECTED" ||
   error.code.startsWith("ADAPTER_CONTRACT_");
 
-export interface NormalizedWebhookEvent {
+export interface NormalizedWebhookEvent<Payload = unknown> {
   readonly schemaVersion: 1;
   readonly adapterId: string;
   readonly adapterVersion: string;
@@ -71,18 +71,18 @@ export interface NormalizedWebhookEvent {
   readonly eventType: string;
   readonly occurredAt: string;
   readonly sourceVersion: string;
-  readonly payload: unknown;
+  readonly payload: Payload;
   readonly checksum: string;
 }
 
-export interface NormalizedAdapterExport {
+export interface NormalizedAdapterExport<Data = unknown> {
   readonly schemaVersion: 1;
   readonly adapterId: string;
   readonly adapterVersion: string;
   readonly sourceSystem: string;
   readonly mediaType: string;
   readonly sourceVersion: string;
-  readonly data: unknown;
+  readonly data: Data;
   readonly checksum: string;
 }
 
@@ -93,12 +93,58 @@ export interface AdapterHandlerContext {
   readonly secrets: SecretReader;
 }
 
-type AdapterHandler = (input: unknown, context: AdapterHandlerContext) => unknown;
-type AdapterHandlers = Partial<Record<AdapterCapability, AdapterHandler>>;
+export interface AdapterCapabilityContract<Input, Output, HandlerOutput = Output> {
+  readonly input: Input;
+  readonly output: Output;
+  readonly handlerOutput?: HandlerOutput;
+}
 
-export interface VenueAdapter {
+export type AdapterContractMap = Readonly<
+  Partial<Record<AdapterCapability, AdapterCapabilityContract<unknown, unknown>>>
+>;
+export type LooseAdapterContractMap = Readonly<Record<AdapterCapability, AdapterCapabilityContract<unknown, unknown>>>;
+declare const adapterContractType: unique symbol;
+
+export type AdapterContractCapability<Contracts extends AdapterContractMap> = Extract<
+  keyof Contracts,
+  AdapterCapability
+>;
+
+export type AdapterInput<
+  Contracts extends AdapterContractMap,
+  Capability extends AdapterContractCapability<Contracts>,
+> = NonNullable<Contracts[Capability]>["input"];
+
+export type AdapterOutput<
+  Contracts extends AdapterContractMap,
+  Capability extends AdapterContractCapability<Contracts>,
+> = NonNullable<Contracts[Capability]>["output"];
+
+export type AdapterHandlerOutput<
+  Contracts extends AdapterContractMap,
+  Capability extends AdapterContractCapability<Contracts>,
+> =
+  NonNullable<Contracts[Capability]> extends AdapterCapabilityContract<unknown, unknown, infer HandlerOutput>
+    ? HandlerOutput
+    : never;
+
+export type AdapterHandler<Input, Output> = (input: Input, context: AdapterHandlerContext) => Promise<Output> | Output;
+
+export type AdapterHandlers<Contracts extends AdapterContractMap> = Readonly<{
+  [Capability in AdapterContractCapability<Contracts>]?: AdapterHandler<
+    AdapterInput<Contracts, Capability>,
+    AdapterHandlerOutput<Contracts, Capability>
+  >;
+}>;
+
+export interface VenueAdapter<Contracts extends AdapterContractMap = LooseAdapterContractMap> {
   readonly definition: AdapterDefinition;
-  invoke(capability: AdapterCapability, input: unknown, context: AdapterHandlerContext): Promise<unknown>;
+  readonly [adapterContractType]?: Contracts;
+  invoke<Capability extends AdapterContractCapability<Contracts>>(
+    capability: Capability,
+    input: AdapterInput<Contracts, Capability>,
+    context: AdapterHandlerContext,
+  ): Promise<AdapterOutput<Contracts, Capability>>;
   prepareInput?(capability: AdapterCapability, input: unknown, context: Readonly<{ adapterContext: unknown }>): unknown;
   assertImportResult?(
     output: unknown,
@@ -295,8 +341,8 @@ const normalizeExport = async (
   return Object.freeze({ schemaVersion: 1, ...content, checksum });
 };
 
-const assertAggregateImportResult = async (
-  adapter: VenueAdapter,
+const assertAggregateImportResult = async <Contracts extends AdapterContractMap>(
+  adapter: VenueAdapter<Contracts>,
   output: unknown,
   capability: AdapterCapability,
   preparedInput: unknown,
@@ -309,7 +355,10 @@ const assertAggregateImportResult = async (
   return output;
 };
 
-export function createVenueAdapter(definitionInput: unknown, handlers: AdapterHandlers): Readonly<VenueAdapter> {
+export function createVenueAdapter<Contracts extends AdapterContractMap>(
+  definitionInput: unknown,
+  handlers: AdapterHandlers<Contracts>,
+): Readonly<VenueAdapter<Contracts>> {
   const definition = defineAdapter(definitionInput);
   const declaredCapabilities: ReadonlySet<string> = new Set(definition.capabilities);
   const unknown = Object.keys(handlers).filter((key) => !declaredCapabilities.has(key));
@@ -321,12 +370,12 @@ export function createVenueAdapter(definitionInput: unknown, handlers: AdapterHa
     if (typeof handlers[capability] !== "function")
       fail("ADAPTER_HANDLER_MISSING", `Adapter handler is missing for ${capability}`);
 
-  return Object.freeze({
+  const adapter = Object.freeze({
     definition,
     async invoke(capability: AdapterCapability, input: unknown, context: AdapterHandlerContext): Promise<unknown> {
       if (!definition.capabilities.includes(capability))
         fail("ADAPTER_CAPABILITY_UNSUPPORTED", `${definition.id} does not support ${capability}`);
-      const handler = handlers[capability];
+      const handler = handlers[capability] as AdapterHandler<unknown, unknown> | undefined;
       if (!handler) return fail("ADAPTER_HANDLER_MISSING", `Adapter handler is missing for ${capability}`);
       const output = await handler(clone(input), context);
       if (capability === "import" || capability === "synchronize") {
@@ -347,6 +396,7 @@ export function createVenueAdapter(definitionInput: unknown, handlers: AdapterHa
       return clone(output);
     },
   });
+  return adapter as Readonly<VenueAdapter<Contracts>>;
 }
 
 interface ProcessedBatch {
@@ -431,8 +481,8 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
     return output;
   };
 
-  const validateImportForPersistence = async (
-    adapter: VenueAdapter,
+  const validateImportForPersistence = async <Contracts extends AdapterContractMap>(
+    adapter: VenueAdapter<Contracts>,
     capability: AdapterCapability,
     output: unknown,
     preparedInput: unknown,
@@ -452,8 +502,8 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
     });
   };
 
-  const validateStoredProcessedBatch = async (
-    adapter: VenueAdapter,
+  const validateStoredProcessedBatch = async <Contracts extends AdapterContractMap>(
+    adapter: VenueAdapter<Contracts>,
     capability: AdapterCapability,
     value: ProcessedBatch,
     expected: Readonly<{ invocationId: string; inputChecksum: string; completedAt?: string; output?: unknown }>,
@@ -508,14 +558,14 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
     requestTimes.set(key, times);
   };
 
-  type AdapterExecutionResult =
-    | Readonly<{ status: "succeeded"; invocationId: string; attempts: readonly AdapterAttempt[]; output: unknown }>
+  type AdapterExecutionResult<Output> =
+    | Readonly<{ status: "succeeded"; invocationId: string; attempts: readonly AdapterAttempt[]; output: Output }>
     | Readonly<{
         status: "duplicate";
         invocationId: string;
         attempts: readonly AdapterAttempt[];
         duplicateOf?: string;
-        output: unknown;
+        output: Output;
       }>
     | Readonly<{
         status: "dead-lettered";
@@ -525,12 +575,12 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
         error: AdapterContractError;
       }>;
 
-  const execute = async (
-    adapter: VenueAdapter,
-    capability: AdapterCapability,
-    input: unknown,
+  const execute = async <Contracts extends AdapterContractMap, Capability extends AdapterContractCapability<Contracts>>(
+    adapter: VenueAdapter<Contracts>,
+    capability: Capability,
+    input: AdapterInput<Contracts, Capability>,
     authorization: AdapterAuthorization = {},
-  ): Promise<AdapterExecutionResult> => {
+  ): Promise<AdapterExecutionResult<AdapterOutput<Contracts, Capability>>> => {
     const { definition } = adapter;
     assertAdapterScope(definition, capability, authorization.grantedScopes ?? []);
     const adapterContext = authorization.trustedAdapterContexts?.[definition.id];
@@ -557,7 +607,7 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
           invocationId,
           attempts: [],
           duplicateOf: completed.completedAt,
-          output: clone(completed.output),
+          output: clone(completed.output) as AdapterOutput<Contracts, Capability>,
         };
       }
     }
@@ -595,9 +645,14 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
               invocationId,
               attempts,
               duplicateOf: stored.value.completedAt,
-              output: clone(stored.value.output),
+              output: clone(stored.value.output) as AdapterOutput<Contracts, Capability>,
             };
-          return { status: "succeeded", invocationId, attempts, output: clone(stored.value.output) };
+          return {
+            status: "succeeded",
+            invocationId,
+            attempts,
+            output: clone(stored.value.output) as AdapterOutput<Contracts, Capability>,
+          };
         }
         return { status: "succeeded", invocationId, attempts, output };
       } catch (cause) {
@@ -638,11 +693,11 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
     throw new Error("Unreachable adapter attempt state");
   };
 
-  const acceptWebhook = async (
-    adapter: VenueAdapter,
-    input: unknown,
+  const acceptWebhook = async <Input, Output>(
+    adapter: VenueAdapter<Readonly<{ webhook: AdapterCapabilityContract<Input, Output> }>>,
+    input: Input,
     authorization: AdapterAuthorization = {},
-  ): Promise<AdapterExecutionResult> => {
+  ): Promise<AdapterExecutionResult<Readonly<NormalizedWebhookEvent>>> => {
     const eventStore = webhookEventStore;
     if (!eventStore)
       return fail(
@@ -650,7 +705,7 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
         "Webhook acceptance requires an injected atomic durable event store",
       );
     const result = await execute(adapter, "webhook", input, authorization);
-    if (result.status !== "succeeded") return result;
+    if (result.status === "dead-lettered") return result;
     if (!isNormalizedWebhookEvent(result.output)) return fail("ADAPTER_CONTRACT_INVALID", "Webhook output is invalid");
     const key = `${adapter.definition.id}@${adapter.definition.version}\u0000${result.output.sourceSystem}\u0000${result.output.eventId}`;
     const stored = await eventStore.putIfAbsent(key, result.output);
@@ -667,7 +722,7 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
     return { ...result, output: clone(storedOutput) };
   };
 
-  const inspectRateLimit = (adapter: VenueAdapter): number[] => {
+  const inspectRateLimit = <Contracts extends AdapterContractMap>(adapter: VenueAdapter<Contracts>): number[] => {
     return clone(requestTimes.get(`${adapter.definition.id}@${adapter.definition.version}`) ?? []);
   };
 

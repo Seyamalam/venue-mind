@@ -3969,7 +3969,9 @@ export function App({
             handoffs={runbookHandoffs}
             onClose={() => setRunbookOpen(false)}
             onCreate={handleCreateRunbook}
-            onTaskTransition={handleRunbookTransition}
+            onTaskTransition={(input) => {
+              void handleRunbookTransition(input);
+            }}
             onAddEvidence={handleRunbookEvidence}
             onCreateHandoff={handleCreateRunbookHandoff}
             onCopyHandoff={handleCopyRunbookHandoff}

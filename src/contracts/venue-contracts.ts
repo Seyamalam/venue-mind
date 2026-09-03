@@ -2686,6 +2686,245 @@ export const previewRevisionResultSchema = {
   additionalProperties: false,
 };
 
+const roomBoundaryInputSchema = {
+  type: "object",
+  required: ["outer", "holes"],
+  properties: {
+    outer: { type: "array", minItems: 3, items: pointSchema },
+    holes: { type: "array", items: { type: "array", minItems: 3, items: pointSchema } },
+  },
+  additionalProperties: false,
+};
+
+const editableVenueObjectSchema = {
+  type: "object",
+  required: ["id", "kind", "footprint"],
+  properties: {
+    id: { type: "string", minLength: 1 },
+    kind: { type: "string", minLength: 1 },
+    label: { type: "string" },
+    layer: { enum: ["architecture", "furniture", "access", "production", "catering", "safety", "annotations"] },
+    elevationM: { type: "number", minimum: 0 },
+    footprint: footprintSchema,
+    capacity: { type: "integer", minimum: 0 },
+    placement: placementMetadataSchema,
+    circulation: circulationMetadataSchema,
+    queue: queueMetadataSchema,
+    staffPost: staffPostMetadataSchema,
+    utility: utilityMetadataSchema,
+    rigging: riggingMetadataSchema,
+    productionZone: productionZoneMetadataSchema,
+    resourceBinding: resourceBindingSchema,
+    production: productionMetadataSchema,
+    catering: cateringMetadataSchema,
+    emergency: emergencyMetadataSchema,
+    entrance: {
+      type: "object",
+      properties: { clearWidthM: { type: "number", exclusiveMinimum: 0 }, accessible: { type: "boolean" } },
+      additionalProperties: false,
+    },
+    door: doorMetadataSchema,
+    exit: exitMetadataSchema,
+    route: routeMetadataSchema,
+    restriction: restrictionMetadataSchema,
+    ramp: rampMetadataSchema,
+    locks: { type: "array", items: objectLockSchema },
+    locked: { type: "boolean" },
+    occupancy: {
+      type: "object",
+      properties: {
+        expected: { type: "integer", minimum: 0 },
+        maximum: { type: "integer", minimum: 0 },
+        minimumCapacity: { type: "integer", minimum: 0 },
+        maximumCapacity: { type: "integer", minimum: 0 },
+        zoneId: { type: ["string", "null"] },
+        excludesUsableArea: { type: "boolean" },
+      },
+      additionalProperties: false,
+    },
+    accessibility: {
+      type: "object",
+      properties: {
+        accessible: { type: "boolean" },
+        destination: { type: "boolean" },
+        accessibleSeats: { type: "integer", minimum: 0 },
+        companionSeats: { type: "integer", minimum: 0 },
+        accessibleSeatSampleIds: { type: "array", uniqueItems: true, items: { type: "string", minLength: 1 } },
+        clearanceExempt: { type: "boolean" },
+      },
+      additionalProperties: false,
+    },
+    sightline: {
+      type: "object",
+      properties: {
+        focalPoints: {
+          type: "array",
+          items: {
+            type: "object",
+            required: ["id", "point", "elevationM"],
+            properties: {
+              id: { type: "string", minLength: 1 },
+              point: pointSchema,
+              elevationM: { type: "number", minimum: 0 },
+              priority: { enum: ["primary", "secondary"] },
+            },
+            additionalProperties: false,
+          },
+        },
+        samples: {
+          type: "array",
+          items: {
+            type: "object",
+            required: ["id", "point", "eyeHeightM"],
+            properties: {
+              id: { type: "string", minLength: 1 },
+              point: pointSchema,
+              eyeHeightM: { type: "number", minimum: 0 },
+            },
+            additionalProperties: false,
+          },
+        },
+        opacity: { type: "number", minimum: 0, maximum: 1 },
+        heightM: { type: "number", minimum: 0 },
+      },
+      additionalProperties: false,
+    },
+    templateRef: templateRefSchema,
+    templateOverrides: { type: "array", uniqueItems: true, items: { type: "string", minLength: 1 } },
+    inventoryCount: { type: "integer", minimum: 1 },
+    groupId: { type: ["string", "null"] },
+    specification: {
+      type: "object",
+      properties: {
+        dimensions: { type: "object", additionalProperties: { type: "number" } },
+        weightKg: { type: "number", minimum: 0 },
+        power: {
+          type: "object",
+          required: ["watts", "connector"],
+          properties: { watts: { type: "number", minimum: 0 }, connector: { type: "string" } },
+          additionalProperties: false,
+        },
+        capacity: { type: "integer", minimum: 0 },
+        cost: {
+          type: "object",
+          required: ["amount"],
+          properties: {
+            amount: { type: "number", minimum: 0 },
+            currency: { type: "string" },
+            basis: { type: "string" },
+          },
+          additionalProperties: false,
+        },
+      },
+      additionalProperties: false,
+    },
+  },
+  additionalProperties: false,
+};
+
+const editDisplayProperties = {
+  label: { type: "string", minLength: 1 },
+  shortLabel: { type: "string", minLength: 1 },
+  metrics: {
+    type: "array",
+    items: {
+      type: "array",
+      items: { type: "string" },
+      minItems: 2,
+      maxItems: 2,
+    },
+  },
+};
+const snapProfileSchema = {
+  type: "object",
+  properties: {
+    enabled: { type: "boolean" },
+    sizeM: { type: "number", exclusiveMinimum: 0 },
+    toleranceM: { type: "number", minimum: 0 },
+  },
+  additionalProperties: false,
+};
+const objectIdsSchema = { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", minLength: 1 } };
+const newObjectIdsSchema = { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", minLength: 1 } };
+const labelsSchema = { type: "array", minItems: 1, items: { type: "string", minLength: 1 } };
+const editVariant = <const Required extends readonly string[], const Properties extends JsonObject>(
+  operation: string,
+  required: Required,
+  properties: Properties,
+) =>
+  defineSchema({
+    type: "object",
+    required: ["operation", ...required],
+    properties: { operation: { const: operation }, ...editDisplayProperties, ...properties },
+    additionalProperties: false,
+  });
+
+const editingCommandInputSchema = defineSchema({
+  oneOf: [
+    editVariant("apply-layout", ["roomBoundary", "objects"], {
+      roomBoundary: roomBoundaryInputSchema,
+      objects: { type: "array", minItems: 1, items: editableVenueObjectSchema },
+    }),
+    editVariant("move", ["objectIds", "delta"], {
+      objectIds: objectIdsSchema,
+      delta: pointSchema,
+      snap: snapProfileSchema,
+    }),
+    editVariant("rotate", ["objectIds", "rotationDegrees"], {
+      objectIds: objectIdsSchema,
+      rotationDegrees: { type: "number" },
+    }),
+    editVariant("resize", ["objectIds", "dimensions"], {
+      objectIds: objectIdsSchema,
+      dimensions: {
+        type: "object",
+        minProperties: 1,
+        properties: {
+          width: { type: "number", exclusiveMinimum: 0 },
+          depth: { type: "number", exclusiveMinimum: 0 },
+          radius: { type: "number", exclusiveMinimum: 0 },
+        },
+        additionalProperties: false,
+      },
+    }),
+    editVariant("delete", ["objectIds"], { objectIds: objectIdsSchema }),
+    editVariant("group", ["objectIds", "groupId"], {
+      objectIds: objectIdsSchema,
+      groupId: { type: "string", minLength: 1 },
+    }),
+    editVariant("ungroup", ["objectIds"], { objectIds: objectIdsSchema }),
+    editVariant("edit-zone-vertices", ["objectIds", "points"], {
+      objectIds: { ...objectIdsSchema, maxItems: 1 },
+      points: { type: "array", minItems: 3, items: pointSchema },
+      snap: snapProfileSchema,
+    }),
+    editVariant("align", ["objectIds", "axis"], {
+      objectIds: { ...objectIdsSchema, minItems: 2 },
+      axis: { enum: ["x", "y"] },
+      edge: { enum: ["min", "max", "center"] },
+      value: { type: "number" },
+    }),
+    editVariant("distribute", ["objectIds", "axis"], {
+      objectIds: { ...objectIdsSchema, minItems: 2 },
+      axis: { enum: ["x", "y"] },
+    }),
+    editVariant("duplicate", ["objectIds", "newObjectIds"], {
+      objectIds: objectIdsSchema,
+      newObjectIds: newObjectIdsSchema,
+      labels: labelsSchema,
+      offset: pointSchema,
+    }),
+    editVariant("paste", ["objects", "newObjectIds"], {
+      objects: { type: "array", minItems: 1, items: editableVenueObjectSchema },
+      newObjectIds: newObjectIdsSchema,
+      labels: labelsSchema,
+      offset: pointSchema,
+    }),
+    editVariant("place", ["object"], { object: editableVenueObjectSchema }),
+    editVariant("create-zone", ["object"], { object: editableVenueObjectSchema }),
+  ],
+});
+
 const baseVenueToolContracts = [
   {
     name: "venue.list_projects",
@@ -2816,29 +3055,7 @@ const baseVenueToolContracts = [
       type: "object",
       properties: {
         edit: {
-          type: "object",
-          required: ["operation"],
-          properties: {
-            operation: {
-              enum: [
-                "place",
-                "move",
-                "rotate",
-                "resize",
-                "duplicate",
-                "align",
-                "distribute",
-                "delete",
-                "group",
-                "ungroup",
-                "create-zone",
-                "edit-zone-vertices",
-                "paste",
-                "apply-layout",
-              ],
-            },
-          },
-          additionalProperties: true,
+          ...editingCommandInputSchema,
         },
         ...mutationMetadataProperties,
       },
@@ -3593,25 +3810,6 @@ const errorsForTool = (name: VenueToolName, contract: (typeof baseVenueToolContr
   return Object.freeze([...new Set(errors)]);
 };
 
-const OUTPUT_SCHEMAS: Readonly<Partial<Record<VenueToolName, JsonSchema>>> = {
-  "venue.list_projects": projectListResultSchema,
-  "venue.open_project": projectOpenResultSchema,
-  "venue.inspect_layout": layoutInspectionSchema,
-  "venue.preview_revision": previewRevisionResultSchema,
-  "venue.validate_layout": validationResultSchema,
-  "venue.get_change_log": activityLedgerSchema,
-  "venue.export_plan": planExportSchema,
-  "venue.export_audit_package": planExportSchema,
-  "venue.inspect_live_occupancy": liveOccupancyResultSchema,
-  "venue.ingest_occupancy_signal": liveOccupancyResultSchema,
-  "venue.refresh_live_occupancy": liveOccupancyResultSchema,
-  "venue.export_live_occupancy": liveOccupancyExportSchema,
-  "venue.inspect_incidents": incidentResultSchema,
-  "venue.report_incident": incidentResultSchema,
-  "venue.export_incident_record": incidentExportSchema,
-};
-const outputSchemaForTool = (name: VenueToolName): JsonSchema => OUTPUT_SCHEMAS[name] ?? {};
-
 const toolTitle = (name: VenueToolName): string => {
   const operation = name.split(".").at(-1) ?? name;
   return operation
@@ -3619,24 +3817,6 @@ const toolTitle = (name: VenueToolName): string => {
     .map((word) => (word ? `${word[0]?.toUpperCase() ?? ""}${word.slice(1)}` : ""))
     .join(" ");
 };
-
-export const venueToolContracts = Object.freeze(
-  baseVenueToolContracts.map((contract) =>
-    Object.freeze({
-      ...contract,
-      inputSchema: mcpJsonSchema(contract.inputSchema),
-      title: toolTitle(contract.name),
-      contractVersion: VENUE_TOOL_CONTRACT_VERSION,
-      authorization: Object.freeze({ requiredScope: authorizationScopeForTool(contract.name) }),
-      limits: limitsForTool(contract.name),
-      exampleInput: Object.freeze(exampleInputForTool(contract.name)),
-      outputSchema: outputSchemaForTool(contract.name),
-      errors: errorsForTool(contract.name, contract),
-    }),
-  ),
-);
-
-export type VenueToolContract = (typeof venueToolContracts)[number];
 
 export const venueToolManifestSchema = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
@@ -4890,6 +5070,744 @@ export const venueProjectPackageSchema = {
   },
   additionalProperties: false,
 };
+
+const publicCommandReceiptSchema = {
+  type: "object",
+  required: [
+    "id",
+    "idempotencyKey",
+    "commandType",
+    "inputFingerprint",
+    "correlationId",
+    "actor",
+    "resultIds",
+    "occurredAt",
+  ],
+  properties: {
+    id: { type: "string", minLength: 1 },
+    idempotencyKey: { type: "string", minLength: 1 },
+    commandType: { type: "string", minLength: 1 },
+    inputFingerprint: { type: "string", minLength: 1 },
+    correlationId: { type: "string", minLength: 1 },
+    actor: { enum: ["human", "agent", "system"] },
+    resultIds: { type: "object", additionalProperties: { type: "string" } },
+    occurredAt: { type: "string", format: "date-time" },
+  },
+  additionalProperties: false,
+};
+
+const withReceipt = <
+  const Schema extends {
+    readonly type: "object";
+    readonly required: readonly JsonValue[];
+    readonly properties: JsonObject;
+    readonly additionalProperties: false;
+  },
+>(
+  schema: Schema,
+) =>
+  defineSchema({
+    ...schema,
+    required: [...schema.required, "receipt"],
+    properties: { ...schema.properties, receipt: publicCommandReceiptSchema },
+  });
+
+const constraintListResultSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    required: [...venueConstraintSchema.required, "evaluation"],
+    properties: {
+      ...venueConstraintSchema.properties,
+      evaluation: {
+        oneOf: [
+          {
+            type: "object",
+            required: ["status", "actual", "threshold", "unit", "waiver"],
+            properties: {
+              status: { enum: ["pass", "warning", "fail", "not-applicable"] },
+              actual: { type: ["number", "null"] },
+              threshold: { type: ["number", "null"] },
+              unit: { type: ["string", "null"] },
+              waiver: { anyOf: [{ $ref: warningWaiverSchema.$id }, { type: "null" }] },
+            },
+            additionalProperties: false,
+          },
+          { type: "null" },
+        ],
+      },
+    },
+    additionalProperties: false,
+  },
+};
+
+const objectResultSchema = {
+  type: "object",
+  required: ["scope", "planId", "planVersion", "proposalId", "object"],
+  properties: {
+    scope: { enum: ["accepted", "proposal"] },
+    planId: { type: "string", minLength: 1 },
+    planVersion: { type: "string", minLength: 1 },
+    proposalId: { type: ["string", "null"] },
+    object: {
+      ...editableVenueObjectSchema,
+      properties: {
+        ...editableVenueObjectSchema.properties,
+        effectiveLocks: { type: "array", items: objectLockSchema },
+      },
+      required: [...editableVenueObjectSchema.required, "effectiveLocks"],
+    },
+  },
+  additionalProperties: false,
+};
+
+const objectSearchResultSchema = {
+  type: "object",
+  required: ["scope", "planId", "planVersion", "proposalId", "total", "limit", "truncated", "objects"],
+  properties: {
+    scope: { enum: ["accepted", "proposal"] },
+    planId: { type: "string", minLength: 1 },
+    planVersion: { type: "string", minLength: 1 },
+    proposalId: { type: ["string", "null"] },
+    total: { type: "integer", minimum: 0 },
+    limit: { type: "integer", minimum: 1, maximum: 50 },
+    truncated: { type: "boolean" },
+    objects: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["id", "kind", "footprint", "locked", "lockIds"],
+        properties: {
+          id: { type: "string", minLength: 1 },
+          label: { type: "string" },
+          kind: { type: "string", minLength: 1 },
+          layer: { enum: ["architecture", "furniture", "access", "production", "catering", "safety", "annotations"] },
+          elevationM: { type: "number", minimum: 0 },
+          footprint: footprintSchema,
+          locked: { type: "boolean" },
+          lockIds: { type: "array", items: { type: "string", minLength: 1 } },
+        },
+        additionalProperties: false,
+      },
+    },
+  },
+  additionalProperties: false,
+};
+
+const templateUpdateResultSchema = withReceipt({
+  type: "object",
+  required: [
+    "proposalId",
+    "branchId",
+    "baseVersion",
+    "templateId",
+    "fromVersion",
+    "toVersion",
+    "changedItems",
+    "preservedOverrides",
+    "requiresHumanApproval",
+  ],
+  properties: {
+    proposalId: { type: "string", minLength: 1 },
+    branchId: { type: "string", minLength: 1 },
+    baseVersion: { type: "string", minLength: 1 },
+    templateId: { type: "string", minLength: 1 },
+    fromVersion: { type: "string", minLength: 1 },
+    toVersion: { type: "string", minLength: 1 },
+    changedItems: { type: "integer", minimum: 0 },
+    preservedOverrides: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["projectObjectId", "templateObjectId", "path"],
+        properties: {
+          projectObjectId: { type: "string" },
+          templateObjectId: { type: "string" },
+          path: { type: "string" },
+        },
+        additionalProperties: false,
+      },
+    },
+    requiresHumanApproval: { const: true },
+  },
+  additionalProperties: false,
+});
+
+const applyEditResultSchema = withReceipt({
+  type: "object",
+  required: ["status", "proposalId", "changeId", "operation", "changedItems", "requiresHumanApproval"],
+  properties: {
+    status: { const: "review" },
+    proposalId: { type: "string", minLength: 1 },
+    changeId: { type: "string", minLength: 1 },
+    operation: {
+      enum: [
+        "apply-layout",
+        "move",
+        "rotate",
+        "resize",
+        "delete",
+        "group",
+        "ungroup",
+        "edit-zone-vertices",
+        "align",
+        "distribute",
+        "duplicate",
+        "paste",
+        "place",
+        "create-zone",
+      ],
+    },
+    changedItems: { type: "integer", minimum: 1 },
+    requiresHumanApproval: { const: true },
+  },
+  additionalProperties: false,
+});
+
+const measurementResultSchema = {
+  type: "object",
+  required: ["objectIds", "centers", "distances"],
+  properties: {
+    objectIds: { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", minLength: 1 } },
+    centers: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["objectId", "point"],
+        properties: { objectId: { type: "string", minLength: 1 }, point: pointSchema },
+        additionalProperties: false,
+      },
+    },
+    distances: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["fromObjectId", "toObjectId", "distanceM"],
+        properties: {
+          fromObjectId: { type: "string", minLength: 1 },
+          toObjectId: { type: "string", minLength: 1 },
+          distanceM: { type: "number", minimum: 0 },
+        },
+        additionalProperties: false,
+      },
+    },
+  },
+  additionalProperties: false,
+};
+
+const validationEvidenceResultSchema = {
+  type: "object",
+  required: [
+    "validationId",
+    "inputFingerprint",
+    "engineVersion",
+    "evaluatedPlanVersion",
+    "evaluatedProposalId",
+    "status",
+    "unresolvedIssues",
+    "candidateGeometryFingerprint",
+    "evidenceFingerprint",
+    "checks",
+    "productionEvidence",
+    "cateringEvidence",
+    "emergencyEvidence",
+    "evidenceFamilyFingerprints",
+    "planningEvidenceInvalidations",
+  ],
+  properties: {
+    ...validationResultSchema.properties,
+    evidenceFingerprint: { type: "string", minLength: 1 },
+  },
+  additionalProperties: false,
+};
+
+const branchSummaryResultSchema = {
+  type: "object",
+  required: [
+    "id",
+    "name",
+    "notes",
+    "strategy",
+    "active",
+    "archived",
+    "decisionStatus",
+    "revisionCount",
+    "revisions",
+    "proposalId",
+    "baseVersion",
+    "status",
+    "changedItems",
+    "validationStatus",
+    "unresolvedIssues",
+    "stale",
+    "conflicts",
+    "blockingConflicts",
+    "metrics",
+  ],
+  properties: {
+    id: { type: "string", minLength: 1 },
+    name: { type: "string", minLength: 1 },
+    notes: { type: "string" },
+    strategy: { type: "string", minLength: 1 },
+    active: { type: "boolean" },
+    archived: { type: "boolean" },
+    decisionStatus: { type: ["string", "null"] },
+    revisionCount: { type: "integer", minimum: 1 },
+    revisions: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["proposalId", "revision", "status", "current"],
+        properties: {
+          proposalId: { type: "string" },
+          revision: { type: "integer", minimum: 1 },
+          status: { type: "string" },
+          current: { type: "boolean" },
+        },
+        additionalProperties: false,
+      },
+    },
+    proposalId: { type: "string", minLength: 1 },
+    baseVersion: { type: "string", minLength: 1 },
+    status: { type: "string", minLength: 1 },
+    changedItems: { type: "integer", minimum: 0 },
+    validationStatus: { enum: ["pass", "fail"] },
+    unresolvedIssues: { type: "integer", minimum: 0 },
+    stale: { type: "boolean" },
+    conflicts: { type: "integer", minimum: 0 },
+    blockingConflicts: { type: "integer", minimum: 0 },
+    metrics: {
+      type: "object",
+      properties: {
+        capacity: { type: "number" },
+        accessibility: { type: "number" },
+        sightlines: { type: "number" },
+        circulation: { type: "number" },
+      },
+      additionalProperties: false,
+    },
+  },
+  additionalProperties: false,
+};
+
+const simpleMutationResult = <const Properties extends JsonObject, const Required extends readonly string[]>(
+  properties: Properties,
+  required: Required,
+) => withReceipt({ type: "object", required, properties, additionalProperties: false });
+
+const branchCreateResultSchema = simpleMutationResult(
+  {
+    branchId: { type: "string", minLength: 1 },
+    proposalId: { type: "string", minLength: 1 },
+    strategy: { type: "string", minLength: 1 },
+    changedItems: { type: "integer", minimum: 0 },
+  },
+  ["branchId", "proposalId", "strategy", "changedItems"],
+);
+const branchSwitchResultSchema = simpleMutationResult(
+  {
+    branchId: { type: "string", minLength: 1 },
+    proposalId: { type: "string", minLength: 1 },
+    status: { type: "string", minLength: 1 },
+  },
+  ["branchId", "proposalId", "status"],
+);
+const branchUpdateResultSchema = simpleMutationResult(
+  {
+    status: { const: "updated" },
+    branchId: { type: "string", minLength: 1 },
+    name: { type: "string", minLength: 1 },
+    notes: { type: "string" },
+  },
+  ["status", "branchId", "name", "notes"],
+);
+const branchDuplicateResultSchema = simpleMutationResult(
+  {
+    status: { const: "duplicated" },
+    branchId: { type: "string", minLength: 1 },
+    proposalId: { type: "string", minLength: 1 },
+    sourceBranchId: { type: "string", minLength: 1 },
+    sourceProposalId: { type: "string", minLength: 1 },
+  },
+  ["status", "branchId", "proposalId", "sourceBranchId", "sourceProposalId"],
+);
+const branchArchiveResultSchema = simpleMutationResult(
+  {
+    status: { const: "archived" },
+    branchId: { type: "string", minLength: 1 },
+    activeBranchId: { type: "string", minLength: 1 },
+  },
+  ["status", "branchId"],
+);
+const branchRestoreResultSchema = simpleMutationResult(
+  { status: { const: "restored" }, branchId: { type: "string", minLength: 1 } },
+  ["status", "branchId"],
+);
+const rebaseResultSchema = simpleMutationResult(
+  {
+    status: { enum: ["current", "rebased"] },
+    branchId: { type: "string", minLength: 1 },
+    proposalId: { type: "string", minLength: 1 },
+    baseVersion: { type: "string", minLength: 1 },
+    fromVersion: { type: "string", minLength: 1 },
+    toVersion: { type: "string", minLength: 1 },
+    changedItems: { type: "integer", minimum: 0 },
+    validationStatus: { enum: ["pass", "fail"] },
+    validationId: { type: "string", minLength: 1 },
+  },
+  ["status", "branchId", "proposalId"],
+);
+const adjustmentResultSchema = simpleMutationResult(
+  {
+    proposalId: { type: "string", minLength: 1 },
+    revision: { type: "integer", minimum: 1 },
+    status: { type: "string", minLength: 1 },
+  },
+  ["proposalId", "revision", "status"],
+);
+
+const commentCreateResultSchema = simpleMutationResult(
+  {
+    status: { const: "open" },
+    commentId: { type: "string", minLength: 1 },
+    anchor: commentAnchorSchema,
+  },
+  ["status", "commentId", "anchor"],
+);
+const commentEditResultSchema = simpleMutationResult(
+  {
+    status: { enum: ["noop", "edited"] },
+    commentId: { type: "string", minLength: 1 },
+    editNumber: { type: "integer", minimum: 1 },
+  },
+  ["status", "commentId"],
+);
+const commentStatusResultSchema = simpleMutationResult(
+  {
+    status: { enum: ["noop", "open", "resolved"] },
+    commentId: { type: "string", minLength: 1 },
+  },
+  ["status", "commentId"],
+);
+
+const replayHistoryResultSchema = {
+  type: "object",
+  required: [
+    "status",
+    "transitions",
+    "currentPlanVersion",
+    "replayedFingerprint",
+    "currentFingerprint",
+    "replayedBriefFingerprint",
+    "currentBriefFingerprint",
+    "briefTransitions",
+    "ledgerHeadHash",
+    "lockedObjectViolations",
+    "truthFingerprintViolations",
+  ],
+  properties: {
+    status: { enum: ["pass", "fail"] },
+    transitions: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["ledgerEntryId", "type", "planVersion", "planFingerprint", "briefFingerprint"],
+        properties: {
+          ledgerEntryId: { type: "string" },
+          type: { type: "string" },
+          planVersion: { type: "string" },
+          planFingerprint: { type: "string" },
+          briefFingerprint: { type: ["string", "null"] },
+        },
+        additionalProperties: false,
+      },
+    },
+    currentPlanVersion: { type: "string" },
+    replayedFingerprint: { type: ["string", "null"] },
+    currentFingerprint: { type: "string" },
+    replayedBriefFingerprint: { type: ["string", "null"] },
+    currentBriefFingerprint: { type: ["string", "null"] },
+    briefTransitions: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["ledgerEntryId"],
+        properties: { ledgerEntryId: { type: "string" } },
+        additionalProperties: false,
+      },
+    },
+    ledgerHeadHash: { type: ["string", "null"] },
+    lockedObjectViolations: {
+      type: "array",
+      items: {
+        type: "object",
+        required: [
+          "objectId",
+          "fromLedgerEntryId",
+          "toLedgerEntryId",
+          "fromPlanVersion",
+          "toPlanVersion",
+          "type",
+          "lockTypes",
+        ],
+        properties: {
+          objectId: { type: "string" },
+          fromLedgerEntryId: { type: "string" },
+          toLedgerEntryId: { type: "string" },
+          fromPlanVersion: { type: "string" },
+          toPlanVersion: { type: "string" },
+          type: { type: "string" },
+          lockTypes: { type: "array", items: { type: "string" } },
+        },
+        additionalProperties: false,
+      },
+    },
+    truthFingerprintViolations: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["ledgerEntryId", "truth", "declared", "actual"],
+        properties: {
+          ledgerEntryId: { type: "string" },
+          truth: { enum: ["plan", "brief"] },
+          declared: { type: ["string", "null"] },
+          actual: { type: "string" },
+        },
+        additionalProperties: false,
+      },
+    },
+  },
+  additionalProperties: false,
+};
+
+const scenarioRunSchema = {
+  type: "object",
+  required: [
+    "id",
+    "scenarioId",
+    "scenarioFingerprint",
+    "scenarioSnapshot",
+    "model",
+    "branchId",
+    "planId",
+    "planVersion",
+    "inputFingerprint",
+    "engineVersion",
+    "status",
+    "progress",
+    "completedPhaseIds",
+    "partialResult",
+    "result",
+    "startedAt",
+    "completedAt",
+    "cancellationReason",
+  ],
+  properties: {
+    id: { type: "string" },
+    scenarioId: { type: "string" },
+    scenarioFingerprint: { type: "string" },
+    scenarioSnapshot: scenarioDefinitionSchema,
+    model: { enum: ["operations", "ingress-egress", "queue"] },
+    branchId: { type: "string" },
+    planId: { type: "string" },
+    planVersion: { type: "string" },
+    geometryFingerprint: { type: "string" },
+    inputFingerprint: { type: "string" },
+    engineVersion: { type: "string" },
+    status: { enum: ["queued", "running", "completed", "cancelled", "failed"] },
+    progress: { type: "number", minimum: 0, maximum: 1 },
+    completedPhaseIds: { type: "array", items: { type: "string" } },
+    partialResult: { anyOf: [simulationResultSchema, { type: "null" }] },
+    result: { anyOf: [simulationResultSchema, { type: "null" }] },
+    startedAt: { type: "string", format: "date-time" },
+    completedAt: { type: ["string", "null"], format: "date-time" },
+    cancellationReason: { type: ["string", "null"] },
+    cacheHit: { type: "boolean" },
+  },
+  additionalProperties: false,
+};
+
+const scenarioResultSchema = {
+  type: "object",
+  required: [
+    "id",
+    "scenarioId",
+    "scenarioFingerprint",
+    "model",
+    "branchId",
+    "planId",
+    "planVersion",
+    "inputFingerprint",
+    "engineVersion",
+    "status",
+    "progress",
+    "completedPhaseIds",
+    "startedAt",
+    "completedAt",
+    "cancellationReason",
+    "cacheHit",
+    "result",
+  ],
+  properties: {
+    ...scenarioRunSchema.properties,
+    result: { anyOf: [simulationResultSchema, { type: "null" }] },
+  },
+  additionalProperties: false,
+};
+
+const runScenarioResultSchema = withReceipt({
+  type: "object",
+  required: ["status", "runId", "scenarioId", "branchId", "inputFingerprint", "cacheHit"],
+  properties: {
+    status: { enum: ["completed", "cancelled"] },
+    runId: { type: "string" },
+    scenarioId: { type: "string" },
+    branchId: { type: "string" },
+    inputFingerprint: { type: "string" },
+    cacheHit: { type: "boolean" },
+    result: simulationResultSchema,
+    partialResult: simulationResultSchema,
+    reason: { type: "string" },
+  },
+  additionalProperties: false,
+});
+
+const simulationComparisonResultSchema = {
+  type: "object",
+  required: ["id", "scenarioId", "engineVersion", "left", "right", "deltas"],
+  properties: {
+    id: { type: "string" },
+    scenarioId: { type: "string" },
+    engineVersion: { type: "string" },
+    left: {
+      type: "object",
+      required: ["inputFingerprint", "branchId", "planVersion"],
+      properties: {
+        inputFingerprint: { type: "string" },
+        branchId: { type: ["string", "null"] },
+        planVersion: { type: "string" },
+      },
+      additionalProperties: false,
+    },
+    right: {
+      type: "object",
+      required: ["inputFingerprint", "branchId", "planVersion"],
+      properties: {
+        inputFingerprint: { type: "string" },
+        branchId: { type: ["string", "null"] },
+        planVersion: { type: "string" },
+      },
+      additionalProperties: false,
+    },
+    deltas: {
+      type: "object",
+      required: ["meanProcessedPersons", "maximumP95BacklogPersons", "maximumP95Utilization"],
+      properties: {
+        meanProcessedPersons: { type: "number" },
+        maximumP95BacklogPersons: { type: "number" },
+        maximumP95Utilization: { type: "number" },
+        totalClearanceSeconds: { type: "number" },
+        p95ClearanceSeconds: { type: "number" },
+        worstBottleneckDurationSeconds: { type: "number" },
+        affectedOccupancyPersons: { type: "number" },
+        accessibleRouteClearanceSeconds: { type: "number" },
+        averageWaitSeconds: { type: "number" },
+        p95WaitSeconds: { type: "number" },
+        maximumQueueLength: { type: "number" },
+        abandonmentRate: { type: "number" },
+        requiredBufferAreaM2: { type: "number" },
+      },
+      additionalProperties: false,
+    },
+  },
+  additionalProperties: false,
+};
+
+const simulationExportResultSchema = {
+  type: "object",
+  required: ["filename", "mimeType", "encoding", "content"],
+  properties: {
+    filename: { type: "string", minLength: 1 },
+    mimeType: { const: "application/json" },
+    encoding: { const: "utf8" },
+    content: { type: "string" },
+  },
+  additionalProperties: false,
+};
+
+const previewRevisionOutputSchema = withReceipt({
+  type: "object",
+  required: previewRevisionResultSchema.required,
+  properties: previewRevisionResultSchema.properties,
+  additionalProperties: false,
+});
+
+const OUTPUT_SCHEMAS = {
+  "venue.list_projects": projectListResultSchema,
+  "venue.open_project": projectOpenResultSchema,
+  "venue.inspect_templates": venueTemplateCatalogSchema,
+  "venue.get_project_brief": eventBriefSchema,
+  "venue.list_constraints": constraintListResultSchema,
+  "venue.inspect_layout": layoutInspectionSchema,
+  "venue.get_object": objectResultSchema,
+  "venue.search_objects": objectSearchResultSchema,
+  "venue.preview_revision": previewRevisionOutputSchema,
+  "venue.preview_template_update": templateUpdateResultSchema,
+  "venue.apply_edit": applyEditResultSchema,
+  "venue.measure_objects": measurementResultSchema,
+  "venue.validate_layout": validationResultSchema,
+  "venue.get_validation_evidence": validationEvidenceResultSchema,
+  "venue.list_proposal_branches": { type: "array", items: branchSummaryResultSchema },
+  "venue.compare_proposal_branches": { $ref: proposalComparisonSchema.$id },
+  "venue.create_proposal_branch": branchCreateResultSchema,
+  "venue.switch_proposal_branch": branchSwitchResultSchema,
+  "venue.update_proposal_branch": branchUpdateResultSchema,
+  "venue.duplicate_proposal_branch": branchDuplicateResultSchema,
+  "venue.archive_proposal_branch": branchArchiveResultSchema,
+  "venue.restore_proposal_branch": branchRestoreResultSchema,
+  "venue.detect_proposal_conflicts": proposalConflictResultSchema,
+  "venue.rebase_proposal": rebaseResultSchema,
+  "venue.request_adjustment": adjustmentResultSchema,
+  "venue.list_comments": { type: "array", items: commentSchema },
+  "venue.add_comment": commentCreateResultSchema,
+  "venue.edit_comment": commentEditResultSchema,
+  "venue.set_comment_status": commentStatusResultSchema,
+  "venue.get_change_log": activityLedgerSchema,
+  "venue.replay_history": replayHistoryResultSchema,
+  "venue.list_scenarios": { type: "array", items: scenarioDefinitionSchema },
+  "venue.list_scenario_runs": { type: "array", items: scenarioRunSchema },
+  "venue.get_scenario_result": scenarioResultSchema,
+  "venue.run_scenario": runScenarioResultSchema,
+  "venue.compare_simulations": simulationComparisonResultSchema,
+  "venue.export_simulation": simulationExportResultSchema,
+  "venue.inspect_live_occupancy": liveOccupancyResultSchema,
+  "venue.ingest_occupancy_signal": liveOccupancyResultSchema,
+  "venue.refresh_live_occupancy": liveOccupancyResultSchema,
+  "venue.export_live_occupancy": liveOccupancyExportSchema,
+  "venue.inspect_incidents": incidentResultSchema,
+  "venue.report_incident": incidentResultSchema,
+  "venue.export_incident_record": incidentExportSchema,
+  "venue.export_audit_package": planExportSchema,
+  "venue.export_plan": planExportSchema,
+} as const satisfies Readonly<Record<VenueToolName, JsonSchema>>;
+
+export const venueToolContracts = Object.freeze(
+  baseVenueToolContracts.map((contract) =>
+    Object.freeze({
+      ...contract,
+      inputSchema: mcpJsonSchema(contract.inputSchema),
+      title: toolTitle(contract.name),
+      contractVersion: VENUE_TOOL_CONTRACT_VERSION,
+      authorization: Object.freeze({ requiredScope: authorizationScopeForTool(contract.name) }),
+      limits: limitsForTool(contract.name),
+      exampleInput: Object.freeze(exampleInputForTool(contract.name)),
+      outputSchema: OUTPUT_SCHEMAS[contract.name],
+      errors: errorsForTool(contract.name, contract),
+    }),
+  ),
+);
+
+export type VenueToolContract = (typeof venueToolContracts)[number];
 
 interface VenueToolPlannerCommand extends PlannerCommand {
   anchor?: JsonObject;

@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { AdapterContractError, sha256Checksum } from "../src/integrations/contracts.ts";
-import { createAdapterRuntime, createMemoryDeadLetterSink, createVenueAdapter, serializeDeadLetter } from "../src/integrations/runtime.ts";
+import {
+  createAdapterRuntime,
+  createMemoryDeadLetterSink,
+  createVenueAdapter,
+  serializeDeadLetter,
+} from "../src/integrations/runtime.ts";
 import { createMemoryProcessedBatchStore } from "../src/integrations/processed-batch-store.ts";
 import { createMemorySecretStore } from "../src/integrations/secret-store.ts";
 import { roomInventoryAdapter } from "../src/integrations/adapters/room-inventory-adapter.ts";
@@ -10,7 +15,9 @@ import { createMemoryWebhookEventStore } from "../src/integrations/webhook-event
 
 const secretStore = createMemorySecretStore({ "test/token": "secret", "room-inventory/api-token": "test-token" });
 const auth = { grantedScopes: ["records:read"], secretStore, secretReferences: ["test/token"] };
-const webhookFixture = JSON.parse(await readFile(new URL("./fixtures/adapter-room-inventory-webhook-v1.json", import.meta.url), "utf8"));
+const webhookFixture = JSON.parse(
+  await readFile(new URL("./fixtures/adapter-room-inventory-webhook-v1.json", import.meta.url), "utf8"),
+);
 
 const definition = (overrides = {}) => ({
   contractVersion: 1,
@@ -19,13 +26,67 @@ const definition = (overrides = {}) => ({
   version: "1.0.0",
   capabilities: ["import"],
   scopes: { import: ["records:read"] },
-  retryPolicy: { maxAttempts: 3, initialDelayMs: 100, maximumDelayMs: 400, multiplier: 2, retryableCodes: ["ADAPTER_RATE_LIMITED", "ADAPTER_UPSTREAM_UNAVAILABLE"] },
+  retryPolicy: {
+    maxAttempts: 3,
+    initialDelayMs: 100,
+    maximumDelayMs: 400,
+    multiplier: 2,
+    retryableCodes: ["ADAPTER_RATE_LIMITED", "ADAPTER_UPSTREAM_UNAVAILABLE"],
+  },
   rateLimit: { requests: 10, windowMs: 1_000 },
   ...overrides,
 });
 
-const emptyImport = { sourceSystem: "test-source", sourceVersion: "1", synchronizedAt: "2026-08-28T12:00:00.000Z", syncCursor: null, changes: [], warnings: [] };
+const emptyImport = {
+  sourceSystem: "test-source",
+  sourceVersion: "1",
+  synchronizedAt: "2026-08-28T12:00:00.000Z",
+  syncCursor: null,
+  changes: [],
+  warnings: [],
+};
 const stagingInput = (input = {}) => ({ basePlanVersion: "1.0", proposalRevision: 2, ...input });
+
+test("capability dispatch keeps each handler input and output isolated", async () => {
+  const seen = [];
+  const adapter = createVenueAdapter(
+    definition({
+      capabilities: ["export", "webhook"],
+      scopes: { export: ["records:read"], webhook: ["records:read"] },
+    }),
+    {
+      export(input) {
+        seen.push(["export", input]);
+        return { sourceSystem: "test-source", mediaType: "application/json", sourceVersion: "7", data: input.rows };
+      },
+      webhook(input) {
+        seen.push(["webhook", input]);
+        return {
+          sourceSystem: "test-source",
+          eventId: input.eventId,
+          eventType: "inventory.updated",
+          occurredAt: "2026-09-03T00:00:00.000Z",
+          sourceVersion: "8",
+          payload: { quantity: input.quantity },
+        };
+      },
+    },
+  );
+  const runtime = createAdapterRuntime({
+    clock: () => Date.parse("2026-09-03T00:00:00.000Z"),
+    webhookEventStore: createMemoryWebhookEventStore(),
+  });
+
+  const exported = await runtime.execute(adapter, "export", { rows: ["chair-1"] }, auth);
+  const webhook = await runtime.acceptWebhook(adapter, { eventId: "evt-1", quantity: 12 }, auth);
+
+  assert.deepEqual(seen, [
+    ["export", { rows: ["chair-1"] }],
+    ["webhook", { eventId: "evt-1", quantity: 12 }],
+  ]);
+  assert.deepEqual(exported.output.data, ["chair-1"]);
+  assert.deepEqual(webhook.output.payload, { quantity: 12 });
+});
 
 test("retry timing is deterministic, honors Retry-After, and succeeds without dead-lettering", async () => {
   let time = Date.parse("2026-08-28T12:00:00.000Z");
@@ -40,24 +101,45 @@ test("retry timing is deterministic, honors Retry-After, and succeeds without de
     },
   });
   const deadLetters = createMemoryDeadLetterSink();
-  const runtime = createAdapterRuntime({ clock: () => time, sleep: async (milliseconds) => { delays.push(milliseconds); time += milliseconds; }, deadLetterSink: deadLetters });
+  const runtime = createAdapterRuntime({
+    clock: () => time,
+    sleep: async (milliseconds) => {
+      delays.push(milliseconds);
+      time += milliseconds;
+    },
+    deadLetterSink: deadLetters,
+  });
   const result = await runtime.execute(adapter, "import", stagingInput({ query: "chairs" }), auth);
 
   assert.equal(result.status, "succeeded");
   assert.deepEqual(delays, [150, 200]);
-  assert.deepEqual(result.attempts.map((attempt) => attempt.status), ["retrying", "retrying", "succeeded"]);
+  assert.deepEqual(
+    result.attempts.map((attempt) => attempt.status),
+    ["retrying", "retrying", "succeeded"],
+  );
   assert.deepEqual(deadLetters.list(), []);
 });
 
 test("terminal failures create a deterministic, secret-free dead letter", async () => {
   const time = Date.parse("2026-08-28T12:00:00.000Z");
   const deadLetters = createMemoryDeadLetterSink();
-  const adapter = createVenueAdapter(definition({ retryPolicy: { maxAttempts: 2, initialDelayMs: 10, maximumDelayMs: 10, multiplier: 2, retryableCodes: ["ADAPTER_UPSTREAM_UNAVAILABLE"] } }), {
-    async import(_input, context) {
-      assert.equal(await context.secrets.get("test/token"), "secret");
-      throw new AdapterContractError("ADAPTER_UPSTREAM_UNAVAILABLE", "Unavailable");
+  const adapter = createVenueAdapter(
+    definition({
+      retryPolicy: {
+        maxAttempts: 2,
+        initialDelayMs: 10,
+        maximumDelayMs: 10,
+        multiplier: 2,
+        retryableCodes: ["ADAPTER_UPSTREAM_UNAVAILABLE"],
+      },
+    }),
+    {
+      async import(_input, context) {
+        assert.equal(await context.secrets.get("test/token"), "secret");
+        throw new AdapterContractError("ADAPTER_UPSTREAM_UNAVAILABLE", "Unavailable");
+      },
     },
-  });
+  );
   const runtime = createAdapterRuntime({ clock: () => time, sleep: async () => {}, deadLetterSink: deadLetters });
   const input = stagingInput({ customer: "private", token: "must-not-be-stored" });
   const result = await runtime.execute(adapter, "import", input, auth);
@@ -73,8 +155,18 @@ test("terminal failures create a deterministic, secret-free dead letter", async 
 test("rate limits use a deterministic rolling window", async () => {
   let time = 0;
   const waits = [];
-  const adapter = createVenueAdapter(definition({ rateLimit: { requests: 2, windowMs: 1_000 } }), { async import() { return emptyImport; } });
-  const runtime = createAdapterRuntime({ clock: () => time, sleep: async (milliseconds) => { waits.push(milliseconds); time += milliseconds; } });
+  const adapter = createVenueAdapter(definition({ rateLimit: { requests: 2, windowMs: 1_000 } }), {
+    async import() {
+      return emptyImport;
+    },
+  });
+  const runtime = createAdapterRuntime({
+    clock: () => time,
+    sleep: async (milliseconds) => {
+      waits.push(milliseconds);
+      time += milliseconds;
+    },
+  });
   await runtime.execute(adapter, "import", stagingInput({ page: 1 }), auth);
   await runtime.execute(adapter, "import", stagingInput({ page: 2 }), auth);
   await runtime.execute(adapter, "import", stagingInput({ page: 3 }), auth);
@@ -86,14 +178,30 @@ test("reviewable Proposal validators run for fresh, duplicate, and atomic-race r
   const events = [];
   const reviewableImport = {
     ...emptyImport,
-    changes: [{
-      id: "change-reviewable-chair",
-      operation: "create",
-      venueEntityType: "project-object-instance",
-      proposedVenueObjectId: "obj-reviewable-chair",
-      external: { adapterId: "test-adapter", sourceSystem: "test-source", entityType: "inventory-record", externalId: "chair-1", sourceVersion: "1", checksum: "a".repeat(64) },
-      values: { kind: "chair", label: "Review chair", layer: "furniture", elevationM: 0, locked: false, footprint: { kind: "circle", center: { x: 1, y: 1 }, radius: 0.25 } },
-    }],
+    changes: [
+      {
+        id: "change-reviewable-chair",
+        operation: "create",
+        venueEntityType: "project-object-instance",
+        proposedVenueObjectId: "obj-reviewable-chair",
+        external: {
+          adapterId: "test-adapter",
+          sourceSystem: "test-source",
+          entityType: "inventory-record",
+          externalId: "chair-1",
+          sourceVersion: "1",
+          checksum: "a".repeat(64),
+        },
+        values: {
+          kind: "chair",
+          label: "Review chair",
+          layer: "furniture",
+          elevationM: 0,
+          locked: false,
+          footprint: { kind: "circle", center: { x: 1, y: 1 }, radius: 0.25 },
+        },
+      },
+    ],
   };
   const memoryStore = createMemoryProcessedBatchStore();
   const processedBatchStore = {
@@ -106,7 +214,11 @@ test("reviewable Proposal validators run for fresh, duplicate, and atomic-race r
       return memoryStore.putIfAbsent(key, value);
     },
   };
-  const baseAdapter = createVenueAdapter(definition(), { async import() { return reviewableImport; } });
+  const baseAdapter = createVenueAdapter(definition(), {
+    async import() {
+      return reviewableImport;
+    },
+  });
   const adapter = Object.freeze({
     ...baseAdapter,
     async assertImportResult(output, context) {
@@ -130,7 +242,9 @@ test("reviewable Proposal validators run for fresh, duplicate, and atomic-race r
   const raceEvents = [];
   const raceAdapter = Object.freeze({
     ...baseAdapter,
-    async assertImportResult() { raceEvents.push("validate"); },
+    async assertImportResult() {
+      raceEvents.push("validate");
+    },
   });
   const raceStore = {
     async get() {
@@ -142,13 +256,19 @@ test("reviewable Proposal validators run for fresh, duplicate, and atomic-race r
       return { inserted: false, value: structuredClone(value) };
     },
   };
-  const raced = await createAdapterRuntime({ clock: () => Date.parse("2026-08-28T12:00:00.000Z"), processedBatchStore: raceStore }).execute(raceAdapter, "import", stagingInput({ page: 2 }), auth);
+  const raced = await createAdapterRuntime({
+    clock: () => Date.parse("2026-08-28T12:00:00.000Z"),
+    processedBatchStore: raceStore,
+  }).execute(raceAdapter, "import", stagingInput({ page: 2 }), auth);
   assert.equal(raced.status, "duplicate");
   assert.deepEqual(raceEvents, ["get", "validate", "put", "validate"]);
 });
 
 test("webhook delivery is idempotent and altered replay is rejected", async () => {
-  const runtime = createAdapterRuntime({ clock: () => Date.parse("2026-08-28T12:00:00.000Z"), webhookEventStore: createMemoryWebhookEventStore() });
+  const runtime = createAdapterRuntime({
+    clock: () => Date.parse("2026-08-28T12:00:00.000Z"),
+    webhookEventStore: createMemoryWebhookEventStore(),
+  });
   const webhookAuth = { grantedScopes: ["inventory:webhook"], secretStore, secretReferences: [] };
   const event = structuredClone(webhookFixture);
   const first = await runtime.acceptWebhook(roomInventoryAdapter, event, webhookAuth);
@@ -158,5 +278,9 @@ test("webhook delivery is idempotent and altered replay is rejected", async () =
   assert.equal(first.output.sourceVersion, webhookFixture.sourceVersion);
   assert.match(first.output.checksum, /^[0-9a-f]{64}$/);
   assert.equal(duplicate.status, "duplicate");
-  await assert.rejects(() => runtime.acceptWebhook(roomInventoryAdapter, { ...event, record: { ...event.record, quantity: 19 } }, webhookAuth), (error) => error.code === "ADAPTER_WEBHOOK_REPLAY_MISMATCH");
+  await assert.rejects(
+    () =>
+      runtime.acceptWebhook(roomInventoryAdapter, { ...event, record: { ...event.record, quantity: 19 } }, webhookAuth),
+    (error) => error.code === "ADAPTER_WEBHOOK_REPLAY_MISMATCH",
+  );
 });
