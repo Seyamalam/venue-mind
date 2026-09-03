@@ -9,6 +9,7 @@ const requiredGuides = [
   "CONTRIBUTING.md",
   "SECURITY.md",
   "docs/architecture.md",
+  "docs/threat-model.md",
   "docs/persistence-and-recovery.md",
   "docs/database-operations.md",
   "docs/registration-and-ticketing.md",
@@ -96,4 +97,18 @@ test("security reporting policy defines a private, bounded disclosure path", asy
   assert.match(security, /Cross-organization/);
   assert.match(security, /Approval bypass/);
   assert.match(security, /coordinated/i);
+});
+
+test("threat model maps every high-risk boundary to an implemented control, test, and owner", async () => {
+  const threatModel = await read("docs/threat-model.md");
+  for (const section of ["Assets", "Actors", "Trust boundaries and entry points", "High-risk abuse cases and controls", "Verification ownership", "Residual risk and response"]) assert.match(threatModel, new RegExp(`## ${section}`));
+  for (const threat of ["Prompt injection", "Malicious geometry", "Oversized tool", "cross a tenant boundary", "share token", "forges, removes, or reorders ledger", "Replayed or concurrent mutations", "confused deputy", "export, error, log, metric", "forges or replays webhook", "Cross-origin", "changed migration"]) assert.match(threatModel, new RegExp(threat, "i"));
+  const rows = threatModel.match(/^\| TM-\d{2} \|.*$/gm) ?? [];
+  assert.equal(rows.length, 12);
+  for (const row of rows) {
+    assert.match(row, /`tests\/.+\.test\.mjs`/);
+    assert.doesNotMatch(row, /\|\s*(TBD|unassigned)\s*\|$/i);
+  }
+  const evidencePaths = [...threatModel.matchAll(/`(tests\/[a-z0-9-]+\.test\.mjs)`/g)].map((match) => match[1]);
+  for (const evidencePath of new Set(evidencePaths)) await access(path.join(root, evidencePath));
 });
