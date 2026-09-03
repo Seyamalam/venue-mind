@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "databaseSchemaVersion": 11,
+  "databaseSchemaVersion": 12,
   "migrations": [
     {
       "version": 1,
@@ -110,6 +110,16 @@
       "requiresProjectExport": false,
       "source": "/db/migrations/0011_live_plan_deviations.sql",
       "wrangler": "/db/wrangler/0011_live_plan_deviations.sql",
+      "statementCount": 3
+    },
+    {
+      "version": 12,
+      "name": "post_event_reviews",
+      "checksum": "2e475db4832a0513de153e5008e4c403ddfef791fc827e6c84c50d5ca6cac477",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0012_post_event_reviews.sql",
+      "wrangler": "/db/wrangler/0012_post_event_reviews.sql",
       "statementCount": 3
     }
   ]

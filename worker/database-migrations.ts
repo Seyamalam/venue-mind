@@ -41,6 +41,7 @@ const runbookTables = [
 const occupancyTables = ["live_occupancy_monitors"];
 const incidentTables = ["event_day_incident_registers"];
 const deviationTables = ["event_day_deviation_registers"];
+const postEventReviewTables = ["post_event_reviews"];
 
 async function legacyBaseline(db: D1Database) {
   const { results: tableRows } = await db
@@ -88,12 +89,18 @@ async function legacyBaseline(db: D1Database) {
   const hasDeviations = deviationTables.every((table) => tables.has(table));
   if (!hasDeviations && deviationTables.some((table) => tables.has(table)))
     throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  const hasPostEventReviews = postEventReviewTables.every((table) => tables.has(table));
+  if (!hasPostEventReviews && postEventReviewTables.some((table) => tables.has(table)))
+    throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  if (hasPostEventReviews && !hasDeviations) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasDeviations && !hasIncidents) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasIncidents && !hasOccupancy) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasOccupancy && !hasRunbooks) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasRunbooks && !hasSharingDelivery) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
-  return hasDeviations
-    ? 11
+  return hasPostEventReviews
+    ? 12
+    : hasDeviations
+      ? 11
     : hasIncidents
       ? 10
     : hasOccupancy
@@ -209,6 +216,27 @@ export async function inspectDatabaseIntegrity(db: D1Database) {
   const { results: integrityRows } = await db.prepare("PRAGMA integrity_check").all<Record<string, unknown>>();
   const integrity = integrityRows.flatMap((row) => Object.values(row).map(String));
   const checks = [];
+  for (const [id, sql] of [
+    [
+      "post-event-review-without-project",
+      "SELECT COUNT(*) AS count FROM post_event_reviews r LEFT JOIN projects p ON p.id = r.project_id WHERE p.id IS NULL",
+    ],
+    [
+      "post-event-review-organization-mismatch",
+      "SELECT COUNT(*) AS count FROM post_event_reviews r JOIN projects p ON p.id = r.project_id WHERE p.organization_id != r.organization_id",
+    ],
+    [
+      "post-event-review-runbook-scope-mismatch",
+      "SELECT COUNT(*) AS count FROM post_event_reviews p LEFT JOIN event_day_runbooks r ON r.id = p.runbook_id AND r.organization_id = p.organization_id AND r.project_id = p.project_id WHERE r.id IS NULL",
+    ],
+  ] satisfies readonly (readonly [string, string])[]) {
+    const { results } = await db.prepare(sql).all<{ count: number }>();
+    checks.push({
+      id,
+      count: Number(results[0]?.count ?? 0),
+      status: Number(results[0]?.count ?? 0) === 0 ? "pass" : "fail",
+    });
+  }
   for (const [id, sql] of [
     [
       "project-state-without-project",

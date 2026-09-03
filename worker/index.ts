@@ -2,6 +2,7 @@ import { createD1AccountRepository, isOrganizationAdministrator } from "./accoun
 import { createStaticIdentityProvider, type IdentityProvider } from "./authentication.ts";
 import { createD1ProjectRepository, ProjectRevisionConflict, type ProjectRecord } from "./project-repository.ts";
 import { parseProjectEtag, projectEtag } from "../src/domain/project-concurrency.ts";
+import { stableFingerprint } from "../src/domain/activity-ledger.ts";
 import { collaborationEventPayload, projectCollaborationEventTypes } from "../src/domain/collaboration-events.ts";
 import { createD1CollaborationRepository, createMemoryCollaborationRepository } from "./collaboration-repository.ts";
 import { createD1SharingRepository, createMemorySharingRepository } from "./sharing-repository.ts";
@@ -48,6 +49,17 @@ import {
   decodeDeviationMutationCommand,
   decodeDeviationSyncBody,
 } from "./deviation-http.ts";
+import { createPostEventReviewCommandBus } from "../src/domain/post-event-review-command-bus.ts";
+import { evaluateLiveOccupancy as evaluateFrozenPostEventOccupancy } from "../src/domain/live-occupancy.ts";
+import {
+  createD1PostEventReviewRepository,
+  PostEventReviewConflict,
+} from "./post-event-review-repository.ts";
+import {
+  decodePostEventReviewCreateBody,
+  decodePostEventReviewMutationCommand,
+  decodePostEventReviewSyncBody,
+} from "./post-event-review-http.ts";
 import { venueError } from "../src/domain/errors.ts";
 import { isLocalProjectRecord } from "../src/domain/project-types.ts";
 import type {
@@ -68,6 +80,7 @@ import type {
   OccupancyPolicy,
   OccupancySimulationBaseline,
 } from "../src/domain/operational-types.ts";
+import type { PostEventReview, PostEventReviewMutationResult } from "../src/domain/post-event-review-types.ts";
 
 export { createD1AccountRepository, createMemoryAccountRepository } from "./account-repository.ts";
 export { createStaticIdentityProvider } from "./authentication.ts";
@@ -79,6 +92,7 @@ export { createD1RunbookRepository } from "./runbook-repository.ts";
 export { createD1OccupancyRepository } from "./occupancy-repository.ts";
 export { createD1IncidentRepository } from "./incident-repository.ts";
 export { createD1DeviationRepository } from "./deviation-repository.ts";
+export { createD1PostEventReviewRepository } from "./post-event-review-repository.ts";
 
 type ProjectRepository = ReturnType<typeof createD1ProjectRepository>;
 type AccountRepository = ReturnType<typeof createD1AccountRepository>;
@@ -88,6 +102,7 @@ type RunbookRepository = ReturnType<typeof createD1RunbookRepository>;
 type OccupancyRepository = ReturnType<typeof createD1OccupancyRepository>;
 type IncidentRepository = ReturnType<typeof createD1IncidentRepository>;
 type DeviationRepository = ReturnType<typeof createD1DeviationRepository>;
+type PostEventReviewRepository = ReturnType<typeof createD1PostEventReviewRepository>;
 type EmailDelivery = {
   send: (message: {
     idempotencyKey: string;
@@ -106,6 +121,7 @@ type WorkerOptions = {
   createOccupancyRepository?: (db: D1Database) => OccupancyRepository;
   createIncidentRepository?: (db: D1Database) => IncidentRepository;
   createDeviationRepository?: (db: D1Database) => DeviationRepository;
+  createPostEventReviewRepository?: (db: D1Database) => PostEventReviewRepository;
   identityProvider?: IdentityProvider;
   emailDelivery?: EmailDelivery;
   secureCookies?: boolean;
@@ -144,6 +160,30 @@ const DEVIATION_PROPOSAL_ROLES: readonly OrganizationRole[] = [
   "organization-administrator",
 ];
 const DEVIATION_EXPORT_ROLES: readonly OrganizationRole[] = [
+  "planner",
+  "reviewer",
+  "approver",
+  "safety-officer",
+  "venue-administrator",
+  "organization-administrator",
+];
+const POST_EVENT_WRITE_ROLES: readonly OrganizationRole[] = [
+  "planner",
+  "safety-officer",
+  "venue-administrator",
+  "organization-administrator",
+];
+const POST_EVENT_PROPOSAL_ROLES: readonly OrganizationRole[] = [
+  "planner",
+  "venue-administrator",
+  "organization-administrator",
+];
+const POST_EVENT_REVIEW_ROLES: readonly OrganizationRole[] = [
+  "approver",
+  "venue-administrator",
+  "organization-administrator",
+];
+const POST_EVENT_EXPORT_ROLES: readonly OrganizationRole[] = [
   "planner",
   "reviewer",
   "approver",
@@ -528,6 +568,14 @@ const isDeviationMutationResult = (value: unknown): value is DeviationMutationRe
   isDeviationRegister(value.register) &&
   isRecord(value.receipt) &&
   typeof value.duplicate === "boolean";
+const isPostEventReview = (value: unknown): value is PostEventReview =>
+  isRecord(value) && value.schemaVersion === 1 && typeof value.id === "string" && typeof value.revision === "number";
+const isPostEventMutationResult = (value: unknown): value is PostEventReviewMutationResult =>
+  isRecord(value) &&
+  isPostEventReview(value.review) &&
+  isRecord(value.subject) &&
+  isRecord(value.receipt) &&
+  typeof value.duplicate === "boolean";
 const safeMutationOrigin = (request: Request, env: WorkerEnv) => {
   if (["GET", "HEAD", "OPTIONS"].includes(request.method)) return true;
   const origin = request.headers.get("origin");
@@ -574,6 +622,7 @@ export function createWorker(options: WorkerOptions = {}) {
   const occupancyRepositoryFactory = options.createOccupancyRepository ?? createD1OccupancyRepository;
   const incidentRepositoryFactory = options.createIncidentRepository ?? createD1IncidentRepository;
   const deviationRepositoryFactory = options.createDeviationRepository ?? createD1DeviationRepository;
+  const postEventReviewRepositoryFactory = options.createPostEventReviewRepository ?? createD1PostEventReviewRepository;
 
   const appendShareLedger = async (
     env: WorkerEnv,
@@ -897,6 +946,7 @@ export function createWorker(options: WorkerOptions = {}) {
       const occupancy = occupancyRepositoryFactory(env.DB);
       const incidents = incidentRepositoryFactory(env.DB);
       const deviations = deviationRepositoryFactory(env.DB);
+      const postEventReviews = postEventReviewRepositoryFactory(env.DB);
       const notifyOrganization = async (
         eventType: NotificationEventType,
         record: ProjectRecord,
@@ -927,6 +977,10 @@ export function createWorker(options: WorkerOptions = {}) {
       const canWriteDeviations = hasRole(organization.roles, DEVIATION_WRITE_ROLES);
       const canCreateDeviationProposals = hasRole(organization.roles, DEVIATION_PROPOSAL_ROLES);
       const canExportDeviations = hasRole(organization.roles, DEVIATION_EXPORT_ROLES);
+      const canWritePostEvent = hasRole(organization.roles, POST_EVENT_WRITE_ROLES);
+      const canCreatePostEventProposals = hasRole(organization.roles, POST_EVENT_PROPOSAL_ROLES);
+      const canReviewPostEventProposals = hasRole(organization.roles, POST_EVENT_REVIEW_ROLES);
+      const canExportPostEvent = hasRole(organization.roles, POST_EVENT_EXPORT_ROLES);
       const runbookCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks$/);
       const runbookItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)$/);
       const runbookSyncMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runbooks\/([^/]+)\/transitions:sync$/);
@@ -1629,6 +1683,199 @@ export function createWorker(options: WorkerOptions = {}) {
               }),
             })
           : apiError(404, "DEVIATION_REGISTER_NOT_FOUND", "Live Plan Deviation Register not found");
+      }
+      const postEventCollectionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/post-event-reviews$/);
+      const postEventCommandMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/post-event-reviews\/([^/]+)\/commands:sync$/,
+      );
+      const postEventExportMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/post-event-reviews\/([^/]+)\/export$/,
+      );
+      const postEventItemMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/post-event-reviews\/([^/]+)$/);
+      if (postEventCollectionMatch && request.method === "POST") {
+        if (!canWritePostEvent)
+          return apiError(403, "POST_EVENT_WRITE_DENIED", "Post-event Review write role required");
+        const projectId = pathCapture(postEventCollectionMatch, 1);
+        const project = await projects.get(organization.id, projectId);
+        if (!project) return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let input;
+        try {
+          input = decodePostEventReviewCreateBody(await readBody(request));
+        } catch (cause) {
+          const error = errorInfo(cause);
+          return apiError(
+            cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400,
+            error.code ?? "POST_EVENT_BASELINE_INVALID",
+            error.message ?? "Post-event Review payload is invalid",
+            error.details,
+          );
+        }
+        const storedRunbook = await runbooks.getRunbook(organization.id, projectId, input.runbookVersionId);
+        if (!storedRunbook) return apiError(404, "RUNBOOK_NOT_FOUND", "Runbook not found");
+        const occupancyMonitor = await occupancy.get(organization.id, projectId, input.occupancyMonitorId);
+        if (!occupancyMonitor) return apiError(404, "OCCUPANCY_MONITOR_NOT_FOUND", "Occupancy Monitor not found");
+        const incidentRegister = await incidents.get(organization.id, projectId, input.incidentRegisterId);
+        if (!incidentRegister) return apiError(404, "INCIDENT_REGISTER_NOT_FOUND", "Incident Register not found");
+        const deviationRegister = await deviations.get(organization.id, projectId, input.deviationRegisterId);
+        if (!deviationRegister) return apiError(404, "DEVIATION_REGISTER_NOT_FOUND", "Live Plan Deviation Register not found");
+        try {
+          const scenarioRuns = input.scenarioRunIds.map((runId) => {
+            const run = project.snapshot.scenarioRuns.find(({ id }) => id === runId);
+            if (!run) throw venueError("POST_EVENT_BASELINE_INVALID", { reason: "scenario-run-not-found", runId });
+            return run;
+          });
+          const existing = await postEventReviews.getByRunbook(organization.id, projectId, input.runbookVersionId);
+          if (existing) {
+            const sameDefinition =
+              existing.baseline.occupancyMonitor.id === input.occupancyMonitorId &&
+              existing.baseline.incidentRegister.id === input.incidentRegisterId &&
+              existing.baseline.deviationRegister.id === input.deviationRegisterId &&
+              stableFingerprint("post-event-scenario-ids", existing.baseline.scenarioRuns.map(({ id }) => id).sort()) ===
+                stableFingerprint("post-event-scenario-ids", [...input.scenarioRunIds].sort()) &&
+              stableFingerprint("post-event-predictions", existing.predictions) ===
+                stableFingerprint(
+                  "post-event-predictions",
+                  input.predictions
+                    .map((prediction) => ({
+                      ...prediction,
+                      evidenceRefs: [...prediction.evidenceRefs].sort((left, right) =>
+                        `${left.kind}\0${left.id}`.localeCompare(`${right.kind}\0${right.id}`),
+                      ),
+                    }))
+                    .sort((left, right) => left.key.localeCompare(right.key)),
+                );
+            if (!sameDefinition)
+              throw new PostEventReviewConflict("POST_EVENT_REVIEW_ID_CONFLICT", {
+                reviewId: existing.id,
+                runbookVersionId: existing.runbookVersionId,
+              });
+            return respond({ status: "already-applied", review: existing });
+          }
+          const bus = createPostEventReviewCommandBus();
+          bus.execute({
+            type: "create_post_event_review",
+            projectId,
+            runbook: repositoryRunbookToBrowserSnapshot(storedRunbook),
+            occupancyMonitor,
+            occupancyProjection: evaluateFrozenPostEventOccupancy(occupancyMonitor, { at: clock() }),
+            incidentRegister,
+            deviationRegister,
+            scenarioRuns,
+            predictions: input.predictions,
+            createdAt: clock(),
+            createdBy: account.user.id,
+          });
+          const created = bus.getSnapshot();
+          if (!created) throw venueError("POST_EVENT_REVIEW_NOT_FOUND");
+          const saved = await postEventReviews.create(organization.id, projectId, created);
+          return respond({ status: "created", review: saved }, { status: 201 });
+        } catch (cause) {
+          const error = errorInfo(cause);
+          if (cause instanceof PostEventReviewConflict)
+            return apiError(409, cause.code, error.message ?? "Post-event Review conflicts with stored state", error.details);
+          if (error.code?.startsWith("POST_EVENT_"))
+            return apiError(400, error.code, error.message ?? "Post-event Review baseline is invalid", error.details);
+          throw cause;
+        }
+      }
+      if (postEventCommandMatch && request.method === "POST") {
+        if (!canWritePostEvent && !canCreatePostEventProposals && !canReviewPostEventProposals)
+          return apiError(403, "POST_EVENT_WRITE_DENIED", "Post-event Review write role required");
+        const projectId = pathCapture(postEventCommandMatch, 1);
+        const reviewId = pathCapture(postEventCommandMatch, 2);
+        if (!(await projects.get(organization.id, projectId)))
+          return apiError(404, "PROJECT_NOT_FOUND", "Project not found");
+        let candidates: readonly unknown[];
+        try {
+          candidates = decodePostEventReviewSyncBody(await readBody(request));
+        } catch (cause) {
+          const error = errorInfo(cause);
+          return apiError(
+            cause instanceof Error && cause.message === "PAYLOAD_TOO_LARGE" ? 413 : 400,
+            "POST_EVENT_SYNC_INVALID",
+            "Post-event Review sync payload is invalid",
+            error.details,
+          );
+        }
+        const storedReview = await postEventReviews.get(organization.id, projectId, reviewId);
+        if (!storedReview) return apiError(404, "POST_EVENT_REVIEW_NOT_FOUND", "Post-event Review not found");
+        let current: PostEventReview = storedReview;
+        const acknowledgements: Array<Record<string, unknown>> = [];
+        for (const candidate of candidates) {
+          const untrusted = isRecord(candidate) ? candidate : {};
+          const identity = {
+            idempotencyKey: typeof untrusted.idempotencyKey === "string" ? untrusted.idempotencyKey : null,
+            operationId: typeof untrusted.operationId === "string" ? untrusted.operationId : null,
+          };
+          try {
+            if (
+              (untrusted.type === "record_post_event_observation" || untrusted.type === "record_post_event_lesson") &&
+              !canWritePostEvent
+            ) throw venueError("AUTHORIZATION_DENIED", { permission: "post-event.write" });
+            if (untrusted.type === "create_template_improvement_proposal" && !canCreatePostEventProposals)
+              throw venueError("AUTHORIZATION_DENIED", { permission: "post-event.template-proposal.create" });
+            if (untrusted.type === "review_template_improvement_proposal" && !canReviewPostEventProposals)
+              throw venueError("AUTHORIZATION_DENIED", { permission: "post-event.template-proposal.review" });
+            const command = decodePostEventReviewMutationCommand(untrusted, {
+              actorId: account.user.id,
+              sessionId: account.session.id,
+              committedAt: clock(),
+            });
+            const value: unknown = createPostEventReviewCommandBus({ initialReview: current }).execute(command);
+            if (!isPostEventMutationResult(value))
+              throw venueError("POST_EVENT_INVALID", { reason: "mutation-result-invalid" });
+            if (!value.duplicate)
+              await postEventReviews.put(organization.id, projectId, value.review, current.revision);
+            current = value.review;
+            acknowledgements.push({
+              ...identity,
+              status: value.duplicate ? "already-applied" : "applied",
+              receipt: value.receipt,
+              subject: value.subject,
+            });
+          } catch (cause) {
+            const error = errorInfo(cause);
+            if (
+              cause instanceof PostEventReviewConflict ||
+              ["IDEMPOTENCY_KEY_CONFLICT", "POST_EVENT_REVISION_CONFLICT"].includes(error.code ?? "")
+            ) {
+              acknowledgements.push({ ...identity, status: "conflict", code: error.code ?? "POST_EVENT_REVIEW_REVISION_CONFLICT", details: error.details });
+              continue;
+            }
+            if (
+              ["AUTHORIZATION_DENIED", "IDEMPOTENCY_KEY_REQUIRED", "COMMAND_UNSUPPORTED"].includes(error.code ?? "") ||
+              error.code?.startsWith("POST_EVENT_")
+            ) {
+              acknowledgements.push({ ...identity, status: "rejected", code: error.code ?? "POST_EVENT_COMMAND_INVALID", details: error.details, message: error.message });
+              continue;
+            }
+            throw cause;
+          }
+        }
+        const inspected = createPostEventReviewCommandBus({ initialReview: current }).execute({ type: "inspect_post_event_review" });
+        return respond({ acknowledgements, ...inspected });
+      }
+      if (postEventExportMatch && request.method === "GET") {
+        if (!canExportPostEvent)
+          return apiError(403, "POST_EVENT_EXPORT_DENIED", "Post-event Review export role required");
+        const projectId = pathCapture(postEventExportMatch, 1);
+        const reviewId = pathCapture(postEventExportMatch, 2);
+        const review = await postEventReviews.get(organization.id, projectId, reviewId);
+        if (!review) return apiError(404, "POST_EVENT_REVIEW_NOT_FOUND", "Post-event Review not found");
+        try {
+          return respond({ artifact: createPostEventReviewCommandBus({ initialReview: review }).execute({ type: "export_post_event_report", format: url.searchParams.get("format") === "text" ? "text" : "json", exportedAt: clock() }) });
+        } catch (cause) {
+          const error = errorInfo(cause);
+          return apiError(409, error.code ?? "POST_EVENT_EXPORT_FAILED", error.message ?? "Post-event Review export failed", error.details);
+        }
+      }
+      if (postEventItemMatch && request.method === "GET") {
+        const projectId = pathCapture(postEventItemMatch, 1);
+        const reviewId = pathCapture(postEventItemMatch, 2);
+        const review = await postEventReviews.get(organization.id, projectId, reviewId);
+        return review
+          ? respond(createPostEventReviewCommandBus({ initialReview: review }).execute({ type: "inspect_post_event_review" }))
+          : apiError(404, "POST_EVENT_REVIEW_NOT_FOUND", "Post-event Review not found");
       }
       if (url.pathname === "/api/notifications" && request.method === "GET")
         return respond({ notifications: await sharing.listNotifications(account.user.id, organization.id) });
