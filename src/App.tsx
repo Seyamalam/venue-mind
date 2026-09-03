@@ -64,9 +64,12 @@ import type {
   OccupancyMutationResult,
   OperationalIncident,
   IncidentMutationResult,
+  DeviationMutationResult,
+  LivePlanDeviationRegister,
   RunbookEvidence,
   RunbookTaskStatus,
 } from "./domain/operational-types";
+import type { PlanningChange } from "./domain/planning-effects";
 import type { compareProposalBranches } from "./domain/proposal-comparison";
 import type { detectProposalConflicts } from "./domain/proposal-conflicts";
 import type { VenueComment } from "./domain/comments";
@@ -75,6 +78,7 @@ import { createRunbookCommandBus } from "./domain/runbook-command-bus";
 import { deriveRunbookHandoff } from "./domain/event-day-runbook";
 import { createOccupancyCommandBus } from "./domain/occupancy-command-bus";
 import { createIncidentCommandBus } from "./domain/incident-command-bus";
+import { createDeviationCommandBus } from "./domain/deviation-command-bus";
 import { createHumanPrincipal, createShortLivedAgentAuthorization } from "./domain/authorization";
 import { venueError } from "./domain/errors";
 import { createProjectStore } from "./persistence/project-store";
@@ -92,6 +96,13 @@ import { createIncidentStore } from "./persistence/incident-store";
 import type { IncidentOutboxCommand } from "./persistence/incident-store";
 import { createIncidentRemote } from "./persistence/incident-remote";
 import { synchronizeIncidents } from "./persistence/incident-sync";
+import {
+  createDeviationStore,
+  isLivePlanDeviationRegister,
+  type DeviationOutboxCommand,
+} from "./persistence/deviation-store";
+import { createDeviationRemote } from "./persistence/deviation-remote";
+import { synchronizeDeviations } from "./persistence/deviation-sync";
 import { registerVenueTools } from "./webmcp/register-venue-tools";
 import type { RegisterVenueToolOptions, ToolRegistrationLifecycle } from "./webmcp/register-venue-tools";
 import type { WebMcpPlanner } from "./webmcp/tool-runtime";
@@ -130,6 +141,7 @@ import "./styles.css";
 import type { AddCommentInput, EditCommentInput } from "./CommentsPanel";
 import type { OverlayView, ScenarioComparisonView } from "./ScenarioPanel";
 import type { RunbookHandoffInput, RunbookHandoffView } from "./RunbookPanel";
+import type { DeviationEndInput, DeviationRecordInput } from "./DeviationPanel";
 
 const briefIcons: Record<string, PhosphorIcon> = {
   accessibility: Wheelchair,
@@ -171,6 +183,8 @@ const loadOccupancyPanel = () => import("./OccupancyPanel").then((module) => ({ 
 const LazyOccupancyPanel = lazy(loadOccupancyPanel);
 const loadIncidentPanel = () => import("./IncidentPanel").then((module) => ({ default: module.IncidentPanel }));
 const LazyIncidentPanel = lazy(loadIncidentPanel);
+const loadDeviationPanel = () => import("./DeviationPanel").then((module) => ({ default: module.DeviationPanel }));
+const LazyDeviationPanel = lazy(loadDeviationPanel);
 
 const studioSessionId = `studio-session-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 const uniqueToken = (): string => globalThis.crypto?.randomUUID?.() ?? `${performance.timeOrigin}-${performance.now()}`;
@@ -569,6 +583,23 @@ const incidentMutationResult = (value: object): IncidentMutationResult => {
     throw new TypeError("Invalid incident receipt result");
   return { register, incident, receipt, duplicate };
 };
+const isDeviationMutationResult = (value: object): value is DeviationMutationResult =>
+  "register" in value &&
+  isLivePlanDeviationRegister(value.register) &&
+  "deviation" in value &&
+  (value.deviation === null ||
+    (typeof value.deviation === "object" && value.deviation !== null && "id" in value.deviation)) &&
+  "proposal" in value &&
+  (value.proposal === null || (typeof value.proposal === "object" && value.proposal !== null && "id" in value.proposal)) &&
+  "receipt" in value &&
+  typeof value.receipt === "object" &&
+  value.receipt !== null &&
+  "duplicate" in value &&
+  typeof value.duplicate === "boolean";
+const deviationMutationResult = (value: object): DeviationMutationResult => {
+  if (!isDeviationMutationResult(value)) throw new TypeError("Invalid deviation mutation result");
+  return value;
+};
 const isProjectConflict = (value: unknown): value is ProjectConflict =>
   typeof value === "object" &&
   value !== null &&
@@ -801,6 +832,8 @@ export function App({
   const incidentStore = useMemo(() => createIncidentStore({ organizationId, projectId }), [organizationId, projectId]);
   const incidentRemote = useMemo(() => createIncidentRemote({ organizationId }), [organizationId]);
   const incidentBus = useMemo(() => createIncidentCommandBus(), []);
+  const deviationRemote = useMemo(() => createDeviationRemote({ organizationId }), [organizationId]);
+  const deviationBus = useMemo(() => createDeviationCommandBus(), []);
   const subscribeToPlanner = useCallback((listener: () => void) => planner.subscribe(listener), [planner]);
   const plannerSnapshot = useCallback(() => planner.getSnapshot(), [planner]);
   const plannerState = useSyncExternalStore(subscribeToPlanner, plannerSnapshot, plannerSnapshot);
@@ -926,7 +959,25 @@ export function App({
     lastSyncedAt: string | null;
   }>({ state: "offline", pendingCount: 0, lastSyncedAt: null });
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+  const [deviationOpen, setDeviationOpen] = useState(false);
+  const [deviationMounted, setDeviationMounted] = useState(false);
+  const [deviationRegister, setDeviationRegister] = useState<LivePlanDeviationRegister | null>(null);
+  const [deviationSyncState, setDeviationSyncState] = useState<{
+    state: string;
+    pendingCount: number;
+    conflictCount: number;
+    lastSyncedAt: string | null;
+  }>({ state: "offline", pendingCount: 0, conflictCount: 0, lastSyncedAt: null });
+  const deviationRegisterId = runbook ? `deviations-${runbook.versionId}` : null;
+  const deviationStore = useMemo(
+    () =>
+      deviationRegisterId
+        ? createDeviationStore({ organizationId, projectId, registerId: deviationRegisterId })
+        : null,
+    [deviationRegisterId, organizationId, projectId],
+  );
   const incidentClientSequence = useRef(0);
+  const deviationClientSequence = useRef(0);
   const occupancyClientSequence = useRef(0);
   const runbookClientSequence = useRef(0);
   const runbookBus = useMemo(
@@ -1221,6 +1272,60 @@ export function App({
       active = false;
     };
   }, [incidentBus, incidentRemote, incidentStore, projectId]);
+
+  useEffect(() => {
+    let active = true;
+    if (!deviationStore || !deviationRegisterId) {
+      deviationBus.hydrate(null);
+      return () => {
+        active = false;
+      };
+    }
+    void deviationStore.hydrate().then(async ({ register: cached, outbox, recovery }) => {
+      if (!active) return;
+      deviationClientSequence.current = Math.max(0, ...outbox.map((entry) => entry.command.clientSequence));
+      if (recovery)
+        setDeviationSyncState({
+          state: "recovery",
+          pendingCount: outbox.length,
+          conflictCount: 0,
+          lastSyncedAt: null,
+        });
+      if (!cached) return;
+      deviationBus.hydrate(cached);
+      setDeviationRegister(cached);
+      setDeviationSyncState({
+        state: outbox.length ? "offline" : "syncing",
+        pendingCount: outbox.length,
+        conflictCount: 0,
+        lastSyncedAt: cached.updatedAt,
+      });
+      try {
+        const result = await synchronizeDeviations({
+          projectId,
+          registerId: deviationRegisterId,
+          store: deviationStore,
+          remote: deviationRemote,
+        });
+        if (!active) return;
+        deviationBus.hydrate(result.register);
+        setDeviationRegister(result.register);
+        setDeviationSyncState(result.syncState);
+      } catch {
+        if (!active) return;
+        const remaining = await deviationStore.listOutbox();
+        setDeviationSyncState({
+          state: "offline",
+          pendingCount: remaining.length,
+          conflictCount: remaining.filter((entry) => entry.syncStatus !== "pending").length,
+          lastSyncedAt: cached.updatedAt,
+        });
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [deviationBus, deviationRegisterId, deviationRemote, deviationStore, projectId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2550,6 +2655,268 @@ export function App({
     }
   };
 
+  const deviationMetadata = (type: string, expectedRevision: number) => {
+    const identity = uniqueToken();
+    const committedAt = new Date().toISOString();
+    return {
+      operationId: `deviation-operation-${identity}`,
+      idempotencyKey: `deviation-${type}-${identity}`,
+      correlationId: `studio-deviation-${identity}`,
+      clientId: `studio-${projectId}`,
+      clientSequence: ++deviationClientSequence.current,
+      clientOccurredAt: committedAt,
+      projectId,
+      expectedRevision,
+      actorType: "human" as const,
+      actorId: studioActorId,
+      source: "studio" as const,
+      sessionId: studioSessionId,
+      committedAt,
+    };
+  };
+
+  const ensureDeviationRegister = async () => {
+    const cached = deviationBus.getSnapshot();
+    if (cached) return cached;
+    if (!runbook || !deviationStore || !deviationRegisterId)
+      throw venueError("DEVIATION_BASELINE_INVALID", { reason: "runbook-required" });
+    try {
+      const result = await deviationRemote.create(projectId, { runbookVersionId: runbook.versionId });
+      deviationBus.hydrate(result.register);
+      await deviationStore.saveRegister(result.register, { authoritative: true });
+      setDeviationRegister(result.register);
+      setDeviationSyncState({
+        state: "online",
+        pendingCount: 0,
+        conflictCount: 0,
+        lastSyncedAt: result.register.updatedAt,
+      });
+      return result.register;
+    } catch (remoteError) {
+      deviationBus.execute({
+        type: "create_deviation_register",
+        projectId,
+        runbook,
+        createdAt: new Date().toISOString(),
+        createdBy: studioActorId,
+      });
+      const local = deviationBus.getSnapshot();
+      if (!local) throw remoteError;
+      await deviationStore.saveRegister(local);
+      setDeviationRegister(local);
+      setDeviationSyncState({ state: "offline", pendingCount: 0, conflictCount: 0, lastSyncedAt: null });
+      return local;
+    }
+  };
+
+  const applyDeviationCommand = async (command: DeviationOutboxCommand) => {
+    if (!deviationStore) throw venueError("DEVIATION_REGISTER_NOT_FOUND");
+    const result = deviationMutationResult(deviationBus.execute(command));
+    if (!result.duplicate) await deviationStore.enqueue(command);
+    await deviationStore.saveRegister(result.register);
+    setDeviationRegister(result.register);
+    const outbox = await deviationStore.listOutbox();
+    setDeviationSyncState({
+      state: "offline",
+      pendingCount: outbox.length,
+      conflictCount: outbox.filter((entry) => entry.syncStatus !== "pending").length,
+      lastSyncedAt: result.register.updatedAt,
+    });
+    return result;
+  };
+
+  const handleDeviationSync = async () => {
+    if (!runbook || !deviationStore || !deviationRegisterId) return null;
+    const candidate = deviationBus.getSnapshot() ?? (await ensureDeviationRegister());
+    const outbox = await deviationStore.listOutbox();
+    setDeviationSyncState((current) => ({ ...current, state: "syncing", pendingCount: outbox.length }));
+    try {
+      await deviationRemote.create(projectId, { runbookVersionId: runbook.versionId });
+      const result = await synchronizeDeviations({
+        projectId,
+        registerId: deviationRegisterId,
+        store: deviationStore,
+        remote: deviationRemote,
+      });
+      deviationBus.hydrate(result.register);
+      setDeviationRegister(result.register);
+      setDeviationSyncState(result.syncState);
+      notify(result.syncState.state === "online" ? "DEVIATIONS SYNCED" : "DEVIATION CONFLICT");
+      return result;
+    } catch (error) {
+      const remaining = await deviationStore.listOutbox();
+      setDeviationSyncState({
+        state: "offline",
+        pendingCount: remaining.length,
+        conflictCount: remaining.filter((entry) => entry.syncStatus !== "pending").length,
+        lastSyncedAt: candidate.updatedAt,
+      });
+      notify(errorCode(error, "DEVIATION SYNC FAILED"));
+      return null;
+    }
+  };
+
+  const handleDeviationRecover = async () => {
+    if (!deviationStore || !deviationRegisterId || !runbook) return null;
+    try {
+      const result = await deviationRemote.get(projectId, deviationRegisterId);
+      deviationBus.hydrate(result.register);
+      await deviationStore.saveRegister(result.register, { authoritative: true });
+      setDeviationRegister(result.register);
+      const pendingCount = (await deviationStore.listOutbox()).length;
+      setDeviationSyncState({
+        state: pendingCount ? "offline" : "online",
+        pendingCount,
+        conflictCount: 0,
+        lastSyncedAt: result.register.updatedAt,
+      });
+      notify("DEVIATIONS RECOVERED");
+      return result;
+    } catch {
+      deviationBus.hydrate(null);
+      setDeviationRegister(null);
+      return ensureDeviationRegister();
+    }
+  };
+
+  const handleDeviationDiscardConflicts = async () => {
+    if (!deviationStore || !deviationRegisterId) return null;
+    try {
+      await deviationStore.discardConflicts();
+      const result = await deviationRemote.get(projectId, deviationRegisterId);
+      deviationBus.hydrate(result.register);
+      await deviationStore.saveRegister(result.register, { authoritative: true });
+      setDeviationRegister(result.register);
+      const pendingCount = (await deviationStore.listOutbox()).length;
+      setDeviationSyncState({
+        state: pendingCount ? "offline" : "online",
+        pendingCount,
+        conflictCount: 0,
+        lastSyncedAt: result.register.updatedAt,
+      });
+      notify("DEVIATION CONFLICTS DISCARDED");
+      return result;
+    } catch (error) {
+      notify(errorCode(error, "DEVIATION DISCARD FAILED"));
+      return null;
+    }
+  };
+
+  const handleDeviationRecord = async (input: DeviationRecordInput) => {
+    try {
+      const register = await ensureDeviationRegister();
+      const sourceObject = register.baseline.acceptedPlan.objects.find((object) => object.id === input.objectId);
+      if (!sourceObject) throw venueError("DEVIATION_INVALID", { reason: "object-not-found", objectId: input.objectId });
+      const identity = uniqueToken();
+      const spatialEffect =
+        input.mode === "unavailable"
+          ? { operation: "delete_object", objectId: input.objectId }
+          : {
+              operation: "update_metadata",
+              objectId: input.objectId,
+              values: { label: `${sourceObject.label ?? sourceObject.id} — controlled` },
+            };
+      const change: PlanningChange = {
+        id: `change-${stableFingerprint("live-deviation-change", {
+          registerId: register.id,
+          objectId: input.objectId,
+          mode: input.mode,
+          reasonCode: input.reasonCode,
+          identity,
+        }).slice(-16)}`,
+        title: input.reasonCode,
+        shortTitle: input.mode.toUpperCase(),
+        targetObjectIds: [input.objectId],
+        spatialEffects: [spatialEffect],
+      };
+      const deviationId = `deviation-${stableFingerprint("live-deviation-id", {
+        registerId: register.id,
+        identity,
+      }).slice(-16)}`;
+      const result = await applyDeviationCommand({
+        type: "record_live_plan_deviation",
+        deviationId,
+        disposition: input.disposition,
+        reasonCode: input.reasonCode,
+        location: { kind: "plan-object", planObjectId: input.objectId },
+        affectedObjectIds: [input.objectId],
+        availableConstraintIds: register.baseline.acceptedPlan.constraints.map((constraint) => constraint.id),
+        change,
+        ...deviationMetadata("record", register.revision),
+      });
+      notify(result.deviation?.validation.status === "fail" ? "DEVIATION · BLOCK" : "DEVIATION · LOCAL");
+      void handleDeviationSync();
+      return result;
+    } catch (error) {
+      notify(errorCode(error, "DEVIATION BLOCKED"));
+      return null;
+    }
+  };
+
+  const handleDeviationEnd = async (input: DeviationEndInput) => {
+    const register = deviationBus.getSnapshot();
+    if (!register) return null;
+    try {
+      const result = await applyDeviationCommand({
+        type: "end_live_plan_deviation",
+        deviationId: input.deviationId,
+        expectedDeviationRevision: input.expectedDeviationRevision,
+        reasonCode: input.reasonCode,
+        ...deviationMetadata("end", register.revision),
+      });
+      notify("DEVIATION ENDED · LOCAL");
+      void handleDeviationSync();
+      return result;
+    } catch (error) {
+      notify(errorCode(error, "DEVIATION END BLOCKED"));
+      return null;
+    }
+  };
+
+  const handleDeviationPostEvent = async (deviationIds: readonly string[]) => {
+    const register = deviationBus.getSnapshot();
+    if (!register || !deviationIds.length) return null;
+    try {
+      const proposalId = `proposal-${stableFingerprint("post-event-deviation-proposal", {
+        registerId: register.id,
+        deviationIds: [...deviationIds].sort(),
+        revision: register.revision,
+      }).slice(-16)}`;
+      const result = await applyDeviationCommand({
+        type: "create_post_event_deviation_proposal",
+        proposalId,
+        goal: "POST_EVENT_DEVIATION_REVIEW",
+        deviationIds,
+        ...deviationMetadata("post-event", register.revision),
+      });
+      notify("POST-EVENT PROPOSAL · LOCAL");
+      void handleDeviationSync();
+      return result;
+    } catch (error) {
+      notify(errorCode(error, "POST-EVENT BLOCKED"));
+      return null;
+    }
+  };
+
+  const handleDeviationExport = async () => {
+    const register = deviationBus.getSnapshot();
+    if (!register) return null;
+    try {
+      const artifact =
+        deviationSyncState.state === "online"
+          ? (await deviationRemote.export(projectId, register.id)).artifact
+          : downloadArtifact(
+              deviationBus.execute({ type: "export_live_plan_deviations", exportedAt: new Date().toISOString() }),
+            );
+      downloadExport(downloadArtifact(artifact));
+      notify("DEVIATION EXPORT READY");
+      return artifact;
+    } catch (error) {
+      notify(errorCode(error, "DEVIATION EXPORT FAILED"));
+      return null;
+    }
+  };
+
   const handleRunScenario = async (scenario: ScenarioDefinition, branchId: string) => {
     notify("SIM RUNNING");
     try {
@@ -2950,6 +3317,7 @@ export function App({
               setRunbookOpen(false);
               setOccupancyOpen(false);
               setIncidentOpen(false);
+              setDeviationOpen(false);
               setCommentsOpen((open) => !open);
             }}
           >
@@ -2958,19 +3326,21 @@ export function App({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <HeaderButton
-                className={`simulation-button ${simulationOpen || runbookOpen || occupancyOpen || incidentOpen ? "is-active" : ""}`}
+                className={`simulation-button ${simulationOpen || runbookOpen || occupancyOpen || incidentOpen || deviationOpen ? "is-active" : ""}`}
                 ariaLabel="Open operations"
                 onPointerEnter={() => {
                   void loadRunbookPanel();
                   void loadScenarioPanel();
                   void loadOccupancyPanel();
                   void loadIncidentPanel();
+                  void loadDeviationPanel();
                 }}
                 onFocus={() => {
                   void loadRunbookPanel();
                   void loadScenarioPanel();
                   void loadOccupancyPanel();
                   void loadIncidentPanel();
+                  void loadDeviationPanel();
                 }}
               >
                 OPS <CaretDown size={14} />
@@ -2992,6 +3362,7 @@ export function App({
                   setSimulationOpen(false);
                   setOccupancyOpen(false);
                   setIncidentOpen(false);
+                  setDeviationOpen(false);
                 }}
               >
                 <b>RUNBOOK</b>
@@ -3012,6 +3383,7 @@ export function App({
                   setRunbookOpen(false);
                   setOccupancyOpen(false);
                   setIncidentOpen(false);
+                  setDeviationOpen(false);
                 }}
               >
                 <b>SIM</b>
@@ -3032,6 +3404,7 @@ export function App({
                   setRunbookOpen(false);
                   setSimulationOpen(false);
                   setIncidentOpen(false);
+                  setDeviationOpen(false);
                 }}
               >
                 <b>OCCUPANCY</b>
@@ -3052,12 +3425,34 @@ export function App({
                   setRunbookOpen(false);
                   setSimulationOpen(false);
                   setOccupancyOpen(false);
+                  setDeviationOpen(false);
                 }}
               >
                 <b>INCIDENTS</b>
                 <span>
                   {incidentView.filter((incident) => ["open", "mitigating"].includes(incident.status)).length}
                 </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="export-menu-item"
+                onPointerEnter={() => {
+                  void loadDeviationPanel();
+                }}
+                onFocus={() => {
+                  void loadDeviationPanel();
+                }}
+                onSelect={() => {
+                  setDeviationMounted(true);
+                  setDeviationOpen(true);
+                  setCommentsOpen(false);
+                  setRunbookOpen(false);
+                  setSimulationOpen(false);
+                  setOccupancyOpen(false);
+                  setIncidentOpen(false);
+                }}
+              >
+                <b>DEVIATIONS</b>
+                <span>{deviationRegister?.deviations.filter((item) => item.status === "active").length ?? 0}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -4074,6 +4469,52 @@ export function App({
             }}
             onExport={() => {
               void handleIncidentExport();
+            }}
+          />
+        </Suspense>
+      )}
+      {deviationMounted && (
+        <Suspense
+          fallback={
+            deviationOpen ? (
+              <div className="panel-loading is-side" role="status">
+                DEVIATIONS
+              </div>
+            ) : null
+          }
+        >
+          <LazyDeviationPanel
+            open={deviationOpen}
+            registerId={deviationRegister?.id ?? deviationRegisterId}
+            runbookVersionId={runbook?.versionId ?? null}
+            planId={plannerState.plan.id}
+            planVersion={plannerState.plan.version}
+            deviations={deviationRegister?.deviations ?? []}
+            recommendations={deviationRegister?.recommendations ?? []}
+            ledger={deviationRegister?.ledger ?? []}
+            objectOptions={incidentObjectOptions}
+            syncState={deviationSyncState}
+            onClose={() => setDeviationOpen(false)}
+            onRecord={(input) => {
+              void handleDeviationRecord(input);
+            }}
+            onEnd={(input) => {
+              void handleDeviationEnd(input);
+            }}
+            onPostEvent={(deviationIds) => {
+              void handleDeviationPostEvent(deviationIds);
+            }}
+            onRecover={() => {
+              void handleDeviationRecover();
+            }}
+            onDiscardConflicts={() => {
+              void handleDeviationDiscardConflicts();
+            }}
+            onSync={() => {
+              void handleDeviationSync();
+            }}
+            onExport={() => {
+              void handleDeviationExport();
             }}
           />
         </Suspense>
