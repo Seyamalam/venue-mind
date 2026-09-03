@@ -18,11 +18,15 @@ const completion = {
 test("Worker records only exact aggregate events and exposes metrics to organization administrators", async () => {
   const accounts = createMemoryAccountRepository();
   const analytics = createMemoryProductAnalyticsRepository({ clock: () => NOW });
+  const scopeHashes = [];
   const api = createWorker({
     secureCookies: false,
     clock: () => NOW,
     createAccountRepository: () => accounts,
-    createProductAnalyticsRepository: () => analytics,
+    createProductAnalyticsRepository: (_db, scopeHash) => {
+      scopeHashes.push(scopeHash);
+      return analytics;
+    },
     telemetrySink: { emit: () => undefined },
   });
   const env = { DB: {}, VENUEMIND_AUTH_MODE: "anonymous-demo" };
@@ -70,6 +74,11 @@ test("Worker records only exact aggregate events and exposes metrics to organiza
     JSON.stringify(metrics),
     /project-private|projectId|userId|objectId|scopeHash|url|geometry|comment|content|credential/i,
   );
+  assert.ok(scopeHashes.length > 0);
+  for (const scopeHash of scopeHashes) {
+    assert.match(scopeHash, /^[0-9a-f]{64}$/);
+    assert.notEqual(scopeHash, session.activeOrganizationId);
+  }
 });
 
 test("Worker denies analytics metrics to non-administrators", async () => {

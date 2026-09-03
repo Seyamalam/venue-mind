@@ -139,6 +139,16 @@ export { createD1ProductAnalyticsRepository, createMemoryProductAnalyticsReposit
 
 type ProjectRepository = ReturnType<typeof createD1ProjectRepository>;
 type AccountRepository = ReturnType<typeof createD1AccountRepository>;
+
+const opaqueProductAnalyticsScopeHash = async (organizationId: string): Promise<string> =>
+  [...new Uint8Array(
+    await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(`venuemind-product-analytics\u0000organization\u0000${organizationId}`),
+    ),
+  )]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 type CollaborationRepository = ReturnType<typeof createD1CollaborationRepository>;
 type SharingRepository = ReturnType<typeof createD1SharingRepository>;
 type RunbookRepository = ReturnType<typeof createD1RunbookRepository>;
@@ -1044,9 +1054,7 @@ export function createWorker(options: WorkerOptions = {}) {
       });
       const admin = organization ? isOrganizationAdministrator({ status: "active", roles: organization.roles }) : false;
 
-      const productAnalyticsScopeHash = stableFingerprint("product-analytics-scope", {
-        organizationId: organization?.id ?? "none",
-      });
+      const productAnalyticsScopeHash = await opaqueProductAnalyticsScopeHash(organization?.id ?? "none");
       const productAnalytics = productAnalyticsRepositoryFactory(env.DB, productAnalyticsScopeHash);
       if (url.pathname === "/api/analytics/events" && request.method === "POST") {
         if (!organization)
