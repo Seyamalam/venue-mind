@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "boundaries": [
+    {
+      "id": "planner-command",
+      "evidenceFile": "tests/golden-loop-e2e.test.mjs",
+      "evidenceTest": "failed Approval cannot partially advance Plan, Proposal, or accepted ledger state",
+      "invariant": "A rejected command leaves accepted Plan, Proposal, and accepted ledger state unchanged."
+    },
+    {
+      "id": "constraint-geometry",
+      "evidenceFile": "tests/security-fuzz.test.mjs",
+      "evidenceTest": "bounded geometry fuzzing fails closed without altering the canonical fixture",
+      "invariant": "Invalid geometry cannot alter the canonical Plan fixture."
+    },
+    {
+      "id": "authorization",
+      "evidenceFile": "tests/authorization.test.mjs",
+      "evidenceTest": "planner denies insufficient roles without changing Plan truth and records sanitized evidence",
+      "invariant": "Authorization denial records safe evidence without changing accepted Plan truth."
+    },
+    {
+      "id": "generated-command-schema",
+      "evidenceFile": "tests/security-fuzz.test.mjs",
+      "evidenceTest": "bounded tool-input fuzzing rejects malformed editor commands before accepted or proposed state changes",
+      "invariant": "Malformed generated-contract inputs fail before accepted or proposed state changes."
+    },
+    {
+      "id": "webmcp",
+      "evidenceFile": "tests/security-fuzz.test.mjs",
+      "evidenceTest": "WebMCP resource limits reject oversized fuzz payloads before planner mutation",
+      "invariant": "Rejected WebMCP calls do not reach the Planner mutation boundary."
+    },
+    {
+      "id": "mcp-stdio",
+      "evidenceFile": "tests/mcp-stdio-blackbox.test.mjs",
+      "evidenceTest": "stdio MCP is a black box with schema rejection and no partial Project mutation",
+      "invariant": "Rejected stdio MCP calls leave the Project byte-equivalent."
+    },
+    {
+      "id": "browser-project-recovery",
+      "evidenceFile": "tests/project-store.test.mjs",
+      "evidenceTest": "overlapping stale planning edits fail visibly and preserve local recovery state",
+      "invariant": "A remote conflict cannot erase or silently commit the local recovery branch."
+    },
+    {
+      "id": "worker-http",
+      "evidenceFile": "tests/worker-resource-limits.test.mjs",
+      "evidenceTest": "Worker rejects API JSON resource overruns with stable safe 413 metadata before repositories",
+      "invariant": "Invalid HTTP input is rejected before any repository call."
+    },
+    {
+      "id": "d1-project-transaction",
+      "evidenceFile": "tests/database-migrations.test.mjs",
+      "evidenceTest": "an injected second-statement failure rolls back the entire Project write",
+      "invariant": "A failed D1 batch leaves Project metadata and snapshot rows unchanged."
+    },
+    {
+      "id": "runbook",
+      "evidenceFile": "tests/runbook-repository.test.mjs",
+      "evidenceTest": "Runbook idempotency conflicts and stale batches leave every durable surface unchanged",
+      "invariant": "Rejected Runbook batches leave projection, receipt, transition, and ledger rows unchanged."
+    },
+    {
+      "id": "live-occupancy",
+      "evidenceFile": "tests/live-occupancy.test.mjs",
+      "evidenceTest": "exact retries are duplicate-safe while stale revisions and source rollback fail",
+      "invariant": "Rejected occupancy signals leave the immutable Monitor input unchanged."
+    },
+    {
+      "id": "incident-register",
+      "evidenceFile": "tests/incident-repository.test.mjs",
+      "evidenceTest": "Incident Register writes advance exactly one revision and reject stale or baseline-changing updates",
+      "invariant": "Rejected Incident writes leave the authoritative register unchanged."
+    },
+    {
+      "id": "deviation-register",
+      "evidenceFile": "tests/deviation-repository.test.mjs",
+      "evidenceTest": "Deviation repository advances exactly one revision and rejects stale or baseline-changing writes",
+      "invariant": "Rejected Deviation writes leave the authoritative register unchanged."
+    },
+    {
+      "id": "post-event-review",
+      "evidenceFile": "tests/post-event-review-repository.test.mjs",
+      "evidenceTest": "repository conditionally advances one verified revision and rejects stale or changed baselines",
+      "invariant": "Rejected Post-event Review writes leave the authoritative review unchanged."
+    },
+    {
+      "id": "collaboration",
+      "evidenceFile": "tests/collaboration.test.mjs",
+      "evidenceTest": "durable cursor detects a pruned missed event and resumes in order",
+      "invariant": "A missed collaboration chain forces authoritative recovery instead of synthesizing accepted state."
+    },
+    {
+      "id": "share-lifecycle",
+      "evidenceFile": "tests/sharing-notifications.test.mjs",
+      "evidenceTest": "ledgered create and revoke operations recover when repository finalization fails",
+      "invariant": "A partial Share operation remains pending and reconciles exactly once."
+    },
+    {
+      "id": "interchange-import",
+      "evidenceFile": "tests/interchange.test.mjs",
+      "evidenceTest": "Import Preview rejects malformed geometry, duplicate stable IDs, and locked Proposal mutations",
+      "invariant": "Rejected packages never cross the pure Import Preview boundary."
+    },
+    {
+      "id": "adapter-staging",
+      "evidenceFile": "tests/adapter-contract.test.mjs",
+      "evidenceTest": "adapter review rejects a stale base object checksum without changing accepted Plan or Proposal state",
+      "invariant": "Rejected adapter staging cannot mutate accepted Plan or Proposal state."
+    },
+    {
+      "id": "webhook-receipt",
+      "evidenceFile": "tests/adapter-runtime.test.mjs",
+      "evidenceTest": "webhook delivery is idempotent and altered replay is rejected",
+      "invariant": "An altered webhook retry cannot replace its durable receipt or processed result."
+    },
+    {
+      "id": "operational-resource-reconciliation",
+      "evidenceFile": "tests/operational-resources.test.mjs",
+      "evidenceTest": "incompatible resources do not become substitution options",
+      "invariant": "Incompatible operational supply remains evidence and cannot become a Planning Change."
+    }
+  ]
+}

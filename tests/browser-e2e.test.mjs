@@ -9,7 +9,6 @@ import test from "node:test";
 const executeFile = promisify(execFile);
 const root = path.resolve(new URL("../", import.meta.url).pathname);
 const baseUrl = process.env.VENUEMIND_BROWSER_BASE_URL;
-assert.ok(baseUrl, "VENUEMIND_BROWSER_BASE_URL is required; run npm run test:browser");
 const session = `venuemind-browser-${process.pid}`;
 const visualSession = `${session}-visual`;
 const artifacts = await mkdtemp(path.join(tmpdir(), "venuemind-browser-artifacts-"));
@@ -18,6 +17,7 @@ const browser = async (activeSession, ...arguments_) => {
   const result = await executeFile("agent-browser", ["--session", activeSession, ...arguments_], {
     cwd: root,
     maxBuffer: 4 * 1024 * 1024,
+    timeout: 30_000,
   });
   return result.stdout.trim();
 };
@@ -38,7 +38,9 @@ const closeSessions = async () => {
 
 test.after(closeSessions);
 
-test("real browser registers WebMCP tools and completes the human-supervised golden loop", async () => {
+const browserTestOptions = { skip: baseUrl ? false : "run through npm run test:browser" };
+
+test("real browser registers WebMCP tools and completes the human-supervised golden loop", browserTestOptions, async () => {
   await browser(session, "open", `${baseUrl}/projects`);
   await browser(session, "set", "viewport", "1440", "900");
   await browser(session, "wait", ".projects-brand");
@@ -134,7 +136,7 @@ test("real browser registers WebMCP tools and completes the human-supervised gol
   assert.match(finalResult.status ?? "", /Plan v3\.3 applied/);
 });
 
-test("critical routes expose named interactive controls and keyboard-reachable landmarks", async () => {
+test("critical routes expose named interactive controls and keyboard-reachable landmarks", browserTestOptions, async () => {
   await browser(visualSession, "open", `${baseUrl}/docs`);
   await browser(visualSession, "set", "viewport", "1440", "900");
   const docs = await evaluate(
@@ -177,7 +179,7 @@ test("critical routes expose named interactive controls and keyboard-reachable l
   assert.equal(studio.unnamed, 0);
 });
 
-test("critical docs and Studio review pixels match reviewed baselines", async () => {
+test("critical docs and Studio review pixels match reviewed baselines", browserTestOptions, async () => {
   const cases = [
     { name: "docs-overview", url: `${baseUrl}/docs`, selector: ".docs-shell" },
     { name: "studio-review", url: `${baseUrl}/studio/project-summit-forward`, selector: ".app-shell" },

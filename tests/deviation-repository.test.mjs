@@ -185,6 +185,7 @@ test("Deviation repository advances exactly one revision and rejects stale or ba
     () => repository.put("org-alpha", "project-alpha", changedBaseline, 1),
     (error) => error instanceof DeviationRegisterConflict && error.code === "DEVIATION_REGISTER_BASELINE_IMMUTABLE",
   );
+  assert.deepEqual(await repository.get("org-alpha", "project-alpha", next.id), next);
 });
 
 test("Deviation repository reads fail closed when ledger or row evidence is corrupted", async (t) => {
