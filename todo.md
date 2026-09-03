@@ -994,15 +994,15 @@ Completion gate:
 
 ## 10.2 Responsive workspace
 
-- [ ] Define supported minimum viewport sizes.
-- [ ] Optimize review and Approval for tablet layouts.
-- [ ] Provide a read-only mobile review mode.
-- [ ] Keep precision editing desktop-first unless research justifies mobile editing.
-- [ ] Test docs, dashboard, Studio, exports, and shared reviews across supported sizes.
+- [x] Define supported minimum viewport sizes.
+- [x] Optimize review and Approval for tablet layouts.
+- [x] Provide a read-only mobile review mode.
+- [x] Keep precision editing desktop-first unless research justifies mobile editing.
+- [x] Test docs, dashboard, Studio, exports, and shared reviews across supported sizes.
 
 Completion gate:
 
-- [ ] Reviewers can inspect evidence, request an Adjustment, and approve or reject safely on a supported tablet.
+- [x] Reviewers can inspect evidence, request an Adjustment, and approve or reject safely on a supported tablet.
 
 ## 10.3 Visual system
 
@@ -1019,16 +1019,16 @@ Completion gate:
 
 ## 10.4 Cross-browser and device quality
 
-- [ ] Define supported browsers and versions.
-- [ ] Test Chromium, Safari, and Firefox behavior.
-- [ ] Test high-density and standard-density displays.
-- [ ] Test trackpad, mouse, keyboard, and touch interactions where supported.
-- [ ] Test clipboard, downloads, printing, and local recovery behavior.
-- [ ] Test WebMCP availability and graceful fallback by browser.
+- [x] Define supported browsers and versions.
+- [x] Test Chromium, Safari, and Firefox behavior.
+- [x] Test high-density and standard-density displays.
+- [x] Test trackpad, mouse, keyboard, and touch interactions where supported.
+- [x] Test clipboard, downloads, printing, and local recovery behavior.
+- [x] Test WebMCP availability and graceful fallback by browser.
 
 Completion gate:
 
-- [ ] The golden loop and exports pass the supported-browser matrix with documented WebMCP capability differences.
+- [x] The golden loop and exports pass the supported-browser matrix with documented WebMCP capability differences.
 
 ## 10.5 Next.js and shadcn frontend platform
 

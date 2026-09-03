@@ -10,11 +10,13 @@ import {
 } from "../src/browser-platform.ts";
 
 test("workspace modes preserve desktop editing, tablet Approval, and mobile read-only review", () => {
-  assert.equal(classifyWorkspaceViewport(1440), "desktop");
-  assert.equal(classifyWorkspaceViewport(1024), "desktop");
-  assert.equal(classifyWorkspaceViewport(768), "tablet");
-  assert.equal(classifyWorkspaceViewport(767), "mobile");
-  assert.equal(classifyWorkspaceViewport(360), "mobile");
+  assert.equal(classifyWorkspaceViewport(1440, "fine"), "desktop");
+  assert.equal(classifyWorkspaceViewport(1024, "coarse"), "desktop");
+  assert.equal(classifyWorkspaceViewport(768, "coarse"), "tablet");
+  assert.equal(classifyWorkspaceViewport(767, "coarse"), "mobile");
+  assert.equal(classifyWorkspaceViewport(360, "coarse"), "mobile");
+  assert.equal(classifyWorkspaceViewport(640, "fine"), "desktop");
+  assert.equal(classifyWorkspaceViewport(Number.NaN, "fine"), "mobile");
   assert.equal(SUPPORTED_VIEWPORTS.desktop.editing, true);
   assert.equal(SUPPORTED_VIEWPORTS.tablet.editing, false);
   assert.equal(SUPPORTED_VIEWPORTS.tablet.approval, true);

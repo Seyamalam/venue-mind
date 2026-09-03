@@ -5,9 +5,16 @@ export const SUPPORTED_VIEWPORTS = Object.freeze({
 });
 
 export type WorkspaceViewportMode = keyof typeof SUPPORTED_VIEWPORTS;
+export type WorkspacePrimaryPointer = "coarse" | "fine";
 
-export const classifyWorkspaceViewport = (width: number): WorkspaceViewportMode => {
+export const classifyWorkspaceViewport = (
+  width: number,
+  primaryPointer: WorkspacePrimaryPointer = "coarse",
+): WorkspaceViewportMode => {
   if (!Number.isFinite(width) || width < SUPPORTED_VIEWPORTS.mobile.minimumWidth) return "mobile";
+  // A narrow fine-pointer viewport can be a desktop browser at 200% zoom. Keep
+  // the desktop command set mounted while CSS reflows the workspace.
+  if (primaryPointer === "fine") return "desktop";
   if (width < SUPPORTED_VIEWPORTS.tablet.minimumWidth) return "mobile";
   if (width < SUPPORTED_VIEWPORTS.desktop.minimumWidth) return "tablet";
   return "desktop";

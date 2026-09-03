@@ -670,6 +670,19 @@ button {
   justify-content: flex-end;
   gap: 10px;
 }
+.read-only-chip {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #d6d1c7;
+  border-radius: 999px;
+  padding: 0 10px;
+  color: #686963;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  white-space: nowrap;
+}
 
 .header-button,
 .icon-button {
@@ -4703,7 +4716,67 @@ summary:focus-visible,
   }
 }
 
-@media (max-width: 880px) {
+@media (min-width: 768px) and (max-width: 1023px) {
+  .topbar {
+    min-height: 70px;
+    height: 70px;
+    grid-template-columns: 160px minmax(0, 1fr);
+    padding-inline: 14px;
+  }
+  .brand-block {
+    height: 44px;
+  }
+  .event-heading,
+  .workspace-tablet .top-actions > .organization-select,
+  .workspace-tablet .top-actions > .organization-settings-link,
+  .workspace-tablet .top-actions > .icon-button,
+  .workspace-tablet .top-actions > .compact-control,
+  .workspace-tablet .top-actions > .comments-button,
+  .workspace-tablet .top-actions > .edit-button,
+  .workspace-tablet .top-actions > .share-control,
+  .workspace-tablet .top-actions > .collaboration-control {
+    display: none;
+  }
+  .top-actions {
+    gap: 7px;
+  }
+  .top-actions .header-button {
+    min-height: 44px;
+  }
+  .workspace {
+    height: calc(100dvh - 70px);
+    min-height: 700px;
+    grid-template-columns: minmax(288px, 38vw) minmax(0, 1fr);
+  }
+  .brief-section,
+  .agent-section {
+    padding-inline: 18px;
+  }
+  .canvas-column {
+    grid-template-rows: minmax(0, 1fr) auto;
+    padding: 10px;
+  }
+  .comparison-bar {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .outcome-row {
+    flex-wrap: wrap;
+  }
+  .workspace-tablet .analysis-button,
+  .workspace-tablet .outcome:last-child {
+    display: none;
+  }
+  .history-drawer,
+  .comments-panel,
+  .branch-comparison {
+    inset: 10px !important;
+    width: auto !important;
+    min-width: 0 !important;
+  }
+}
+
+@media (max-width: 767px) {
   .app-shell {
     overflow: auto;
   }
@@ -4729,6 +4802,24 @@ summary:focus-visible,
   .top-actions .icon-button {
     display: inline-flex;
   }
+  .workspace-mobile .top-actions > .organization-select,
+  .workspace-mobile .top-actions > .organization-settings-link,
+  .workspace-mobile .top-actions > .comments-button,
+  .workspace-mobile .top-actions > .edit-button,
+  .workspace-mobile .top-actions > .compact-control,
+  .workspace-mobile .top-actions > .ops-control,
+  .workspace-mobile .collaboration-control,
+  .workspace-mobile .webmcp-control {
+    display: none;
+  }
+  .top-actions {
+    gap: 6px;
+  }
+  .history-button {
+    min-height: 44px;
+    padding-inline: 10px;
+    font-size: 10px;
+  }
   .workspace {
     height: auto;
     min-height: calc(100vh - 70px);
@@ -4740,8 +4831,9 @@ summary:focus-visible,
     border-bottom: 1px solid var(--hairline);
   }
   .canvas-column {
-    min-height: 690px;
-    grid-template-rows: 570px auto;
+    min-height: 600px;
+    grid-template-rows: 500px auto;
+    padding: 8px;
   }
   .comparison-bar {
     grid-template-columns: 1fr;
@@ -4767,9 +4859,8 @@ summary:focus-visible,
     inset: 10px;
     min-width: 0;
   }
-  .comments-panel {
-    inset: 10px;
-    width: auto;
+  .workspace-mobile .comments-panel {
+    display: none;
   }
   .comparison-object-groups {
     grid-template-columns: 1fr 1fr;
@@ -4780,8 +4871,50 @@ summary:focus-visible,
     width: min(420px, calc(100% - 20px));
   }
   .history-drawer {
-    inset: 10px !important;
+    inset: 8px !important;
     width: auto !important;
+  }
+  .workspace-mobile :is(.decision-actions, .waiver-row button, .conflict-row > div, .emergency-review-panel) {
+    display: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .app-shell :is(button, input, textarea, [role="button"], [role="combobox"], [role="menuitem"]) {
+    min-height: 44px;
+  }
+  .proposal-shape {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media print {
+  .topbar,
+  .decision-actions,
+  .comparison-bar,
+  .toast,
+  .sync-conflict-strip,
+  [data-slot="dialog-overlay"],
+  [data-slot="popover-content"],
+  [data-slot="sheet-content"] {
+    display: none !important;
+  }
+  .app-shell,
+  .workspace {
+    min-height: 0;
+    height: auto;
+    overflow: visible;
+  }
+  .workspace {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .brief-panel {
+    overflow: visible;
+  }
+  .canvas-column {
+    min-height: 680px;
+    grid-template-rows: 1fr;
   }
 }
 
