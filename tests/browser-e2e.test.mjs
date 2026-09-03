@@ -38,7 +38,7 @@ const closeSessions = async () => {
 
 test.after(closeSessions);
 
-const browserTestOptions = { skip: baseUrl ? false : "run through npm run test:browser" };
+const browserTestOptions = { skip: baseUrl ? false : "run through npm run test:browser:e2e" };
 
 test("real browser registers WebMCP tools and completes the human-supervised golden loop", browserTestOptions, async () => {
   await browser(session, "open", `${baseUrl}/projects`);
@@ -133,7 +133,7 @@ test("real browser registers WebMCP tools and completes the human-supervised gol
   assert.equal(finalResult.planVersion, "3.3", JSON.stringify(finalResult));
   assert.equal(finalResult.replayStatus, "pass");
   assert.match(finalResult.filename, /v3-3\.json$/);
-  assert.match(finalResult.status ?? "", /Plan v3\.3 applied/);
+  assert.equal(finalResult.status, "PASS · 4 changes · applied");
 });
 
 test("critical routes expose named interactive controls and keyboard-reachable landmarks", browserTestOptions, async () => {
