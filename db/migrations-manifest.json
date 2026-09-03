@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "databaseSchemaVersion": 14,
+  "databaseSchemaVersion": 15,
   "migrations": [
     {
       "version": 1,
@@ -141,6 +141,16 @@
       "source": "/db/migrations/0014_data_protection.sql",
       "wrangler": "/db/wrangler/0014_data_protection.sql",
       "statementCount": 17
+    },
+    {
+      "version": 15,
+      "name": "observability",
+      "checksum": "0dcf2e599ccad179b091e51ee941b03f1e6887951d497bad610d04c79624b44b",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0015_observability.sql",
+      "wrangler": "/db/wrangler/0015_observability.sql",
+      "statementCount": 3
     }
   ]
 }

@@ -238,6 +238,18 @@ export const DATABASE_MIGRATIONS = Object.freeze([
       "DROP TRIGGER reject_event_day_runbook_receipt_delete",
       "CREATE TRIGGER reject_event_day_runbook_receipt_delete BEFORE DELETE ON event_day_runbook_receipts WHEN EXISTS (SELECT 1 FROM projects p WHERE p.id = OLD.project_id) AND NOT EXISTS (SELECT 1 FROM data_retention_purge_leases l WHERE l.runbook_id = OLD.runbook_id AND l.organization_id = OLD.organization_id AND l.project_id = OLD.project_id) BEGIN\n  SELECT RAISE(ABORT, 'RUNBOOK_RECEIPT_APPEND_ONLY');\nEND"
     ]
+  },
+  {
+    "version": 15,
+    "name": "observability",
+    "checksum": "0dcf2e599ccad179b091e51ee941b03f1e6887951d497bad610d04c79624b44b",
+    "destructive": false,
+    "requiresProjectExport": false,
+    "statements": [
+      "CREATE TABLE observability_events (\n  event_id TEXT PRIMARY KEY CHECK (length(event_id) BETWEEN 1 AND 96),\n  scope_hash TEXT NOT NULL CHECK (length(scope_hash) = 64),\n  occurred_at TEXT NOT NULL,\n  correlation_id TEXT NOT NULL CHECK (length(correlation_id) BETWEEN 1 AND 96),\n  component TEXT NOT NULL CHECK (component IN ('client', 'api', 'repository', 'planner', 'adapter')),\n  operation TEXT NOT NULL CHECK (operation IN ('request', 'command', 'policy', 'validation', 'simulation', 'persistence', 'conflict', 'approval', 'ledger', 'integrity', 'external-adapter')),\n  outcome TEXT NOT NULL CHECK (outcome IN ('started', 'ok', 'failed', 'conflict', 'approved', 'rejected', 'cancelled', 'degraded')),\n  level TEXT NOT NULL CHECK (level IN ('info', 'warn', 'error')),\n  duration_ms REAL CHECK (duration_ms IS NULL OR (duration_ms >= 0 AND duration_ms <= 3600000)),\n  action TEXT CHECK (action IS NULL OR length(action) BETWEEN 1 AND 80),\n  error_code TEXT CHECK (error_code IS NULL OR length(error_code) BETWEEN 1 AND 64)\n)",
+      "CREATE INDEX idx_observability_events_time ON observability_events(scope_hash, occurred_at DESC)",
+      "CREATE INDEX idx_observability_events_correlation ON observability_events(scope_hash, correlation_id, occurred_at)"
+    ]
   }
 ]);
-export const DATABASE_SCHEMA_VERSION = 14;
+export const DATABASE_SCHEMA_VERSION = 15;

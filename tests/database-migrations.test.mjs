@@ -69,7 +69,6 @@ test("numbered migration fixtures from every released database version upgrade w
     }
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
-
 test("dry run adopts no metadata and an untracked legacy database upgrades explicitly", async () => {
   const directory = await mkdtemp(path.join(root, ".venuemind-legacy-adoption-"));
   try {
@@ -113,7 +112,7 @@ test("untracked complete event-day runbook schema adopts v8 and applies later op
     const dryRun = await cli("migrate", "--database", database, "--dry-run");
     assert.equal(dryRun.currentVersion, 8);
     assert.equal(dryRun.adoptionRequired, true);
-    assert.deepEqual(dryRun.pending.map((migration) => migration.version), [9, 10, 11, 12, 13, 14]);
+    assert.deepEqual(dryRun.pending.map((migration) => migration.version), [9, 10, 11, 12, 13, 14, 15]);
     const migrated = await cli("migrate", "--database", database);
     assert.equal(migrated.currentVersion, DATABASE_SCHEMA_VERSION);
     assert.equal(migrated.applied.filter((item) => item.adopted).length, 8);

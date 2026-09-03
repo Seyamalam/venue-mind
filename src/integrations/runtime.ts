@@ -22,6 +22,7 @@ import {
 } from "./staging.ts";
 import { createMemoryProcessedBatchStore, type ProcessedBatchStore } from "./processed-batch-store.ts";
 import type { WebhookEventStore } from "./webhook-event-store.ts";
+import { safeCorrelationId, startTelemetrySpan, type TelemetrySink } from "../observability/telemetry.ts";
 
 const clone = <Value>(value: Value): Value => structuredClone(value);
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -445,6 +446,7 @@ interface AdapterRuntimeOptions {
     input: Readonly<{ adapterId: string; adapterVersion: string; capability: AdapterCapability; sourceSystem: string }>,
   ) => Promise<AdapterProjectContext | null> | AdapterProjectContext | null;
   readonly projectContext?: AdapterProjectContext | null;
+  readonly observability?: TelemetrySink;
 }
 
 export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
@@ -453,6 +455,7 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
   const deadLetterSink: DeadLetterSink = options.deadLetterSink ?? { add: async () => Promise.resolve() };
   const processedBatchStore = options.processedBatchStore ?? createMemoryProcessedBatchStore<ProcessedBatch>();
   const webhookEventStore = options.webhookEventStore ?? null;
+  const observability = options.observability;
   const resolveProjectContext =
     typeof options.resolveProjectContext === "function"
       ? options.resolveProjectContext
@@ -589,6 +592,14 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
         ? await adapter.prepareInput(capability, clone(input), { adapterContext: clone(adapterContext) })
         : clone(input);
     const invocationId = adapterInvocationId(definition, capability, preparedInput);
+    const suppliedCorrelationId =
+      isRecord(input) && typeof input["correlationId"] === "string" ? input["correlationId"] : null;
+    const correlationId = safeCorrelationId(suppliedCorrelationId, () => `corr-${invocationId}`);
+    const span = startTelemetrySpan(
+      observability,
+      { component: "adapter", operation: "external-adapter", correlationId, action: capability },
+      { iso: () => new Date(clock()).toISOString(), milliseconds: clock },
+    );
     const inputChecksum = await sha256Checksum(preparedInput);
     const stagesImport = capability === "import" || capability === "synchronize";
     const processedBatchKey = `${definition.id}@${definition.version}:${capability}:${inputChecksum}`;
@@ -602,6 +613,7 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
           { invocationId, inputChecksum },
           preparedInput,
         );
+        span.end("ok");
         return {
           status: "duplicate",
           invocationId,
@@ -639,6 +651,7 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
             preparedInput,
             stored.inserted,
           );
+          if (!stored.inserted) span.end("ok");
           if (!stored.inserted)
             return {
               status: "duplicate",
@@ -647,6 +660,7 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
               duplicateOf: stored.value.completedAt,
               output: clone(stored.value.output) as AdapterOutput<Contracts, Capability>,
             };
+          span.end("ok");
           return {
             status: "succeeded",
             invocationId,
@@ -654,10 +668,14 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
             output: clone(stored.value.output) as AdapterOutput<Contracts, Capability>,
           };
         }
+        span.end("ok");
         return { status: "succeeded", invocationId, attempts, output };
       } catch (cause) {
         const error = asAdapterFailure(cause);
-        if (isPolicyFailure(error)) throw error;
+        if (isPolicyFailure(error)) {
+          span.end("failed", error.code);
+          throw error;
+        }
         const retryable = definition.retryPolicy.retryableCodes.includes(error.code);
         const exhausted = attempt === definition.retryPolicy.maxAttempts;
         attempts.push({
@@ -679,6 +697,7 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
             terminalCode: error.code,
           });
           await deadLetterSink.add(deadLetter);
+          span.end("failed", error.code);
           return { status: "dead-lettered", invocationId, attempts, deadLetter, error };
         }
         const exponential = definition.retryPolicy.initialDelayMs * definition.retryPolicy.multiplier ** (attempt - 1);
@@ -690,6 +709,7 @@ export function createAdapterRuntime(options: AdapterRuntimeOptions = {}) {
         await sleep(delayMs);
       }
     }
+    span.end("failed", "ADAPTER_ATTEMPT_INVALID");
     throw new Error("Unreachable adapter attempt state");
   };
 

@@ -7,6 +7,7 @@ import {
 import { createShortLivedAgentAuthorization, type AgentScope } from "../domain/authorization.ts";
 import { errorPayload, venueError } from "../domain/errors.ts";
 import { measureJsonResource } from "../security/resource-limits.ts";
+import type { TelemetryClock, TelemetrySink } from "../observability/telemetry.ts";
 import {
   createVenueToolService,
   type AuthorizationDenial,
@@ -143,6 +144,8 @@ export interface ExecuteVenueWebMcpToolOptions {
   readonly authorization?: ToolAuthorization;
   readonly clock?: () => string;
   readonly correlationIdFactory?: () => string;
+  readonly observability?: TelemetrySink;
+  readonly telemetryClock?: TelemetryClock;
 }
 
 export interface WebMcpToolResult {
@@ -168,6 +171,8 @@ export async function executeVenueWebMcpTool({
   authorization: suppliedAuthorization,
   clock = () => new Date().toISOString(),
   correlationIdFactory = () => `corr-webmcp-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
+  observability,
+  telemetryClock,
 }: ExecuteVenueWebMcpToolOptions): Promise<WebMcpToolResult> {
   const correlationId = input.correlationId?.trim() || correlationIdFactory();
   const metadata = { toolName: contract.name, contractVersion: contract.contractVersion, correlationId };
@@ -202,6 +207,8 @@ export async function executeVenueWebMcpTool({
         ...(deviationOperations ? { deviationOperations } : {}),
         ...(postEventOperations ? { postEventOperations } : {}),
         recordAuthorizationDenial: (denial) => planner.recordAuthorizationDenial(denial),
+        ...(observability ? { observability } : {}),
+        ...(telemetryClock ? { telemetryClock } : {}),
       });
     const output = await service.execute(contract.name, input, "webmcp", {
       ...(signal ? { signal } : {}),

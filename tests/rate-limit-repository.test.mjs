@@ -59,12 +59,12 @@ class SqliteD1 {
   }
 }
 
-test("migration 13 installs opaque bounded API rate windows and integrity coverage", async (t) => {
+test("migration 13 remains installed with opaque bounded API rate windows and integrity coverage", async (t) => {
   const db = new SqliteD1();
   t.after(() => db.close());
   const migrated = await applyDatabaseMigrations(db);
-  assert.equal(DATABASE_SCHEMA_VERSION, 14);
-  assert.equal(migrated.currentVersion, 14);
+  assert.equal(DATABASE_SCHEMA_VERSION, 15);
+  assert.equal(migrated.currentVersion, DATABASE_SCHEMA_VERSION);
   const columns = await db.prepare("PRAGMA table_info(api_rate_limit_windows)").all();
   assert.deepEqual(
     columns.results.map((column) => column.name),

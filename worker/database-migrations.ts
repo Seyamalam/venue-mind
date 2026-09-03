@@ -44,6 +44,7 @@ const deviationTables = ["event_day_deviation_registers"];
 const postEventReviewTables = ["post_event_reviews"];
 const rateLimitTables = ["api_rate_limit_windows"];
 const dataProtectionTables = ["organization_retention_policies", "project_deletion_requests"];
+const observabilityTables = ["observability_events"];
 
 async function legacyBaseline(db: D1Database) {
   const { results: tableRows } = await db
@@ -103,16 +104,22 @@ async function legacyBaseline(db: D1Database) {
   if (!hasDataProtection && dataProtectionTables.some((table) => tables.has(table)))
     throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasDataProtection && !hasRateLimits) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  const hasObservability = observabilityTables.every((table) => tables.has(table));
+  if (!hasObservability && observabilityTables.some((table) => tables.has(table)))
+    throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  if (hasObservability && !hasDataProtection) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasDeviations && !hasIncidents) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasIncidents && !hasOccupancy) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasOccupancy && !hasRunbooks) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasRunbooks && !hasSharingDelivery) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
-  return hasDataProtection
-    ? 14
+  return hasObservability
+    ? 15
+    : hasDataProtection
+      ? 14
     : hasRateLimits
       ? 13
       : hasPostEventReviews
-      ? 12
+        ? 12
     : hasDeviations
       ? 11
     : hasIncidents
@@ -288,6 +295,10 @@ export async function inspectDatabaseIntegrity(db: D1Database) {
     [
       "rate-limit-window-invalid",
       "SELECT COUNT(*) AS count FROM api_rate_limit_windows WHERE request_count <= 0 OR expires_at <= window_started_at OR length(scope_hash) != 64",
+    ],
+    [
+      "observability-event-invalid",
+      "SELECT COUNT(*) AS count FROM observability_events WHERE length(event_id) NOT BETWEEN 1 AND 96 OR length(scope_hash) != 64 OR length(correlation_id) NOT BETWEEN 1 AND 96 OR duration_ms < 0 OR duration_ms > 3600000",
     ],
   ] satisfies readonly (readonly [string, string])[]) {
     const { results } = await db.prepare(sql).all<{ count: number }>();

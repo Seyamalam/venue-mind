@@ -15,6 +15,13 @@ import {
   type VenuePrincipal,
 } from "../domain/authorization.ts";
 import { venueError } from "../domain/errors.ts";
+import {
+  safeCorrelationId,
+  startTelemetrySpan,
+  telemetryErrorCode,
+  type TelemetryClock,
+  type TelemetrySink,
+} from "../observability/telemetry.ts";
 
 export interface ToolAuthorization {
   readonly principal: VenuePrincipal;
@@ -111,6 +118,8 @@ export interface VenueToolServiceOptions {
   readonly authorization?: ToolAuthorization;
   readonly authorizationProvider?: (context: AuthorizationProviderContext) => MaybePromise<ToolAuthorization>;
   readonly recordAuthorizationDenial?: (denial: AuthorizationDenial) => MaybePromise<void>;
+  readonly observability?: TelemetrySink;
+  readonly telemetryClock?: TelemetryClock;
 }
 
 const contracts = new Map<VenueToolName, VenueToolContract>(
@@ -149,6 +158,8 @@ export function createVenueToolService({
   authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION,
   authorizationProvider,
   recordAuthorizationDenial,
+  observability,
+  telemetryClock,
 }: VenueToolServiceOptions) {
   return Object.freeze({
     async execute(
@@ -165,9 +176,20 @@ export function createVenueToolService({
       if (signal?.aborted) throw venueError("TOOL_CALL_CANCELLED", { toolName: name });
       const contract = contracts.get(name);
       if (!contract) throw venueError("COMMAND_UNSUPPORTED", { toolName: name });
-      const authorization =
-        suppliedAuthorization ?? (await authorizationProvider?.({ name, input, source })) ?? defaultAuthorization;
-      const projectId =
+      const span = startTelemetrySpan(
+        observability,
+        {
+          component: "adapter",
+          operation: "external-adapter",
+          correlationId: safeCorrelationId(input.correlationId, () => `tool-${name.replaceAll(".", "-")}`),
+          action: name,
+        },
+        telemetryClock,
+      );
+      try {
+        const authorization =
+          suppliedAuthorization ?? (await authorizationProvider?.({ name, input, source })) ?? defaultAuthorization;
+        const projectId =
         name === "venue.open_project"
           ? (input.projectId ?? null)
           : (suppliedProjectId ?? authorization.projectId ?? null);
@@ -279,10 +301,15 @@ export function createVenueToolService({
         if (!operation) throw venueError("POST_EVENT_TOOL_UNAVAILABLE", { toolName: name });
         output = await operation(input, operationContext);
       } else {
-        output = await executeCommand(commandForVenueTool(name, input, source), operationContext);
+          output = await executeCommand(commandForVenueTool(name, input, source), operationContext);
+        }
+        if (signal?.aborted) throw venueError("TOOL_CALL_CANCELLED", { toolName: name });
+        span.end("ok");
+        return output;
+      } catch (error) {
+        span.end("failed", error instanceof Error ? telemetryErrorCode(error) : "ADAPTER_FAILED");
+        throw error;
       }
-      if (signal?.aborted) throw venueError("TOOL_CALL_CANCELLED", { toolName: name });
-      return output;
     },
   });
 }

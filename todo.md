@@ -931,17 +931,17 @@ Completion gate:
 
 ## 9.4 Observability
 
-- [ ] Add structured application and worker logs.
-- [ ] Add metrics for command latency, Validation latency, simulation latency, persistence failures, conflicts, and Approval outcomes.
-- [ ] Add traces across client, API, repository, planner, and external adapters.
-- [ ] Add correlation IDs to user-visible diagnostics.
-- [ ] Add dashboards for golden-loop health.
-- [ ] Add alerts for elevated failure rates and data-integrity errors.
-- [ ] Avoid logging raw sensitive Project payloads.
+- [x] Add structured application and worker logs.
+- [x] Add metrics for command latency, Validation latency, simulation latency, persistence failures, conflicts, and Approval outcomes.
+- [x] Add traces across client, API, repository, planner, and external adapters.
+- [x] Add correlation IDs to user-visible diagnostics.
+- [x] Add dashboards for golden-loop health.
+- [x] Add alerts for elevated failure rates and data-integrity errors.
+- [x] Avoid logging raw sensitive Project payloads.
 
 Completion gate:
 
-- [ ] A failed Approval can be traced from UI action through policy, Validation, persistence, and ledger result using one correlation ID.
+- [x] A failed Approval can be traced from UI action through policy, Validation, persistence, and ledger result using one correlation ID.
 
 ## 9.5 Performance
 
