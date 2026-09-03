@@ -873,15 +873,15 @@ Completion gate:
 
 ## 8.5 Post-event review
 
-- [ ] Compare predicted and observed occupancy, queue, flow, and incident outcomes.
-- [ ] Capture structured lessons against requirements and Constraints.
-- [ ] Produce template-improvement Proposals.
-- [ ] Preserve evidence provenance.
-- [ ] Export a concise post-event report.
+- [x] Compare predicted and observed occupancy, queue, flow, and incident outcomes.
+- [x] Capture structured lessons against requirements and Constraints.
+- [x] Produce template-improvement Proposals.
+- [x] Preserve evidence provenance.
+- [x] Export a concise post-event report.
 
 Completion gate:
 
-- [ ] Every recommended template change traces to an observed event-day outcome and remains human-approved.
+- [x] Every recommended template change traces to an observed event-day outcome and remains human-approved.
 
 ---
 
