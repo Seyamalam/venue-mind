@@ -38,6 +38,8 @@
     "typecheck:mcp": "tsc -p packages/mcp-server/tsconfig.json --noEmit",
     "typecheck:sdk": "tsc -p packages/sdk/tsconfig.json --noEmit",
     "check:typesafety": "npm run typecheck && npm run lint",
+    "benchmark:performance": "node scripts/benchmark-performance.mjs",
+    "check:performance": "node scripts/benchmark-performance.mjs --target=large --iterations=3",
     "test": "npm run build && npm run build:worker && node --test tests/*.test.mjs",
     "test:mcp": "npm run build:mcp && node --test tests/mcp-server.test.mjs",
     "test:sdk": "npm run build:sdk && node --test tests/sdk-*.test.mjs",
