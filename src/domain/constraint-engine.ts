@@ -872,7 +872,24 @@ const applyWarningWaivers = (result: ValidationResult, state: ConstraintState): 
 
 export interface ValidationEngine {
   validate(state: ConstraintState): ValidationResult;
+  cacheEvidence(): ValidationCacheEvidence;
   clear(): void;
+}
+export interface ValidationCacheEvidence {
+  readonly strategy: "exact-whole-input";
+  readonly entries: number;
+  readonly maxEntries: number;
+  readonly hits: number;
+  readonly misses: number;
+  readonly evictions: number;
+  readonly lastRun:
+    | {
+        readonly inputFingerprint: string;
+        readonly outcome: "hit" | "miss";
+        readonly reusedConstraintIds: readonly string[];
+        readonly recomputedConstraintIds: readonly string[];
+      }
+    | null;
 }
 export function createValidationEngine({
   maxEntries = 128,
@@ -881,6 +898,10 @@ export function createValidationEngine({
   if (!Number.isInteger(maxEntries) || maxEntries < 1)
     throw new Error("Validation cache maxEntries must be a positive integer");
   const cache = new Map<string, { serializedInput: string; result: ValidationResult }>();
+  let hits = 0;
+  let misses = 0;
+  let evictions = 0;
+  let lastRun: ValidationCacheEvidence["lastRun"] = null;
   return Object.freeze({
     validate(state: ConstraintState): ValidationResult {
       const inputValue = validationInputValue(state);
@@ -890,18 +911,47 @@ export function createValidationEngine({
       if (cached?.serializedInput === serializedInput) {
         cache.delete(inputFingerprint);
         cache.set(inputFingerprint, cached);
+        hits += 1;
+        lastRun = {
+          inputFingerprint,
+          outcome: "hit",
+          reusedConstraintIds: cached.result.checks.map((check) => check.constraintId),
+          recomputedConstraintIds: [],
+        };
         return applyWarningWaivers(clone(cached.result), state);
       }
+      misses += 1;
       const result = computeValidation(state, analyzeSpatial, inputFingerprint);
+      lastRun = {
+        inputFingerprint,
+        outcome: "miss",
+        reusedConstraintIds: [],
+        recomputedConstraintIds: result.checks.map((check) => check.constraintId),
+      };
       cache.set(inputFingerprint, { serializedInput, result: clone(result) });
       if (cache.size > maxEntries) {
         const oldestKey = cache.keys().next().value;
-        if (oldestKey) cache.delete(oldestKey);
+        if (oldestKey) {
+          cache.delete(oldestKey);
+          evictions += 1;
+        }
       }
       return applyWarningWaivers(clone(result), state);
     },
+    cacheEvidence(): ValidationCacheEvidence {
+      return Object.freeze({
+        strategy: "exact-whole-input",
+        entries: cache.size,
+        maxEntries,
+        hits,
+        misses,
+        evictions,
+        lastRun: clone(lastRun),
+      });
+    },
     clear() {
       cache.clear();
+      lastRun = null;
     },
   });
 }
