@@ -2728,6 +2728,387 @@ const deviationExportSchema = {
   additionalProperties: false,
 };
 
+const postEventEvidenceRefSchema = {
+  type: "object",
+  required: ["kind", "id", "fingerprint"],
+  properties: {
+    kind: {
+      enum: [
+        "accepted-plan",
+        "runbook",
+        "occupancy-monitor",
+        "occupancy-projection",
+        "incident-register",
+        "deviation-register",
+        "scenario-run",
+      ],
+    },
+    id: { type: "string", minLength: 1, maxLength: 160 },
+    fingerprint: { type: "string", minLength: 1 },
+  },
+  additionalProperties: false,
+};
+const postEventScopeSchema = {
+  type: "object",
+  required: ["kind", "id"],
+  properties: {
+    kind: { enum: ["venue", "occupancy-zone", "queue", "route", "incident-category"] },
+    id: { type: "string", minLength: 1, maxLength: 160 },
+  },
+  additionalProperties: false,
+};
+const postEventActorEvidenceSchema = {
+  type: "object",
+  required: ["actorType", "actorId", "source", "sessionId", "occurredAt"],
+  properties: {
+    actorType: { enum: ["human", "agent", "system"] },
+    actorId: { type: "string", minLength: 1 },
+    source: { enum: ["studio", "webmcp", "mcp", "system", "agent-tool"] },
+    sessionId: { type: "string", minLength: 1 },
+    occurredAt: { type: "string", format: "date-time" },
+  },
+  additionalProperties: false,
+};
+const postEventPredictionSchema = {
+  type: "object",
+  required: ["key", "family", "metric", "scope", "value", "unit", "betterWhen", "tolerance", "evidenceRefs"],
+  properties: {
+    key: { type: "string", minLength: 1 },
+    family: { enum: ["occupancy", "queue", "flow", "incidents"] },
+    metric: {
+      enum: [
+        "peak-persons",
+        "utilization-ratio",
+        "average-wait-seconds",
+        "p95-wait-seconds",
+        "maximum-queue-persons",
+        "abandonment-ratio",
+        "clearance-seconds",
+        "peak-congestion-index",
+        "backlog-persons",
+        "incident-count",
+        "resolution-seconds",
+      ],
+    },
+    scope: postEventScopeSchema,
+    value: { type: "number" },
+    unit: { enum: ["persons", "ratio", "seconds", "index", "incidents"] },
+    betterWhen: { enum: ["lower", "higher", "target"] },
+    tolerance: {
+      type: "object",
+      required: ["absolute", "relative"],
+      properties: { absolute: { type: "number", minimum: 0 }, relative: { type: "number", minimum: 0 } },
+      additionalProperties: false,
+    },
+    evidenceRefs: { type: "array", minItems: 1, maxItems: 50, items: postEventEvidenceRefSchema },
+  },
+  additionalProperties: false,
+};
+const postEventObservationSchema = {
+  type: "object",
+  required: [
+    "schemaVersion", "id", "predictionKey", "family", "metric", "scope", "value", "unit", "confidence",
+    "evidenceRefs", "recorded",
+  ],
+  properties: {
+    schemaVersion: { const: 1 },
+    id: { type: "string", minLength: 1 },
+    predictionKey: { type: "string", minLength: 1 },
+    family: postEventPredictionSchema.properties.family,
+    metric: postEventPredictionSchema.properties.metric,
+    scope: postEventScopeSchema,
+    value: { type: ["number", "null"] },
+    unit: postEventPredictionSchema.properties.unit,
+    confidence: { enum: ["measured", "estimated", "unavailable"] },
+    evidenceRefs: { type: "array", minItems: 1, maxItems: 50, items: postEventEvidenceRefSchema },
+    recorded: postEventActorEvidenceSchema,
+  },
+  additionalProperties: false,
+};
+const postEventComparisonSchema = {
+  type: "object",
+  required: ["key", "prediction", "observation", "status", "delta", "tolerance", "comparisonFingerprint"],
+  properties: {
+    key: { type: "string", minLength: 1 },
+    prediction: postEventPredictionSchema,
+    observation: { anyOf: [postEventObservationSchema, { type: "null" }] },
+    status: { enum: ["matched", "better", "worse", "insufficient-evidence"] },
+    delta: { type: ["number", "null"] },
+    tolerance: { type: "number", minimum: 0 },
+    comparisonFingerprint: { type: "string", minLength: 1 },
+  },
+  additionalProperties: false,
+};
+const postEventLessonSchema = {
+  type: "object",
+  required: [
+    "schemaVersion", "id", "comparisonKey", "family", "lessonCode", "findingCode", "recommendedActionCode",
+    "requirementIds", "constraintIds", "recorded",
+  ],
+  properties: {
+    schemaVersion: { const: 1 },
+    id: { type: "string", minLength: 1 },
+    comparisonKey: { type: "string", minLength: 1 },
+    family: postEventPredictionSchema.properties.family,
+    lessonCode: { type: "string", minLength: 2, maxLength: 64, pattern: "^[A-Z][A-Z0-9_]{1,63}$" },
+    findingCode: { type: "string", minLength: 2, maxLength: 64, pattern: "^[A-Z][A-Z0-9_]{1,63}$" },
+    recommendedActionCode: { type: "string", minLength: 2, maxLength: 64, pattern: "^[A-Z][A-Z0-9_]{1,63}$" },
+    requirementIds: { type: "array", maxItems: 100, uniqueItems: true, items: { type: "string", minLength: 1 } },
+    constraintIds: { type: "array", maxItems: 100, uniqueItems: true, items: { type: "string", minLength: 1 } },
+    recorded: postEventActorEvidenceSchema,
+  },
+  additionalProperties: false,
+};
+const postEventPlanningChangeSchema = {
+  type: "object",
+  required: ["id"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 160 },
+    number: { type: "integer", minimum: 1 },
+    title: { type: "string", minLength: 1, maxLength: 240 },
+    shortTitle: { type: "string", minLength: 1, maxLength: 120 },
+    label: { type: "string", minLength: 1, maxLength: 240 },
+    editor: { type: "object" },
+    metrics: { type: "array", items: { type: "array", minItems: 2, maxItems: 2, items: { type: "string" } } },
+    targetObjectIds: { type: "array", maxItems: 100, uniqueItems: true, items: { type: "string", minLength: 1 } },
+    targetRequirementIds: { type: "array", maxItems: 100, uniqueItems: true, items: { type: "string", minLength: 1 } },
+    effects: { type: "object" },
+    planningEffects: { type: "array", items: { type: "object" } },
+    spatialEffects: { type: "array", maxItems: 100, items: { type: "object" } },
+    semantic: { type: "object" },
+    lineage: { type: "object" },
+    templateUpdate: { type: "object" },
+  },
+  additionalProperties: false,
+};
+const postEventPlanningChangeInputSchema = {
+  type: "object",
+  required: ["id", "effects"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 160 },
+    title: { type: "string", minLength: 1, maxLength: 240 },
+    shortTitle: { type: "string", minLength: 1, maxLength: 120 },
+    label: { type: "string", minLength: 1, maxLength: 240 },
+    targetObjectIds: { type: "array", maxItems: 100, uniqueItems: true, items: { type: "string", minLength: 1 } },
+    targetRequirementIds: { type: "array", maxItems: 100, uniqueItems: true, items: { type: "string", minLength: 1 } },
+    effects: {
+      type: "object",
+      minProperties: 1,
+      additionalProperties: {
+        oneOf: [
+          { type: "string" },
+          { type: "number" },
+          { type: "boolean" },
+          {
+            type: "object",
+            required: ["kind", "sourceId", "sourceChecksum"],
+            properties: {
+              kind: { type: "string", minLength: 1 },
+              sourceId: { type: "string", minLength: 1 },
+              sourceChecksum: { type: "string", minLength: 1 },
+            },
+            additionalProperties: false,
+          },
+        ],
+      },
+    },
+  },
+  additionalProperties: false,
+};
+const templateImprovementProposalSchema = {
+  type: "object",
+  required: ["schemaVersion", "id", "revision", "status", "target", "proposal", "traces", "created", "review", "publicationStatus"],
+  properties: {
+    schemaVersion: { const: 1 },
+    id: { type: "string", minLength: 1 },
+    revision: { type: "integer", minimum: 1 },
+    status: { enum: ["pending-human-review", "approved-recommendation", "rejected"] },
+    target: {
+      type: "object",
+      required: ["kind", "templateId", "version"],
+      properties: {
+        kind: { enum: ["venue", "room"] },
+        templateId: { type: "string", minLength: 1 },
+        version: { type: "string", minLength: 1 },
+      },
+      additionalProperties: false,
+    },
+    proposal: {
+      type: "object",
+      required: ["id", "baseVersion", "revision", "status", "goal", "changes", "waivers", "validation", "lineage"],
+      properties: {
+        id: { type: "string", minLength: 1 },
+        baseVersion: { type: "string", minLength: 1 },
+        revision: { type: "integer", minimum: 1 },
+        status: { const: "review" },
+        goal: { type: "string", minLength: 1 },
+        changes: { type: "array", minItems: 1, maxItems: 100, items: postEventPlanningChangeInputSchema },
+        waivers: { type: "array", items: { type: "object" } },
+        validation: { anyOf: [{ type: "object" }, { type: "null" }] },
+        lineage: { type: "array", items: { type: "object" } },
+      },
+      additionalProperties: false,
+    },
+    traces: {
+      type: "array",
+      minItems: 1,
+      items: {
+        type: "object",
+        required: ["changeId", "lessonIds", "comparisonKeys", "observationIds"],
+        properties: {
+          changeId: { type: "string", minLength: 1 },
+          lessonIds: { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", minLength: 1 } },
+          comparisonKeys: { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", minLength: 1 } },
+          observationIds: { type: "array", minItems: 1, uniqueItems: true, items: { type: "string", minLength: 1 } },
+        },
+        additionalProperties: false,
+      },
+    },
+    created: postEventActorEvidenceSchema,
+    review: {
+      anyOf: [
+        {
+          type: "object",
+          required: [...postEventActorEvidenceSchema.required, "decision", "reasonCode"],
+          properties: {
+            ...postEventActorEvidenceSchema.properties,
+            decision: { enum: ["approved", "rejected"] },
+            reasonCode: { type: "string", minLength: 1 },
+          },
+          additionalProperties: false,
+        },
+        { type: "null" },
+      ],
+    },
+    publicationStatus: { const: "not-published" },
+  },
+  additionalProperties: false,
+};
+const postEventReceiptSchema = {
+  type: "object",
+  required: ["id", "idempotencyKey", "inputFingerprint", "operation", "subjectId", "aggregateRevision", "ledgerSequence", "acceptedAt"],
+  properties: {
+    id: { type: "string", minLength: 1 },
+    idempotencyKey: { type: "string", minLength: 1 },
+    inputFingerprint: { type: "string", minLength: 1 },
+    operation: { enum: ["record-observation", "record-lesson", "create-template-proposal", "review-template-proposal"] },
+    subjectId: { type: "string", minLength: 1 },
+    aggregateRevision: { type: "integer", minimum: 1 },
+    ledgerSequence: { type: "integer", minimum: 1 },
+    acceptedAt: { type: "string", format: "date-time" },
+  },
+  additionalProperties: false,
+};
+const postEventIntegritySchema = {
+  type: "object",
+  required: ["status", "entries", "headHash", "sequence"],
+  properties: {
+    status: { enum: ["pass", "fail"] },
+    entries: { type: "integer", minimum: 0 },
+    headHash: { type: ["string", "null"] },
+    sequence: { type: ["integer", "null"], minimum: 1 },
+  },
+  additionalProperties: false,
+};
+export const postEventReviewSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://venuemind.dev/schemas/post-event-review.schema.json",
+  title: "VenueMind Post-event Review",
+  type: "object",
+  required: [
+    "schemaVersion", "id", "projectId", "runbookVersionId", "source", "baseline", "predictions", "observations",
+    "lessons", "templateProposals", "transitions", "receipts", "ledger", "revision", "createdAt", "createdBy", "updatedAt",
+  ],
+  properties: {
+    schemaVersion: { const: 1 },
+    id: { type: "string", minLength: 1 },
+    projectId: { type: "string", minLength: 1 },
+    runbookVersionId: { type: "string", minLength: 1 },
+    source: {
+      type: "object",
+      required: [
+        "planId", "planVersion", "planFingerprint", "runbookFingerprint", "runbookLedgerHeadHash",
+        "occupancyMonitorFingerprint", "occupancyProjectionFingerprint", "occupancyLedgerHeadHash",
+        "incidentRegisterFingerprint", "incidentLedgerHeadHash", "deviationRegisterFingerprint", "deviationLedgerHeadHash",
+        "scenarioRunFingerprints",
+      ],
+      properties: {
+        planId: { type: "string", minLength: 1 },
+        planVersion: { type: ["string", "number"] },
+        planFingerprint: { type: "string", minLength: 1 },
+        runbookFingerprint: { type: "string", minLength: 1 },
+        runbookLedgerHeadHash: { type: "string", minLength: 1 },
+        occupancyMonitorFingerprint: { type: "string", minLength: 1 },
+        occupancyProjectionFingerprint: { type: "string", minLength: 1 },
+        occupancyLedgerHeadHash: { type: "string", minLength: 1 },
+        incidentRegisterFingerprint: { type: "string", minLength: 1 },
+        incidentLedgerHeadHash: { type: "string", minLength: 1 },
+        deviationRegisterFingerprint: { type: "string", minLength: 1 },
+        deviationLedgerHeadHash: { type: "string", minLength: 1 },
+        scenarioRunFingerprints: { type: "object", additionalProperties: { type: "string", minLength: 1 } },
+      },
+      additionalProperties: false,
+    },
+    baseline: {
+      type: "object",
+      required: ["runbook", "occupancyMonitor", "occupancyProjection", "incidentRegister", "deviationRegister", "scenarioRuns", "fingerprint"],
+      properties: {
+        runbook: { type: "object" },
+        occupancyMonitor: { $ref: liveOccupancyMonitorSchema.$id },
+        occupancyProjection: { $ref: liveOccupancyProjectionSchema.$id },
+        incidentRegister: { $ref: incidentRegisterSchema.$id },
+        deviationRegister: { $ref: livePlanDeviationRegisterSchema.$id },
+        scenarioRuns: { type: "array", items: { type: "object" } },
+        fingerprint: { type: "string", minLength: 1 },
+      },
+      additionalProperties: false,
+    },
+    predictions: { type: "array", minItems: 1, maxItems: 100, items: postEventPredictionSchema },
+    observations: { type: "array", maxItems: 100, items: postEventObservationSchema },
+    lessons: { type: "array", maxItems: 100, items: postEventLessonSchema },
+    templateProposals: { type: "array", maxItems: 100, items: templateImprovementProposalSchema },
+    transitions: { type: "array", items: { type: "object" } },
+    receipts: { type: "array", items: postEventReceiptSchema },
+    ledger: { type: "array", items: { type: "object" } },
+    revision: { type: "integer", minimum: 0 },
+    createdAt: { type: "string", format: "date-time" },
+    createdBy: { type: "string", minLength: 1 },
+    updatedAt: { type: "string", format: "date-time" },
+  },
+  additionalProperties: false,
+};
+const postEventInspectionResultSchema = {
+  type: "object",
+  required: ["review", "comparisons", "integrity"],
+  properties: {
+    review: { $ref: postEventReviewSchema.$id },
+    comparisons: { type: "array", items: postEventComparisonSchema },
+    integrity: postEventIntegritySchema,
+  },
+  additionalProperties: false,
+};
+const postEventMutationResultSchema = {
+  type: "object",
+  required: ["review", "subject", "receipt", "duplicate"],
+  properties: {
+    review: { $ref: postEventReviewSchema.$id },
+    subject: { oneOf: [postEventObservationSchema, postEventLessonSchema, templateImprovementProposalSchema] },
+    receipt: postEventReceiptSchema,
+    duplicate: { type: "boolean" },
+  },
+  additionalProperties: false,
+};
+const postEventReportExportSchema = {
+  type: "object",
+  required: ["filename", "mimeType", "content"],
+  properties: {
+    filename: { type: "string", minLength: 1 },
+    mimeType: { enum: ["application/json", "text/plain"] },
+    content: { type: "string" },
+  },
+  additionalProperties: false,
+};
+
 const projectSummarySchema = {
   type: "object",
   required: ["id", "name", "activePlanId", "planVersion", "active"],
@@ -3806,6 +4187,96 @@ const baseVenueToolContracts = [
     inputSchema: emptyObject,
   },
   {
+    name: "venue.inspect_post_event_review",
+    description: "Inspect a Runbook-bound Post-event Review, outcome comparisons, Lessons, proposals, and ledger integrity.",
+    annotations: { readOnlyHint: true },
+    inputSchema: emptyObject,
+  },
+  {
+    name: "venue.record_post_event_observation",
+    description: "Record one evidence-bound outcome against a frozen Prediction.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        observationId: { type: "string", minLength: 1, maxLength: 160 },
+        predictionKey: { type: "string", minLength: 1, maxLength: 240 },
+        value: { type: ["number", "null"] },
+        confidence: { enum: ["measured", "estimated", "unavailable"] },
+        evidenceRefs: { type: "array", minItems: 1, maxItems: 50, items: postEventEvidenceRefSchema },
+        expectedRevision: { type: "integer", minimum: 0 },
+        ...mutationMetadataProperties,
+      },
+      required: [
+        "observationId", "predictionKey", "value", "confidence", "evidenceRefs", "expectedRevision", "idempotencyKey",
+      ],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "venue.record_post_event_lesson",
+    description: "Record one Lesson linked to a Comparison and frozen Requirement or Constraint IDs.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        lessonId: { type: "string", minLength: 1, maxLength: 160 },
+        comparisonKey: { type: "string", minLength: 1, maxLength: 240 },
+        lessonCode: { type: "string", minLength: 2, maxLength: 64, pattern: "^[A-Z][A-Z0-9_]{1,63}$" },
+        findingCode: { type: "string", minLength: 2, maxLength: 64, pattern: "^[A-Z][A-Z0-9_]{1,63}$" },
+        recommendedActionCode: { type: "string", minLength: 2, maxLength: 64, pattern: "^[A-Z][A-Z0-9_]{1,63}$" },
+        requirementIds: { type: "array", maxItems: 100, uniqueItems: true, items: { type: "string", minLength: 1 } },
+        constraintIds: { type: "array", maxItems: 100, uniqueItems: true, items: { type: "string", minLength: 1 } },
+        expectedRevision: { type: "integer", minimum: 0 },
+        ...mutationMetadataProperties,
+      },
+      required: [
+        "lessonId", "comparisonKey", "lessonCode", "findingCode", "recommendedActionCode", "requirementIds",
+        "constraintIds", "expectedRevision", "idempotencyKey",
+      ],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "venue.create_template_improvement_proposal",
+    description: "Create an evidence-traced Template Improvement Proposal pending human review.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        proposalId: { type: "string", minLength: 1, maxLength: 160 },
+        goal: { type: "string", minLength: 1, maxLength: 2000 },
+        target: templateImprovementProposalSchema.properties.target,
+        changes: { type: "array", minItems: 1, maxItems: 100, items: postEventPlanningChangeSchema },
+        changeLessonLinks: {
+          type: "array",
+          minItems: 1,
+          maxItems: 100,
+          items: {
+            type: "object",
+            required: ["changeId", "lessonIds"],
+            properties: {
+              changeId: { type: "string", minLength: 1, maxLength: 160 },
+              lessonIds: { type: "array", minItems: 1, maxItems: 100, uniqueItems: true, items: { type: "string", minLength: 1 } },
+            },
+            additionalProperties: false,
+          },
+        },
+        expectedRevision: { type: "integer", minimum: 0 },
+        ...mutationMetadataProperties,
+      },
+      required: ["proposalId", "goal", "target", "changes", "changeLessonLinks", "expectedRevision", "idempotencyKey"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "venue.export_post_event_report",
+    description: "Export an integrity-verified Post-event Report with provenance and ledger evidence.",
+    annotations: { readOnlyHint: true },
+    inputSchema: {
+      type: "object",
+      properties: { format: { enum: ["json", "text"], default: "json" } },
+      additionalProperties: false,
+    },
+  },
+  {
     name: "venue.export_audit_package",
     description:
       "Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.",
@@ -3911,9 +4382,23 @@ export interface VenueToolInput {
   readonly change?: JsonObject;
   readonly expectedDeviationRevision?: number;
   readonly deviationIds?: readonly string[];
+  readonly observationId?: string;
+  readonly predictionKey?: string;
+  readonly value?: number | null;
+  readonly evidenceRefs?: readonly JsonObject[];
+  readonly expectedRevision?: number;
+  readonly lessonId?: string;
+  readonly comparisonKey?: string;
+  readonly lessonCode?: string;
+  readonly findingCode?: string;
+  readonly recommendedActionCode?: string;
+  readonly requirementIds?: readonly string[];
+  readonly target?: JsonObject;
+  readonly changes?: readonly JsonObject[];
+  readonly changeLessonLinks?: readonly JsonObject[];
 }
 
-export const VENUE_TOOL_CONTRACT_VERSION = "1.5.0";
+export const VENUE_TOOL_CONTRACT_VERSION = "1.6.0";
 export const VENUE_TOOL_AUTHORIZATION_SCOPES = Object.freeze([
   "venue:read",
   "venue:propose",
@@ -3934,6 +4419,8 @@ const authorizationScopeForTool = (name: VenueToolName) => {
       "venue.report_incident",
       "venue.record_live_plan_deviation",
       "venue.end_live_plan_deviation",
+      "venue.record_post_event_observation",
+      "venue.record_post_event_lesson",
     ].includes(name)
   )
     return "venue:operate";
@@ -3945,6 +4432,7 @@ const authorizationScopeForTool = (name: VenueToolName) => {
       "venue.export_live_occupancy",
       "venue.export_incident_record",
       "venue.export_live_plan_deviations",
+      "venue.export_post_event_report",
     ].includes(name)
   )
     return "venue:export";
@@ -3962,6 +4450,7 @@ const authorizationScopeForTool = (name: VenueToolName) => {
       "venue.rebase_proposal",
       "venue.request_adjustment",
       "venue.create_post_event_deviation_proposal",
+      "venue.create_template_improvement_proposal",
     ].includes(name)
   )
     return "venue:propose";
@@ -3977,6 +4466,7 @@ const limitsForTool = (name: VenueToolName) =>
       "venue.export_live_occupancy",
       "venue.export_incident_record",
       "venue.export_live_plan_deviations",
+      "venue.export_post_event_report",
     ].includes(name)
       ? 2000000
       : [
@@ -3987,6 +4477,7 @@ const limitsForTool = (name: VenueToolName) =>
             "venue.inspect_live_occupancy",
             "venue.inspect_incidents",
             "venue.inspect_live_plan_deviations",
+            "venue.inspect_post_event_review",
           ].includes(name)
         ? 1048576
         : 262144,
@@ -4122,6 +4613,37 @@ const EXAMPLE_INPUTS: Readonly<Partial<Record<VenueToolName, JsonObject>>> = {
     idempotencyKey: "example-deviation-proposal-001",
   },
   "venue.export_live_plan_deviations": {},
+  "venue.inspect_post_event_review": {},
+  "venue.record_post_event_observation": {
+    observationId: "observation-peak-occupancy",
+    predictionKey: "occupancy:peak-persons:venue:venue",
+    value: 438,
+    confidence: "measured",
+    evidenceRefs: [{ kind: "occupancy-projection", id: "occupancy-runbook-example", fingerprint: "sha256:projection" }],
+    expectedRevision: 0,
+    idempotencyKey: "example-post-event-observation-001",
+  },
+  "venue.record_post_event_lesson": {
+    lessonId: "lesson-capacity-buffer",
+    comparisonKey: "occupancy:peak-persons:venue:venue",
+    lessonCode: "CAPACITY_BUFFER",
+    findingCode: "PEAK_ABOVE_MODEL",
+    recommendedActionCode: "INCREASE_BUFFER",
+    requirementIds: ["req-theater-seating"],
+    constraintIds: ["constraint-capacity"],
+    expectedRevision: 1,
+    idempotencyKey: "example-post-event-lesson-001",
+  },
+  "venue.create_template_improvement_proposal": {
+    proposalId: "template-proposal-capacity",
+    goal: "Increase the standard capacity buffer",
+    target: { kind: "room", templateId: "room-template-harborview-main-hall", version: "1.0.0" },
+    changes: [{ id: "change-capacity-buffer", effects: { capacityBuffer: 20 } }],
+    changeLessonLinks: [{ changeId: "change-capacity-buffer", lessonIds: ["lesson-capacity-buffer"] }],
+    expectedRevision: 2,
+    idempotencyKey: "example-template-improvement-001",
+  },
+  "venue.export_post_event_report": { format: "json" },
   "venue.export_plan": { format: "json" },
 };
 const exampleInputForTool = (name: VenueToolName): JsonObject => EXAMPLE_INPUTS[name] ?? {};
@@ -4174,6 +4696,20 @@ const errorsForTool = (name: VenueToolName, contract: (typeof baseVenueToolContr
       "DEVIATION_REVISION_CONFLICT",
       "DEVIATION_REGISTER_REVISION_CONFLICT",
       "DEVIATION_LEDGER_INTEGRITY_FAILED",
+    );
+  if (name.includes("post_event") || name === "venue.create_template_improvement_proposal")
+    errors.push(
+      "POST_EVENT_REVIEW_NOT_FOUND",
+      "POST_EVENT_TOOL_UNAVAILABLE",
+      "POST_EVENT_INVALID",
+      "POST_EVENT_REVISION_CONFLICT",
+      "POST_EVENT_EVIDENCE_INVALID",
+      "POST_EVENT_OBSERVATION_CONFLICT",
+      "POST_EVENT_COMPARISON_NOT_FOUND",
+      "POST_EVENT_LESSON_NOT_FOUND",
+      "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+      "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+      "POST_EVENT_LEDGER_INTEGRITY_FAILED",
     );
   return Object.freeze([...new Set(errors)]);
 };
@@ -6160,6 +6696,11 @@ const OUTPUT_SCHEMAS = {
   "venue.end_live_plan_deviation": deviationMutationResultSchema,
   "venue.create_post_event_deviation_proposal": deviationMutationResultSchema,
   "venue.export_live_plan_deviations": deviationExportSchema,
+  "venue.inspect_post_event_review": postEventInspectionResultSchema,
+  "venue.record_post_event_observation": postEventMutationResultSchema,
+  "venue.record_post_event_lesson": postEventMutationResultSchema,
+  "venue.create_template_improvement_proposal": postEventMutationResultSchema,
+  "venue.export_post_event_report": postEventReportExportSchema,
   "venue.export_audit_package": planExportSchema,
   "venue.export_plan": planExportSchema,
 } as const satisfies Readonly<Record<VenueToolName, JsonSchema>>;

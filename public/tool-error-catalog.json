@@ -2158,6 +2158,61 @@
       "code": "DEVIATION_LEDGER_INTEGRITY_FAILED",
       "message": "Live Plan Deviation ledger integrity failed.",
       "remediation": "Restore the last verified register state before inspection, recommendation, or export."
+    },
+    {
+      "code": "POST_EVENT_REVIEW_NOT_FOUND",
+      "message": "Post-event Review is unavailable.",
+      "remediation": "Create or restore the Runbook-bound Post-event Review before issuing this command."
+    },
+    {
+      "code": "POST_EVENT_TOOL_UNAVAILABLE",
+      "message": "Post-event Review tooling is unavailable.",
+      "remediation": "Connect a Post-event Review operation adapter before calling this tool."
+    },
+    {
+      "code": "POST_EVENT_INVALID",
+      "message": "Post-event Review input is invalid.",
+      "remediation": "Supply published metric, scope, evidence, lesson, and Proposal fields with stable identifiers."
+    },
+    {
+      "code": "POST_EVENT_REVISION_CONFLICT",
+      "message": "Post-event Review revision conflict.",
+      "remediation": "Refresh the Post-event Review and retry only if the transition is still required."
+    },
+    {
+      "code": "POST_EVENT_EVIDENCE_INVALID",
+      "message": "Post-event evidence does not match the frozen baseline.",
+      "remediation": "Reference an exact evidence ID and fingerprint frozen into this Post-event Review."
+    },
+    {
+      "code": "POST_EVENT_OBSERVATION_CONFLICT",
+      "message": "An Observation already exists for this predicted outcome.",
+      "remediation": "Use the accepted Observation or create a distinct metric scope before recording another outcome."
+    },
+    {
+      "code": "POST_EVENT_COMPARISON_NOT_FOUND",
+      "message": "Post-event Comparison is unavailable.",
+      "remediation": "Inspect the frozen Predictions and retry with an existing comparison key."
+    },
+    {
+      "code": "POST_EVENT_LESSON_NOT_FOUND",
+      "message": "Post-event Lesson is unavailable.",
+      "remediation": "Inspect the Post-event Review and retry with an existing stable Lesson ID."
+    },
+    {
+      "code": "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+      "message": "Template Improvement Proposal is unavailable.",
+      "remediation": "Inspect the Post-event Review and retry with an existing stable Proposal ID."
+    },
+    {
+      "code": "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+      "message": "Template Improvement Proposal is invalid.",
+      "remediation": "Trace every Change through a structured Lesson to an observed event-day outcome and a frozen template binding."
+    },
+    {
+      "code": "POST_EVENT_LEDGER_INTEGRITY_FAILED",
+      "message": "Post-event Review ledger integrity failed.",
+      "remediation": "Restore the last verified Post-event Review before inspection or export."
     }
   ],
   "venue.export_live_plan_deviations": [
@@ -2230,6 +2285,471 @@
       "code": "DEVIATION_LEDGER_INTEGRITY_FAILED",
       "message": "Live Plan Deviation ledger integrity failed.",
       "remediation": "Restore the last verified register state before inspection, recommendation, or export."
+    }
+  ],
+  "venue.inspect_post_event_review": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "POST_EVENT_REVIEW_NOT_FOUND",
+      "message": "Post-event Review is unavailable.",
+      "remediation": "Create or restore the Runbook-bound Post-event Review before issuing this command."
+    },
+    {
+      "code": "POST_EVENT_TOOL_UNAVAILABLE",
+      "message": "Post-event Review tooling is unavailable.",
+      "remediation": "Connect a Post-event Review operation adapter before calling this tool."
+    },
+    {
+      "code": "POST_EVENT_INVALID",
+      "message": "Post-event Review input is invalid.",
+      "remediation": "Supply published metric, scope, evidence, lesson, and Proposal fields with stable identifiers."
+    },
+    {
+      "code": "POST_EVENT_REVISION_CONFLICT",
+      "message": "Post-event Review revision conflict.",
+      "remediation": "Refresh the Post-event Review and retry only if the transition is still required."
+    },
+    {
+      "code": "POST_EVENT_EVIDENCE_INVALID",
+      "message": "Post-event evidence does not match the frozen baseline.",
+      "remediation": "Reference an exact evidence ID and fingerprint frozen into this Post-event Review."
+    },
+    {
+      "code": "POST_EVENT_OBSERVATION_CONFLICT",
+      "message": "An Observation already exists for this predicted outcome.",
+      "remediation": "Use the accepted Observation or create a distinct metric scope before recording another outcome."
+    },
+    {
+      "code": "POST_EVENT_COMPARISON_NOT_FOUND",
+      "message": "Post-event Comparison is unavailable.",
+      "remediation": "Inspect the frozen Predictions and retry with an existing comparison key."
+    },
+    {
+      "code": "POST_EVENT_LESSON_NOT_FOUND",
+      "message": "Post-event Lesson is unavailable.",
+      "remediation": "Inspect the Post-event Review and retry with an existing stable Lesson ID."
+    },
+    {
+      "code": "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+      "message": "Template Improvement Proposal is unavailable.",
+      "remediation": "Inspect the Post-event Review and retry with an existing stable Proposal ID."
+    },
+    {
+      "code": "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+      "message": "Template Improvement Proposal is invalid.",
+      "remediation": "Trace every Change through a structured Lesson to an observed event-day outcome and a frozen template binding."
+    },
+    {
+      "code": "POST_EVENT_LEDGER_INTEGRITY_FAILED",
+      "message": "Post-event Review ledger integrity failed.",
+      "remediation": "Restore the last verified Post-event Review before inspection or export."
+    }
+  ],
+  "venue.record_post_event_observation": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    },
+    {
+      "code": "POST_EVENT_REVIEW_NOT_FOUND",
+      "message": "Post-event Review is unavailable.",
+      "remediation": "Create or restore the Runbook-bound Post-event Review before issuing this command."
+    },
+    {
+      "code": "POST_EVENT_TOOL_UNAVAILABLE",
+      "message": "Post-event Review tooling is unavailable.",
+      "remediation": "Connect a Post-event Review operation adapter before calling this tool."
+    },
+    {
+      "code": "POST_EVENT_INVALID",
+      "message": "Post-event Review input is invalid.",
+      "remediation": "Supply published metric, scope, evidence, lesson, and Proposal fields with stable identifiers."
+    },
+    {
+      "code": "POST_EVENT_REVISION_CONFLICT",
+      "message": "Post-event Review revision conflict.",
+      "remediation": "Refresh the Post-event Review and retry only if the transition is still required."
+    },
+    {
+      "code": "POST_EVENT_EVIDENCE_INVALID",
+      "message": "Post-event evidence does not match the frozen baseline.",
+      "remediation": "Reference an exact evidence ID and fingerprint frozen into this Post-event Review."
+    },
+    {
+      "code": "POST_EVENT_OBSERVATION_CONFLICT",
+      "message": "An Observation already exists for this predicted outcome.",
+      "remediation": "Use the accepted Observation or create a distinct metric scope before recording another outcome."
+    },
+    {
+      "code": "POST_EVENT_COMPARISON_NOT_FOUND",
+      "message": "Post-event Comparison is unavailable.",
+      "remediation": "Inspect the frozen Predictions and retry with an existing comparison key."
+    },
+    {
+      "code": "POST_EVENT_LESSON_NOT_FOUND",
+      "message": "Post-event Lesson is unavailable.",
+      "remediation": "Inspect the Post-event Review and retry with an existing stable Lesson ID."
+    },
+    {
+      "code": "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+      "message": "Template Improvement Proposal is unavailable.",
+      "remediation": "Inspect the Post-event Review and retry with an existing stable Proposal ID."
+    },
+    {
+      "code": "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+      "message": "Template Improvement Proposal is invalid.",
+      "remediation": "Trace every Change through a structured Lesson to an observed event-day outcome and a frozen template binding."
+    },
+    {
+      "code": "POST_EVENT_LEDGER_INTEGRITY_FAILED",
+      "message": "Post-event Review ledger integrity failed.",
+      "remediation": "Restore the last verified Post-event Review before inspection or export."
+    }
+  ],
+  "venue.record_post_event_lesson": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    },
+    {
+      "code": "POST_EVENT_REVIEW_NOT_FOUND",
+      "message": "Post-event Review is unavailable.",
+      "remediation": "Create or restore the Runbook-bound Post-event Review before issuing this command."
+    },
+    {
+      "code": "POST_EVENT_TOOL_UNAVAILABLE",
+      "message": "Post-event Review tooling is unavailable.",
+      "remediation": "Connect a Post-event Review operation adapter before calling this tool."
+    },
+    {
+      "code": "POST_EVENT_INVALID",
+      "message": "Post-event Review input is invalid.",
+      "remediation": "Supply published metric, scope, evidence, lesson, and Proposal fields with stable identifiers."
+    },
+    {
+      "code": "POST_EVENT_REVISION_CONFLICT",
+      "message": "Post-event Review revision conflict.",
+      "remediation": "Refresh the Post-event Review and retry only if the transition is still required."
+    },
+    {
+      "code": "POST_EVENT_EVIDENCE_INVALID",
+      "message": "Post-event evidence does not match the frozen baseline.",
+      "remediation": "Reference an exact evidence ID and fingerprint frozen into this Post-event Review."
+    },
+    {
+      "code": "POST_EVENT_OBSERVATION_CONFLICT",
+      "message": "An Observation already exists for this predicted outcome.",
+      "remediation": "Use the accepted Observation or create a distinct metric scope before recording another outcome."
+    },
+    {
+      "code": "POST_EVENT_COMPARISON_NOT_FOUND",
+      "message": "Post-event Comparison is unavailable.",
+      "remediation": "Inspect the frozen Predictions and retry with an existing comparison key."
+    },
+    {
+      "code": "POST_EVENT_LESSON_NOT_FOUND",
+      "message": "Post-event Lesson is unavailable.",
+      "remediation": "Inspect the Post-event Review and retry with an existing stable Lesson ID."
+    },
+    {
+      "code": "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+      "message": "Template Improvement Proposal is unavailable.",
+      "remediation": "Inspect the Post-event Review and retry with an existing stable Proposal ID."
+    },
+    {
+      "code": "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+      "message": "Template Improvement Proposal is invalid.",
+      "remediation": "Trace every Change through a structured Lesson to an observed event-day outcome and a frozen template binding."
+    },
+    {
+      "code": "POST_EVENT_LEDGER_INTEGRITY_FAILED",
+      "message": "Post-event Review ledger integrity failed.",
+      "remediation": "Restore the last verified Post-event Review before inspection or export."
+    }
+  ],
+  "venue.create_template_improvement_proposal": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REQUIRED",
+      "message": "Idempotency key is required for mutating commands.",
+      "remediation": "Retry with one stable idempotency key for this semantic action."
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_CONFLICT",
+      "message": "Idempotency key conflict.",
+      "remediation": "Use the original command input or generate a new idempotency key."
+    },
+    {
+      "code": "POST_EVENT_REVIEW_NOT_FOUND",
+      "message": "Post-event Review is unavailable.",
+      "remediation": "Create or restore the Runbook-bound Post-event Review before issuing this command."
+    },
+    {
+      "code": "POST_EVENT_TOOL_UNAVAILABLE",
+      "message": "Post-event Review tooling is unavailable.",
+      "remediation": "Connect a Post-event Review operation adapter before calling this tool."
+    },
+    {
+      "code": "POST_EVENT_INVALID",
+      "message": "Post-event Review input is invalid.",
+      "remediation": "Supply published metric, scope, evidence, lesson, and Proposal fields with stable identifiers."
+    },
+    {
+      "code": "POST_EVENT_REVISION_CONFLICT",
+      "message": "Post-event Review revision conflict.",
+      "remediation": "Refresh the Post-event Review and retry only if the transition is still required."
+    },
+    {
+      "code": "POST_EVENT_EVIDENCE_INVALID",
+      "message": "Post-event evidence does not match the frozen baseline.",
+      "remediation": "Reference an exact evidence ID and fingerprint frozen into this Post-event Review."
+    },
+    {
+      "code": "POST_EVENT_OBSERVATION_CONFLICT",
+      "message": "An Observation already exists for this predicted outcome.",
+      "remediation": "Use the accepted Observation or create a distinct metric scope before recording another outcome."
+    },
+    {
+      "code": "POST_EVENT_COMPARISON_NOT_FOUND",
+      "message": "Post-event Comparison is unavailable.",
+      "remediation": "Inspect the frozen Predictions and retry with an existing comparison key."
+    },
+    {
+      "code": "POST_EVENT_LESSON_NOT_FOUND",
+      "message": "Post-event Lesson is unavailable.",
+      "remediation": "Inspect the Post-event Review and retry with an existing stable Lesson ID."
+    },
+    {
+      "code": "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+      "message": "Template Improvement Proposal is unavailable.",
+      "remediation": "Inspect the Post-event Review and retry with an existing stable Proposal ID."
+    },
+    {
+      "code": "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+      "message": "Template Improvement Proposal is invalid.",
+      "remediation": "Trace every Change through a structured Lesson to an observed event-day outcome and a frozen template binding."
+    },
+    {
+      "code": "POST_EVENT_LEDGER_INTEGRITY_FAILED",
+      "message": "Post-event Review ledger integrity failed.",
+      "remediation": "Restore the last verified Post-event Review before inspection or export."
+    }
+  ],
+  "venue.export_post_event_report": [
+    {
+      "code": "TOOL_SCOPE_REQUIRED",
+      "message": "Tool authorization scope is required.",
+      "remediation": "Grant the published scope for this tool or use a read-only tool within the current session."
+    },
+    {
+      "code": "AUTHORIZATION_DENIED",
+      "message": "The current principal is not authorized for this VenueMind action.",
+      "remediation": "Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission."
+    },
+    {
+      "code": "AGENT_GRANT_INVALID",
+      "message": "Agent Grant is invalid.",
+      "remediation": "Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less."
+    },
+    {
+      "code": "TOOL_PAYLOAD_TOO_LARGE",
+      "message": "Tool payload exceeds its published size limit.",
+      "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
+    },
+    {
+      "code": "TOOL_CALL_CANCELLED",
+      "message": "Tool call was cancelled.",
+      "remediation": "Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation."
+    },
+    {
+      "code": "VENUE_INTERNAL_ERROR",
+      "message": "VenueMind could not complete the operation.",
+      "remediation": "Retry once; if the error persists, inspect the server log with the correlation ID."
+    },
+    {
+      "code": "POST_EVENT_REVIEW_NOT_FOUND",
+      "message": "Post-event Review is unavailable.",
+      "remediation": "Create or restore the Runbook-bound Post-event Review before issuing this command."
+    },
+    {
+      "code": "POST_EVENT_TOOL_UNAVAILABLE",
+      "message": "Post-event Review tooling is unavailable.",
+      "remediation": "Connect a Post-event Review operation adapter before calling this tool."
+    },
+    {
+      "code": "POST_EVENT_INVALID",
+      "message": "Post-event Review input is invalid.",
+      "remediation": "Supply published metric, scope, evidence, lesson, and Proposal fields with stable identifiers."
+    },
+    {
+      "code": "POST_EVENT_REVISION_CONFLICT",
+      "message": "Post-event Review revision conflict.",
+      "remediation": "Refresh the Post-event Review and retry only if the transition is still required."
+    },
+    {
+      "code": "POST_EVENT_EVIDENCE_INVALID",
+      "message": "Post-event evidence does not match the frozen baseline.",
+      "remediation": "Reference an exact evidence ID and fingerprint frozen into this Post-event Review."
+    },
+    {
+      "code": "POST_EVENT_OBSERVATION_CONFLICT",
+      "message": "An Observation already exists for this predicted outcome.",
+      "remediation": "Use the accepted Observation or create a distinct metric scope before recording another outcome."
+    },
+    {
+      "code": "POST_EVENT_COMPARISON_NOT_FOUND",
+      "message": "Post-event Comparison is unavailable.",
+      "remediation": "Inspect the frozen Predictions and retry with an existing comparison key."
+    },
+    {
+      "code": "POST_EVENT_LESSON_NOT_FOUND",
+      "message": "Post-event Lesson is unavailable.",
+      "remediation": "Inspect the Post-event Review and retry with an existing stable Lesson ID."
+    },
+    {
+      "code": "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+      "message": "Template Improvement Proposal is unavailable.",
+      "remediation": "Inspect the Post-event Review and retry with an existing stable Proposal ID."
+    },
+    {
+      "code": "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+      "message": "Template Improvement Proposal is invalid.",
+      "remediation": "Trace every Change through a structured Lesson to an observed event-day outcome and a frozen template binding."
+    },
+    {
+      "code": "POST_EVENT_LEDGER_INTEGRITY_FAILED",
+      "message": "Post-event Review ledger integrity failed.",
+      "remediation": "Restore the last verified Post-event Review before inspection or export."
     }
   ],
   "venue.export_audit_package": [

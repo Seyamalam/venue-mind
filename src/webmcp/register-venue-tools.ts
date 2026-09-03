@@ -4,6 +4,7 @@ import type {
   DeviationOperations,
   IncidentOperations,
   OccupancyOperations,
+  PostEventOperations,
   ProjectOperations,
   ToolAuthorization,
 } from "../tools/venue-tool-service.ts";
@@ -52,6 +53,7 @@ export interface RegisterVenueToolOptions {
   readonly occupancyOperations?: Partial<OccupancyOperations>;
   readonly incidentOperations?: Partial<IncidentOperations>;
   readonly deviationOperations?: Partial<DeviationOperations>;
+  readonly postEventOperations?: Partial<PostEventOperations>;
   readonly onLifecycle?: (lifecycle: ToolRegistrationLifecycle) => void;
 }
 
@@ -76,6 +78,7 @@ export async function registerVenueTools(
     occupancyOperations,
     incidentOperations,
     deviationOperations,
+    postEventOperations,
     onLifecycle = () => {},
   }: RegisterVenueToolOptions = {},
 ): Promise<ToolRegistrationLifecycle> {
@@ -115,6 +118,7 @@ export async function registerVenueTools(
               ...(occupancyOperations ? { occupancyOperations } : {}),
               ...(incidentOperations ? { incidentOperations } : {}),
               ...(deviationOperations ? { deviationOperations } : {}),
+              ...(postEventOperations ? { postEventOperations } : {}),
             });
           },
         },

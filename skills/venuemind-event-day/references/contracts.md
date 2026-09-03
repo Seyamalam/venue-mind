@@ -1,6 +1,6 @@
 # Generated contracts
 
-Target tool contract: `1.5.0`.
+Target tool contract: `1.6.0`.
 
 - Tools and errors: `/venue-tools.json`, `/tool-error-catalog.json`
 - Comments and anchors: `/schemas/comment.schema.json`, `/schemas/comment-anchor.schema.json`
@@ -9,6 +9,8 @@ Target tool contract: `1.5.0`.
 - Live Occupancy: `venue.inspect_live_occupancy`, `venue.ingest_occupancy_signal`, `venue.refresh_live_occupancy`, `venue.export_live_occupancy`
 - Live Plan Deviations: `venue.inspect_live_plan_deviations`, `venue.record_live_plan_deviation`, `venue.end_live_plan_deviation`, `venue.create_post_event_deviation_proposal`, `venue.export_live_plan_deviations`
 - Deviation schemas: `/schemas/live-plan-deviation.schema.json`, `/schemas/live-plan-deviation-register.schema.json`, `/schemas/live-plan-deviation-overlay.schema.json`
+- Post-event Review: `venue.inspect_post_event_review`, `venue.record_post_event_observation`, `venue.record_post_event_lesson`, `venue.create_template_improvement_proposal`, `venue.export_post_event_report`
+- Post-event schema: `/schemas/post-event-review.schema.json`
 - Locks: `/schemas/object-lock.schema.json`
 
 Resolve paths against the VenueMind documentation origin. Generated files are canonical.

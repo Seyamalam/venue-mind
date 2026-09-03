@@ -7,7 +7,7 @@ import { venueToolContracts } from "../src/contracts/venue-contracts.ts";
 const root = path.resolve(new URL("../", import.meta.url).pathname);
 
 test("every canonical tool has a concrete output schema and generated SDK output", async () => {
-  assert.equal(venueToolContracts.length, 51);
+  assert.equal(venueToolContracts.length, 56);
   for (const contract of venueToolContracts) {
     assert.equal(typeof contract.outputSchema, "object", contract.name);
     assert.ok(

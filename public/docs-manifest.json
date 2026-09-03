@@ -16,7 +16,7 @@
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.5.0"
+        "Tool contract 1.6.0"
       ],
       "anchors": [
         "model",
@@ -36,7 +36,7 @@
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
         "MCP 0.7.0",
-        "Tool contract 1.5.0"
+        "Tool contract 1.6.0"
       ],
       "anchors": [
         "studio",
@@ -106,7 +106,7 @@
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.5.0"
+        "Tool contract 1.6.0"
       ],
       "anchors": [
         "prerequisites",
@@ -129,7 +129,7 @@
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.5.0"
+        "Tool contract 1.6.0"
       ],
       "anchors": [
         "prepare",
@@ -154,7 +154,7 @@
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.5.0"
+        "Tool contract 1.6.0"
       ],
       "anchors": [
         "create-branches",
@@ -177,7 +177,7 @@
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.5.0"
+        "Tool contract 1.6.0"
       ],
       "anchors": [
         "create-stale-state",
@@ -200,7 +200,7 @@
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.5.0"
+        "Tool contract 1.6.0"
       ],
       "anchors": [
         "collect",
@@ -246,8 +246,8 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "WebMCP 1.5.0",
-        "51 tools"
+        "WebMCP 1.6.0",
+        "56 tools"
       ],
       "anchors": [
         "open",
@@ -270,7 +270,7 @@
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
         "Skills 1.4.0",
-        "Tool contract 1.5.0"
+        "Tool contract 1.6.0"
       ],
       "anchors": [
         "build",
@@ -293,7 +293,7 @@
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.5.0"
+        "Tool contract 1.6.0"
       ],
       "anchors": [
         "preview",
@@ -316,7 +316,7 @@
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.5.0"
+        "Tool contract 1.6.0"
       ],
       "anchors": [
         "seed",
@@ -337,8 +337,8 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "WebMCP 1.5.0",
-        "51 tools"
+        "WebMCP 1.6.0",
+        "56 tools"
       ],
       "anchors": [
         "runtime",
@@ -374,7 +374,7 @@
     {
       "slug": "skills",
       "title": "Agent skills",
-      "description": "Six versioned skill packages teach supervised VenueMind workflows against tool contract 1.5.0.",
+      "description": "Six versioned skill packages teach supervised VenueMind workflows against tool contract 1.6.0.",
       "canonicalPath": "/docs/skills",
       "audience": [
         "agents",
@@ -383,7 +383,7 @@
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
         "Skills 1.4.0",
-        "Tool contract 1.5.0"
+        "Tool contract 1.6.0"
       ],
       "anchors": [
         "plan-skill",
@@ -408,7 +408,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Tool contract 1.5.0",
+        "Tool contract 1.6.0",
         "MCP server 0.7.0"
       ],
       "anchors": [
@@ -432,7 +432,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Tool contract 1.5.0",
+        "Tool contract 1.6.0",
         "WebMCP + MCP"
       ],
       "anchors": [
@@ -490,7 +490,7 @@
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
         "Stable error envelope",
-        "Tool contract 1.5.0"
+        "Tool contract 1.6.0"
       ],
       "anchors": [
         "catalog",
@@ -639,7 +639,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -661,7 +661,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -683,7 +683,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -705,7 +705,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -727,7 +727,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -749,7 +749,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -771,7 +771,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -793,7 +793,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -815,7 +815,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -837,7 +837,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -859,7 +859,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -881,7 +881,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -903,7 +903,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -925,7 +925,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -947,7 +947,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -969,7 +969,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -991,7 +991,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1013,7 +1013,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1035,7 +1035,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1057,7 +1057,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1079,7 +1079,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1101,7 +1101,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1123,7 +1123,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1145,7 +1145,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1167,7 +1167,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1189,7 +1189,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1211,7 +1211,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:comment"
       ],
       "anchors": [
@@ -1233,7 +1233,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:comment"
       ],
       "anchors": [
@@ -1255,7 +1255,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:comment"
       ],
       "anchors": [
@@ -1277,7 +1277,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1299,7 +1299,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1321,7 +1321,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1343,7 +1343,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1365,7 +1365,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:simulate"
       ],
       "anchors": [
@@ -1387,7 +1387,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:simulate"
       ],
       "anchors": [
@@ -1409,7 +1409,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:simulate"
       ],
       "anchors": [
@@ -1431,7 +1431,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:export"
       ],
       "anchors": [
@@ -1453,7 +1453,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1475,7 +1475,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:operate"
       ],
       "anchors": [
@@ -1497,7 +1497,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:operate"
       ],
       "anchors": [
@@ -1519,7 +1519,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:export"
       ],
       "anchors": [
@@ -1541,7 +1541,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1563,7 +1563,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:operate"
       ],
       "anchors": [
@@ -1585,7 +1585,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:export"
       ],
       "anchors": [
@@ -1607,7 +1607,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:read"
       ],
       "anchors": [
@@ -1629,7 +1629,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:operate"
       ],
       "anchors": [
@@ -1651,7 +1651,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:operate"
       ],
       "anchors": [
@@ -1673,7 +1673,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:propose"
       ],
       "anchors": [
@@ -1695,7 +1695,117 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
+        "Scope venue:export"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-inspect-post-event-review",
+      "title": "venue.inspect_post_event_review",
+      "description": "Inspect a Runbook-bound Post-event Review, outcome comparisons, Lessons, proposals, and ledger integrity.",
+      "canonicalPath": "/docs/reference-tool-venue-inspect-post-event-review",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.7.0",
+      "compatibility": [
+        "Contract 1.6.0",
+        "Scope venue:read"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-record-post-event-observation",
+      "title": "venue.record_post_event_observation",
+      "description": "Record one evidence-bound outcome against a frozen Prediction.",
+      "canonicalPath": "/docs/reference-tool-venue-record-post-event-observation",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.7.0",
+      "compatibility": [
+        "Contract 1.6.0",
+        "Scope venue:operate"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-record-post-event-lesson",
+      "title": "venue.record_post_event_lesson",
+      "description": "Record one Lesson linked to a Comparison and frozen Requirement or Constraint IDs.",
+      "canonicalPath": "/docs/reference-tool-venue-record-post-event-lesson",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.7.0",
+      "compatibility": [
+        "Contract 1.6.0",
+        "Scope venue:operate"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-create-template-improvement-proposal",
+      "title": "venue.create_template_improvement_proposal",
+      "description": "Create an evidence-traced Template Improvement Proposal pending human review.",
+      "canonicalPath": "/docs/reference-tool-venue-create-template-improvement-proposal",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.7.0",
+      "compatibility": [
+        "Contract 1.6.0",
+        "Scope venue:propose"
+      ],
+      "anchors": [
+        "contract",
+        "input",
+        "output",
+        "errors",
+        "surfaces"
+      ]
+    },
+    {
+      "slug": "reference-tool-venue-export-post-event-report",
+      "title": "venue.export_post_event_report",
+      "description": "Export an integrity-verified Post-event Report with provenance and ledger evidence.",
+      "canonicalPath": "/docs/reference-tool-venue-export-post-event-report",
+      "audience": [
+        "developers",
+        "agent integrators"
+      ],
+      "lastReviewedVersion": "VenueMind 0.7.0",
+      "compatibility": [
+        "Contract 1.6.0",
         "Scope venue:export"
       ],
       "anchors": [
@@ -1717,7 +1827,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:export"
       ],
       "anchors": [
@@ -1739,7 +1849,7 @@
       ],
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
-        "Contract 1.5.0",
+        "Contract 1.6.0",
         "Scope venue:export"
       ],
       "anchors": [
@@ -2813,7 +2923,7 @@
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.5.0"
+        "Tool contract 1.6.0"
       ],
       "anchors": [
         "architecture",
@@ -2835,7 +2945,7 @@
       "lastReviewedVersion": "VenueMind 0.7.0",
       "compatibility": [
         "Project schema 10",
-        "Tool contract 1.5.0"
+        "Tool contract 1.6.0"
       ],
       "anchors": [
         "schemas",
@@ -2864,6 +2974,7 @@
         "Reviewed 2026-08-27"
       ],
       "anchors": [
+        "tool-contract-1-6-0",
         "tool-contract-1-5-0",
         "tool-contract-1-4-0",
         "tool-contract-1-3-0",

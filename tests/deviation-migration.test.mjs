@@ -55,8 +55,8 @@ test("database migration 11 installs tenant-scoped live deviation registers", as
   const db = new SqliteD1();
   t.after(() => db.close());
   const migrated = await applyDatabaseMigrations(db);
-  assert.equal(DATABASE_SCHEMA_VERSION, 11);
-  assert.equal(migrated.currentVersion, 11);
+  assert.equal(DATABASE_SCHEMA_VERSION, 12);
+  assert.equal(migrated.currentVersion, 12);
   const columns = await db.prepare("PRAGMA table_info(event_day_deviation_registers)").all();
   assert.deepEqual(
     columns.results.map((column) => column.name),

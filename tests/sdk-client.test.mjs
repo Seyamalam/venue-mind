@@ -24,6 +24,11 @@ test("typed client delegates every namespace to the canonical tool seam", async 
       if (name === "venue.end_live_plan_deviation") return { register: { revision: 2 }, deviation: { id: input.deviationId, status: "ended" } };
       if (name === "venue.create_post_event_deviation_proposal") return { register: { revision: 3 }, proposal: { id: input.proposalId } };
       if (name === "venue.export_live_plan_deviations") return { filename: "deviations.json", mediaType: "application/json" };
+      if (name === "venue.inspect_post_event_review") return { review: { revision: 0 }, comparisons: [], integrity: { status: "pass" } };
+      if (name === "venue.record_post_event_observation") return { review: { revision: 1 }, subject: { id: input.observationId } };
+      if (name === "venue.record_post_event_lesson") return { review: { revision: 2 }, subject: { id: input.lessonId } };
+      if (name === "venue.create_template_improvement_proposal") return { review: { revision: 3 }, subject: { id: input.proposalId } };
+      if (name === "venue.export_post_event_report") return { filename: `post-event.${input.format === "text" ? "txt" : "json"}` };
       return { format: input.format ?? "audit" };
     },
   };
@@ -59,6 +64,37 @@ test("typed client delegates every namespace to the canonical tool seam", async 
     deviationIds: ["deviation-1"],
     idempotencyKey: "proposal-1",
   });
+  await client.postEvent.inspect();
+  await client.postEvent.recordObservation({
+    observationId: "observation-1",
+    predictionKey: "occupancy:peak-persons:venue:venue",
+    value: 438,
+    confidence: "measured",
+    evidenceRefs: [{ kind: "accepted-plan", id: "plan-main", fingerprint: "plan-fingerprint" }],
+    expectedRevision: 0,
+    idempotencyKey: "observation-1",
+  });
+  await client.postEvent.recordLesson({
+    lessonId: "lesson-1",
+    comparisonKey: "occupancy:peak-persons:venue:venue",
+    lessonCode: "CAPACITY_BUFFER",
+    findingCode: "PEAK_ABOVE_MODEL",
+    recommendedActionCode: "INCREASE_BUFFER",
+    requirementIds: ["requirement-1"],
+    constraintIds: ["constraint-1"],
+    expectedRevision: 1,
+    idempotencyKey: "lesson-1",
+  });
+  await client.postEvent.createTemplateImprovementProposal({
+    proposalId: "template-proposal-1",
+    goal: "Increase buffer",
+    target: { kind: "room", templateId: "room-template-1", version: "1.0.0" },
+    changes: [{ id: "change-1", effects: { capacityBuffer: 20 } }],
+    changeLessonLinks: [{ changeId: "change-1", lessonIds: ["lesson-1"] }],
+    expectedRevision: 2,
+    idempotencyKey: "template-proposal-1",
+  });
+  await client.postEvent.exportReport("text");
   await client.exports.plan("svg");
   await client.exports.audit();
   await client.exports.deviations();
@@ -74,12 +110,18 @@ test("typed client delegates every namespace to the canonical tool seam", async 
     "venue.record_live_plan_deviation",
     "venue.end_live_plan_deviation",
     "venue.create_post_event_deviation_proposal",
+    "venue.inspect_post_event_review",
+    "venue.record_post_event_observation",
+    "venue.record_post_event_lesson",
+    "venue.create_template_improvement_proposal",
+    "venue.export_post_event_report",
     "venue.export_plan",
     "venue.export_audit_package",
     "venue.export_live_plan_deviations",
   ]);
   assert.deepEqual(calls[1].input, { projectId: "project-main" });
-  assert.deepEqual(calls[10].input, { format: "svg" });
+  assert.deepEqual(calls[14].input, { format: "text" });
+  assert.deepEqual(calls[15].input, { format: "svg" });
   assert.equal(calls[4].signal, controller.signal);
   assert.deepEqual(projectList, {
     source: "repository",

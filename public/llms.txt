@@ -104,6 +104,11 @@ VenueMind lets agents inspect accepted Plans, preview non-destructive Proposals,
 - venue.end_live_plan_deviation: End one active temporary or revision-candidate deviation with optimistic Deviation revision control and an immutable reasoned transition.
 - venue.create_post_event_deviation_proposal: Create a normal review-state Proposal from ended revision-candidate deviations. The accepted Plan remains unchanged and Approval remains human-only in VenueMind Studio.
 - venue.export_live_plan_deviations: Export a verified record that keeps the approved Plan, live deviation overlay, and post-event recommended revisions explicitly separate.
+- venue.inspect_post_event_review: Inspect a Runbook-bound Post-event Review, outcome comparisons, Lessons, proposals, and ledger integrity.
+- venue.record_post_event_observation: Record one evidence-bound outcome against a frozen Prediction.
+- venue.record_post_event_lesson: Record one Lesson linked to a Comparison and frozen Requirement or Constraint IDs.
+- venue.create_template_improvement_proposal: Create an evidence-traced Template Improvement Proposal pending human review.
+- venue.export_post_event_report: Export an integrity-verified Post-event Report with provenance and ledger evidence.
 - venue.export_audit_package: Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.
 - venue.export_plan: Export the validated Plan as JSON, compact text, layered SVG, print-ready plan or emergency PDF, object, inventory, staffing, production, catering, or replenishment CSV, staffing or production SVG, or a portable audit package.
 
@@ -124,7 +129,7 @@ VenueMind lets agents inspect accepted Plans, preview non-destructive Proposals,
 - Validation engine: 2.7.0
 - Simulation engine: 1.2.1
 - Activity Ledger: 1
-- Tool contracts: 1.5.0
+- Tool contracts: 1.6.0
 - MCP server: 0.7.0
 - TypeScript SDK: 0.1.0
 - Agent skills: 1.4.0
@@ -165,4 +170,5 @@ VenueMind lets agents inspect accepted Plans, preview non-destructive Proposals,
 - [Planner snapshot schema](https://venue-mind-jet.vercel.app/schemas/planner-snapshot.schema.json)
 - [Project record schema](https://venue-mind-jet.vercel.app/schemas/project-record.schema.json)
 - [VenueMind Interchange Package schema](https://venue-mind-jet.vercel.app/schemas/venue-project-package.schema.json)
+- [Post-event Review schema](https://venue-mind-jet.vercel.app/schemas/post-event-review.schema.json)
 - [VenueMind Interchange Package example](https://venue-mind-jet.vercel.app/examples/venuemind-project-package.json)

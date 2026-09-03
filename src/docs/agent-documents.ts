@@ -149,6 +149,7 @@ ${(
     ["Planner snapshot schema", "/schemas/planner-snapshot.schema.json"],
     ["Project record schema", "/schemas/project-record.schema.json"],
     ["VenueMind Interchange Package schema", "/schemas/venue-project-package.schema.json"],
+    ["Post-event Review schema", "/schemas/post-event-review.schema.json"],
     ["VenueMind Interchange Package example", "/examples/venuemind-project-package.json"],
   ] satisfies readonly (readonly [string, string])[]
 )

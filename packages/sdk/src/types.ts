@@ -6,6 +6,7 @@ import type {
   VenueMindLivePlanDeviationOverlay,
   VenueMindLivePlanDeviationRegister,
   VenueMindPlannerSnapshot,
+  VenueMindPostEventReview,
   VenueMindPreviewRevisionResult,
   VenueMindProjectListResult,
   VenueMindProjectOpenResult,
@@ -25,6 +26,7 @@ export type {
   VenueMindLivePlanDeviationOverlay,
   VenueMindLivePlanDeviationRegister,
   VenueMindPlannerSnapshot,
+  VenueMindPostEventReview,
   VenueMindPreviewRevisionResult,
   VenueMindProjectListResult,
   VenueMindProjectOpenResult,
@@ -52,6 +54,7 @@ export type PreviewRevisionResult = VenueMindPreviewRevisionResult;
 export type LivePlanDeviation = VenueMindLivePlanDeviation;
 export type LivePlanDeviationRegister = VenueMindLivePlanDeviationRegister;
 export type LivePlanDeviationOverlay = VenueMindLivePlanDeviationOverlay;
+export type PostEventReview = VenueMindPostEventReview;
 
 export type VenueToolInput<Name extends VenueToolName> = VenueMindToolInputMap[Name];
 

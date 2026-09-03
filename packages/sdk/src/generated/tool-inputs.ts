@@ -3664,6 +3664,205 @@ export interface VenueMindToolInputMap {
     correlationId?: string;
   };
   "venue.export_live_plan_deviations": {};
+  "venue.inspect_post_event_review": {};
+  "venue.record_post_event_observation": {
+    observationId: string;
+    predictionKey: string;
+    value: number | null;
+    confidence: "measured" | "estimated" | "unavailable";
+    /**
+     * @minItems 1
+     * @maxItems 50
+     */
+    evidenceRefs: [
+      {
+        kind:
+          | "accepted-plan"
+          | "runbook"
+          | "occupancy-monitor"
+          | "occupancy-projection"
+          | "incident-register"
+          | "deviation-register"
+          | "scenario-run";
+        id: string;
+        fingerprint: string;
+      },
+      ...{
+        kind:
+          | "accepted-plan"
+          | "runbook"
+          | "occupancy-monitor"
+          | "occupancy-projection"
+          | "incident-register"
+          | "deviation-register"
+          | "scenario-run";
+        id: string;
+        fingerprint: string;
+      }[]
+    ];
+    expectedRevision: number;
+    /**
+     * Unique retry key for this semantic command.
+     */
+    idempotencyKey: string;
+    /**
+     * Optional caller correlation identifier.
+     */
+    correlationId?: string;
+  };
+  "venue.record_post_event_lesson": {
+    lessonId: string;
+    comparisonKey: string;
+    lessonCode: string;
+    findingCode: string;
+    recommendedActionCode: string;
+    /**
+     * @maxItems 100
+     */
+    requirementIds: string[];
+    /**
+     * @maxItems 100
+     */
+    constraintIds: string[];
+    expectedRevision: number;
+    /**
+     * Unique retry key for this semantic command.
+     */
+    idempotencyKey: string;
+    /**
+     * Optional caller correlation identifier.
+     */
+    correlationId?: string;
+  };
+  "venue.create_template_improvement_proposal": {
+    proposalId: string;
+    goal: string;
+    target: {
+      kind: "venue" | "room";
+      templateId: string;
+      version: string;
+    };
+    /**
+     * @minItems 1
+     * @maxItems 100
+     */
+    changes: [
+      {
+        id: string;
+        number?: number;
+        title?: string;
+        shortTitle?: string;
+        label?: string;
+        editor?: {
+          [k: string]: unknown;
+        };
+        metrics?: [string, string][];
+        /**
+         * @maxItems 100
+         */
+        targetObjectIds?: string[];
+        /**
+         * @maxItems 100
+         */
+        targetRequirementIds?: string[];
+        effects?: {
+          [k: string]: unknown;
+        };
+        planningEffects?: {
+          [k: string]: unknown;
+        }[];
+        /**
+         * @maxItems 100
+         */
+        spatialEffects?: {
+          [k: string]: unknown;
+        }[];
+        semantic?: {
+          [k: string]: unknown;
+        };
+        lineage?: {
+          [k: string]: unknown;
+        };
+        templateUpdate?: {
+          [k: string]: unknown;
+        };
+      },
+      ...{
+        id: string;
+        number?: number;
+        title?: string;
+        shortTitle?: string;
+        label?: string;
+        editor?: {
+          [k: string]: unknown;
+        };
+        metrics?: [string, string][];
+        /**
+         * @maxItems 100
+         */
+        targetObjectIds?: string[];
+        /**
+         * @maxItems 100
+         */
+        targetRequirementIds?: string[];
+        effects?: {
+          [k: string]: unknown;
+        };
+        planningEffects?: {
+          [k: string]: unknown;
+        }[];
+        /**
+         * @maxItems 100
+         */
+        spatialEffects?: {
+          [k: string]: unknown;
+        }[];
+        semantic?: {
+          [k: string]: unknown;
+        };
+        lineage?: {
+          [k: string]: unknown;
+        };
+        templateUpdate?: {
+          [k: string]: unknown;
+        };
+      }[]
+    ];
+    /**
+     * @minItems 1
+     * @maxItems 100
+     */
+    changeLessonLinks: [
+      {
+        changeId: string;
+        /**
+         * @minItems 1
+         * @maxItems 100
+         */
+        lessonIds: [string, ...string[]];
+      },
+      ...{
+        changeId: string;
+        /**
+         * @minItems 1
+         * @maxItems 100
+         */
+        lessonIds: [string, ...string[]];
+      }[]
+    ];
+    expectedRevision: number;
+    /**
+     * Unique retry key for this semantic command.
+     */
+    idempotencyKey: string;
+    /**
+     * Optional caller correlation identifier.
+     */
+    correlationId?: string;
+  };
+  "venue.export_post_event_report": {
+    format?: "json" | "text";
+  };
   "venue.export_audit_package": {};
   "venue.export_plan": {
     format?:

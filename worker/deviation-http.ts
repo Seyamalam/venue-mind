@@ -371,6 +371,9 @@ const planningChange = (value: unknown, field: string): PlanningChange => {
     ),
   };
 };
+
+export const decodeDeviationPlanningChange = (value: unknown, field = "change"): PlanningChange =>
+  planningChange(value, field);
 const location = (value: unknown, field: string): DeviationLocationInput => {
   if (!isRecord(value)) return invalid("location-invalid", field);
   if (value["kind"] === "plan-object") {

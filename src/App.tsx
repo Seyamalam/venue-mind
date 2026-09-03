@@ -69,6 +69,12 @@ import type {
   RunbookEvidence,
   RunbookTaskStatus,
 } from "./domain/operational-types";
+import type {
+  PostEventEvidenceRef,
+  PostEventPrediction,
+  PostEventReview,
+  PostEventReviewMutationResult,
+} from "./domain/post-event-review-types";
 import type { PlanningChange } from "./domain/planning-effects";
 import type { compareProposalBranches } from "./domain/proposal-comparison";
 import type { detectProposalConflicts } from "./domain/proposal-conflicts";
@@ -79,6 +85,8 @@ import { deriveRunbookHandoff } from "./domain/event-day-runbook";
 import { createOccupancyCommandBus } from "./domain/occupancy-command-bus";
 import { createIncidentCommandBus } from "./domain/incident-command-bus";
 import { createDeviationCommandBus } from "./domain/deviation-command-bus";
+import { createPostEventReviewCommandBus } from "./domain/post-event-review-command-bus";
+import { comparePostEventOutcomes } from "./domain/post-event-review";
 import { createHumanPrincipal, createShortLivedAgentAuthorization } from "./domain/authorization";
 import { venueError } from "./domain/errors";
 import { createProjectStore } from "./persistence/project-store";
@@ -103,10 +111,16 @@ import {
 } from "./persistence/deviation-store";
 import { createDeviationRemote } from "./persistence/deviation-remote";
 import { synchronizeDeviations } from "./persistence/deviation-sync";
+import {
+  createPostEventReviewStore,
+  type PostEventReviewOutboxCommand,
+} from "./persistence/post-event-review-store";
+import { createPostEventReviewRemote } from "./persistence/post-event-review-remote";
+import { synchronizePostEventReview } from "./persistence/post-event-review-sync";
 import { registerVenueTools } from "./webmcp/register-venue-tools";
 import type { RegisterVenueToolOptions, ToolRegistrationLifecycle } from "./webmcp/register-venue-tools";
 import type { WebMcpPlanner } from "./webmcp/tool-runtime";
-import type { IncidentOperations, OccupancyOperations } from "./tools/venue-tool-service";
+import type { IncidentOperations, OccupancyOperations, PostEventOperations } from "./tools/venue-tool-service";
 import {
   VENUE_TOOL_AUTHORIZATION_SCOPES,
   VENUE_TOOL_CONTRACT_VERSION,
@@ -142,6 +156,11 @@ import type { AddCommentInput, EditCommentInput } from "./CommentsPanel";
 import type { OverlayView, ScenarioComparisonView } from "./ScenarioPanel";
 import type { RunbookHandoffInput, RunbookHandoffView } from "./RunbookPanel";
 import type { DeviationEndInput, DeviationRecordInput } from "./DeviationPanel";
+import type {
+  PostEventLessonInput,
+  PostEventObservationInput,
+  PostEventProposalReviewInput,
+} from "./PostEventReviewPanel";
 
 const briefIcons: Record<string, PhosphorIcon> = {
   accessibility: Wheelchair,
@@ -185,6 +204,9 @@ const loadIncidentPanel = () => import("./IncidentPanel").then((module) => ({ de
 const LazyIncidentPanel = lazy(loadIncidentPanel);
 const loadDeviationPanel = () => import("./DeviationPanel").then((module) => ({ default: module.DeviationPanel }));
 const LazyDeviationPanel = lazy(loadDeviationPanel);
+const loadPostEventReviewPanel = () =>
+  import("./PostEventReviewPanel").then((module) => ({ default: module.PostEventReviewPanel }));
+const LazyPostEventReviewPanel = lazy(loadPostEventReviewPanel);
 
 const studioSessionId = `studio-session-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 const uniqueToken = (): string => globalThis.crypto?.randomUUID?.() ?? `${performance.timeOrigin}-${performance.now()}`;
@@ -216,6 +238,7 @@ type ToolRegistrationProps = {
   organizationId: string;
   occupancyOperations: Partial<OccupancyOperations>;
   incidentOperations: Partial<IncidentOperations>;
+  postEventOperations: Partial<PostEventOperations>;
   authorizationProvider: NonNullable<RegisterVenueToolOptions["authorizationProvider"]>;
   onLifecycle: (lifecycle: ToolRegistrationLifecycle) => void;
   navigate: (href: string) => void;
@@ -228,18 +251,23 @@ function ToolRegistration({
   organizationId,
   occupancyOperations,
   incidentOperations,
+  postEventOperations,
   authorizationProvider,
   onLifecycle,
   navigate,
 }: ToolRegistrationProps) {
   const occupancyOperationsRef = useRef(occupancyOperations);
   const incidentOperationsRef = useRef(incidentOperations);
+  const postEventOperationsRef = useRef(postEventOperations);
   useEffect(() => {
     occupancyOperationsRef.current = occupancyOperations;
   }, [occupancyOperations]);
   useEffect(() => {
     incidentOperationsRef.current = incidentOperations;
   }, [incidentOperations]);
+  useEffect(() => {
+    postEventOperationsRef.current = postEventOperations;
+  }, [postEventOperations]);
   useEffect(() => {
     const modelContext = document.modelContext;
     if (typeof modelContext?.registerTool !== "function") {
@@ -335,12 +363,30 @@ function ToolRegistration({
             incidentOperationsRef.current.exportIncidentRecord?.(...args) ??
             Promise.reject(new Error("Incident tools are not ready")),
         };
+        const forwardedPostEventOperations: Partial<PostEventOperations> = {
+          inspectPostEventReview: (...args) =>
+            postEventOperationsRef.current.inspectPostEventReview?.(...args) ??
+            Promise.reject(new Error("Post-event tools are not ready")),
+          recordPostEventObservation: (...args) =>
+            postEventOperationsRef.current.recordPostEventObservation?.(...args) ??
+            Promise.reject(new Error("Post-event tools are not ready")),
+          recordPostEventLesson: (...args) =>
+            postEventOperationsRef.current.recordPostEventLesson?.(...args) ??
+            Promise.reject(new Error("Post-event tools are not ready")),
+          createTemplateImprovementProposal: (...args) =>
+            postEventOperationsRef.current.createTemplateImprovementProposal?.(...args) ??
+            Promise.reject(new Error("Post-event tools are not ready")),
+          exportPostEventReport: (...args) =>
+            postEventOperationsRef.current.exportPostEventReport?.(...args) ??
+            Promise.reject(new Error("Post-event tools are not ready")),
+        };
         await registerVenueTools(modelContext, webMcpPlanner, controller.signal, {
           projectId,
           organizationId,
           projectOperations,
           occupancyOperations: forwardedOccupancyOperations,
           incidentOperations: forwardedIncidentOperations,
+          postEventOperations: forwardedPostEventOperations,
           authorizationProvider,
           onLifecycle,
         });
@@ -472,6 +518,10 @@ const isJsonObject = (value: unknown): value is Readonly<Record<string, unknown>
   typeof value === "object" && value !== null && !Array.isArray(value);
 const isUnknownArray = (value: unknown): value is unknown[] => Array.isArray(value);
 const unknownProperty = (value: unknown, field: string): unknown => (isJsonObject(value) ? value[field] : undefined);
+const postEventErrorCode = (error: unknown, fallback: string): string => {
+  const reason = unknownProperty(unknownProperty(error, "details"), "reason");
+  return typeof reason === "string" ? `${errorCode(error, fallback)} · ${reason.toUpperCase()}` : errorCode(error, fallback);
+};
 const syncCommandResult = (result: object | Promise<object>): object => {
   if ("then" in result && typeof result.then === "function")
     throw new Error("Unexpected asynchronous planner command result");
@@ -598,6 +648,24 @@ const isDeviationMutationResult = (value: object): value is DeviationMutationRes
   typeof value.duplicate === "boolean";
 const deviationMutationResult = (value: object): DeviationMutationResult => {
   if (!isDeviationMutationResult(value)) throw new TypeError("Invalid deviation mutation result");
+  return value;
+};
+const isPostEventReviewMutationResult = (value: object): value is PostEventReviewMutationResult =>
+  "review" in value &&
+  typeof value.review === "object" &&
+  value.review !== null &&
+  "schemaVersion" in value.review &&
+  value.review.schemaVersion === 1 &&
+  "subject" in value &&
+  typeof value.subject === "object" &&
+  value.subject !== null &&
+  "receipt" in value &&
+  typeof value.receipt === "object" &&
+  value.receipt !== null &&
+  "duplicate" in value &&
+  typeof value.duplicate === "boolean";
+const postEventReviewMutationResult = (value: object): PostEventReviewMutationResult => {
+  if (!isPostEventReviewMutationResult(value)) throw new TypeError("Invalid Post-Event Review mutation result");
   return value;
 };
 const isProjectConflict = (value: unknown): value is ProjectConflict =>
@@ -834,6 +902,11 @@ export function App({
   const incidentBus = useMemo(() => createIncidentCommandBus(), []);
   const deviationRemote = useMemo(() => createDeviationRemote({ organizationId }), [organizationId]);
   const deviationBus = useMemo(() => createDeviationCommandBus(), []);
+  const postEventReviewRemote = useMemo(
+    () => createPostEventReviewRemote({ organizationId }),
+    [organizationId],
+  );
+  const postEventReviewBus = useMemo(() => createPostEventReviewCommandBus(), []);
   const subscribeToPlanner = useCallback((listener: () => void) => planner.subscribe(listener), [planner]);
   const plannerSnapshot = useCallback(() => planner.getSnapshot(), [planner]);
   const plannerState = useSyncExternalStore(subscribeToPlanner, plannerSnapshot, plannerSnapshot);
@@ -968,6 +1041,15 @@ export function App({
     conflictCount: number;
     lastSyncedAt: string | null;
   }>({ state: "offline", pendingCount: 0, conflictCount: 0, lastSyncedAt: null });
+  const [postEventReviewOpen, setPostEventReviewOpen] = useState(false);
+  const [postEventReviewMounted, setPostEventReviewMounted] = useState(false);
+  const [postEventReview, setPostEventReview] = useState<PostEventReview | null>(null);
+  const [postEventReviewSyncState, setPostEventReviewSyncState] = useState<{
+    state: string;
+    pendingCount: number;
+    conflictCount: number;
+    lastSyncedAt: string | null;
+  }>({ state: "offline", pendingCount: 0, conflictCount: 0, lastSyncedAt: null });
   const deviationRegisterId = runbook ? `deviations-${runbook.versionId}` : null;
   const deviationStore = useMemo(
     () =>
@@ -976,8 +1058,21 @@ export function App({
         : null,
     [deviationRegisterId, organizationId, projectId],
   );
+  const postEventReviewId = runbook ? `post-event-${runbook.versionId}` : null;
+  const postEventReviewStore = useMemo(
+    () =>
+      postEventReviewId
+        ? createPostEventReviewStore({ organizationId, projectId, reviewId: postEventReviewId })
+        : null,
+    [organizationId, postEventReviewId, projectId],
+  );
+  const postEventComparisons = useMemo(
+    () => (postEventReview ? comparePostEventOutcomes(postEventReview) : []),
+    [postEventReview],
+  );
   const incidentClientSequence = useRef(0);
   const deviationClientSequence = useRef(0);
+  const postEventReviewClientSequence = useRef(0);
   const occupancyClientSequence = useRef(0);
   const runbookClientSequence = useRef(0);
   const runbookBus = useMemo(
@@ -1326,6 +1421,68 @@ export function App({
       active = false;
     };
   }, [deviationBus, deviationRegisterId, deviationRemote, deviationStore, projectId]);
+
+  useEffect(() => {
+    let active = true;
+    if (!postEventReviewStore || !postEventReviewId) {
+      postEventReviewBus.hydrate(null);
+      void Promise.resolve().then(() => {
+        if (active) setPostEventReview(null);
+      });
+      return () => { active = false; };
+    }
+    void postEventReviewStore.hydrate().then(async ({ review: cached, outbox, recovery }) => {
+      if (!active) return;
+      postEventReviewClientSequence.current = Math.max(
+        0,
+        ...outbox.map((entry) => entry.command.clientSequence),
+      );
+      if (recovery)
+        setPostEventReviewSyncState({
+          state: "recovery",
+          pendingCount: outbox.length,
+          conflictCount: outbox.filter((entry) => entry.syncStatus !== "pending").length,
+          lastSyncedAt: null,
+        });
+      if (!cached) return;
+      postEventReviewBus.hydrate(cached);
+      setPostEventReview(cached);
+      setPostEventReviewSyncState({
+        state: outbox.length ? "offline" : "syncing",
+        pendingCount: outbox.length,
+        conflictCount: outbox.filter((entry) => entry.syncStatus !== "pending").length,
+        lastSyncedAt: cached.updatedAt,
+      });
+      try {
+        const result = await synchronizePostEventReview({
+          projectId,
+          reviewId: postEventReviewId,
+          store: postEventReviewStore,
+          remote: postEventReviewRemote,
+        });
+        if (!active) return;
+        postEventReviewBus.hydrate(result.review);
+        setPostEventReview(result.review);
+        setPostEventReviewSyncState(result.syncState);
+      } catch {
+        if (!active) return;
+        const remaining = await postEventReviewStore.listOutbox();
+        setPostEventReviewSyncState({
+          state: "offline",
+          pendingCount: remaining.length,
+          conflictCount: remaining.filter((entry) => entry.syncStatus !== "pending").length,
+          lastSyncedAt: cached.updatedAt,
+        });
+      }
+    });
+    return () => { active = false; };
+  }, [
+    postEventReviewBus,
+    postEventReviewId,
+    postEventReviewRemote,
+    postEventReviewStore,
+    projectId,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2917,6 +3074,365 @@ export function App({
     }
   };
 
+  const postEventPredictions = (): readonly PostEventPrediction[] => {
+    if (!runbook) return [];
+    const plan = runbook.baseline.acceptedPlan;
+    const planEvidence = {
+      kind: "accepted-plan" as const,
+      id: plan.id,
+      fingerprint: runbook.source.planFingerprint,
+    };
+    return [
+      {
+        key: "occupancy:peak-persons:venue:venue",
+        family: "occupancy",
+        metric: "peak-persons",
+        scope: { kind: "venue", id: "venue" },
+        value: runbook.baseline.acceptedBrief.attendeeTarget,
+        unit: "persons",
+        betterWhen: "target",
+        tolerance: { absolute: 10, relative: 0.02 },
+        evidenceRefs: [planEvidence],
+      },
+      {
+        key: "incidents:incident-count:incident-category:all",
+        family: "incidents",
+        metric: "incident-count",
+        scope: { kind: "incident-category", id: "all" },
+        value: 0,
+        unit: "incidents",
+        betterWhen: "lower",
+        tolerance: { absolute: 0, relative: 0 },
+        evidenceRefs: [planEvidence],
+      },
+    ];
+  };
+
+  const ensurePostEventReview = async () => {
+    const cached = postEventReviewBus.getSnapshot();
+    if (cached) return cached;
+    if (!runbook || !postEventReviewStore || !postEventReviewId)
+      throw venueError("POST_EVENT_BASELINE_INVALID", { reason: "runbook-required" });
+    const occupancy = occupancyMonitor && occupancyProjection
+      ? { monitor: occupancyMonitor, projection: occupancyProjection }
+      : await handleCreateOccupancy();
+    if (!occupancy) throw venueError("POST_EVENT_BASELINE_INVALID", { reason: "occupancy-required" });
+    const incident = await ensureIncidentRegister();
+    const deviation = await ensureDeviationRegister();
+    const scenarioRuns = plannerState.scenarioRuns.filter(
+      (run) =>
+        run.status === "completed" &&
+        run.planId === runbook.baseline.acceptedPlan.id &&
+        run.planVersion === String(runbook.baseline.acceptedPlan.version),
+    );
+    const predictions = postEventPredictions();
+    try {
+      const result = await postEventReviewRemote.create(projectId, {
+        runbookVersionId: runbook.versionId,
+        occupancyMonitorId: occupancy.monitor.id,
+        incidentRegisterId: incident.id,
+        deviationRegisterId: deviation.id,
+        scenarioRunIds: scenarioRuns.map(({ id }) => id),
+        predictions,
+      });
+      postEventReviewBus.hydrate(result.review);
+      await postEventReviewStore.saveReview(result.review, { authoritative: true });
+      setPostEventReview(result.review);
+      setPostEventReviewSyncState({
+        state: "online",
+        pendingCount: 0,
+        conflictCount: 0,
+        lastSyncedAt: result.review.updatedAt,
+      });
+      return result.review;
+    } catch (remoteError) {
+      postEventReviewBus.execute({
+        type: "create_post_event_review",
+        projectId,
+        runbook,
+        occupancyMonitor: occupancy.monitor,
+        occupancyProjection: occupancy.projection,
+        incidentRegister: incident,
+        deviationRegister: deviation,
+        scenarioRuns,
+        predictions,
+        createdAt: new Date().toISOString(),
+        createdBy: studioActorId,
+      });
+      const local = postEventReviewBus.getSnapshot();
+      if (!local) throw remoteError;
+      await postEventReviewStore.saveReview(local);
+      setPostEventReview(local);
+      setPostEventReviewSyncState({
+        state: "offline",
+        pendingCount: 0,
+        conflictCount: 0,
+        lastSyncedAt: null,
+      });
+      return local;
+    }
+  };
+
+  const postEventReviewMetadata = (type: string, expectedRevision: number) => {
+    const identity = uniqueToken();
+    const committedAt = new Date().toISOString();
+    return {
+      operationId: `post-event-operation-${identity}`,
+      idempotencyKey: `post-event-${type}-${identity}`,
+      correlationId: `studio-post-event-${identity}`,
+      clientId: `studio-${projectId}`,
+      clientSequence: ++postEventReviewClientSequence.current,
+      clientOccurredAt: committedAt,
+      projectId,
+      expectedRevision,
+      actorType: "human" as const,
+      actorId: studioActorId,
+      source: "studio" as const,
+      sessionId: studioSessionId,
+      committedAt,
+    };
+  };
+
+  const applyPostEventReviewCommand = async (command: PostEventReviewOutboxCommand) => {
+    if (!postEventReviewStore) throw venueError("POST_EVENT_REVIEW_NOT_FOUND");
+    const result = postEventReviewMutationResult(postEventReviewBus.execute(command));
+    if (!result.duplicate) await postEventReviewStore.enqueue(command);
+    await postEventReviewStore.saveReview(result.review);
+    setPostEventReview(result.review);
+    const outbox = await postEventReviewStore.listOutbox();
+    setPostEventReviewSyncState({
+      state: "offline",
+      pendingCount: outbox.length,
+      conflictCount: outbox.filter((entry) => entry.syncStatus !== "pending").length,
+      lastSyncedAt: result.review.updatedAt,
+    });
+    return result;
+  };
+
+  const handlePostEventReviewSync = async () => {
+    if (!postEventReviewStore || !postEventReviewId) return null;
+    const candidate = postEventReviewBus.getSnapshot() ?? (await ensurePostEventReview());
+    const outbox = await postEventReviewStore.listOutbox();
+    setPostEventReviewSyncState((current) => ({ ...current, state: "syncing", pendingCount: outbox.length }));
+    try {
+      await postEventReviewRemote.create(projectId, {
+        runbookVersionId: candidate.runbookVersionId,
+        occupancyMonitorId: candidate.baseline.occupancyMonitor.id,
+        incidentRegisterId: candidate.baseline.incidentRegister.id,
+        deviationRegisterId: candidate.baseline.deviationRegister.id,
+        scenarioRunIds: candidate.baseline.scenarioRuns.map(({ id }) => id),
+        predictions: candidate.predictions,
+      });
+      const result = await synchronizePostEventReview({
+        projectId,
+        reviewId: postEventReviewId,
+        store: postEventReviewStore,
+        remote: postEventReviewRemote,
+      });
+      postEventReviewBus.hydrate(result.review);
+      setPostEventReview(result.review);
+      setPostEventReviewSyncState(result.syncState);
+      notify(result.syncState.state === "online" ? "POST-EVENT SYNCED" : "POST-EVENT CONFLICT");
+      return result;
+    } catch (error) {
+      const remaining = await postEventReviewStore.listOutbox();
+      setPostEventReviewSyncState({
+        state: "offline",
+        pendingCount: remaining.length,
+        conflictCount: remaining.filter((entry) => entry.syncStatus !== "pending").length,
+        lastSyncedAt: candidate.updatedAt,
+      });
+      notify(errorCode(error, "POST-EVENT SYNC FAILED"));
+      return null;
+    }
+  };
+
+  const handlePostEventReviewRecover = async () => {
+    if (!postEventReviewStore || !postEventReviewId) return null;
+    try {
+      const result = await postEventReviewRemote.get(projectId, postEventReviewId);
+      postEventReviewBus.hydrate(result.review);
+      await postEventReviewStore.saveReview(result.review, { authoritative: true });
+      setPostEventReview(result.review);
+      const pending = await postEventReviewStore.listOutbox();
+      setPostEventReviewSyncState({
+        state: pending.length ? "offline" : "online",
+        pendingCount: pending.length,
+        conflictCount: pending.filter((entry) => entry.syncStatus !== "pending").length,
+        lastSyncedAt: result.review.updatedAt,
+      });
+      notify("POST-EVENT RECOVERED");
+      return result;
+    } catch {
+      postEventReviewBus.hydrate(null);
+      setPostEventReview(null);
+      return ensurePostEventReview();
+    }
+  };
+
+  const handlePostEventReviewDiscardConflicts = async () => {
+    if (!postEventReviewStore || !postEventReviewId) return null;
+    try {
+      await postEventReviewStore.discardConflicts();
+      const result = await postEventReviewRemote.get(projectId, postEventReviewId);
+      postEventReviewBus.hydrate(result.review);
+      await postEventReviewStore.saveReview(result.review, { authoritative: true });
+      setPostEventReview(result.review);
+      const pending = await postEventReviewStore.listOutbox();
+      setPostEventReviewSyncState({
+        state: pending.length ? "offline" : "online",
+        pendingCount: pending.length,
+        conflictCount: 0,
+        lastSyncedAt: result.review.updatedAt,
+      });
+      notify("POST-EVENT CONFLICTS DISCARDED");
+      return result;
+    } catch (error) {
+      notify(errorCode(error, "POST-EVENT DISCARD FAILED"));
+      return null;
+    }
+  };
+
+  const postEventObservationEvidence = (review: PostEventReview, predictionKey: string): PostEventEvidenceRef[] => {
+    const family = review.predictions.find(({ key }) => key === predictionKey)?.family;
+    if (family === "incidents")
+      return [{ kind: "incident-register", id: review.baseline.incidentRegister.id, fingerprint: review.source.incidentRegisterFingerprint }];
+    if (family === "flow")
+      return [{ kind: "deviation-register", id: review.baseline.deviationRegister.id, fingerprint: review.source.deviationRegisterFingerprint }];
+    return [{ kind: "occupancy-projection", id: review.baseline.occupancyMonitor.id, fingerprint: review.source.occupancyProjectionFingerprint }];
+  };
+
+  const handlePostEventObservation = async (input: PostEventObservationInput) => {
+    try {
+      const review = await ensurePostEventReview();
+      const result = await applyPostEventReviewCommand({
+        type: "record_post_event_observation",
+        observationId: `observation-${stableFingerprint("post-event-observation", {
+          reviewId: review.id,
+          predictionKey: input.predictionKey,
+          revision: review.revision,
+        }).slice(-16)}`,
+        predictionKey: input.predictionKey,
+        value: input.value,
+        confidence: input.confidence,
+        evidenceRefs: postEventObservationEvidence(review, input.predictionKey),
+        ...postEventReviewMetadata("observation", review.revision),
+      });
+      notify("OBSERVATION · LOCAL");
+      void handlePostEventReviewSync();
+      return result;
+    } catch (error) {
+      notify(errorCode(error, "OBSERVATION BLOCKED"));
+      return null;
+    }
+  };
+
+  const handlePostEventLesson = async (input: PostEventLessonInput) => {
+    try {
+      const review = await ensurePostEventReview();
+      const result = await applyPostEventReviewCommand({
+        type: "record_post_event_lesson",
+        lessonId: `lesson-${stableFingerprint("post-event-lesson", {
+          reviewId: review.id,
+          comparisonKey: input.comparisonKey,
+          revision: review.revision,
+        }).slice(-16)}`,
+        comparisonKey: input.comparisonKey,
+        lessonCode: input.lessonCode,
+        findingCode: input.findingCode,
+        recommendedActionCode: input.recommendedActionCode,
+        requirementIds: input.linkKind === "requirement" ? [input.linkId] : [],
+        constraintIds: input.linkKind === "constraint" ? [input.linkId] : [],
+        ...postEventReviewMetadata("lesson", review.revision),
+      });
+      notify("LESSON · LOCAL");
+      void handlePostEventReviewSync();
+      return result;
+    } catch (error) {
+      notify(errorCode(error, "LESSON BLOCKED"));
+      return null;
+    }
+  };
+
+  const handlePostEventTemplateProposal = async (lessonIds: readonly string[]) => {
+    try {
+      const review = await ensurePostEventReview();
+      const lessons = lessonIds.map((lessonId) =>
+        review.lessons.find(({ id }) => id === lessonId) ?? (() => { throw venueError("POST_EVENT_LESSON_NOT_FOUND", { lessonId }); })(),
+      );
+      const binding = review.baseline.runbook.baseline.acceptedPlan.templateBindings?.venue;
+      if (!binding) throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "venue-template-required" });
+      const changes: PlanningChange[] = lessons.map((lesson) => ({
+        id: `change-${stableFingerprint("post-event-template-change", { reviewId: review.id, lessonId: lesson.id }).slice(-16)}`,
+        title: lesson.recommendedActionCode,
+        targetRequirementIds: [...lesson.requirementIds],
+        effects: { findingCode: lesson.findingCode, recommendedActionCode: lesson.recommendedActionCode },
+      }));
+      const result = await applyPostEventReviewCommand({
+        type: "create_template_improvement_proposal",
+        proposalId: `proposal-${stableFingerprint("post-event-template-proposal", {
+          reviewId: review.id,
+          lessonIds: [...lessonIds].sort(),
+          revision: review.revision,
+        }).slice(-16)}`,
+        goal: "POST_EVENT_TEMPLATE_IMPROVEMENT",
+        target: { kind: "venue", templateId: binding.templateId, version: binding.version },
+        changes,
+        changeLessonLinks: changes.map((change, index) => ({
+          changeId: change.id,
+          lessonIds: [lessons[index]?.id ?? ""],
+        })),
+        ...postEventReviewMetadata("proposal", review.revision),
+      });
+      notify("TEMPLATE PROPOSAL · LOCAL");
+      void handlePostEventReviewSync();
+      return result;
+    } catch (error) {
+      notify(errorCode(error, "TEMPLATE PROPOSAL BLOCKED"));
+      return null;
+    }
+  };
+
+  const handlePostEventProposalReview = async (input: PostEventProposalReviewInput) => {
+    try {
+      const review = await ensurePostEventReview();
+      const result = await applyPostEventReviewCommand({
+        type: "review_template_improvement_proposal",
+        proposalId: input.proposalId,
+        expectedProposalRevision: input.expectedProposalRevision,
+        decision: input.decision,
+        reasonCode: input.reasonCode,
+        ...postEventReviewMetadata("human-review", review.revision),
+      });
+      notify(input.decision === "approved" ? "RECOMMENDATION APPROVED" : "RECOMMENDATION REJECTED");
+      void handlePostEventReviewSync();
+      return result;
+    } catch (error) {
+      notify(errorCode(error, "REVIEW BLOCKED"));
+      return null;
+    }
+  };
+
+  const handlePostEventReviewExport = async (format: "json" | "text") => {
+    const review = postEventReviewBus.getSnapshot();
+    if (!review) return null;
+    try {
+      const artifact = postEventReviewSyncState.state === "online"
+        ? (await postEventReviewRemote.export(projectId, review.id, format)).artifact
+        : downloadArtifact(postEventReviewBus.execute({
+            type: "export_post_event_report",
+            format,
+            exportedAt: new Date().toISOString(),
+          }));
+      downloadExport(downloadArtifact(artifact));
+      notify("POST-EVENT EXPORT READY");
+      return artifact;
+    } catch (error) {
+      notify(errorCode(error, "POST-EVENT EXPORT FAILED"));
+      return null;
+    }
+  };
+
   const handleRunScenario = async (scenario: ScenarioDefinition, branchId: string) => {
     notify("SIM RUNNING");
     try {
@@ -3144,6 +3660,161 @@ export function App({
     },
   };
 
+  const postEventAgentMetadata = (input: VenueToolInput, type: string) => {
+    const idempotencyKey = inputString(input, "idempotencyKey");
+    const expectedRevision = inputNumber(input, "expectedRevision");
+    if (!idempotencyKey || !Number.isSafeInteger(expectedRevision) || Number(expectedRevision) < 0)
+      throw venueError("POST_EVENT_INVALID", { reason: "tool-metadata-invalid" });
+    const correlationId = inputString(input, "correlationId") ?? `webmcp-post-event-${idempotencyKey}`;
+    const committedAt = new Date().toISOString();
+    return {
+      operationId: `post-event-${type}-operation-${idempotencyKey}`,
+      idempotencyKey,
+      correlationId,
+      clientId: `webmcp-${projectId}`,
+      clientSequence: ++postEventReviewClientSequence.current,
+      clientOccurredAt: committedAt,
+      projectId,
+      expectedRevision: Number(expectedRevision),
+      actorType: "agent" as const,
+      actorId: "webmcp-agent",
+      source: "webmcp" as const,
+      sessionId: correlationId,
+      committedAt,
+    };
+  };
+  const postEventEvidenceFromToolInput = (input: VenueToolInput): readonly PostEventEvidenceRef[] => {
+    if (!input.evidenceRefs?.length) throw venueError("POST_EVENT_EVIDENCE_INVALID", { reason: "evidence-required" });
+    return input.evidenceRefs.map((value) => {
+      const kind = value["kind"];
+      const id = value["id"];
+      const fingerprint = value["fingerprint"];
+      if (
+        (kind !== "accepted-plan" && kind !== "runbook" && kind !== "occupancy-monitor" &&
+          kind !== "occupancy-projection" && kind !== "incident-register" && kind !== "deviation-register" &&
+          kind !== "scenario-run") ||
+        typeof id !== "string" ||
+        typeof fingerprint !== "string"
+      ) throw venueError("POST_EVENT_EVIDENCE_INVALID", { reason: "evidence-ref-invalid" });
+      return { kind, id, fingerprint };
+    });
+  };
+  const postEventChangesFromToolInput = (input: VenueToolInput): readonly PlanningChange[] => {
+    if (!input.changes?.length) throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "changes-required" });
+    return input.changes.map((value) => {
+      const id = value["id"];
+      const effects = value["effects"];
+      if (typeof id !== "string" || !isJsonObject(effects))
+        throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "change-invalid" });
+      const normalizedEffects: NonNullable<PlanningChange["effects"]> = {};
+      for (const [key, effect] of Object.entries(effects)) {
+        if (typeof effect === "string" || typeof effect === "number" || typeof effect === "boolean") {
+          normalizedEffects[key] = effect;
+          continue;
+        }
+        if (
+          isJsonObject(effect) &&
+          typeof effect["kind"] === "string" &&
+          typeof effect["sourceId"] === "string" &&
+          typeof effect["sourceChecksum"] === "string"
+        ) {
+          normalizedEffects[key] = {
+            kind: effect["kind"], sourceId: effect["sourceId"], sourceChecksum: effect["sourceChecksum"],
+          };
+          continue;
+        }
+        throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "change-effect-invalid", changeId: id });
+      }
+      return {
+        id,
+        ...(typeof value["title"] === "string" ? { title: value["title"] } : {}),
+        ...(typeof value["shortTitle"] === "string" ? { shortTitle: value["shortTitle"] } : {}),
+        ...(typeof value["label"] === "string" ? { label: value["label"] } : {}),
+        ...(Array.isArray(value["targetObjectIds"])
+          ? { targetObjectIds: value["targetObjectIds"].filter((item): item is string => typeof item === "string") }
+          : {}),
+        ...(Array.isArray(value["targetRequirementIds"])
+          ? { targetRequirementIds: value["targetRequirementIds"].filter((item): item is string => typeof item === "string") }
+          : {}),
+        effects: normalizedEffects,
+      };
+    });
+  };
+  const postEventOperations: Partial<PostEventOperations> = {
+    inspectPostEventReview: async () => {
+      await ensurePostEventReview();
+      return postEventReviewBus.execute({ type: "inspect_post_event_review" });
+    },
+    recordPostEventObservation: async (input) => {
+      await ensurePostEventReview();
+      const confidence = inputString(input, "confidence");
+      if (confidence !== "measured" && confidence !== "estimated" && confidence !== "unavailable")
+        throw venueError("POST_EVENT_INVALID", { reason: "confidence-invalid" });
+      const result = await applyPostEventReviewCommand({
+        type: "record_post_event_observation",
+        observationId: inputString(input, "observationId") ?? "",
+        predictionKey: inputString(input, "predictionKey") ?? "",
+        value: input.value ?? null,
+        confidence,
+        evidenceRefs: postEventEvidenceFromToolInput(input),
+        ...postEventAgentMetadata(input, "observation"),
+      });
+      void handlePostEventReviewSync();
+      return result;
+    },
+    recordPostEventLesson: async (input) => {
+      await ensurePostEventReview();
+      const result = await applyPostEventReviewCommand({
+        type: "record_post_event_lesson",
+        lessonId: inputString(input, "lessonId") ?? "",
+        comparisonKey: inputString(input, "comparisonKey") ?? "",
+        lessonCode: inputString(input, "lessonCode") ?? "",
+        findingCode: inputString(input, "findingCode") ?? "",
+        recommendedActionCode: inputString(input, "recommendedActionCode") ?? "",
+        requirementIds: input.requirementIds ?? [],
+        constraintIds: input.constraintIds ?? [],
+        ...postEventAgentMetadata(input, "lesson"),
+      });
+      void handlePostEventReviewSync();
+      return result;
+    },
+    createTemplateImprovementProposal: async (input) => {
+      await ensurePostEventReview();
+      const target = input.target;
+      if (
+        !target ||
+        (target["kind"] !== "venue" && target["kind"] !== "room") ||
+        typeof target["templateId"] !== "string" ||
+        typeof target["version"] !== "string"
+      ) throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "target-invalid" });
+      const changeLessonLinks = (input.changeLessonLinks ?? []).map((value) => {
+        const changeId = value["changeId"];
+        const lessonIds = value["lessonIds"];
+        if (typeof changeId !== "string" || !Array.isArray(lessonIds) || !lessonIds.every((item) => typeof item === "string"))
+          throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "change-lesson-link-invalid" });
+        return { changeId, lessonIds };
+      });
+      const result = await applyPostEventReviewCommand({
+        type: "create_template_improvement_proposal",
+        proposalId: inputString(input, "proposalId") ?? "",
+        goal: inputString(input, "goal") ?? "",
+        target: { kind: target["kind"], templateId: target["templateId"], version: target["version"] },
+        changes: postEventChangesFromToolInput(input),
+        changeLessonLinks,
+        ...postEventAgentMetadata(input, "proposal"),
+      });
+      void handlePostEventReviewSync();
+      return result;
+    },
+    exportPostEventReport: async (input) => {
+      const review = await ensurePostEventReview();
+      const format = input.format === "text" ? "text" : "json";
+      return postEventReviewSyncState.state === "online"
+        ? (await postEventReviewRemote.export(projectId, review.id, format)).artifact
+        : downloadArtifact(postEventReviewBus.execute({ type: "export_post_event_report", format, exportedAt: new Date().toISOString() }));
+    },
+  };
+
   return (
     <div className="app-shell">
       <ToolRegistration
@@ -3153,6 +3824,7 @@ export function App({
         organizationId={organizationId}
         occupancyOperations={occupancyOperations}
         incidentOperations={incidentOperations}
+        postEventOperations={postEventOperations}
         authorizationProvider={webMcpAuthorizationProvider}
         onLifecycle={setWebMcpLifecycle}
         navigate={navigate}
@@ -3318,6 +3990,7 @@ export function App({
               setOccupancyOpen(false);
               setIncidentOpen(false);
               setDeviationOpen(false);
+              setPostEventReviewOpen(false);
               setCommentsOpen((open) => !open);
             }}
           >
@@ -3326,7 +3999,7 @@ export function App({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <HeaderButton
-                className={`simulation-button ${simulationOpen || runbookOpen || occupancyOpen || incidentOpen || deviationOpen ? "is-active" : ""}`}
+                className={`simulation-button ${simulationOpen || runbookOpen || occupancyOpen || incidentOpen || deviationOpen || postEventReviewOpen ? "is-active" : ""}`}
                 ariaLabel="Open operations"
                 onPointerEnter={() => {
                   void loadRunbookPanel();
@@ -3334,6 +4007,7 @@ export function App({
                   void loadOccupancyPanel();
                   void loadIncidentPanel();
                   void loadDeviationPanel();
+                  void loadPostEventReviewPanel();
                 }}
                 onFocus={() => {
                   void loadRunbookPanel();
@@ -3341,6 +4015,7 @@ export function App({
                   void loadOccupancyPanel();
                   void loadIncidentPanel();
                   void loadDeviationPanel();
+                  void loadPostEventReviewPanel();
                 }}
               >
                 OPS <CaretDown size={14} />
@@ -3363,6 +4038,7 @@ export function App({
                   setOccupancyOpen(false);
                   setIncidentOpen(false);
                   setDeviationOpen(false);
+                  setPostEventReviewOpen(false);
                 }}
               >
                 <b>RUNBOOK</b>
@@ -3384,6 +4060,7 @@ export function App({
                   setOccupancyOpen(false);
                   setIncidentOpen(false);
                   setDeviationOpen(false);
+                  setPostEventReviewOpen(false);
                 }}
               >
                 <b>SIM</b>
@@ -3405,6 +4082,7 @@ export function App({
                   setSimulationOpen(false);
                   setIncidentOpen(false);
                   setDeviationOpen(false);
+                  setPostEventReviewOpen(false);
                 }}
               >
                 <b>OCCUPANCY</b>
@@ -3426,6 +4104,7 @@ export function App({
                   setSimulationOpen(false);
                   setOccupancyOpen(false);
                   setDeviationOpen(false);
+                  setPostEventReviewOpen(false);
                 }}
               >
                 <b>INCIDENTS</b>
@@ -3449,10 +4128,33 @@ export function App({
                   setSimulationOpen(false);
                   setOccupancyOpen(false);
                   setIncidentOpen(false);
+                  setPostEventReviewOpen(false);
                 }}
               >
                 <b>DEVIATIONS</b>
                 <span>{deviationRegister?.deviations.filter((item) => item.status === "active").length ?? 0}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="export-menu-item"
+                disabled={!runbook}
+                onPointerEnter={() => { void loadPostEventReviewPanel(); }}
+                onFocus={() => { void loadPostEventReviewPanel(); }}
+                onSelect={() => {
+                  setPostEventReviewMounted(true);
+                  setPostEventReviewOpen(true);
+                  setCommentsOpen(false);
+                  setRunbookOpen(false);
+                  setSimulationOpen(false);
+                  setOccupancyOpen(false);
+                  setIncidentOpen(false);
+                  setDeviationOpen(false);
+                  void ensurePostEventReview().catch((error: unknown) =>
+                    notify(postEventErrorCode(error, "POST-EVENT BLOCKED")),
+                  );
+                }}
+              >
+                <b>POST-EVENT</b>
+                <span>{postEventReview?.lessons.length ?? 0}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -4516,6 +5218,39 @@ export function App({
             onExport={() => {
               void handleDeviationExport();
             }}
+          />
+        </Suspense>
+      )}
+      {postEventReviewMounted && (
+        <Suspense
+          fallback={
+            postEventReviewOpen ? (
+              <div className="panel-loading is-side" role="status">
+                POST-EVENT
+              </div>
+            ) : null
+          }
+        >
+          <LazyPostEventReviewPanel
+            open={postEventReviewOpen}
+            review={postEventReview}
+            comparisons={postEventComparisons}
+            syncState={postEventReviewSyncState}
+            onClose={() => setPostEventReviewOpen(false)}
+            onRecordObservation={(input) => { void handlePostEventObservation(input); }}
+            onRecordLesson={(input) => { void handlePostEventLesson(input); }}
+            onCreateTemplateProposal={(lessonIds) => { void handlePostEventTemplateProposal(lessonIds); }}
+            onReviewTemplateProposal={(input) => { void handlePostEventProposalReview(input); }}
+            onRecover={() => { void handlePostEventReviewRecover(); }}
+            onDiscardConflicts={() => { void handlePostEventReviewDiscardConflicts(); }}
+            onSync={() => {
+              void (postEventReview
+                ? handlePostEventReviewSync()
+                : ensurePostEventReview()
+                    .then(() => handlePostEventReviewSync())
+                    .catch((error: unknown) => notify(errorCode(error, "POST-EVENT BLOCKED"))));
+            }}
+            onExport={(format) => { void handlePostEventReviewExport(format); }}
           />
         </Suspense>
       )}

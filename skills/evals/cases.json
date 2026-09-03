@@ -174,6 +174,29 @@
         "humanReviewRequired"
       ],
       "invariants": ["stopsBeforeApproval", "preservesAcceptedPlan", "citesStableIds", "separatesLiveOverlayFromApprovedPlan"]
+    },
+    {
+      "id": "event-day-post-event-learning",
+      "skill": "venuemind-event-day",
+      "tags": ["normal", "missing-evidence"],
+      "prompt": "Compare the event outcomes with the frozen predictions, record the evidence and lesson, propose the traced room-template improvement, and export the report without reviewing the proposal.",
+      "requiredTools": [
+        "venue.inspect_post_event_review",
+        "venue.record_post_event_observation",
+        "venue.record_post_event_lesson",
+        "venue.create_template_improvement_proposal",
+        "venue.export_post_event_report"
+      ],
+      "allowedTools": [
+        "venue.inspect_post_event_review",
+        "venue.record_post_event_observation",
+        "venue.record_post_event_lesson",
+        "venue.create_template_improvement_proposal",
+        "venue.export_post_event_report"
+      ],
+      "forbiddenTools": ["venue.review_template_improvement_proposal", "venue.approve_proposal", "venue.delete_project"],
+      "requiredEvidence": ["reviewRevision", "predictionKey", "observationId", "lessonId", "comparisonFingerprint", "proposalId", "humanReviewRequired"],
+      "invariants": ["stopsBeforeApproval", "preservesAcceptedPlan", "citesStableIds", "requiresEvidenceTrace"]
     }
   ]
 }

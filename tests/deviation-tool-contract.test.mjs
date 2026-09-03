@@ -14,7 +14,7 @@ const names = [
 
 test("shared Live Plan Deviation contracts preserve supervision and exact boundaries", () => {
   const byName = new Map(venueToolContracts.map((contract) => [contract.name, contract]));
-  assert.equal(VENUE_TOOL_CONTRACT_VERSION, "1.5.0");
+  assert.equal(VENUE_TOOL_CONTRACT_VERSION, "1.6.0");
   assert.deepEqual(names.map((name) => byName.has(name)), [true, true, true, true, true]);
   assert.equal(byName.get(names[0]).authorization.requiredScope, "venue:read");
   assert.equal(byName.get(names[1]).authorization.requiredScope, "venue:operate");

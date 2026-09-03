@@ -253,6 +253,67 @@
     "idempotencyKey": "example-deviation-proposal-001"
   },
   "venue.export_live_plan_deviations": {},
+  "venue.inspect_post_event_review": {},
+  "venue.record_post_event_observation": {
+    "observationId": "observation-peak-occupancy",
+    "predictionKey": "occupancy:peak-persons:venue:venue",
+    "value": 438,
+    "confidence": "measured",
+    "evidenceRefs": [
+      {
+        "kind": "occupancy-projection",
+        "id": "occupancy-runbook-example",
+        "fingerprint": "sha256:projection"
+      }
+    ],
+    "expectedRevision": 0,
+    "idempotencyKey": "example-post-event-observation-001"
+  },
+  "venue.record_post_event_lesson": {
+    "lessonId": "lesson-capacity-buffer",
+    "comparisonKey": "occupancy:peak-persons:venue:venue",
+    "lessonCode": "CAPACITY_BUFFER",
+    "findingCode": "PEAK_ABOVE_MODEL",
+    "recommendedActionCode": "INCREASE_BUFFER",
+    "requirementIds": [
+      "req-theater-seating"
+    ],
+    "constraintIds": [
+      "constraint-capacity"
+    ],
+    "expectedRevision": 1,
+    "idempotencyKey": "example-post-event-lesson-001"
+  },
+  "venue.create_template_improvement_proposal": {
+    "proposalId": "template-proposal-capacity",
+    "goal": "Increase the standard capacity buffer",
+    "target": {
+      "kind": "room",
+      "templateId": "room-template-harborview-main-hall",
+      "version": "1.0.0"
+    },
+    "changes": [
+      {
+        "id": "change-capacity-buffer",
+        "effects": {
+          "capacityBuffer": 20
+        }
+      }
+    ],
+    "changeLessonLinks": [
+      {
+        "changeId": "change-capacity-buffer",
+        "lessonIds": [
+          "lesson-capacity-buffer"
+        ]
+      }
+    ],
+    "expectedRevision": 2,
+    "idempotencyKey": "example-template-improvement-001"
+  },
+  "venue.export_post_event_report": {
+    "format": "json"
+  },
   "venue.export_audit_package": {},
   "venue.export_plan": {
     "format": "json"

@@ -550,6 +550,76 @@ export const errorCatalog = Object.freeze({
     "Live Plan Deviation ledger integrity failed.",
     "Restore the last verified register state before inspection, recommendation, or export.",
   ),
+  POST_EVENT_BASELINE_INVALID: define(
+    "POST_EVENT_BASELINE_INVALID",
+    "Post-event Review baseline is invalid.",
+    "Bind the review to matching, integrity-verified Runbook, Plan, occupancy, incident, deviation, and Scenario evidence.",
+  ),
+  POST_EVENT_REVIEW_NOT_FOUND: define(
+    "POST_EVENT_REVIEW_NOT_FOUND",
+    "Post-event Review is unavailable.",
+    "Create or restore the Runbook-bound Post-event Review before issuing this command.",
+  ),
+  POST_EVENT_TOOL_UNAVAILABLE: define(
+    "POST_EVENT_TOOL_UNAVAILABLE",
+    "Post-event Review tooling is unavailable.",
+    "Connect a Post-event Review operation adapter before calling this tool.",
+  ),
+  POST_EVENT_INVALID: define(
+    "POST_EVENT_INVALID",
+    "Post-event Review input is invalid.",
+    "Supply published metric, scope, evidence, lesson, and Proposal fields with stable identifiers.",
+  ),
+  POST_EVENT_REVISION_CONFLICT: define(
+    "POST_EVENT_REVISION_CONFLICT",
+    "Post-event Review revision conflict.",
+    "Refresh the Post-event Review and retry only if the transition is still required.",
+  ),
+  POST_EVENT_EVIDENCE_INVALID: define(
+    "POST_EVENT_EVIDENCE_INVALID",
+    "Post-event evidence does not match the frozen baseline.",
+    "Reference an exact evidence ID and fingerprint frozen into this Post-event Review.",
+  ),
+  POST_EVENT_OBSERVATION_CONFLICT: define(
+    "POST_EVENT_OBSERVATION_CONFLICT",
+    "An Observation already exists for this predicted outcome.",
+    "Use the accepted Observation or create a distinct metric scope before recording another outcome.",
+  ),
+  POST_EVENT_COMPARISON_NOT_FOUND: define(
+    "POST_EVENT_COMPARISON_NOT_FOUND",
+    "Post-event Comparison is unavailable.",
+    "Inspect the frozen Predictions and retry with an existing comparison key.",
+  ),
+  POST_EVENT_LESSON_NOT_FOUND: define(
+    "POST_EVENT_LESSON_NOT_FOUND",
+    "Post-event Lesson is unavailable.",
+    "Inspect the Post-event Review and retry with an existing stable Lesson ID.",
+  ),
+  POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND: define(
+    "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+    "Template Improvement Proposal is unavailable.",
+    "Inspect the Post-event Review and retry with an existing stable Proposal ID.",
+  ),
+  POST_EVENT_TEMPLATE_PROPOSAL_INVALID: define(
+    "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+    "Template Improvement Proposal is invalid.",
+    "Trace every Change through a structured Lesson to an observed event-day outcome and a frozen template binding.",
+  ),
+  POST_EVENT_HUMAN_REQUIRED: define(
+    "POST_EVENT_HUMAN_REQUIRED",
+    "This Post-event Review transition requires a human reviewer.",
+    "Ask an authorized human to approve or reject the Template Improvement Proposal.",
+  ),
+  POST_EVENT_REVIEW_TRANSITION_INVALID: define(
+    "POST_EVENT_REVIEW_TRANSITION_INVALID",
+    "Post-event Review transition is invalid.",
+    "Use a published pending-to-approved or pending-to-rejected recommendation transition.",
+  ),
+  POST_EVENT_LEDGER_INTEGRITY_FAILED: define(
+    "POST_EVENT_LEDGER_INTEGRITY_FAILED",
+    "Post-event Review ledger integrity failed.",
+    "Restore the last verified Post-event Review before inspection or export.",
+  ),
   VENUE_INTERNAL_ERROR: define(
     "VENUE_INTERNAL_ERROR",
     "VenueMind could not complete the operation.",
