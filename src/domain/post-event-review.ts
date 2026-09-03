@@ -331,22 +331,20 @@ export function createPostEventReview({
   const occupancyIntegrity = verifyOccupancyLedger(occupancyMonitor);
   const incidentIntegrity = verifyIncidentLedger(incidentRegister);
   const deviationIntegrity = verifyDeviationLedger(deviationRegister);
+  if (!projectId || !plan || !brief || runbook.source.projectId !== projectId)
+    fail("POST_EVENT_BASELINE_INVALID", { reason: "runbook-scope-mismatch" });
   if (
-    !projectId ||
-    !plan ||
-    !brief ||
-    runbook.source.projectId !== projectId ||
     fingerprintPlan(plan) !== runbook.source.planFingerprint ||
     fingerprintEventBrief(brief) !== runbook.source.briefFingerprint ||
-    runbook.baseline.fingerprint !== stableFingerprint("runbook-baseline", {
-      acceptedPlan: plan,
-      acceptedBrief: brief,
-      staffingEvidence: runbook.baseline.staffingEvidence,
-    }) ||
-    runbookIntegrity.status !== "pass" ||
-    occupancyIntegrity.status !== "pass" ||
-    incidentIntegrity.status !== "pass" ||
-    deviationIntegrity.status !== "pass" ||
+    runbookIntegrity.status !== "pass"
+  ) fail("POST_EVENT_BASELINE_INVALID", { reason: "runbook-integrity-failed" });
+  if (occupancyIntegrity.status !== "pass")
+    fail("POST_EVENT_BASELINE_INVALID", { reason: "occupancy-integrity-failed" });
+  if (incidentIntegrity.status !== "pass")
+    fail("POST_EVENT_BASELINE_INVALID", { reason: "incident-integrity-failed" });
+  if (deviationIntegrity.status !== "pass")
+    fail("POST_EVENT_BASELINE_INVALID", { reason: "deviation-integrity-failed" });
+  if (
     occupancyMonitor.projectId !== projectId ||
     incidentRegister.projectId !== projectId ||
     deviationRegister.projectId !== projectId ||
@@ -355,7 +353,9 @@ export function createPostEventReview({
     deviationRegister.runbookVersionId !== runbook.versionId ||
     occupancyProjection.monitorId !== occupancyMonitor.id ||
     occupancyProjection.runbookVersionId !== runbook.versionId ||
-    !Number.isFinite(Date.parse(occupancyProjection.evaluatedAt)) ||
+    !Number.isFinite(Date.parse(occupancyProjection.evaluatedAt))
+  ) fail("POST_EVENT_BASELINE_INVALID", { reason: "operational-scope-mismatch" });
+  if (
     occupancyMonitor.source.planId !== runbook.source.planId ||
     occupancyMonitor.source.planVersion !== runbook.source.planVersion ||
     occupancyMonitor.source.planFingerprint !== runbook.source.planFingerprint ||
@@ -368,19 +368,22 @@ export function createPostEventReview({
       attendeeTarget: occupancyMonitor.baseline.attendeeTarget,
       scopes: occupancyMonitor.baseline.scopes,
       simulation: occupancyMonitor.baseline.simulation,
-    }) ||
+    })
+  ) fail("POST_EVENT_BASELINE_INVALID", { reason: "occupancy-lineage-mismatch" });
+  if (
     incidentRegister.source.planId !== runbook.source.planId ||
     incidentRegister.source.planVersion !== runbook.source.planVersion ||
     incidentRegister.source.planFingerprint !== runbook.source.planFingerprint ||
     incidentRegister.source.runbookDefinitionFingerprint !== runbook.definitionFingerprint ||
-    incidentRegister.source.runbookLedgerHeadHash !== (runbookIntegrity.headHash ?? runbook.source.sourceLedgerHeadHash) ||
+    incidentRegister.source.runbookLedgerHeadHash !== (runbookIntegrity.headHash ?? runbook.source.sourceLedgerHeadHash)
+  ) fail("POST_EVENT_BASELINE_INVALID", { reason: "incident-lineage-mismatch" });
+  if (
     deviationRegister.source.planId !== runbook.source.planId ||
     deviationRegister.source.planVersion !== runbook.source.planVersion ||
-    deviationRegister.source.planFingerprint !== runbook.source.planFingerprint
-    || deviationRegister.source.runbookDefinitionFingerprint !== runbook.definitionFingerprint
-    || deviationRegister.source.runbookLedgerHeadHash !== (runbookIntegrity.headHash ?? runbook.source.sourceLedgerHeadHash)
-  )
-    fail("POST_EVENT_BASELINE_INVALID", { reason: "source-lineage-mismatch" });
+    deviationRegister.source.planFingerprint !== runbook.source.planFingerprint ||
+    deviationRegister.source.runbookDefinitionFingerprint !== runbook.definitionFingerprint ||
+    deviationRegister.source.runbookLedgerHeadHash !== (runbookIntegrity.headHash ?? runbook.source.sourceLedgerHeadHash)
+  ) fail("POST_EVENT_BASELINE_INVALID", { reason: "deviation-lineage-mismatch" });
   if (new Set(scenarioRuns.map(({ id }) => id)).size !== scenarioRuns.length)
     fail("POST_EVENT_BASELINE_INVALID", { reason: "scenario-run-ids-invalid" });
   for (const run of scenarioRuns) {

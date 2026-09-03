@@ -108,7 +108,7 @@ const contentPages: readonly DocsPage[] = [
         title: "Runtime boundary",
         blocks: [
           bullets(
-            "Contract version 1.5.0 is attached to every published tool.",
+            "Contract version 1.6.0 is attached to every published tool.",
             "Lifecycle states: detecting, registering, ready, failed, unsupported, unregistered.",
             "Every invocation returns a compact text summary and versioned structured content.",
             "Mutation receipts retain caller idempotency and correlation metadata.",
@@ -161,7 +161,7 @@ const contentPages: readonly DocsPage[] = [
         title: "Protocol surfaces",
         blocks: [
           bullets(
-            "51 tools generated from one shared contract source across WebMCP and standalone MCP.",
+            "56 tools generated from one shared contract source across WebMCP and standalone MCP.",
             "Current Project, Plan Version, Proposal, schema, documentation, and compatibility resources.",
             "Project and Plan Version resource templates with completion.",
             "Supervised planning and Plan audit prompts.",
@@ -241,7 +241,7 @@ const contentPages: readonly DocsPage[] = [
             "MCP server 0.7.0.",
             "Preferred protocol revision 2026-07-28.",
             "Minimum supported revision 2025-03-26.",
-            "Tool contract 1.5.0.",
+            "Tool contract 1.6.0.",
             "Approval, Occupancy Alert acknowledgement, and Incident response authority: human-only. Live Plan Deviation tools create records and review-state post-event Proposals only.",
           ),
         ],
@@ -262,7 +262,7 @@ const contentPages: readonly DocsPage[] = [
     group: "Agents",
     title: "Agent skills",
     eyebrow: "Reusable planning behavior",
-    summary: "Six versioned skill packages teach supervised VenueMind workflows against tool contract 1.5.0.",
+    summary: "Six versioned skill packages teach supervised VenueMind workflows against tool contract 1.6.0.",
     sections: [
       {
         id: "plan-skill",
@@ -355,7 +355,7 @@ const contentPages: readonly DocsPage[] = [
         title: "Evaluation suite",
         blocks: [
           bullets(
-            "12 normal and adversarial workflow cases.",
+            "14 normal and adversarial workflow cases.",
             "Premature Approval, ignored Locks, stale versions, and missing evidence fixtures.",
             "Required-tool selection accuracy: 100%.",
             "Unnecessary referenced-call rate: 0%.",
@@ -401,6 +401,7 @@ const contentPages: readonly DocsPage[] = [
             { label: "Live Plan Deviation", href: "/schemas/live-plan-deviation.schema.json" },
             { label: "Live Plan Deviation overlay", href: "/schemas/live-plan-deviation-overlay.schema.json" },
             { label: "Live Plan Deviation register", href: "/schemas/live-plan-deviation-register.schema.json" },
+            { label: "Post-event Review", href: "/schemas/post-event-review.schema.json" },
             { label: "Project list result", href: "/schemas/project-list-result.schema.json" },
             { label: "Project open result", href: "/schemas/project-open-result.schema.json" },
             { label: "Layout inspection", href: "/schemas/layout-inspection.schema.json" },
@@ -513,6 +514,17 @@ const contentPages: readonly DocsPage[] = [
     eyebrow: "Release notes",
     summary: "Visible changes to VenueMind contracts, workflows, compatibility, and operational guidance.",
     sections: [
+      {
+        id: "tool-contract-1-6-0",
+        title: "Tool contract 1.6.0",
+        blocks: [
+          bullets(
+            "Added shared Post-event Review inspection, Observation, Lesson, Template Improvement Proposal, and report-export tools.",
+            "Kept Template Improvement Proposal approval, rejection, and publication human-only and outside every agent surface.",
+            "Added evidence-traced schemas, standalone MCP Project-session persistence, typed SDK methods, WebMCP parity, and event-day skill guidance.",
+          ),
+        ],
+      },
       {
         id: "tool-contract-1-5-0",
         title: "Tool contract 1.5.0",
@@ -696,19 +708,19 @@ const metadataBySlug: Readonly<
 > = {
   overview: {
     audience: ["operators", "developers", "agents"],
-    compatibility: ["Project schema 10", "Tool contract 1.5.0"],
+    compatibility: ["Project schema 10", "Tool contract 1.6.0"],
   },
-  quickstart: { audience: ["operators", "developers"], compatibility: ["MCP 0.7.0", "Tool contract 1.5.0"] },
+  quickstart: { audience: ["operators", "developers"], compatibility: ["MCP 0.7.0", "Tool contract 1.6.0"] },
   concepts: {
     audience: ["operators", "developers", "agents"],
     compatibility: ["Project schema 10", "Validation 2.7.0"],
   },
-  webmcp: { audience: ["agent integrators", "developers"], compatibility: ["WebMCP 1.5.0", "51 tools"] },
+  webmcp: { audience: ["agent integrators", "developers"], compatibility: ["WebMCP 1.6.0", "56 tools"] },
   mcp: { audience: ["agent integrators", "developers"], compatibility: ["MCP 0.7.0", "Protocol 2026-07-28"] },
-  skills: { audience: ["agents", "developers"], compatibility: ["Skills 1.4.0", "Tool contract 1.5.0"] },
+  skills: { audience: ["agents", "developers"], compatibility: ["Skills 1.4.0", "Tool contract 1.6.0"] },
   contracts: {
     audience: ["developers", "agent integrators"],
-    compatibility: ["Project schema 10", "Tool contract 1.5.0"],
+    compatibility: ["Project schema 10", "Tool contract 1.6.0"],
   },
   changelog: {
     audience: ["operators", "developers", "agent integrators"],

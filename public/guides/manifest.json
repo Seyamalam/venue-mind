@@ -249,6 +249,11 @@
       "sourcePath": "docs/adr/0029-runbook-bound-deviations-derive-overlays.md",
       "publicPath": "/guides/adr/0029-runbook-bound-deviations-derive-overlays.md",
       "title": "Architecture decision 0029"
+    },
+    {
+      "sourcePath": "docs/adr/0030-post-event-reviews-freeze-operational-evidence.md",
+      "publicPath": "/guides/adr/0030-post-event-reviews-freeze-operational-evidence.md",
+      "title": "Architecture decision 0030"
     }
   ]
 }

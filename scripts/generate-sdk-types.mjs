@@ -23,6 +23,7 @@ const schemas = [
   ["live-plan-deviation", "VenueMindLivePlanDeviation"],
   ["live-plan-deviation-register", "VenueMindLivePlanDeviationRegister"],
   ["live-plan-deviation-overlay", "VenueMindLivePlanDeviationOverlay"],
+  ["post-event-review", "VenueMindPostEventReview"],
 ];
 
 const venueMindResolver = {
@@ -109,6 +110,11 @@ const apiReference = {
       { method: "deviations.record", tool: "venue.record_live_plan_deviation" },
       { method: "deviations.end", tool: "venue.end_live_plan_deviation" },
       { method: "deviations.createPostEventProposal", tool: "venue.create_post_event_deviation_proposal" },
+      { method: "postEvent.inspect", tool: "venue.inspect_post_event_review" },
+      { method: "postEvent.recordObservation", tool: "venue.record_post_event_observation" },
+      { method: "postEvent.recordLesson", tool: "venue.record_post_event_lesson" },
+      { method: "postEvent.createTemplateImprovementProposal", tool: "venue.create_template_improvement_proposal" },
+      { method: "postEvent.exportReport", tool: "venue.export_post_event_report" },
       { method: "exports.plan", tool: "venue.export_plan" },
       { method: "exports.audit", tool: "venue.export_audit_package" },
       { method: "exports.deviations", tool: "venue.export_live_plan_deviations" },

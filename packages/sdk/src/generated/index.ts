@@ -11,6 +11,7 @@ export type { VenueMindPreviewRevisionResult } from "./preview-revision-result.j
 export type { VenueMindLivePlanDeviation } from "./live-plan-deviation.js";
 export type { VenueMindLivePlanDeviationRegister } from "./live-plan-deviation-register.js";
 export type { VenueMindLivePlanDeviationOverlay } from "./live-plan-deviation-overlay.js";
+export type { VenueMindPostEventReview } from "./post-event-review.js";
 export type { VenueMindToolInputMap } from "./tool-inputs.js";
 export type { VenueMindToolOutputMap } from "./tool-outputs.js";
 export { VENUE_TOOL_CONTRACT_VERSION, VENUE_TOOL_NAMES } from "./tool-metadata.js";

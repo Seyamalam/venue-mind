@@ -10,7 +10,7 @@ test("all VenueMind skills are versioned, evaluated, and contract-compatible", a
   const { manifest, evaluation, metrics } = await validateSkills();
   assert.equal(manifest.packages.length, 6);
   assert.equal(manifest.toolContractVersion, VENUE_TOOL_CONTRACT_VERSION);
-  assert.equal(evaluation.cases.length, 13);
+  assert.equal(evaluation.cases.length, 14);
   assert.equal(metrics.toolSelectionAccuracy, 1);
   assert.equal(metrics.unnecessaryCallRate, 0);
 });

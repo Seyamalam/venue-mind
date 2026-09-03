@@ -1,6 +1,6 @@
 # Generated contracts
 
-Target tool contract: `1.5.0`.
+Target tool contract: `1.6.0`.
 
 - Tool definitions: `/venue-tools.json`
 - Tool examples: `/examples/venue-tool-examples.json`

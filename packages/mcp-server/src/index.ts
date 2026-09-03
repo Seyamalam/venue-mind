@@ -134,6 +134,7 @@ export function createVenueMindMcpServer({
     occupancyOperations: session,
     incidentOperations: session,
     deviationOperations: session,
+    postEventOperations: session,
     authorizationProvider: () =>
       agentAuthorization ??
       createShortLivedAgentAuthorization({

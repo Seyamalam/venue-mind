@@ -49,6 +49,25 @@ export interface VenueMindClient {
       options?: VenueToolCallOptions,
     ): Promise<VenueToolOutput<"venue.create_post_event_deviation_proposal">>;
   };
+  readonly postEvent: {
+    inspect(options?: VenueToolCallOptions): Promise<VenueToolOutput<"venue.inspect_post_event_review">>;
+    recordObservation(
+      input: VenueToolInput<"venue.record_post_event_observation">,
+      options?: VenueToolCallOptions,
+    ): Promise<VenueToolOutput<"venue.record_post_event_observation">>;
+    recordLesson(
+      input: VenueToolInput<"venue.record_post_event_lesson">,
+      options?: VenueToolCallOptions,
+    ): Promise<VenueToolOutput<"venue.record_post_event_lesson">>;
+    createTemplateImprovementProposal(
+      input: VenueToolInput<"venue.create_template_improvement_proposal">,
+      options?: VenueToolCallOptions,
+    ): Promise<VenueToolOutput<"venue.create_template_improvement_proposal">>;
+    exportReport(
+      format?: VenueToolInput<"venue.export_post_event_report">["format"],
+      options?: VenueToolCallOptions,
+    ): Promise<VenueToolOutput<"venue.export_post_event_report">>;
+  };
   readonly exports: {
     plan(format?: VenueToolInput<"venue.export_plan">["format"], options?: VenueToolCallOptions): Promise<PlanExport>;
     audit(options?: VenueToolCallOptions): Promise<PlanExport>;
@@ -93,6 +112,23 @@ export function createVenueMindClient({ transport }: { transport: VenueMindTrans
         input: VenueToolInput<"venue.create_post_event_deviation_proposal">,
         options?: VenueToolCallOptions,
       ) => call("venue.create_post_event_deviation_proposal", input, options),
+    }),
+    postEvent: freezeNamespace({
+      inspect: (options?: VenueToolCallOptions) => call("venue.inspect_post_event_review", {}, options),
+      recordObservation: (
+        input: VenueToolInput<"venue.record_post_event_observation">,
+        options?: VenueToolCallOptions,
+      ) => call("venue.record_post_event_observation", input, options),
+      recordLesson: (input: VenueToolInput<"venue.record_post_event_lesson">, options?: VenueToolCallOptions) =>
+        call("venue.record_post_event_lesson", input, options),
+      createTemplateImprovementProposal: (
+        input: VenueToolInput<"venue.create_template_improvement_proposal">,
+        options?: VenueToolCallOptions,
+      ) => call("venue.create_template_improvement_proposal", input, options),
+      exportReport: (
+        format?: VenueToolInput<"venue.export_post_event_report">["format"],
+        options?: VenueToolCallOptions,
+      ) => call("venue.export_post_event_report", format === undefined ? {} : { format }, options),
     }),
     exports: freezeNamespace({
       plan: (format?: VenueToolInput<"venue.export_plan">["format"], options?: VenueToolCallOptions) => call("venue.export_plan", format === undefined ? {} : { format }, options),

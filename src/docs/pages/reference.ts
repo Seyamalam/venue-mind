@@ -575,7 +575,7 @@ const toolIndexPage = {
   eyebrow: `${toolReferencePages.length} shared tools`,
   summary: "One generated page per WebMCP and standalone MCP tool, sourced from the runtime contract registry.",
   audience: ["developers", "agent integrators"],
-  compatibility: ["Tool contract 1.5.0", "WebMCP + MCP"],
+  compatibility: ["Tool contract 1.6.0", "WebMCP + MCP"],
   navigation: pageMetadata("tools"),
   sections: Object.entries(toolsByScope).map(([scope, pages]) => ({
     id: slugToken(scope),
@@ -608,7 +608,7 @@ const errorPage = {
   eyebrow: `${Object.keys(errorCatalog).length} stable codes`,
   summary: "Every stable VenueMind error code, user-safe message, and actionable remediation path.",
   audience: ["developers", "operators", "agents"],
-  compatibility: ["Stable error envelope", "Tool contract 1.5.0"],
+  compatibility: ["Stable error envelope", "Tool contract 1.6.0"],
   sections: [
     { id: "catalog", title: "Published errors", blocks: [table(errorColumns, Object.values(errorsByCode))] },
     {

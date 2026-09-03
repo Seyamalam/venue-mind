@@ -82,6 +82,13 @@ export interface DeviationOperations {
   createPostEventDeviationProposal: Operation;
   exportLivePlanDeviations: Operation;
 }
+export interface PostEventOperations {
+  inspectPostEventReview: Operation;
+  recordPostEventObservation: Operation;
+  recordPostEventLesson: Operation;
+  createTemplateImprovementProposal: Operation;
+  exportPostEventReport: Operation;
+}
 export interface AuthorizationProviderContext {
   readonly name: VenueToolName;
   readonly input: VenueToolInput;
@@ -100,6 +107,7 @@ export interface VenueToolServiceOptions {
   readonly occupancyOperations?: Partial<OccupancyOperations>;
   readonly incidentOperations?: Partial<IncidentOperations>;
   readonly deviationOperations?: Partial<DeviationOperations>;
+  readonly postEventOperations?: Partial<PostEventOperations>;
   readonly authorization?: ToolAuthorization;
   readonly authorizationProvider?: (context: AuthorizationProviderContext) => MaybePromise<ToolAuthorization>;
   readonly recordAuthorizationDenial?: (denial: AuthorizationDenial) => MaybePromise<void>;
@@ -137,6 +145,7 @@ export function createVenueToolService({
   occupancyOperations,
   incidentOperations,
   deviationOperations,
+  postEventOperations,
   authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION,
   authorizationProvider,
   recordAuthorizationDenial,
@@ -249,6 +258,25 @@ export function createVenueToolService({
                   ? deviationOperations?.createPostEventDeviationProposal
                   : deviationOperations?.exportLivePlanDeviations;
         if (!operation) throw venueError("DEVIATION_TOOL_UNAVAILABLE", { toolName: name });
+        output = await operation(input, operationContext);
+      } else if (
+        name === "venue.inspect_post_event_review" ||
+        name === "venue.record_post_event_observation" ||
+        name === "venue.record_post_event_lesson" ||
+        name === "venue.create_template_improvement_proposal" ||
+        name === "venue.export_post_event_report"
+      ) {
+        const operation =
+          name === "venue.inspect_post_event_review"
+            ? postEventOperations?.inspectPostEventReview
+            : name === "venue.record_post_event_observation"
+              ? postEventOperations?.recordPostEventObservation
+              : name === "venue.record_post_event_lesson"
+                ? postEventOperations?.recordPostEventLesson
+                : name === "venue.create_template_improvement_proposal"
+                  ? postEventOperations?.createTemplateImprovementProposal
+                  : postEventOperations?.exportPostEventReport;
+        if (!operation) throw venueError("POST_EVENT_TOOL_UNAVAILABLE", { toolName: name });
         output = await operation(input, operationContext);
       } else {
         output = await executeCommand(commandForVenueTool(name, input, source), operationContext);

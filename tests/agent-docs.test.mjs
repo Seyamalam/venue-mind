@@ -62,8 +62,8 @@ test("agent skill package metadata and evaluation metrics are published", async 
   const manifest = JSON.parse(await readFile(publicFile("skills-manifest.json"), "utf8"));
   const metrics = JSON.parse(await readFile(publicFile("skill-evaluation-metrics.json"), "utf8"));
   assert.equal(manifest.packages.length, 6);
-  assert.equal(manifest.toolContractVersion, "1.5.0");
-  assert.equal(metrics.cases, 13);
+  assert.equal(manifest.toolContractVersion, "1.6.0");
+  assert.equal(metrics.cases, 14);
   assert.equal(metrics.toolSelectionAccuracy, 1);
   assert.equal(metrics.unnecessaryCallRate, 0);
 });

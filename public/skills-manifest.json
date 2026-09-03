@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "toolContractVersion": "1.5.0",
+  "toolContractVersion": "1.6.0",
   "mcpServerVersion": "0.7.0",
   "packages": [
     {

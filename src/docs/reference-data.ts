@@ -434,6 +434,31 @@ export const TOOL_OUTPUT_REFERENCE: Readonly<Record<string, ToolOutputReference>
     ["content.register.id", "content.deviations[].id", "content.overlay.id"],
     "A verified deviation record that separates accepted Plan provenance, live overlay facts, and post-event recommendations.",
   ),
+  "venue.inspect_post_event_review": output(
+    ["review", "comparisons", "integrity"],
+    ["review.id", "review.predictions[].key", "comparisons[].comparisonFingerprint", "review.ledger[].id"],
+    "Frozen Post-event Review state, outcome comparisons, and verified ledger integrity.",
+  ),
+  "venue.record_post_event_observation": output(
+    ["review", "subject", "receipt", "duplicate"],
+    ["review.id", "subject.id", "subject.predictionKey", "receipt.id", "subject.evidenceRefs[].id"],
+    "An idempotent evidence-bound Observation against one frozen Prediction.",
+  ),
+  "venue.record_post_event_lesson": output(
+    ["review", "subject", "receipt", "duplicate"],
+    ["review.id", "subject.id", "subject.comparisonKey", "subject.requirementIds[]", "subject.constraintIds[]", "receipt.id"],
+    "An idempotent structured Lesson linked to frozen Requirements or Constraints.",
+  ),
+  "venue.create_template_improvement_proposal": output(
+    ["review", "subject", "receipt", "duplicate"],
+    ["review.id", "subject.id", "subject.traces[].changeId", "subject.traces[].lessonIds[]", "receipt.id"],
+    "An evidence-traced Template Improvement Proposal that remains pending human review and unpublished.",
+  ),
+  "venue.export_post_event_report": output(
+    ["filename", "mimeType", "content"],
+    ["content.identity.reviewId", "content.comparisons[].comparisonFingerprint", "content.ledger[].id"],
+    "An integrity-verified Post-event Report generated without persisted file storage.",
+  ),
   "venue.export_audit_package": output(
     ["format", "filename", "mimeType", "encoding", "content"],
     ["content.plan.id", "content.ledger[].id", "content.validation.validationId"],

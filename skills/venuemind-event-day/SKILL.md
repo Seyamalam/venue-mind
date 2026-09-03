@@ -3,7 +3,7 @@ name: venuemind-event-day
 description: Triage VenueMind event-day issues with runbooks, comments, evidence, and supervised layout adjustments. Use for live access, queue, production, capacity, and circulation incidents.
 metadata:
   version: 1.4.0
-  tool-contract-version: 1.5.0
+  tool-contract-version: 1.6.0
 ---
 
 # VenueMind Event Day
@@ -21,8 +21,9 @@ Triage live issues against the accepted Plan. VenueMind is not an emergency-resp
 7. If the user requests a layout adjustment, call `venue.detect_proposal_conflicts` first when the Proposal base is stale. Then call `venue.request_adjustment` with a unique `idempotencyKey`, validate, and retrieve evidence again.
 8. When operations require a temporary spatial Change, call `venue.record_live_plan_deviation` with one accepted-Plan location, exact affected object IDs, the available live Constraint IDs, disposition, reason code, and a unique `idempotencyKey`. Never rewrite the approved Plan. End the record with `venue.end_live_plan_deviation` when the operational condition ends.
 9. After the event, call `venue.create_post_event_deviation_proposal` only for ended `revision-candidate` records worth retaining. The result is a normal review-state Proposal; do not accept it or imply Approval.
-10. Use `venue.export_live_occupancy`, `venue.export_incident_record`, and `venue.export_live_plan_deviations` for verified operational artifacts. Return severity, observed facts, assumptions, human owner, stable Alert/scope/object/route/Incident/Deviation IDs, current revisions, Proposal and Validation IDs, failed checks, and the next human decision.
+10. For a prepared Post-event Review, call `venue.inspect_post_event_review` before recording outcomes. Use `venue.record_post_event_observation` with exact evidence references, then `venue.record_post_event_lesson` with frozen Requirement or Constraint IDs. Create a Template Improvement Proposal only with `venue.create_template_improvement_proposal`, tracing every Change to observed Lessons. The result stays pending human review and is never published by an agent.
+11. Use `venue.export_live_occupancy`, `venue.export_incident_record`, `venue.export_live_plan_deviations`, and `venue.export_post_event_report` for verified operational artifacts. Return severity, observed facts, assumptions, human owner, stable Alert/scope/object/route/Incident/Deviation/Lesson IDs, current revisions, Proposal and Validation IDs, failed checks, and the next human decision.
 
-For immediate danger, direct the operator to the venue emergency plan and local emergency services. Agent tools cannot acknowledge an Occupancy Alert or acknowledge, escalate, own, hand off, attach evidence to, act on, resolve, close, or reopen an Operational Incident. Route those actions to an authenticated human operator in Studio. Never accept a Proposal, override a Lock, create a waiver, or silently change the accepted Plan.
+For immediate danger, direct the operator to the venue emergency plan and local emergency services. Agent tools cannot acknowledge an Occupancy Alert; manage an Operational Incident; or approve, reject, or publish a Template Improvement Proposal. Route those actions to an authenticated human operator in Studio. Never accept a Proposal, override a Lock, create a waiver, or silently change the accepted Plan.
 
 Read [generated contracts](references/contracts.md).

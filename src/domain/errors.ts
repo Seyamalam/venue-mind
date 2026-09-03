@@ -560,6 +560,11 @@ export const errorCatalog = Object.freeze({
     "Post-event Review is unavailable.",
     "Create or restore the Runbook-bound Post-event Review before issuing this command.",
   ),
+  POST_EVENT_TOOL_UNAVAILABLE: define(
+    "POST_EVENT_TOOL_UNAVAILABLE",
+    "Post-event Review tooling is unavailable.",
+    "Connect a Post-event Review operation adapter before calling this tool.",
+  ),
   POST_EVENT_INVALID: define(
     "POST_EVENT_INVALID",
     "Post-event Review input is invalid.",

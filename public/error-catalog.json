@@ -544,6 +544,76 @@
     "message": "Live Plan Deviation ledger integrity failed.",
     "remediation": "Restore the last verified register state before inspection, recommendation, or export."
   },
+  "POST_EVENT_BASELINE_INVALID": {
+    "code": "POST_EVENT_BASELINE_INVALID",
+    "message": "Post-event Review baseline is invalid.",
+    "remediation": "Bind the review to matching, integrity-verified Runbook, Plan, occupancy, incident, deviation, and Scenario evidence."
+  },
+  "POST_EVENT_REVIEW_NOT_FOUND": {
+    "code": "POST_EVENT_REVIEW_NOT_FOUND",
+    "message": "Post-event Review is unavailable.",
+    "remediation": "Create or restore the Runbook-bound Post-event Review before issuing this command."
+  },
+  "POST_EVENT_TOOL_UNAVAILABLE": {
+    "code": "POST_EVENT_TOOL_UNAVAILABLE",
+    "message": "Post-event Review tooling is unavailable.",
+    "remediation": "Connect a Post-event Review operation adapter before calling this tool."
+  },
+  "POST_EVENT_INVALID": {
+    "code": "POST_EVENT_INVALID",
+    "message": "Post-event Review input is invalid.",
+    "remediation": "Supply published metric, scope, evidence, lesson, and Proposal fields with stable identifiers."
+  },
+  "POST_EVENT_REVISION_CONFLICT": {
+    "code": "POST_EVENT_REVISION_CONFLICT",
+    "message": "Post-event Review revision conflict.",
+    "remediation": "Refresh the Post-event Review and retry only if the transition is still required."
+  },
+  "POST_EVENT_EVIDENCE_INVALID": {
+    "code": "POST_EVENT_EVIDENCE_INVALID",
+    "message": "Post-event evidence does not match the frozen baseline.",
+    "remediation": "Reference an exact evidence ID and fingerprint frozen into this Post-event Review."
+  },
+  "POST_EVENT_OBSERVATION_CONFLICT": {
+    "code": "POST_EVENT_OBSERVATION_CONFLICT",
+    "message": "An Observation already exists for this predicted outcome.",
+    "remediation": "Use the accepted Observation or create a distinct metric scope before recording another outcome."
+  },
+  "POST_EVENT_COMPARISON_NOT_FOUND": {
+    "code": "POST_EVENT_COMPARISON_NOT_FOUND",
+    "message": "Post-event Comparison is unavailable.",
+    "remediation": "Inspect the frozen Predictions and retry with an existing comparison key."
+  },
+  "POST_EVENT_LESSON_NOT_FOUND": {
+    "code": "POST_EVENT_LESSON_NOT_FOUND",
+    "message": "Post-event Lesson is unavailable.",
+    "remediation": "Inspect the Post-event Review and retry with an existing stable Lesson ID."
+  },
+  "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND": {
+    "code": "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+    "message": "Template Improvement Proposal is unavailable.",
+    "remediation": "Inspect the Post-event Review and retry with an existing stable Proposal ID."
+  },
+  "POST_EVENT_TEMPLATE_PROPOSAL_INVALID": {
+    "code": "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+    "message": "Template Improvement Proposal is invalid.",
+    "remediation": "Trace every Change through a structured Lesson to an observed event-day outcome and a frozen template binding."
+  },
+  "POST_EVENT_HUMAN_REQUIRED": {
+    "code": "POST_EVENT_HUMAN_REQUIRED",
+    "message": "This Post-event Review transition requires a human reviewer.",
+    "remediation": "Ask an authorized human to approve or reject the Template Improvement Proposal."
+  },
+  "POST_EVENT_REVIEW_TRANSITION_INVALID": {
+    "code": "POST_EVENT_REVIEW_TRANSITION_INVALID",
+    "message": "Post-event Review transition is invalid.",
+    "remediation": "Use a published pending-to-approved or pending-to-rejected recommendation transition."
+  },
+  "POST_EVENT_LEDGER_INTEGRITY_FAILED": {
+    "code": "POST_EVENT_LEDGER_INTEGRITY_FAILED",
+    "message": "Post-event Review ledger integrity failed.",
+    "remediation": "Restore the last verified Post-event Review before inspection or export."
+  },
   "VENUE_INTERNAL_ERROR": {
     "code": "VENUE_INTERNAL_ERROR",
     "message": "VenueMind could not complete the operation.",

@@ -1486,7 +1486,18 @@
         "DEVIATION_LOCATION_INVALID",
         "DEVIATION_REVISION_CONFLICT",
         "DEVIATION_REGISTER_REVISION_CONFLICT",
-        "DEVIATION_LEDGER_INTEGRITY_FAILED"
+        "DEVIATION_LEDGER_INTEGRITY_FAILED",
+        "POST_EVENT_REVIEW_NOT_FOUND",
+        "POST_EVENT_TOOL_UNAVAILABLE",
+        "POST_EVENT_INVALID",
+        "POST_EVENT_REVISION_CONFLICT",
+        "POST_EVENT_EVIDENCE_INVALID",
+        "POST_EVENT_OBSERVATION_CONFLICT",
+        "POST_EVENT_COMPARISON_NOT_FOUND",
+        "POST_EVENT_LESSON_NOT_FOUND",
+        "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+        "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+        "POST_EVENT_LEDGER_INTEGRITY_FAILED"
       ],
       "outputFields": [
         "register",
@@ -1532,6 +1543,219 @@
         "content.register.id",
         "content.deviations[].id",
         "content.overlay.id"
+      ]
+    },
+    {
+      "name": "venue.inspect_post_event_review",
+      "path": "/docs/reference-tool-venue-inspect-post-event-review",
+      "requiredFields": [],
+      "errors": [
+        "TOOL_SCOPE_REQUIRED",
+        "AUTHORIZATION_DENIED",
+        "AGENT_GRANT_INVALID",
+        "TOOL_PAYLOAD_TOO_LARGE",
+        "TOOL_CALL_CANCELLED",
+        "VENUE_INTERNAL_ERROR",
+        "POST_EVENT_REVIEW_NOT_FOUND",
+        "POST_EVENT_TOOL_UNAVAILABLE",
+        "POST_EVENT_INVALID",
+        "POST_EVENT_REVISION_CONFLICT",
+        "POST_EVENT_EVIDENCE_INVALID",
+        "POST_EVENT_OBSERVATION_CONFLICT",
+        "POST_EVENT_COMPARISON_NOT_FOUND",
+        "POST_EVENT_LESSON_NOT_FOUND",
+        "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+        "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+        "POST_EVENT_LEDGER_INTEGRITY_FAILED"
+      ],
+      "outputFields": [
+        "review",
+        "comparisons",
+        "integrity"
+      ],
+      "stableIds": [
+        "review.id",
+        "review.predictions[].key",
+        "comparisons[].comparisonFingerprint",
+        "review.ledger[].id"
+      ]
+    },
+    {
+      "name": "venue.record_post_event_observation",
+      "path": "/docs/reference-tool-venue-record-post-event-observation",
+      "requiredFields": [
+        "observationId",
+        "predictionKey",
+        "value",
+        "confidence",
+        "evidenceRefs",
+        "expectedRevision",
+        "idempotencyKey"
+      ],
+      "errors": [
+        "TOOL_SCOPE_REQUIRED",
+        "AUTHORIZATION_DENIED",
+        "AGENT_GRANT_INVALID",
+        "TOOL_PAYLOAD_TOO_LARGE",
+        "TOOL_CALL_CANCELLED",
+        "VENUE_INTERNAL_ERROR",
+        "IDEMPOTENCY_KEY_REQUIRED",
+        "IDEMPOTENCY_KEY_CONFLICT",
+        "POST_EVENT_REVIEW_NOT_FOUND",
+        "POST_EVENT_TOOL_UNAVAILABLE",
+        "POST_EVENT_INVALID",
+        "POST_EVENT_REVISION_CONFLICT",
+        "POST_EVENT_EVIDENCE_INVALID",
+        "POST_EVENT_OBSERVATION_CONFLICT",
+        "POST_EVENT_COMPARISON_NOT_FOUND",
+        "POST_EVENT_LESSON_NOT_FOUND",
+        "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+        "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+        "POST_EVENT_LEDGER_INTEGRITY_FAILED"
+      ],
+      "outputFields": [
+        "review",
+        "subject",
+        "receipt",
+        "duplicate"
+      ],
+      "stableIds": [
+        "review.id",
+        "subject.id",
+        "subject.predictionKey",
+        "receipt.id",
+        "subject.evidenceRefs[].id"
+      ]
+    },
+    {
+      "name": "venue.record_post_event_lesson",
+      "path": "/docs/reference-tool-venue-record-post-event-lesson",
+      "requiredFields": [
+        "lessonId",
+        "comparisonKey",
+        "lessonCode",
+        "findingCode",
+        "recommendedActionCode",
+        "requirementIds",
+        "constraintIds",
+        "expectedRevision",
+        "idempotencyKey"
+      ],
+      "errors": [
+        "TOOL_SCOPE_REQUIRED",
+        "AUTHORIZATION_DENIED",
+        "AGENT_GRANT_INVALID",
+        "TOOL_PAYLOAD_TOO_LARGE",
+        "TOOL_CALL_CANCELLED",
+        "VENUE_INTERNAL_ERROR",
+        "IDEMPOTENCY_KEY_REQUIRED",
+        "IDEMPOTENCY_KEY_CONFLICT",
+        "POST_EVENT_REVIEW_NOT_FOUND",
+        "POST_EVENT_TOOL_UNAVAILABLE",
+        "POST_EVENT_INVALID",
+        "POST_EVENT_REVISION_CONFLICT",
+        "POST_EVENT_EVIDENCE_INVALID",
+        "POST_EVENT_OBSERVATION_CONFLICT",
+        "POST_EVENT_COMPARISON_NOT_FOUND",
+        "POST_EVENT_LESSON_NOT_FOUND",
+        "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+        "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+        "POST_EVENT_LEDGER_INTEGRITY_FAILED"
+      ],
+      "outputFields": [
+        "review",
+        "subject",
+        "receipt",
+        "duplicate"
+      ],
+      "stableIds": [
+        "review.id",
+        "subject.id",
+        "subject.comparisonKey",
+        "subject.requirementIds[]",
+        "subject.constraintIds[]",
+        "receipt.id"
+      ]
+    },
+    {
+      "name": "venue.create_template_improvement_proposal",
+      "path": "/docs/reference-tool-venue-create-template-improvement-proposal",
+      "requiredFields": [
+        "proposalId",
+        "goal",
+        "target",
+        "changes",
+        "changeLessonLinks",
+        "expectedRevision",
+        "idempotencyKey"
+      ],
+      "errors": [
+        "TOOL_SCOPE_REQUIRED",
+        "AUTHORIZATION_DENIED",
+        "AGENT_GRANT_INVALID",
+        "TOOL_PAYLOAD_TOO_LARGE",
+        "TOOL_CALL_CANCELLED",
+        "VENUE_INTERNAL_ERROR",
+        "IDEMPOTENCY_KEY_REQUIRED",
+        "IDEMPOTENCY_KEY_CONFLICT",
+        "POST_EVENT_REVIEW_NOT_FOUND",
+        "POST_EVENT_TOOL_UNAVAILABLE",
+        "POST_EVENT_INVALID",
+        "POST_EVENT_REVISION_CONFLICT",
+        "POST_EVENT_EVIDENCE_INVALID",
+        "POST_EVENT_OBSERVATION_CONFLICT",
+        "POST_EVENT_COMPARISON_NOT_FOUND",
+        "POST_EVENT_LESSON_NOT_FOUND",
+        "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+        "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+        "POST_EVENT_LEDGER_INTEGRITY_FAILED"
+      ],
+      "outputFields": [
+        "review",
+        "subject",
+        "receipt",
+        "duplicate"
+      ],
+      "stableIds": [
+        "review.id",
+        "subject.id",
+        "subject.traces[].changeId",
+        "subject.traces[].lessonIds[]",
+        "receipt.id"
+      ]
+    },
+    {
+      "name": "venue.export_post_event_report",
+      "path": "/docs/reference-tool-venue-export-post-event-report",
+      "requiredFields": [],
+      "errors": [
+        "TOOL_SCOPE_REQUIRED",
+        "AUTHORIZATION_DENIED",
+        "AGENT_GRANT_INVALID",
+        "TOOL_PAYLOAD_TOO_LARGE",
+        "TOOL_CALL_CANCELLED",
+        "VENUE_INTERNAL_ERROR",
+        "POST_EVENT_REVIEW_NOT_FOUND",
+        "POST_EVENT_TOOL_UNAVAILABLE",
+        "POST_EVENT_INVALID",
+        "POST_EVENT_REVISION_CONFLICT",
+        "POST_EVENT_EVIDENCE_INVALID",
+        "POST_EVENT_OBSERVATION_CONFLICT",
+        "POST_EVENT_COMPARISON_NOT_FOUND",
+        "POST_EVENT_LESSON_NOT_FOUND",
+        "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+        "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+        "POST_EVENT_LEDGER_INTEGRITY_FAILED"
+      ],
+      "outputFields": [
+        "filename",
+        "mimeType",
+        "content"
+      ],
+      "stableIds": [
+        "content.identity.reviewId",
+        "content.comparisons[].comparisonFingerprint",
+        "content.ledger[].id"
       ]
     },
     {
@@ -3398,7 +3622,7 @@
     },
     {
       "surface": "Tool contracts",
-      "current": "1.5.0",
+      "current": "1.6.0",
       "compatibility": "Shared by WebMCP, standalone MCP, schemas, examples, and skills."
     },
     {
@@ -3414,7 +3638,7 @@
     {
       "surface": "Agent skills",
       "current": "1.4.0",
-      "compatibility": "Targets tool contract 1.5.0."
+      "compatibility": "Targets tool contract 1.6.0."
     },
     {
       "surface": "Interchange Package",

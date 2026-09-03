@@ -6,6 +6,7 @@ import { createEventDayRunbook } from "../../../src/domain/event-day-runbook.ts"
 import { createOccupancyCommandBus } from "../../../src/domain/occupancy-command-bus.ts";
 import { createIncidentCommandBus } from "../../../src/domain/incident-command-bus.ts";
 import { createDeviationCommandBus } from "../../../src/domain/deviation-command-bus.ts";
+import { createPostEventReviewCommandBus } from "../../../src/domain/post-event-review-command-bus.ts";
 import type { VenueToolInput } from "../../../src/contracts/venue-contracts.ts";
 import type { AuthorizationDenial, ProjectSummary, ToolAuthorization } from "../../../src/tools/venue-tool-service.ts";
 import type {
@@ -27,6 +28,12 @@ import type {
   RefreshLiveOccupancyCommand,
 } from "../../../src/domain/operational-types.ts";
 import type { PlanningChange } from "../../../src/domain/planning-effects.ts";
+import type {
+  PostEventEvidenceRef,
+  PostEventObservation,
+  PostEventReview,
+  TemplateImprovementProposal,
+} from "../../../src/domain/post-event-review-types.ts";
 import type { PlannerCommand, VenuePlanner } from "../../../src/domain/venue-planner.ts";
 import type { McpProjectRecord, McpProjectRepository } from "./project-repository.ts";
 
@@ -169,6 +176,97 @@ const requiredStringList = (value: readonly string[] | undefined, field: string)
     throw venueError("DEVIATION_INVALID", { reason: `${field}-invalid` });
   return [...new Set(value)];
 };
+const requiredRevision = (value: number | undefined): number => {
+  if (!Number.isSafeInteger(value) || Number(value) < 0)
+    throw venueError("POST_EVENT_REVISION_CONFLICT", { reason: "expected-revision-invalid" });
+  return Number(value);
+};
+const isPostEventConfidence = (value: string | undefined): value is PostEventObservation["confidence"] =>
+  value === "measured" || value === "estimated" || value === "unavailable";
+const postEventEvidenceRefsFromInput = (values: VenueToolInput["evidenceRefs"]): readonly PostEventEvidenceRef[] => {
+  if (!values?.length) throw venueError("POST_EVENT_EVIDENCE_INVALID", { reason: "evidence-required" });
+  return values.map((value) => {
+    const kind = value["kind"];
+    if (
+      ![
+        "accepted-plan", "runbook", "occupancy-monitor", "occupancy-projection", "incident-register",
+        "deviation-register", "scenario-run",
+      ].includes(typeof kind === "string" ? kind : "") ||
+      typeof value["id"] !== "string" ||
+      typeof value["fingerprint"] !== "string"
+    ) throw venueError("POST_EVENT_EVIDENCE_INVALID", { reason: "evidence-ref-invalid" });
+    return {
+      kind: kind === "accepted-plan" || kind === "runbook" || kind === "occupancy-monitor" ||
+        kind === "occupancy-projection" || kind === "incident-register" || kind === "deviation-register"
+        ? kind
+        : "scenario-run",
+      id: value["id"],
+      fingerprint: value["fingerprint"],
+    };
+  });
+};
+const postEventChangesFromInput = (values: VenueToolInput["changes"]): readonly PlanningChange[] => {
+  if (!values?.length) throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "changes-required" });
+  return values.map((value) => {
+    const id = value["id"];
+    const effects = value["effects"];
+    if (typeof id !== "string" || !isObject(effects))
+      throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "change-invalid" });
+    const normalizedEffects: NonNullable<PlanningChange["effects"]> = {};
+    for (const [key, effect] of Object.entries(effects)) {
+      if (typeof effect === "string" || typeof effect === "number" || typeof effect === "boolean") {
+        normalizedEffects[key] = effect;
+        continue;
+      }
+      if (
+        isObject(effect) &&
+        typeof effect["kind"] === "string" &&
+        typeof effect["sourceId"] === "string" &&
+        typeof effect["sourceChecksum"] === "string"
+      ) {
+        normalizedEffects[key] = {
+          kind: effect["kind"], sourceId: effect["sourceId"], sourceChecksum: effect["sourceChecksum"],
+        };
+        continue;
+      }
+      throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "change-effect-invalid", changeId: id });
+    }
+    const targetObjectIds = value["targetObjectIds"];
+    const targetRequirementIds = value["targetRequirementIds"];
+    if (targetObjectIds !== undefined && (!Array.isArray(targetObjectIds) || !targetObjectIds.every((item) => typeof item === "string")))
+      throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "target-object-ids-invalid", changeId: id });
+    if (targetRequirementIds !== undefined && (!Array.isArray(targetRequirementIds) || !targetRequirementIds.every((item) => typeof item === "string")))
+      throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "target-requirement-ids-invalid", changeId: id });
+    return {
+      id,
+      ...(typeof value["title"] === "string" ? { title: value["title"] } : {}),
+      ...(typeof value["shortTitle"] === "string" ? { shortTitle: value["shortTitle"] } : {}),
+      ...(typeof value["label"] === "string" ? { label: value["label"] } : {}),
+      ...(targetObjectIds ? { targetObjectIds: [...targetObjectIds] } : {}),
+      ...(targetRequirementIds ? { targetRequirementIds: [...targetRequirementIds] } : {}),
+      effects: normalizedEffects,
+    };
+  });
+};
+const postEventTargetFromInput = (value: VenueToolInput["target"]): TemplateImprovementProposal["target"] => {
+  if (
+    !value ||
+    (value["kind"] !== "venue" && value["kind"] !== "room") ||
+    typeof value["templateId"] !== "string" ||
+    typeof value["version"] !== "string"
+  ) throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "target-invalid" });
+  return { kind: value["kind"], templateId: value["templateId"], version: value["version"] };
+};
+const postEventChangeLessonLinksFromInput = (
+  values: VenueToolInput["changeLessonLinks"],
+): readonly Readonly<{ changeId: string; lessonIds: readonly string[] }>[] => {
+  if (!values?.length) throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "change-lesson-links-required" });
+  return values.map((value) => {
+    if (typeof value["changeId"] !== "string" || !Array.isArray(value["lessonIds"]) || !value["lessonIds"].every((item) => typeof item === "string"))
+      throw venueError("POST_EVENT_TEMPLATE_PROPOSAL_INVALID", { reason: "change-lesson-link-invalid" });
+    return { changeId: value["changeId"], lessonIds: [...value["lessonIds"]] };
+  });
+};
 
 const isIncidentList = (value: unknown): value is readonly OperationalIncident[] => Array.isArray(value);
 const isDeviationList = (value: unknown): value is readonly LivePlanDeviation[] =>
@@ -225,6 +323,7 @@ export function createProjectSession({
   const occupancyMonitors = new Map<string, LiveOccupancyMonitor>();
   const incidentRegisters = new Map<string, IncidentRegister>();
   const deviationRegisters = new Map<string, LivePlanDeviationRegister>();
+  const postEventReviews = new Map<string, PostEventReview>();
 
   const requireRecord = (): McpProjectRecord => {
     if (!activeRecord) throw venueError("PROJECT_NOT_FOUND", { projectId: activeProjectId });
@@ -253,6 +352,16 @@ export function createProjectSession({
       lastOpenedAt: clock(),
     });
     deviationRegisters.set(activeProjectId, clone(register));
+  };
+
+  const persistPostEventReview = async (review: PostEventReview): Promise<void> => {
+    activeRecord = await repository.save({
+      ...requireRecord(),
+      postEventReview: clone(review),
+      updatedAt: clock(),
+      lastOpenedAt: clock(),
+    });
+    postEventReviews.set(activeProjectId, clone(review));
   };
 
   const activeRunbookForCurrentProject = () => {
@@ -339,6 +448,12 @@ export function createProjectSession({
     return bus;
   };
 
+  const postEventBusForCurrentProject = () => {
+    const review = postEventReviews.get(activeProjectId) ?? null;
+    if (!review) throw venueError("POST_EVENT_REVIEW_NOT_FOUND", { projectId: activeProjectId });
+    return createPostEventReviewCommandBus({ initialReview: review });
+  };
+
   const occupancyMetadata = (
     input: VenueToolInput,
     type: "ingest" | "refresh",
@@ -367,6 +482,8 @@ export function createProjectSession({
     else incidentRegisters.delete(record.id);
     if (record.deviationRegister) deviationRegisters.set(record.id, clone(record.deviationRegister));
     else deviationRegisters.delete(record.id);
+    if (record.postEventReview) postEventReviews.set(record.id, clone(record.postEventReview));
+    else postEventReviews.delete(record.id);
     planner = nextPlanner;
     return record;
   };
@@ -648,6 +765,90 @@ export function createProjectSession({
       await initialize();
       return (await deviationBusForCurrentProject()).execute({
         type: "export_live_plan_deviations",
+        exportedAt: clock(),
+      });
+    },
+    async inspectPostEventReview() {
+      await initialize();
+      return postEventBusForCurrentProject().execute({ type: "inspect_post_event_review" });
+    },
+    async recordPostEventObservation(input: VenueToolInput) {
+      await initialize();
+      if (!isPostEventConfidence(input.confidence))
+        throw venueError("POST_EVENT_INVALID", { reason: "confidence-invalid" });
+      if (input.value !== null && (typeof input.value !== "number" || !Number.isFinite(input.value)))
+        throw venueError("POST_EVENT_INVALID", { reason: "observation-value-invalid" });
+      const result = postEventBusForCurrentProject().execute({
+        type: "record_post_event_observation",
+        observationId: requiredString(input.observationId, "observationId"),
+        predictionKey: requiredString(input.predictionKey, "predictionKey"),
+        value: input.value ?? null,
+        confidence: input.confidence,
+        evidenceRefs: postEventEvidenceRefsFromInput(input.evidenceRefs),
+        expectedRevision: requiredRevision(input.expectedRevision),
+        idempotencyKey: requiredString(input.idempotencyKey, "idempotencyKey"),
+        actorType: "agent",
+        actorId: "mcp-agent",
+        source: "mcp",
+        sessionId: input.correlationId ?? "mcp-session",
+        committedAt: clock(),
+      });
+      if (!("review" in result) || !("receipt" in result))
+        throw venueError("POST_EVENT_INVALID", { reason: "observation-result-invalid" });
+      await persistPostEventReview(result.review);
+      return result;
+    },
+    async recordPostEventLesson(input: VenueToolInput) {
+      await initialize();
+      const result = postEventBusForCurrentProject().execute({
+        type: "record_post_event_lesson",
+        lessonId: requiredString(input.lessonId, "lessonId"),
+        comparisonKey: requiredString(input.comparisonKey, "comparisonKey"),
+        lessonCode: requiredString(input.lessonCode, "lessonCode"),
+        findingCode: requiredString(input.findingCode, "findingCode"),
+        recommendedActionCode: requiredString(input.recommendedActionCode, "recommendedActionCode"),
+        requirementIds: input.requirementIds ?? [],
+        constraintIds: input.constraintIds ?? [],
+        expectedRevision: requiredRevision(input.expectedRevision),
+        idempotencyKey: requiredString(input.idempotencyKey, "idempotencyKey"),
+        actorType: "agent",
+        actorId: "mcp-agent",
+        source: "mcp",
+        sessionId: input.correlationId ?? "mcp-session",
+        committedAt: clock(),
+      });
+      if (!("review" in result) || !("receipt" in result))
+        throw venueError("POST_EVENT_INVALID", { reason: "lesson-result-invalid" });
+      await persistPostEventReview(result.review);
+      return result;
+    },
+    async createTemplateImprovementProposal(input: VenueToolInput) {
+      await initialize();
+      const result = postEventBusForCurrentProject().execute({
+        type: "create_template_improvement_proposal",
+        proposalId: requiredString(input.proposalId, "proposalId"),
+        goal: requiredString(input.goal, "goal"),
+        target: postEventTargetFromInput(input.target),
+        changes: postEventChangesFromInput(input.changes),
+        changeLessonLinks: postEventChangeLessonLinksFromInput(input.changeLessonLinks),
+        expectedRevision: requiredRevision(input.expectedRevision),
+        idempotencyKey: requiredString(input.idempotencyKey, "idempotencyKey"),
+        actorType: "agent",
+        actorId: "mcp-agent",
+        source: "mcp",
+        sessionId: input.correlationId ?? "mcp-session",
+        committedAt: clock(),
+      });
+      if (!("review" in result) || !("receipt" in result))
+        throw venueError("POST_EVENT_INVALID", { reason: "template-proposal-result-invalid" });
+      await persistPostEventReview(result.review);
+      return result;
+    },
+    async exportPostEventReport(input: VenueToolInput = {}) {
+      await initialize();
+      return postEventBusForCurrentProject().execute({
+        type: "export_post_event_report",
+        format: input.format === "text" ? "text" : "json",
         exportedAt: clock(),
       });
     },

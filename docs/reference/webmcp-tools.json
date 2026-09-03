@@ -11,7 +11,7 @@
       "additionalProperties": false
     },
     "title": "List Projects",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -120,7 +120,7 @@
       "additionalProperties": false
     },
     "title": "Open Project",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -221,7 +221,7 @@
       "additionalProperties": false
     },
     "title": "Inspect Templates",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -461,7 +461,7 @@
       "additionalProperties": false
     },
     "title": "Get Project Brief",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -736,7 +736,7 @@
       "additionalProperties": false
     },
     "title": "List Constraints",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -941,7 +941,7 @@
       "additionalProperties": false
     },
     "title": "Inspect Layout",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -2167,7 +2167,7 @@
       "additionalProperties": false
     },
     "title": "Get Object",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -3596,7 +3596,7 @@
       "additionalProperties": false
     },
     "title": "Search Objects",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -3922,7 +3922,7 @@
       "additionalProperties": false
     },
     "title": "Preview Revision",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -4065,7 +4065,7 @@
       "additionalProperties": false
     },
     "title": "Preview Template Update",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -10000,7 +10000,7 @@
       "additionalProperties": false
     },
     "title": "Apply Edit",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -10161,7 +10161,7 @@
       "additionalProperties": false
     },
     "title": "Measure Objects",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -10275,7 +10275,7 @@
       "additionalProperties": false
     },
     "title": "Validate Layout",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -10773,7 +10773,7 @@
       "additionalProperties": false
     },
     "title": "Get Validation Evidence",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -11251,7 +11251,7 @@
       "additionalProperties": false
     },
     "title": "List Proposal Branches",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -11438,7 +11438,7 @@
       "additionalProperties": false
     },
     "title": "Compare Proposal Branches",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -11504,7 +11504,7 @@
       "additionalProperties": false
     },
     "title": "Create Proposal Branch",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -11639,7 +11639,7 @@
       "additionalProperties": false
     },
     "title": "Switch Proposal Branch",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -11775,7 +11775,7 @@
       "additionalProperties": false
     },
     "title": "Update Proposal Branch",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -11915,7 +11915,7 @@
       "additionalProperties": false
     },
     "title": "Duplicate Proposal Branch",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -12053,7 +12053,7 @@
       "additionalProperties": false
     },
     "title": "Archive Proposal Branch",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -12179,7 +12179,7 @@
       "additionalProperties": false
     },
     "title": "Restore Proposal Branch",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -12290,7 +12290,7 @@
       "additionalProperties": false
     },
     "title": "Detect Proposal Conflicts",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -12488,7 +12488,7 @@
       "additionalProperties": false
     },
     "title": "Rebase Proposal",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -12645,7 +12645,7 @@
       "additionalProperties": false
     },
     "title": "Request Adjustment",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -12781,7 +12781,7 @@
       "additionalProperties": false
     },
     "title": "List Comments",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -13027,7 +13027,7 @@
       "additionalProperties": false
     },
     "title": "Add Comment",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:comment"
     },
@@ -13342,7 +13342,7 @@
       "additionalProperties": false
     },
     "title": "Edit Comment",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:comment"
     },
@@ -13485,7 +13485,7 @@
       "additionalProperties": false
     },
     "title": "Set Comment Status",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:comment"
     },
@@ -13597,7 +13597,7 @@
       "additionalProperties": false
     },
     "title": "Get Change Log",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -13722,7 +13722,7 @@
       "additionalProperties": false
     },
     "title": "Replay History",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -13931,7 +13931,7 @@
       "additionalProperties": false
     },
     "title": "List Scenarios",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -14370,7 +14370,7 @@
       "additionalProperties": false
     },
     "title": "List Scenario Runs",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -15551,7 +15551,7 @@
       "additionalProperties": false
     },
     "title": "Get Scenario Result",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:simulate"
     },
@@ -17069,7 +17069,7 @@
       "additionalProperties": false
     },
     "title": "Run Scenario",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:simulate"
     },
@@ -17838,7 +17838,7 @@
       "additionalProperties": false
     },
     "title": "Compare Simulations",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:simulate"
     },
@@ -17998,7 +17998,7 @@
       "additionalProperties": false
     },
     "title": "Export Simulation",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:export"
     },
@@ -18055,7 +18055,7 @@
       "additionalProperties": false
     },
     "title": "Inspect Live Occupancy",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -18655,7 +18655,7 @@
       "additionalProperties": false
     },
     "title": "Ingest Occupancy Signal",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:operate"
     },
@@ -19205,7 +19205,7 @@
       "additionalProperties": false
     },
     "title": "Refresh Live Occupancy",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:operate"
     },
@@ -19732,7 +19732,7 @@
       "additionalProperties": false
     },
     "title": "Export Live Occupancy",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:export"
     },
@@ -19832,7 +19832,7 @@
       "additionalProperties": false
     },
     "title": "Inspect Incidents",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -20589,7 +20589,7 @@
       "additionalProperties": false
     },
     "title": "Report Incident",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:operate"
     },
@@ -21247,7 +21247,7 @@
       "additionalProperties": false
     },
     "title": "Export Incident Record",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:export"
     },
@@ -21332,7 +21332,7 @@
       "additionalProperties": false
     },
     "title": "Inspect Live Plan Deviations",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -21752,7 +21752,7 @@
       "additionalProperties": false
     },
     "title": "Record Live Plan Deviation",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:operate"
     },
@@ -21984,7 +21984,7 @@
       "additionalProperties": false
     },
     "title": "End Live Plan Deviation",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:operate"
     },
@@ -22196,7 +22196,7 @@
       "additionalProperties": false
     },
     "title": "Create Post Event Deviation Proposal",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -22360,7 +22360,18 @@
       "DEVIATION_LOCATION_INVALID",
       "DEVIATION_REVISION_CONFLICT",
       "DEVIATION_REGISTER_REVISION_CONFLICT",
-      "DEVIATION_LEDGER_INTEGRITY_FAILED"
+      "DEVIATION_LEDGER_INTEGRITY_FAILED",
+      "POST_EVENT_REVIEW_NOT_FOUND",
+      "POST_EVENT_TOOL_UNAVAILABLE",
+      "POST_EVENT_INVALID",
+      "POST_EVENT_REVISION_CONFLICT",
+      "POST_EVENT_EVIDENCE_INVALID",
+      "POST_EVENT_OBSERVATION_CONFLICT",
+      "POST_EVENT_COMPARISON_NOT_FOUND",
+      "POST_EVENT_LESSON_NOT_FOUND",
+      "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+      "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+      "POST_EVENT_LEDGER_INTEGRITY_FAILED"
     ]
   },
   {
@@ -22375,7 +22386,7 @@
       "additionalProperties": false
     },
     "title": "Export Live Plan Deviations",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:export"
     },
@@ -22428,6 +22439,3233 @@
     ]
   },
   {
+    "name": "venue.inspect_post_event_review",
+    "description": "Inspect a Runbook-bound Post-event Review, outcome comparisons, Lessons, proposals, and ledger integrity.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "title": "Inspect Post Event Review",
+    "contractVersion": "1.6.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 1048576
+    },
+    "exampleInput": {},
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "review",
+        "comparisons",
+        "integrity"
+      ],
+      "properties": {
+        "review": {
+          "$ref": "https://venuemind.dev/schemas/post-event-review.schema.json"
+        },
+        "comparisons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "key",
+              "prediction",
+              "observation",
+              "status",
+              "delta",
+              "tolerance",
+              "comparisonFingerprint"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "prediction": {
+                "type": "object",
+                "required": [
+                  "key",
+                  "family",
+                  "metric",
+                  "scope",
+                  "value",
+                  "unit",
+                  "betterWhen",
+                  "tolerance",
+                  "evidenceRefs"
+                ],
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "family": {
+                    "enum": [
+                      "occupancy",
+                      "queue",
+                      "flow",
+                      "incidents"
+                    ]
+                  },
+                  "metric": {
+                    "enum": [
+                      "peak-persons",
+                      "utilization-ratio",
+                      "average-wait-seconds",
+                      "p95-wait-seconds",
+                      "maximum-queue-persons",
+                      "abandonment-ratio",
+                      "clearance-seconds",
+                      "peak-congestion-index",
+                      "backlog-persons",
+                      "incident-count",
+                      "resolution-seconds"
+                    ]
+                  },
+                  "scope": {
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "id"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "venue",
+                          "occupancy-zone",
+                          "queue",
+                          "route",
+                          "incident-category"
+                        ]
+                      },
+                      "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "value": {
+                    "type": "number"
+                  },
+                  "unit": {
+                    "enum": [
+                      "persons",
+                      "ratio",
+                      "seconds",
+                      "index",
+                      "incidents"
+                    ]
+                  },
+                  "betterWhen": {
+                    "enum": [
+                      "lower",
+                      "higher",
+                      "target"
+                    ]
+                  },
+                  "tolerance": {
+                    "type": "object",
+                    "required": [
+                      "absolute",
+                      "relative"
+                    ],
+                    "properties": {
+                      "absolute": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "relative": {
+                        "type": "number",
+                        "minimum": 0
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "evidenceRefs": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 50,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "kind",
+                        "id",
+                        "fingerprint"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "enum": [
+                            "accepted-plan",
+                            "runbook",
+                            "occupancy-monitor",
+                            "occupancy-projection",
+                            "incident-register",
+                            "deviation-register",
+                            "scenario-run"
+                          ]
+                        },
+                        "id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 160
+                        },
+                        "fingerprint": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "additionalProperties": false
+              },
+              "observation": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "schemaVersion",
+                      "id",
+                      "predictionKey",
+                      "family",
+                      "metric",
+                      "scope",
+                      "value",
+                      "unit",
+                      "confidence",
+                      "evidenceRefs",
+                      "recorded"
+                    ],
+                    "properties": {
+                      "schemaVersion": {
+                        "const": 1
+                      },
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "predictionKey": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "family": {
+                        "enum": [
+                          "occupancy",
+                          "queue",
+                          "flow",
+                          "incidents"
+                        ]
+                      },
+                      "metric": {
+                        "enum": [
+                          "peak-persons",
+                          "utilization-ratio",
+                          "average-wait-seconds",
+                          "p95-wait-seconds",
+                          "maximum-queue-persons",
+                          "abandonment-ratio",
+                          "clearance-seconds",
+                          "peak-congestion-index",
+                          "backlog-persons",
+                          "incident-count",
+                          "resolution-seconds"
+                        ]
+                      },
+                      "scope": {
+                        "type": "object",
+                        "required": [
+                          "kind",
+                          "id"
+                        ],
+                        "properties": {
+                          "kind": {
+                            "enum": [
+                              "venue",
+                              "occupancy-zone",
+                              "queue",
+                              "route",
+                              "incident-category"
+                            ]
+                          },
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 160
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "value": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "unit": {
+                        "enum": [
+                          "persons",
+                          "ratio",
+                          "seconds",
+                          "index",
+                          "incidents"
+                        ]
+                      },
+                      "confidence": {
+                        "enum": [
+                          "measured",
+                          "estimated",
+                          "unavailable"
+                        ]
+                      },
+                      "evidenceRefs": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 50,
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "kind",
+                            "id",
+                            "fingerprint"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "enum": [
+                                "accepted-plan",
+                                "runbook",
+                                "occupancy-monitor",
+                                "occupancy-projection",
+                                "incident-register",
+                                "deviation-register",
+                                "scenario-run"
+                              ]
+                            },
+                            "id": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 160
+                            },
+                            "fingerprint": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "recorded": {
+                        "type": "object",
+                        "required": [
+                          "actorType",
+                          "actorId",
+                          "source",
+                          "sessionId",
+                          "occurredAt"
+                        ],
+                        "properties": {
+                          "actorType": {
+                            "enum": [
+                              "human",
+                              "agent",
+                              "system"
+                            ]
+                          },
+                          "actorId": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "source": {
+                            "enum": [
+                              "studio",
+                              "webmcp",
+                              "mcp",
+                              "system",
+                              "agent-tool"
+                            ]
+                          },
+                          "sessionId": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "occurredAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "status": {
+                "enum": [
+                  "matched",
+                  "better",
+                  "worse",
+                  "insufficient-evidence"
+                ]
+              },
+              "delta": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "tolerance": {
+                "type": "number",
+                "minimum": 0
+              },
+              "comparisonFingerprint": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "integrity": {
+          "type": "object",
+          "required": [
+            "status",
+            "entries",
+            "headHash",
+            "sequence"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "pass",
+                "fail"
+              ]
+            },
+            "entries": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "headHash": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "sequence": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "POST_EVENT_REVIEW_NOT_FOUND",
+      "POST_EVENT_TOOL_UNAVAILABLE",
+      "POST_EVENT_INVALID",
+      "POST_EVENT_REVISION_CONFLICT",
+      "POST_EVENT_EVIDENCE_INVALID",
+      "POST_EVENT_OBSERVATION_CONFLICT",
+      "POST_EVENT_COMPARISON_NOT_FOUND",
+      "POST_EVENT_LESSON_NOT_FOUND",
+      "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+      "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+      "POST_EVENT_LEDGER_INTEGRITY_FAILED"
+    ]
+  },
+  {
+    "name": "venue.record_post_event_observation",
+    "description": "Record one evidence-bound outcome against a frozen Prediction.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "observationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "predictionKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "confidence": {
+          "enum": [
+            "measured",
+            "estimated",
+            "unavailable"
+          ]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "required": [
+              "kind",
+              "id",
+              "fingerprint"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "accepted-plan",
+                  "runbook",
+                  "occupancy-monitor",
+                  "occupancy-projection",
+                  "incident-register",
+                  "deviation-register",
+                  "scenario-run"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "fingerprint": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "observationId",
+        "predictionKey",
+        "value",
+        "confidence",
+        "evidenceRefs",
+        "expectedRevision",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Record Post Event Observation",
+    "contractVersion": "1.6.0",
+    "authorization": {
+      "requiredScope": "venue:operate"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "observationId": "observation-peak-occupancy",
+      "predictionKey": "occupancy:peak-persons:venue:venue",
+      "value": 438,
+      "confidence": "measured",
+      "evidenceRefs": [
+        {
+          "kind": "occupancy-projection",
+          "id": "occupancy-runbook-example",
+          "fingerprint": "sha256:projection"
+        }
+      ],
+      "expectedRevision": 0,
+      "idempotencyKey": "example-post-event-observation-001"
+    },
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "review",
+        "subject",
+        "receipt",
+        "duplicate"
+      ],
+      "properties": {
+        "review": {
+          "$ref": "https://venuemind.dev/schemas/post-event-review.schema.json"
+        },
+        "subject": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "schemaVersion",
+                "id",
+                "predictionKey",
+                "family",
+                "metric",
+                "scope",
+                "value",
+                "unit",
+                "confidence",
+                "evidenceRefs",
+                "recorded"
+              ],
+              "properties": {
+                "schemaVersion": {
+                  "const": 1
+                },
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "predictionKey": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "family": {
+                  "enum": [
+                    "occupancy",
+                    "queue",
+                    "flow",
+                    "incidents"
+                  ]
+                },
+                "metric": {
+                  "enum": [
+                    "peak-persons",
+                    "utilization-ratio",
+                    "average-wait-seconds",
+                    "p95-wait-seconds",
+                    "maximum-queue-persons",
+                    "abandonment-ratio",
+                    "clearance-seconds",
+                    "peak-congestion-index",
+                    "backlog-persons",
+                    "incident-count",
+                    "resolution-seconds"
+                  ]
+                },
+                "scope": {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "id"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "venue",
+                        "occupancy-zone",
+                        "queue",
+                        "route",
+                        "incident-category"
+                      ]
+                    },
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "unit": {
+                  "enum": [
+                    "persons",
+                    "ratio",
+                    "seconds",
+                    "index",
+                    "incidents"
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "measured",
+                    "estimated",
+                    "unavailable"
+                  ]
+                },
+                "evidenceRefs": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 50,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "id",
+                      "fingerprint"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "accepted-plan",
+                          "runbook",
+                          "occupancy-monitor",
+                          "occupancy-projection",
+                          "incident-register",
+                          "deviation-register",
+                          "scenario-run"
+                        ]
+                      },
+                      "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160
+                      },
+                      "fingerprint": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "recorded": {
+                  "type": "object",
+                  "required": [
+                    "actorType",
+                    "actorId",
+                    "source",
+                    "sessionId",
+                    "occurredAt"
+                  ],
+                  "properties": {
+                    "actorType": {
+                      "enum": [
+                        "human",
+                        "agent",
+                        "system"
+                      ]
+                    },
+                    "actorId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "source": {
+                      "enum": [
+                        "studio",
+                        "webmcp",
+                        "mcp",
+                        "system",
+                        "agent-tool"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "schemaVersion",
+                "id",
+                "comparisonKey",
+                "family",
+                "lessonCode",
+                "findingCode",
+                "recommendedActionCode",
+                "requirementIds",
+                "constraintIds",
+                "recorded"
+              ],
+              "properties": {
+                "schemaVersion": {
+                  "const": 1
+                },
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "comparisonKey": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "family": {
+                  "enum": [
+                    "occupancy",
+                    "queue",
+                    "flow",
+                    "incidents"
+                  ]
+                },
+                "lessonCode": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 64,
+                  "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+                },
+                "findingCode": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 64,
+                  "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+                },
+                "recommendedActionCode": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 64,
+                  "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+                },
+                "requirementIds": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "constraintIds": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "recorded": {
+                  "type": "object",
+                  "required": [
+                    "actorType",
+                    "actorId",
+                    "source",
+                    "sessionId",
+                    "occurredAt"
+                  ],
+                  "properties": {
+                    "actorType": {
+                      "enum": [
+                        "human",
+                        "agent",
+                        "system"
+                      ]
+                    },
+                    "actorId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "source": {
+                      "enum": [
+                        "studio",
+                        "webmcp",
+                        "mcp",
+                        "system",
+                        "agent-tool"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "schemaVersion",
+                "id",
+                "revision",
+                "status",
+                "target",
+                "proposal",
+                "traces",
+                "created",
+                "review",
+                "publicationStatus"
+              ],
+              "properties": {
+                "schemaVersion": {
+                  "const": 1
+                },
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "enum": [
+                    "pending-human-review",
+                    "approved-recommendation",
+                    "rejected"
+                  ]
+                },
+                "target": {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "templateId",
+                    "version"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "venue",
+                        "room"
+                      ]
+                    },
+                    "templateId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "version": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "proposal": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "baseVersion",
+                    "revision",
+                    "status",
+                    "goal",
+                    "changes",
+                    "waivers",
+                    "validation",
+                    "lineage"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "baseVersion": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "status": {
+                      "const": "review"
+                    },
+                    "goal": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "changes": {
+                      "type": "array",
+                      "minItems": 1,
+                      "maxItems": 100,
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "effects"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 160
+                          },
+                          "title": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 240
+                          },
+                          "shortTitle": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 240
+                          },
+                          "targetObjectIds": {
+                            "type": "array",
+                            "maxItems": 100,
+                            "uniqueItems": true,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "targetRequirementIds": {
+                            "type": "array",
+                            "maxItems": 100,
+                            "uniqueItems": true,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "effects": {
+                            "type": "object",
+                            "minProperties": 1,
+                            "additionalProperties": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "boolean"
+                                },
+                                {
+                                  "type": "object",
+                                  "required": [
+                                    "kind",
+                                    "sourceId",
+                                    "sourceChecksum"
+                                  ],
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "sourceId": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "sourceChecksum": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "waivers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "validation": {
+                      "anyOf": [
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "lineage": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "traces": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "changeId",
+                      "lessonIds",
+                      "comparisonKeys",
+                      "observationIds"
+                    ],
+                    "properties": {
+                      "changeId": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "lessonIds": {
+                        "type": "array",
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "comparisonKeys": {
+                        "type": "array",
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "observationIds": {
+                        "type": "array",
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "created": {
+                  "type": "object",
+                  "required": [
+                    "actorType",
+                    "actorId",
+                    "source",
+                    "sessionId",
+                    "occurredAt"
+                  ],
+                  "properties": {
+                    "actorType": {
+                      "enum": [
+                        "human",
+                        "agent",
+                        "system"
+                      ]
+                    },
+                    "actorId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "source": {
+                      "enum": [
+                        "studio",
+                        "webmcp",
+                        "mcp",
+                        "system",
+                        "agent-tool"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "review": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "actorType",
+                        "actorId",
+                        "source",
+                        "sessionId",
+                        "occurredAt",
+                        "decision",
+                        "reasonCode"
+                      ],
+                      "properties": {
+                        "actorType": {
+                          "enum": [
+                            "human",
+                            "agent",
+                            "system"
+                          ]
+                        },
+                        "actorId": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "source": {
+                          "enum": [
+                            "studio",
+                            "webmcp",
+                            "mcp",
+                            "system",
+                            "agent-tool"
+                          ]
+                        },
+                        "sessionId": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "occurredAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "decision": {
+                          "enum": [
+                            "approved",
+                            "rejected"
+                          ]
+                        },
+                        "reasonCode": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "publicationStatus": {
+                  "const": "not-published"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "receipt": {
+          "type": "object",
+          "required": [
+            "id",
+            "idempotencyKey",
+            "inputFingerprint",
+            "operation",
+            "subjectId",
+            "aggregateRevision",
+            "ledgerSequence",
+            "acceptedAt"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "idempotencyKey": {
+              "type": "string",
+              "minLength": 1
+            },
+            "inputFingerprint": {
+              "type": "string",
+              "minLength": 1
+            },
+            "operation": {
+              "enum": [
+                "record-observation",
+                "record-lesson",
+                "create-template-proposal",
+                "review-template-proposal"
+              ]
+            },
+            "subjectId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "aggregateRevision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "ledgerSequence": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "acceptedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": false
+        },
+        "duplicate": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT",
+      "POST_EVENT_REVIEW_NOT_FOUND",
+      "POST_EVENT_TOOL_UNAVAILABLE",
+      "POST_EVENT_INVALID",
+      "POST_EVENT_REVISION_CONFLICT",
+      "POST_EVENT_EVIDENCE_INVALID",
+      "POST_EVENT_OBSERVATION_CONFLICT",
+      "POST_EVENT_COMPARISON_NOT_FOUND",
+      "POST_EVENT_LESSON_NOT_FOUND",
+      "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+      "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+      "POST_EVENT_LEDGER_INTEGRITY_FAILED"
+    ]
+  },
+  {
+    "name": "venue.record_post_event_lesson",
+    "description": "Record one Lesson linked to a Comparison and frozen Requirement or Constraint IDs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "lessonId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "comparisonKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "lessonCode": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "findingCode": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "recommendedActionCode": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "requirementIds": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "constraintIds": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "lessonId",
+        "comparisonKey",
+        "lessonCode",
+        "findingCode",
+        "recommendedActionCode",
+        "requirementIds",
+        "constraintIds",
+        "expectedRevision",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Record Post Event Lesson",
+    "contractVersion": "1.6.0",
+    "authorization": {
+      "requiredScope": "venue:operate"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "lessonId": "lesson-capacity-buffer",
+      "comparisonKey": "occupancy:peak-persons:venue:venue",
+      "lessonCode": "CAPACITY_BUFFER",
+      "findingCode": "PEAK_ABOVE_MODEL",
+      "recommendedActionCode": "INCREASE_BUFFER",
+      "requirementIds": [
+        "req-theater-seating"
+      ],
+      "constraintIds": [
+        "constraint-capacity"
+      ],
+      "expectedRevision": 1,
+      "idempotencyKey": "example-post-event-lesson-001"
+    },
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "review",
+        "subject",
+        "receipt",
+        "duplicate"
+      ],
+      "properties": {
+        "review": {
+          "$ref": "https://venuemind.dev/schemas/post-event-review.schema.json"
+        },
+        "subject": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "schemaVersion",
+                "id",
+                "predictionKey",
+                "family",
+                "metric",
+                "scope",
+                "value",
+                "unit",
+                "confidence",
+                "evidenceRefs",
+                "recorded"
+              ],
+              "properties": {
+                "schemaVersion": {
+                  "const": 1
+                },
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "predictionKey": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "family": {
+                  "enum": [
+                    "occupancy",
+                    "queue",
+                    "flow",
+                    "incidents"
+                  ]
+                },
+                "metric": {
+                  "enum": [
+                    "peak-persons",
+                    "utilization-ratio",
+                    "average-wait-seconds",
+                    "p95-wait-seconds",
+                    "maximum-queue-persons",
+                    "abandonment-ratio",
+                    "clearance-seconds",
+                    "peak-congestion-index",
+                    "backlog-persons",
+                    "incident-count",
+                    "resolution-seconds"
+                  ]
+                },
+                "scope": {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "id"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "venue",
+                        "occupancy-zone",
+                        "queue",
+                        "route",
+                        "incident-category"
+                      ]
+                    },
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "unit": {
+                  "enum": [
+                    "persons",
+                    "ratio",
+                    "seconds",
+                    "index",
+                    "incidents"
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "measured",
+                    "estimated",
+                    "unavailable"
+                  ]
+                },
+                "evidenceRefs": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 50,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "id",
+                      "fingerprint"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "accepted-plan",
+                          "runbook",
+                          "occupancy-monitor",
+                          "occupancy-projection",
+                          "incident-register",
+                          "deviation-register",
+                          "scenario-run"
+                        ]
+                      },
+                      "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160
+                      },
+                      "fingerprint": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "recorded": {
+                  "type": "object",
+                  "required": [
+                    "actorType",
+                    "actorId",
+                    "source",
+                    "sessionId",
+                    "occurredAt"
+                  ],
+                  "properties": {
+                    "actorType": {
+                      "enum": [
+                        "human",
+                        "agent",
+                        "system"
+                      ]
+                    },
+                    "actorId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "source": {
+                      "enum": [
+                        "studio",
+                        "webmcp",
+                        "mcp",
+                        "system",
+                        "agent-tool"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "schemaVersion",
+                "id",
+                "comparisonKey",
+                "family",
+                "lessonCode",
+                "findingCode",
+                "recommendedActionCode",
+                "requirementIds",
+                "constraintIds",
+                "recorded"
+              ],
+              "properties": {
+                "schemaVersion": {
+                  "const": 1
+                },
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "comparisonKey": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "family": {
+                  "enum": [
+                    "occupancy",
+                    "queue",
+                    "flow",
+                    "incidents"
+                  ]
+                },
+                "lessonCode": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 64,
+                  "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+                },
+                "findingCode": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 64,
+                  "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+                },
+                "recommendedActionCode": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 64,
+                  "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+                },
+                "requirementIds": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "constraintIds": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "recorded": {
+                  "type": "object",
+                  "required": [
+                    "actorType",
+                    "actorId",
+                    "source",
+                    "sessionId",
+                    "occurredAt"
+                  ],
+                  "properties": {
+                    "actorType": {
+                      "enum": [
+                        "human",
+                        "agent",
+                        "system"
+                      ]
+                    },
+                    "actorId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "source": {
+                      "enum": [
+                        "studio",
+                        "webmcp",
+                        "mcp",
+                        "system",
+                        "agent-tool"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "schemaVersion",
+                "id",
+                "revision",
+                "status",
+                "target",
+                "proposal",
+                "traces",
+                "created",
+                "review",
+                "publicationStatus"
+              ],
+              "properties": {
+                "schemaVersion": {
+                  "const": 1
+                },
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "enum": [
+                    "pending-human-review",
+                    "approved-recommendation",
+                    "rejected"
+                  ]
+                },
+                "target": {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "templateId",
+                    "version"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "venue",
+                        "room"
+                      ]
+                    },
+                    "templateId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "version": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "proposal": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "baseVersion",
+                    "revision",
+                    "status",
+                    "goal",
+                    "changes",
+                    "waivers",
+                    "validation",
+                    "lineage"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "baseVersion": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "status": {
+                      "const": "review"
+                    },
+                    "goal": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "changes": {
+                      "type": "array",
+                      "minItems": 1,
+                      "maxItems": 100,
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "effects"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 160
+                          },
+                          "title": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 240
+                          },
+                          "shortTitle": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 240
+                          },
+                          "targetObjectIds": {
+                            "type": "array",
+                            "maxItems": 100,
+                            "uniqueItems": true,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "targetRequirementIds": {
+                            "type": "array",
+                            "maxItems": 100,
+                            "uniqueItems": true,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "effects": {
+                            "type": "object",
+                            "minProperties": 1,
+                            "additionalProperties": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "boolean"
+                                },
+                                {
+                                  "type": "object",
+                                  "required": [
+                                    "kind",
+                                    "sourceId",
+                                    "sourceChecksum"
+                                  ],
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "sourceId": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "sourceChecksum": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "waivers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "validation": {
+                      "anyOf": [
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "lineage": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "traces": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "changeId",
+                      "lessonIds",
+                      "comparisonKeys",
+                      "observationIds"
+                    ],
+                    "properties": {
+                      "changeId": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "lessonIds": {
+                        "type": "array",
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "comparisonKeys": {
+                        "type": "array",
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "observationIds": {
+                        "type": "array",
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "created": {
+                  "type": "object",
+                  "required": [
+                    "actorType",
+                    "actorId",
+                    "source",
+                    "sessionId",
+                    "occurredAt"
+                  ],
+                  "properties": {
+                    "actorType": {
+                      "enum": [
+                        "human",
+                        "agent",
+                        "system"
+                      ]
+                    },
+                    "actorId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "source": {
+                      "enum": [
+                        "studio",
+                        "webmcp",
+                        "mcp",
+                        "system",
+                        "agent-tool"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "review": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "actorType",
+                        "actorId",
+                        "source",
+                        "sessionId",
+                        "occurredAt",
+                        "decision",
+                        "reasonCode"
+                      ],
+                      "properties": {
+                        "actorType": {
+                          "enum": [
+                            "human",
+                            "agent",
+                            "system"
+                          ]
+                        },
+                        "actorId": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "source": {
+                          "enum": [
+                            "studio",
+                            "webmcp",
+                            "mcp",
+                            "system",
+                            "agent-tool"
+                          ]
+                        },
+                        "sessionId": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "occurredAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "decision": {
+                          "enum": [
+                            "approved",
+                            "rejected"
+                          ]
+                        },
+                        "reasonCode": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "publicationStatus": {
+                  "const": "not-published"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "receipt": {
+          "type": "object",
+          "required": [
+            "id",
+            "idempotencyKey",
+            "inputFingerprint",
+            "operation",
+            "subjectId",
+            "aggregateRevision",
+            "ledgerSequence",
+            "acceptedAt"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "idempotencyKey": {
+              "type": "string",
+              "minLength": 1
+            },
+            "inputFingerprint": {
+              "type": "string",
+              "minLength": 1
+            },
+            "operation": {
+              "enum": [
+                "record-observation",
+                "record-lesson",
+                "create-template-proposal",
+                "review-template-proposal"
+              ]
+            },
+            "subjectId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "aggregateRevision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "ledgerSequence": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "acceptedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": false
+        },
+        "duplicate": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT",
+      "POST_EVENT_REVIEW_NOT_FOUND",
+      "POST_EVENT_TOOL_UNAVAILABLE",
+      "POST_EVENT_INVALID",
+      "POST_EVENT_REVISION_CONFLICT",
+      "POST_EVENT_EVIDENCE_INVALID",
+      "POST_EVENT_OBSERVATION_CONFLICT",
+      "POST_EVENT_COMPARISON_NOT_FOUND",
+      "POST_EVENT_LESSON_NOT_FOUND",
+      "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+      "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+      "POST_EVENT_LEDGER_INTEGRITY_FAILED"
+    ]
+  },
+  {
+    "name": "venue.create_template_improvement_proposal",
+    "description": "Create an evidence-traced Template Improvement Proposal pending human review.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "goal": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "target": {
+          "type": "object",
+          "required": [
+            "kind",
+            "templateId",
+            "version"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "venue",
+                "room"
+              ]
+            },
+            "templateId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "changes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "number": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240
+              },
+              "shortTitle": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240
+              },
+              "editor": {
+                "type": "object"
+              },
+              "metrics": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "targetObjectIds": {
+                "type": "array",
+                "maxItems": 100,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "targetRequirementIds": {
+                "type": "array",
+                "maxItems": 100,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "effects": {
+                "type": "object"
+              },
+              "planningEffects": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "spatialEffects": {
+                "type": "array",
+                "maxItems": 100,
+                "items": {
+                  "type": "object"
+                }
+              },
+              "semantic": {
+                "type": "object"
+              },
+              "lineage": {
+                "type": "object"
+              },
+              "templateUpdate": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "changeLessonLinks": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "required": [
+              "changeId",
+              "lessonIds"
+            ],
+            "properties": {
+              "changeId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "lessonIds": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 100,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "proposalId",
+        "goal",
+        "target",
+        "changes",
+        "changeLessonLinks",
+        "expectedRevision",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Create Template Improvement Proposal",
+    "contractVersion": "1.6.0",
+    "authorization": {
+      "requiredScope": "venue:propose"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "proposalId": "template-proposal-capacity",
+      "goal": "Increase the standard capacity buffer",
+      "target": {
+        "kind": "room",
+        "templateId": "room-template-harborview-main-hall",
+        "version": "1.0.0"
+      },
+      "changes": [
+        {
+          "id": "change-capacity-buffer",
+          "effects": {
+            "capacityBuffer": 20
+          }
+        }
+      ],
+      "changeLessonLinks": [
+        {
+          "changeId": "change-capacity-buffer",
+          "lessonIds": [
+            "lesson-capacity-buffer"
+          ]
+        }
+      ],
+      "expectedRevision": 2,
+      "idempotencyKey": "example-template-improvement-001"
+    },
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "review",
+        "subject",
+        "receipt",
+        "duplicate"
+      ],
+      "properties": {
+        "review": {
+          "$ref": "https://venuemind.dev/schemas/post-event-review.schema.json"
+        },
+        "subject": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "schemaVersion",
+                "id",
+                "predictionKey",
+                "family",
+                "metric",
+                "scope",
+                "value",
+                "unit",
+                "confidence",
+                "evidenceRefs",
+                "recorded"
+              ],
+              "properties": {
+                "schemaVersion": {
+                  "const": 1
+                },
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "predictionKey": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "family": {
+                  "enum": [
+                    "occupancy",
+                    "queue",
+                    "flow",
+                    "incidents"
+                  ]
+                },
+                "metric": {
+                  "enum": [
+                    "peak-persons",
+                    "utilization-ratio",
+                    "average-wait-seconds",
+                    "p95-wait-seconds",
+                    "maximum-queue-persons",
+                    "abandonment-ratio",
+                    "clearance-seconds",
+                    "peak-congestion-index",
+                    "backlog-persons",
+                    "incident-count",
+                    "resolution-seconds"
+                  ]
+                },
+                "scope": {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "id"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "venue",
+                        "occupancy-zone",
+                        "queue",
+                        "route",
+                        "incident-category"
+                      ]
+                    },
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "unit": {
+                  "enum": [
+                    "persons",
+                    "ratio",
+                    "seconds",
+                    "index",
+                    "incidents"
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "measured",
+                    "estimated",
+                    "unavailable"
+                  ]
+                },
+                "evidenceRefs": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 50,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "id",
+                      "fingerprint"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "accepted-plan",
+                          "runbook",
+                          "occupancy-monitor",
+                          "occupancy-projection",
+                          "incident-register",
+                          "deviation-register",
+                          "scenario-run"
+                        ]
+                      },
+                      "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160
+                      },
+                      "fingerprint": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "recorded": {
+                  "type": "object",
+                  "required": [
+                    "actorType",
+                    "actorId",
+                    "source",
+                    "sessionId",
+                    "occurredAt"
+                  ],
+                  "properties": {
+                    "actorType": {
+                      "enum": [
+                        "human",
+                        "agent",
+                        "system"
+                      ]
+                    },
+                    "actorId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "source": {
+                      "enum": [
+                        "studio",
+                        "webmcp",
+                        "mcp",
+                        "system",
+                        "agent-tool"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "schemaVersion",
+                "id",
+                "comparisonKey",
+                "family",
+                "lessonCode",
+                "findingCode",
+                "recommendedActionCode",
+                "requirementIds",
+                "constraintIds",
+                "recorded"
+              ],
+              "properties": {
+                "schemaVersion": {
+                  "const": 1
+                },
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "comparisonKey": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "family": {
+                  "enum": [
+                    "occupancy",
+                    "queue",
+                    "flow",
+                    "incidents"
+                  ]
+                },
+                "lessonCode": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 64,
+                  "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+                },
+                "findingCode": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 64,
+                  "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+                },
+                "recommendedActionCode": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 64,
+                  "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+                },
+                "requirementIds": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "constraintIds": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "recorded": {
+                  "type": "object",
+                  "required": [
+                    "actorType",
+                    "actorId",
+                    "source",
+                    "sessionId",
+                    "occurredAt"
+                  ],
+                  "properties": {
+                    "actorType": {
+                      "enum": [
+                        "human",
+                        "agent",
+                        "system"
+                      ]
+                    },
+                    "actorId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "source": {
+                      "enum": [
+                        "studio",
+                        "webmcp",
+                        "mcp",
+                        "system",
+                        "agent-tool"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "schemaVersion",
+                "id",
+                "revision",
+                "status",
+                "target",
+                "proposal",
+                "traces",
+                "created",
+                "review",
+                "publicationStatus"
+              ],
+              "properties": {
+                "schemaVersion": {
+                  "const": 1
+                },
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "enum": [
+                    "pending-human-review",
+                    "approved-recommendation",
+                    "rejected"
+                  ]
+                },
+                "target": {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "templateId",
+                    "version"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "venue",
+                        "room"
+                      ]
+                    },
+                    "templateId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "version": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "proposal": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "baseVersion",
+                    "revision",
+                    "status",
+                    "goal",
+                    "changes",
+                    "waivers",
+                    "validation",
+                    "lineage"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "baseVersion": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "status": {
+                      "const": "review"
+                    },
+                    "goal": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "changes": {
+                      "type": "array",
+                      "minItems": 1,
+                      "maxItems": 100,
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "effects"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 160
+                          },
+                          "title": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 240
+                          },
+                          "shortTitle": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 240
+                          },
+                          "targetObjectIds": {
+                            "type": "array",
+                            "maxItems": 100,
+                            "uniqueItems": true,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "targetRequirementIds": {
+                            "type": "array",
+                            "maxItems": 100,
+                            "uniqueItems": true,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "effects": {
+                            "type": "object",
+                            "minProperties": 1,
+                            "additionalProperties": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "boolean"
+                                },
+                                {
+                                  "type": "object",
+                                  "required": [
+                                    "kind",
+                                    "sourceId",
+                                    "sourceChecksum"
+                                  ],
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "sourceId": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "sourceChecksum": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "waivers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "validation": {
+                      "anyOf": [
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "lineage": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "traces": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "changeId",
+                      "lessonIds",
+                      "comparisonKeys",
+                      "observationIds"
+                    ],
+                    "properties": {
+                      "changeId": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "lessonIds": {
+                        "type": "array",
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "comparisonKeys": {
+                        "type": "array",
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "observationIds": {
+                        "type": "array",
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "created": {
+                  "type": "object",
+                  "required": [
+                    "actorType",
+                    "actorId",
+                    "source",
+                    "sessionId",
+                    "occurredAt"
+                  ],
+                  "properties": {
+                    "actorType": {
+                      "enum": [
+                        "human",
+                        "agent",
+                        "system"
+                      ]
+                    },
+                    "actorId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "source": {
+                      "enum": [
+                        "studio",
+                        "webmcp",
+                        "mcp",
+                        "system",
+                        "agent-tool"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "review": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "actorType",
+                        "actorId",
+                        "source",
+                        "sessionId",
+                        "occurredAt",
+                        "decision",
+                        "reasonCode"
+                      ],
+                      "properties": {
+                        "actorType": {
+                          "enum": [
+                            "human",
+                            "agent",
+                            "system"
+                          ]
+                        },
+                        "actorId": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "source": {
+                          "enum": [
+                            "studio",
+                            "webmcp",
+                            "mcp",
+                            "system",
+                            "agent-tool"
+                          ]
+                        },
+                        "sessionId": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "occurredAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "decision": {
+                          "enum": [
+                            "approved",
+                            "rejected"
+                          ]
+                        },
+                        "reasonCode": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "publicationStatus": {
+                  "const": "not-published"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "receipt": {
+          "type": "object",
+          "required": [
+            "id",
+            "idempotencyKey",
+            "inputFingerprint",
+            "operation",
+            "subjectId",
+            "aggregateRevision",
+            "ledgerSequence",
+            "acceptedAt"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "idempotencyKey": {
+              "type": "string",
+              "minLength": 1
+            },
+            "inputFingerprint": {
+              "type": "string",
+              "minLength": 1
+            },
+            "operation": {
+              "enum": [
+                "record-observation",
+                "record-lesson",
+                "create-template-proposal",
+                "review-template-proposal"
+              ]
+            },
+            "subjectId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "aggregateRevision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "ledgerSequence": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "acceptedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": false
+        },
+        "duplicate": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT",
+      "POST_EVENT_REVIEW_NOT_FOUND",
+      "POST_EVENT_TOOL_UNAVAILABLE",
+      "POST_EVENT_INVALID",
+      "POST_EVENT_REVISION_CONFLICT",
+      "POST_EVENT_EVIDENCE_INVALID",
+      "POST_EVENT_OBSERVATION_CONFLICT",
+      "POST_EVENT_COMPARISON_NOT_FOUND",
+      "POST_EVENT_LESSON_NOT_FOUND",
+      "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+      "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+      "POST_EVENT_LEDGER_INTEGRITY_FAILED"
+    ]
+  },
+  {
+    "name": "venue.export_post_event_report",
+    "description": "Export an integrity-verified Post-event Report with provenance and ledger evidence.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "enum": [
+            "json",
+            "text"
+          ],
+          "default": "json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "title": "Export Post Event Report",
+    "contractVersion": "1.6.0",
+    "authorization": {
+      "requiredScope": "venue:export"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 2000000
+    },
+    "exampleInput": {
+      "format": "json"
+    },
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "filename",
+        "mimeType",
+        "content"
+      ],
+      "properties": {
+        "filename": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mimeType": {
+          "enum": [
+            "application/json",
+            "text/plain"
+          ]
+        },
+        "content": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "POST_EVENT_REVIEW_NOT_FOUND",
+      "POST_EVENT_TOOL_UNAVAILABLE",
+      "POST_EVENT_INVALID",
+      "POST_EVENT_REVISION_CONFLICT",
+      "POST_EVENT_EVIDENCE_INVALID",
+      "POST_EVENT_OBSERVATION_CONFLICT",
+      "POST_EVENT_COMPARISON_NOT_FOUND",
+      "POST_EVENT_LESSON_NOT_FOUND",
+      "POST_EVENT_TEMPLATE_PROPOSAL_NOT_FOUND",
+      "POST_EVENT_TEMPLATE_PROPOSAL_INVALID",
+      "POST_EVENT_LEDGER_INTEGRITY_FAILED"
+    ]
+  },
+  {
     "name": "venue.export_audit_package",
     "description": "Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.",
     "annotations": {
@@ -22439,7 +25677,7 @@
       "additionalProperties": false
     },
     "title": "Export Audit Package",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:export"
     },
@@ -22543,7 +25781,7 @@
       "additionalProperties": false
     },
     "title": "Export Plan",
-    "contractVersion": "1.5.0",
+    "contractVersion": "1.6.0",
     "authorization": {
       "requiredScope": "venue:export"
     },

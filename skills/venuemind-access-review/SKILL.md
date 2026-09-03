@@ -3,7 +3,7 @@ name: venuemind-access-review
 description: Review accessibility evidence and prepare non-destructive remediation branches in VenueMind. Use for routes, doors, ramps, accessible seating, companion seating, and access sightlines.
 metadata:
   version: 1.1.0
-  tool-contract-version: 1.5.0
+  tool-contract-version: 1.6.0
 ---
 
 # VenueMind Access Review

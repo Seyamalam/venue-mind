@@ -18,7 +18,7 @@ type TutorialPageInput = Readonly<{
   compatibility?: readonly string[];
 }>;
 
-const tutorialPage = ({ slug, title, eyebrow, summary, minutes, evidenceFiles, sections, compatibility = ["Project schema 10", "Tool contract 1.5.0"] }: TutorialPageInput): TutorialDocsPage => {
+const tutorialPage = ({ slug, title, eyebrow, summary, minutes, evidenceFiles, sections, compatibility = ["Project schema 10", "Tool contract 1.6.0"] }: TutorialPageInput): TutorialDocsPage => {
   const verificationCommand = `node --test ${evidenceFiles.join(" ")}`;
   return {
     slug,
@@ -121,7 +121,7 @@ export const tutorialPages: readonly TutorialDocsPage[] = [
       { id: "build", title: "Build the server", blocks: [code("npm install\nnpm run build:mcp", "bash")] },
       { id: "configure", title: "Configure Codex", blocks: [code("mkdir -p ./venuemind-data\ncodex mcp add venuemind --env VENUEMIND_DATA_DIR=$PWD/venuemind-data -- node $PWD/packages/mcp-server/dist/index.js\ncodex mcp get venuemind", "bash"), prose("Other stdio hosts use the same command, arguments, and explicit writable data directory.")] },
       { id: "open", title: "Open a Project session", blocks: [toolCall("venue.list_projects"), toolCall("venue.open_project", { projectId: "project-summit-forward" }), toolCall("venue.inspect_layout")] },
-      { id: "completion", title: "Completion criteria", blocks: [bullets("The host lists all 51 tool contracts at version 1.5.0.", "The active session is bound to one Project.", "Project state survives a server restart.", "Approval, Occupancy Alert acknowledgement, and Incident response actions remain absent from the tool list.")] },
+      { id: "completion", title: "Completion criteria", blocks: [bullets("The host lists all 56 tool contracts at version 1.6.0.", "The active session is bound to one Project.", "Project state survives a server restart.", "Approval, Occupancy Alert acknowledgement, Incident response, and Post-event Proposal review actions remain absent from the tool list.")] },
       { id: "clients", title: "Other clients", blocks: [links({ label: "MCP client configurations", href: "/docs/mcp#desktop-hosts" })] },
     ],
   }),
@@ -132,9 +132,9 @@ export const tutorialPages: readonly TutorialDocsPage[] = [
     summary: "Expose the active Studio as a scoped browser tool surface and complete a safe read-to-Proposal workflow.",
     minutes: 5,
     evidenceFiles: ["tests/webmcp-conformance.test.mjs"],
-    compatibility: ["WebMCP 1.5.0", "51 tools"],
+    compatibility: ["WebMCP 1.6.0", "56 tools"],
     sections: [
-      { id: "open", title: "Open the native surface", blocks: [steps("Start the VenueMind development server.", "Open /studio/project-summit-forward in a WebMCP-capable browser host.", "Open WebMCP diagnostics and confirm READY, contract 1.5.0, and 51 registered tools.")] },
+      { id: "open", title: "Open the native surface", blocks: [steps("Start the VenueMind development server.", "Open /studio/project-summit-forward in a WebMCP-capable browser host.", "Open WebMCP diagnostics and confirm READY, contract 1.6.0, and 56 registered tools.")] },
       { id: "invoke", title: "Invoke through the browser", blocks: [toolCall("venue.inspect_layout"), toolCall("venue.preview_revision", { goal: "Protect the west accessible route and reduce entrance congestion", idempotencyKey: "tutorial-webmcp-preview-001", correlationId: "tutorial-webmcp-001" }), toolCall("venue.validate_layout")] },
       { id: "observe", title: "Observe the shared state", blocks: [bullets("The Studio displays the same Proposal and violet ghost Changes returned to the caller.", "Tool results contain bounded structured content plus a compact summary.", "The call correlation and idempotency metadata appear in receipts and the Activity Ledger.", "Reloading the page unregisters and safely registers the tool suite again.")] },
       { id: "completion", title: "Completion criteria", blocks: [bullets("Read and Proposal calls succeed within their Agent Grant scopes.", "Missing scope, oversized input, cancellation, and stale state return stable error envelopes.", "The agent cannot approve or delete a Project.")] },
@@ -147,7 +147,7 @@ export const tutorialPages: readonly TutorialDocsPage[] = [
     summary: "Build six versioned skill packages and invoke the smallest workflow-specific skill for the task.",
     minutes: 6,
     evidenceFiles: ["tests/skills.test.mjs"],
-    compatibility: ["Skills 1.4.0", "Tool contract 1.5.0"],
+    compatibility: ["Skills 1.4.0", "Tool contract 1.6.0"],
     sections: [
       { id: "build", title: "Build and inspect", blocks: [code("npm run build:skills\nnpm run validate:skills\nnode -e \"const m=require('./dist/skills/manifest.json'); console.log(m.packages.map(p => p.name+'@'+p.version).join('\\n'))\"", "bash"), prose("Install the desired directory from dist/skills into the skill location used by the agent host.")] },
       { id: "choose", title: "Choose one skill", blocks: [bullets("venuemind-plan — supervised planning and Proposal branches.", "venuemind-audit — evidence, authority, ledger, and replay.", "venuemind-access-review — accessible routes, seating, doors, ramps, and sightlines.", "venuemind-crowd-flow — deterministic Scenario comparison and queue evidence.", "venuemind-production-plan — AV, staging, power, rigging, cable, and service routes.", "venuemind-event-day — live issue triage and supervised adjustments.")] },

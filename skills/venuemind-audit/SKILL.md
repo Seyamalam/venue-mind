@@ -3,7 +3,7 @@ name: venuemind-audit
 description: Audit VenueMind plans, proposals, validation evidence, versions, locks, and ledger integrity without mutating accepted state.
 metadata:
   version: 1.1.0
-  tool-contract-version: 1.5.0
+  tool-contract-version: 1.6.0
 ---
 
 # VenueMind Audit
