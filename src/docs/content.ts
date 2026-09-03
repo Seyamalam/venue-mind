@@ -369,7 +369,6 @@ const contentPages: readonly DocsPage[] = [
   clientExamplesPage,
   ...referencePages,
   contributingPage,
-  ...trustPages,
   {
     slug: "contracts",
     group: "Reference",
@@ -703,6 +702,7 @@ const contentPages: readonly DocsPage[] = [
       },
     ],
   },
+  ...trustPages,
 ];
 
 const metadataBySlug: Readonly<

@@ -88,6 +88,7 @@ import {
 import {
   createD1ObservabilityRepository,
   createMemoryObservabilityRepository,
+  hashObservabilityScope,
   type ObservabilityRepository,
 } from "./observability-repository.ts";
 import { inspectDatabaseIntegrity } from "./database-migrations.ts";
@@ -1011,9 +1012,7 @@ export function createWorker(options: WorkerOptions = {}) {
       const organization = requestedOrganizationId
         ? account.organizations.find((item) => item.id === requestedOrganizationId)
         : account.organizations[0];
-      const observabilityScopeHash = stableFingerprint("observability-scope", {
-        organizationId: organization?.id ?? "none",
-      });
+      const observabilityScopeHash = await hashObservabilityScope(organization?.id ?? "none");
       durableObservability = observabilityRepositoryFactory(env.DB, observabilityScopeHash);
       requestObservability = createTelemetryFanout(structuredLog, {
         emit: (event: TelemetryEvent) => durableObservability?.record(event),

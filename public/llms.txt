@@ -22,8 +22,8 @@ Agents inspect accepted Plans, preview Proposals, validate Constraints, compare 
 - [Tool reference](https://venue-mind-jet.vercel.app/docs/reference-tools)
 - [Error catalog](https://venue-mind-jet.vercel.app/docs/reference-errors)
 - [Architecture and contributing](https://venue-mind-jet.vercel.app/docs/architecture-contributing)
-- [Trust and safety](https://venue-mind-jet.vercel.app/docs/trust-safety)
 - [Schemas and contracts](https://venue-mind-jet.vercel.app/docs/contracts)
+- [Trust and safety](https://venue-mind-jet.vercel.app/docs/trust-safety)
 - [Complete agent reference](https://venue-mind-jet.vercel.app/llms-full.txt)
 
 ## Golden loop
