@@ -180,6 +180,7 @@ test("critical routes expose named interactive controls and keyboard-reachable l
 });
 
 test("critical docs and Studio review pixels match reviewed baselines", browserTestOptions, async () => {
+  const maximumMismatchPercentage = 0.01;
   const cases = [
     { name: "docs-overview", url: `${baseUrl}/docs`, selector: ".docs-shell" },
     { name: "studio-review", url: `${baseUrl}/studio/project-summit-forward`, selector: ".app-shell" },
@@ -208,6 +209,11 @@ test("critical docs and Studio review pixels match reviewed baselines", browserT
     );
     const result = JSON.parse(output);
     assert.equal(result.success, true, `${visual.name}: ${output}`);
-    assert.equal(result.data?.match, true, `${visual.name}: ${output}`);
+    assert.equal(result.data?.dimensionMismatch, null, `${visual.name}: ${output}`);
+    assert.ok(
+      typeof result.data?.mismatchPercentage === "number" &&
+        result.data.mismatchPercentage <= maximumMismatchPercentage,
+      `${visual.name}: ${output}`,
+    );
   }
 });

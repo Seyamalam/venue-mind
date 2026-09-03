@@ -8,7 +8,7 @@ export const trustPages = [
     eyebrow: "Actual data flows",
     summary: "What VenueMind stores, excludes, retains, exports, and deletes in the current hosted preview.",
     audience: ["operators", "administrators", "reviewers"],
-    compatibility: ["Data protection schema 1", "VenueMind 0.7.0"],
+    compatibility: ["Data protection schema 1", "VenueMind 1.0.0"],
     sections: [
       {
         id: "collection",
