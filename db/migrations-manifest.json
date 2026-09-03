@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "databaseSchemaVersion": 12,
+  "databaseSchemaVersion": 13,
   "migrations": [
     {
       "version": 1,
@@ -121,6 +121,16 @@
       "source": "/db/migrations/0012_post_event_reviews.sql",
       "wrangler": "/db/wrangler/0012_post_event_reviews.sql",
       "statementCount": 3
+    },
+    {
+      "version": 13,
+      "name": "api_rate_limits",
+      "checksum": "112cab88a7649c1f01e74511da187ac4ff29b25d33097f596691a0771aa7587a",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0013_api_rate_limits.sql",
+      "wrangler": "/db/wrangler/0013_api_rate_limits.sql",
+      "statementCount": 2
     }
   ]
 }

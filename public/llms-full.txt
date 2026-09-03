@@ -1459,6 +1459,7 @@ Every stable VenueMind error code, user-safe message, and actionable remediation
 | AUTHORIZATION_DENIED | The current principal is not authorized for this VenueMind action. | Use an assigned Organization Membership Role or an active Organization- and Project-scoped Agent Grant containing the required permission. |
 | AGENT_GRANT_INVALID | Agent Grant is invalid. | Issue a complete Organization- and Project-scoped grant with published scopes and a lifetime of one hour or less. |
 | TOOL_PAYLOAD_TOO_LARGE | Tool payload exceeds its published size limit. | Reduce the requested geometry or export payload and retry within the published byte limit. |
+| RESOURCE_LIMIT_EXCEEDED | Product resource limit exceeded. | Reduce the bounded collection, geometry complexity, nesting depth, or payload size and retry. |
 | TOOL_CALL_CANCELLED | Tool call was cancelled. | Retry only if the caller still needs the operation, using the same idempotency key for an interrupted mutation. |
 | LEDGER_INTEGRITY_FAILED | Activity Ledger integrity failed. | Restore an untampered snapshot or recover the last verified Project record. |
 | RUNBOOK_SCHEDULE_REQUIRED | Event Day Runbook requires an accepted canonical schedule. | Set and approve an Event Brief schedule with canonical start, end, and timezone values. |
@@ -8724,6 +8725,7 @@ npm run check:generated
 - [Registration and ticketing](https://venue-mind-jet.vercel.app/guides/registration-and-ticketing.md)
 - [Operational resources](https://venue-mind-jet.vercel.app/guides/operational-resources.md)
 - [Threat model](https://venue-mind-jet.vercel.app/guides/threat-model.md)
+- [Resource limits](https://venue-mind-jet.vercel.app/guides/resource-limits.md)
 - [Release checklist](https://venue-mind-jet.vercel.app/guides/release-checklist.md)
 - [Failure recovery runbook](https://venue-mind-jet.vercel.app/guides/runbooks/failure-recovery.md)
 - [Security reporting policy](https://venue-mind-jet.vercel.app/guides/security.md)

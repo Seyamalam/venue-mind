@@ -10,6 +10,7 @@ const requiredGuides = [
   "SECURITY.md",
   "docs/architecture.md",
   "docs/threat-model.md",
+  "docs/resource-limits.md",
   "docs/persistence-and-recovery.md",
   "docs/database-operations.md",
   "docs/registration-and-ticketing.md",
@@ -111,4 +112,12 @@ test("threat model maps every high-risk boundary to an implemented control, test
   }
   const evidencePaths = [...threatModel.matchAll(/`(tests\/[a-z0-9-]+\.test\.mjs)`/g)].map((match) => match[1]);
   for (const evidencePath of new Set(evidencePaths)) await access(path.join(root, evidencePath));
+});
+
+test("resource policy publishes finite cross-surface limits and safe failure evidence", async () => {
+  const limits = await read("docs/resource-limits.md");
+  for (const boundary of ["Studio browser", "Planner", "WebMCP", "MCP", "Worker", "Imports", "Validation and simulation"])
+    assert.match(limits, new RegExp(boundary));
+  for (const evidence of ["RESOURCE_RATE_LIMITED", "Retry-After", "non-recursive", "does not consume", "npm run check:typesafety", "npm run check:generated", "npm test"])
+    assert.match(limits, new RegExp(evidence));
 });

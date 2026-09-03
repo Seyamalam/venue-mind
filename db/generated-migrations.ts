@@ -201,6 +201,17 @@ export const DATABASE_MIGRATIONS = Object.freeze([
       "CREATE INDEX idx_post_event_reviews_project ON post_event_reviews(organization_id, project_id, updated_at DESC)",
       "CREATE TRIGGER validate_post_event_review_update BEFORE UPDATE ON post_event_reviews BEGIN\n  SELECT CASE WHEN NEW.organization_id != OLD.organization_id OR NEW.project_id != OLD.project_id OR NEW.runbook_id != OLD.runbook_id OR NEW.schema_version != OLD.schema_version OR NEW.baseline_fingerprint != OLD.baseline_fingerprint OR NEW.definition_fingerprint != OLD.definition_fingerprint OR NEW.baseline_json != OLD.baseline_json OR NEW.created_at != OLD.created_at THEN RAISE(ABORT, 'POST_EVENT_REVIEW_BASELINE_IMMUTABLE') END;\n  SELECT CASE WHEN NEW.revision != OLD.revision + 1 THEN RAISE(ABORT, 'POST_EVENT_REVIEW_REVISION_INVALID') END;\nEND"
     ]
+  },
+  {
+    "version": 13,
+    "name": "api_rate_limits",
+    "checksum": "112cab88a7649c1f01e74511da187ac4ff29b25d33097f596691a0771aa7587a",
+    "destructive": false,
+    "requiresProjectExport": false,
+    "statements": [
+      "CREATE TABLE api_rate_limit_windows (\n  scope_type TEXT NOT NULL CHECK (scope_type IN ('identity', 'organization')),\n  scope_hash TEXT NOT NULL CHECK (length(scope_hash) = 64),\n  endpoint_family TEXT NOT NULL CHECK (endpoint_family IN ('project-writes', 'operational-command-sync', 'sharing-membership-mutations', 'adapter-webhook-mutation')),\n  window_started_at INTEGER NOT NULL CHECK (window_started_at >= 0),\n  request_count INTEGER NOT NULL CHECK (request_count > 0),\n  expires_at INTEGER NOT NULL CHECK (expires_at > window_started_at),\n  PRIMARY KEY (scope_type, scope_hash, endpoint_family, window_started_at)\n)",
+      "CREATE INDEX idx_api_rate_limit_windows_expiry ON api_rate_limit_windows(expires_at)"
+    ]
   }
 ]);
-export const DATABASE_SCHEMA_VERSION = 12;
+export const DATABASE_SCHEMA_VERSION = 13;

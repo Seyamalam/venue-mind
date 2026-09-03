@@ -6,12 +6,14 @@ import * as z from "zod/v4";
 import {
   VENUE_TOOL_CONTRACT_VERSION,
   venueToolContracts,
+  type VenueToolContract,
   type VenueToolInput,
   type VenueToolName,
 } from "../../../src/contracts/venue-contracts.ts";
 import { errorCatalog, errorPayload, venueError } from "../../../src/domain/errors.ts";
 import { AGENT_SCOPES, createShortLivedAgentAuthorization } from "../../../src/domain/authorization.ts";
 import { createVenueToolService, type ToolAuthorization } from "../../../src/tools/venue-tool-service.ts";
+import { measureJsonResource } from "../../../src/security/resource-limits.ts";
 import { createFileProjectRepository, type McpProjectRecord, type McpProjectRepository } from "./project-repository.ts";
 import { createProjectSession, type McpLogger, type ProjectSession } from "./project-session.ts";
 
@@ -152,6 +154,7 @@ export function createVenueMindMcpServer({
   const execute = async (
     name: VenueToolName,
     input: VenueToolInput,
+    limits: VenueToolContract["limits"],
     ctx: ServerContext,
     operation: () => Promise<StructuredValue>,
   ): Promise<CallToolResult> => {
@@ -161,8 +164,18 @@ export function createVenueMindMcpServer({
     logger.info("tool.started", { organizationId, tool: name, correlationId });
     try {
       if (ctx.mcpReq.signal.aborted) throw venueError("TOOL_CALL_CANCELLED", { tool: name });
+      measureJsonResource(input, {
+        surface: "mcp-input",
+        maximumBytes: limits.maximumInputBytes,
+        errorCode: "TOOL_PAYLOAD_TOO_LARGE",
+      });
       if (expensive) await sendProgress(ctx, 0, 1, name === "venue.validate_layout" ? "validating" : "simulating");
       const output = await operation();
+      measureJsonResource(output, {
+        surface: "mcp-output",
+        maximumBytes: limits.maximumOutputBytes,
+        errorCode: "TOOL_PAYLOAD_TOO_LARGE",
+      });
       if (expensive) await sendProgress(ctx, 1, 1, "complete");
       logger.info("tool.completed", { organizationId, tool: name, correlationId });
       return {
@@ -198,7 +211,7 @@ export function createVenueMindMcpServer({
       },
       (input, ctx) => {
         const normalizedInput = venueToolInput(input);
-        return execute(contract.name, normalizedInput, ctx, () =>
+        return execute(contract.name, normalizedInput, contract.limits, ctx, () =>
           toolService.execute(contract.name, normalizedInput, "mcp", { signal: ctx.mcpReq.signal }),
         );
       },

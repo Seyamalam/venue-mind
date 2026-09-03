@@ -42,6 +42,7 @@ const occupancyTables = ["live_occupancy_monitors"];
 const incidentTables = ["event_day_incident_registers"];
 const deviationTables = ["event_day_deviation_registers"];
 const postEventReviewTables = ["post_event_reviews"];
+const rateLimitTables = ["api_rate_limit_windows"];
 
 async function legacyBaseline(db: D1Database) {
   const { results: tableRows } = await db
@@ -93,12 +94,18 @@ async function legacyBaseline(db: D1Database) {
   if (!hasPostEventReviews && postEventReviewTables.some((table) => tables.has(table)))
     throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasPostEventReviews && !hasDeviations) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  const hasRateLimits = rateLimitTables.every((table) => tables.has(table));
+  if (!hasRateLimits && rateLimitTables.some((table) => tables.has(table)))
+    throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  if (hasRateLimits && !hasPostEventReviews) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasDeviations && !hasIncidents) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasIncidents && !hasOccupancy) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasOccupancy && !hasRunbooks) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasRunbooks && !hasSharingDelivery) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
-  return hasPostEventReviews
-    ? 12
+  return hasRateLimits
+    ? 13
+    : hasPostEventReviews
+      ? 12
     : hasDeviations
       ? 11
     : hasIncidents
@@ -261,6 +268,19 @@ export async function inspectDatabaseIntegrity(db: D1Database) {
     [
       "session-without-user",
       "SELECT COUNT(*) AS count FROM user_sessions s LEFT JOIN users u ON u.id = s.user_id WHERE u.id IS NULL",
+    ],
+  ] satisfies readonly (readonly [string, string])[]) {
+    const { results } = await db.prepare(sql).all<{ count: number }>();
+    checks.push({
+      id,
+      count: Number(results[0]?.count ?? 0),
+      status: Number(results[0]?.count ?? 0) === 0 ? "pass" : "fail",
+    });
+  }
+  for (const [id, sql] of [
+    [
+      "rate-limit-window-invalid",
+      "SELECT COUNT(*) AS count FROM api_rate_limit_windows WHERE request_count <= 0 OR expires_at <= window_started_at OR length(scope_hash) != 64",
     ],
   ] satisfies readonly (readonly [string, string])[]) {
     const { results } = await db.prepare(sql).all<{ count: number }>();

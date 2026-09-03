@@ -889,31 +889,31 @@ Completion gate:
 
 ## 9.1 Threat model
 
-- [ ] Document assets, trust boundaries, actors, entry points, and abuse cases.
-- [ ] Cover prompt injection through imported event content and comments.
-- [ ] Cover malicious geometry and oversized payloads.
-- [ ] Cover cross-organization access and insecure share links.
-- [ ] Cover forged ledger entries and replayed commands.
-- [ ] Cover MCP tool overreach and confused-deputy scenarios.
-- [ ] Cover export data leakage.
-- [ ] Assign mitigations and verification owners.
+- [x] Document assets, trust boundaries, actors, entry points, and abuse cases.
+- [x] Cover prompt injection through imported event content and comments.
+- [x] Cover malicious geometry and oversized payloads.
+- [x] Cover cross-organization access and insecure share links.
+- [x] Cover forged ledger entries and replayed commands.
+- [x] Cover MCP tool overreach and confused-deputy scenarios.
+- [x] Cover export data leakage.
+- [x] Assign mitigations and verification owners.
 
 Completion gate:
 
-- [ ] Every high-risk threat has an implemented control, a test, and an owner.
+- [x] Every high-risk threat has an implemented control, a test, and an owner.
 
 ## 9.2 Input and resource limits
 
-- [ ] Define maximum Project, room, object, Change, Proposal, comment, and export sizes.
-- [ ] Enforce limits at browser, API, worker, planner, WebMCP, MCP, and import boundaries.
-- [ ] Add geometry-complexity and recursion limits.
-- [ ] Add time budgets for Validation and simulation.
-- [ ] Add rate limits by identity, organization, and endpoint.
-- [ ] Return stable limit errors with safe metadata.
+- [x] Define maximum Project, room, object, Change, Proposal, comment, and export sizes.
+- [x] Enforce limits at browser, API, worker, planner, WebMCP, MCP, and import boundaries.
+- [x] Add geometry-complexity and recursion limits.
+- [x] Add time budgets for Validation and simulation.
+- [x] Add rate limits by identity, organization, and endpoint.
+- [x] Return stable limit errors with safe metadata.
 
 Completion gate:
 
-- [ ] Fuzz and load tests cannot cause unbounded memory, CPU, database, or response growth within documented limits.
+- [x] Fuzz and load tests cannot cause unbounded memory, CPU, database, or response growth within documented limits.
 
 ## 9.3 Data protection
 

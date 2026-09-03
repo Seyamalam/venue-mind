@@ -61,6 +61,17 @@ import {
   decodePostEventReviewSyncBody,
 } from "./post-event-review-http.ts";
 import { venueError } from "../src/domain/errors.ts";
+import {
+  measureJsonResource,
+  VENUE_RATE_LIMIT_WINDOW_SECONDS,
+  VENUE_RESOURCE_LIMITS,
+} from "../src/security/resource-limits.ts";
+import {
+  createD1RateLimitRepository,
+  createMemoryRateLimitRepository,
+  type RateLimitRepository,
+} from "./rate-limit-repository.ts";
+import { createRateLimitService, mutationEndpointFamily } from "./rate-limit-service.ts";
 import { isLocalProjectRecord } from "../src/domain/project-types.ts";
 import type {
   AggregateOccupancySignal,
@@ -93,6 +104,7 @@ export { createD1OccupancyRepository } from "./occupancy-repository.ts";
 export { createD1IncidentRepository } from "./incident-repository.ts";
 export { createD1DeviationRepository } from "./deviation-repository.ts";
 export { createD1PostEventReviewRepository } from "./post-event-review-repository.ts";
+export { createD1RateLimitRepository, createMemoryRateLimitRepository } from "./rate-limit-repository.ts";
 
 type ProjectRepository = ReturnType<typeof createD1ProjectRepository>;
 type AccountRepository = ReturnType<typeof createD1AccountRepository>;
@@ -122,6 +134,7 @@ type WorkerOptions = {
   createIncidentRepository?: (db: D1Database) => IncidentRepository;
   createDeviationRepository?: (db: D1Database) => DeviationRepository;
   createPostEventReviewRepository?: (db: D1Database) => PostEventReviewRepository;
+  createRateLimitRepository?: (db: D1Database) => RateLimitRepository;
   identityProvider?: IdentityProvider;
   emailDelivery?: EmailDelivery;
   secureCookies?: boolean;
@@ -245,12 +258,42 @@ const anonymousDemoIdentity = (request: Request, secure: boolean) => {
 };
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+const parsedRequestBodies = new WeakMap<Request, Promise<unknown>>();
 const readBody = async (request: Request): Promise<unknown> => {
-  if (Number(request.headers.get("content-length") ?? 0) > 2_000_000) throw new Error("PAYLOAD_TOO_LARGE");
-  const text = await request.text();
-  if (new TextEncoder().encode(text).byteLength > 2_000_000) throw new Error("PAYLOAD_TOO_LARGE");
-  const parsed: unknown = JSON.parse(text);
-  return parsed;
+  const cached = parsedRequestBodies.get(request);
+  if (cached) return cached;
+  const pending = (async () => {
+    const maximum = VENUE_RESOURCE_LIMITS.apiRequestBytes;
+    const declaredBytes = Number(request.headers.get("content-length") ?? 0);
+    if (Number.isFinite(declaredBytes) && declaredBytes > maximum)
+      throw venueError("RESOURCE_LIMIT_EXCEEDED", {
+        surface: "api-request",
+        resource: "bytes",
+        actual: Math.min(Math.floor(declaredBytes), Number.MAX_SAFE_INTEGER),
+        maximum,
+      });
+    const text = await request.text();
+    const bytes = new TextEncoder().encode(text).byteLength;
+    if (bytes > maximum)
+      throw venueError("RESOURCE_LIMIT_EXCEEDED", {
+        surface: "api-request",
+        resource: "bytes",
+        actual: bytes,
+        maximum,
+      });
+    const parsed: unknown = JSON.parse(text);
+    measureJsonResource(parsed, {
+      surface: "api-request",
+      maximumBytes: maximum,
+      maximumDepth: VENUE_RESOURCE_LIMITS.maximumJsonDepth,
+      maximumNodes: VENUE_RESOURCE_LIMITS.maximumJsonNodes,
+      maximumArrayItems: VENUE_RESOURCE_LIMITS.maximumArrayItems,
+      maximumObjectKeys: VENUE_RESOURCE_LIMITS.maximumObjectKeys,
+    });
+    return parsed;
+  })();
+  parsedRequestBodies.set(request, pending);
+  return pending;
 };
 const readObjectBody = async (request: Request): Promise<Record<string, unknown>> => {
   const body = await readBody(request);
@@ -264,6 +307,36 @@ const errorInfo = (cause: unknown): { code?: string; message?: string; details?:
     ...(typeof cause.message === "string" ? { message: cause.message } : {}),
     ...(cause.details === undefined ? {} : { details: cause.details }),
   };
+};
+const safeResourceLimitDetails = (value: unknown) => {
+  if (!isRecord(value)) return undefined;
+  const resources = ["bytes", "depth", "nodes", "array-items", "object-keys"] as const;
+  const resource = resources.find((candidate) => candidate === value.resource);
+  const actual = value.actual;
+  const maximum = value.maximum;
+  if (
+    value.surface !== "api-request" ||
+    resource === undefined ||
+    typeof actual !== "number" ||
+    !Number.isSafeInteger(actual) ||
+    actual < 0 ||
+    typeof maximum !== "number" ||
+    !Number.isSafeInteger(maximum) ||
+    maximum < 0
+  )
+    return undefined;
+  return { surface: "api-request", resource, actual, maximum };
+};
+const requestBodyError = (cause: unknown): Response => {
+  const error = errorInfo(cause);
+  if (error.code === "RESOURCE_LIMIT_EXCEEDED")
+    return apiError(
+      413,
+      "RESOURCE_LIMIT_EXCEEDED",
+      "API request resource limit exceeded",
+      safeResourceLimitDetails(error.details),
+    );
+  return apiError(400, "INVALID_JSON", "Invalid JSON body");
 };
 const occupancySimulation = (value: unknown): OccupancySimulationBaseline | null => {
   if (value == null) return null;
@@ -623,6 +696,12 @@ export function createWorker(options: WorkerOptions = {}) {
   const incidentRepositoryFactory = options.createIncidentRepository ?? createD1IncidentRepository;
   const deviationRepositoryFactory = options.createDeviationRepository ?? createD1DeviationRepository;
   const postEventReviewRepositoryFactory = options.createPostEventReviewRepository ?? createD1PostEventReviewRepository;
+  const memoryRateLimits = createMemoryRateLimitRepository();
+  const rateLimitRepositoryFactory =
+    options.createRateLimitRepository ??
+    (options.createProjectRepository || options.createAccountRepository
+      ? () => memoryRateLimits
+      : createD1RateLimitRepository);
 
   const appendShareLedger = async (
     env: WorkerEnv,
@@ -788,6 +867,13 @@ export function createWorker(options: WorkerOptions = {}) {
         return apiError(404, "API_ROUTE_REQUIRED", "This service exposes VenueMind API routes only");
 
       if (!safeMutationOrigin(request, env)) return apiError(403, "ORIGIN_DENIED", "Cross-origin mutation denied");
+      if (request.body !== null || Number(request.headers.get("content-length") ?? 0) > 0) {
+        try {
+          await readBody(request);
+        } catch (cause) {
+          return requestBodyError(cause);
+        }
+      }
       const accounts = accountRepositoryFactory(env.DB);
       let sessionId = cookieValue(request, SESSION_COOKIE);
       let account = sessionId ? await accounts.resolveSession(decodeURIComponent(sessionId)) : null;
@@ -826,6 +912,29 @@ export function createWorker(options: WorkerOptions = {}) {
         ? account.organizations.find((item) => item.id === requestedOrganizationId)
         : account.organizations[0];
       const admin = organization ? isOrganizationAdministrator({ status: "active", roles: organization.roles }) : false;
+      const endpointFamily = mutationEndpointFamily(request.method, url.pathname);
+      if (endpointFamily) {
+        const decision = await createRateLimitService({ repository: rateLimitRepositoryFactory(env.DB), clock }).consume({
+          sessionId: account.session.id,
+          organizationId: organization?.id ?? null,
+          endpointFamily,
+        });
+        if (!decision.allowed) {
+          const response = apiError(
+            429,
+            "RESOURCE_RATE_LIMITED",
+            "API mutation rate limit exceeded",
+            {
+              endpointFamily: decision.endpointFamily,
+              scope: decision.limitedScope,
+              windowSeconds: VENUE_RATE_LIMIT_WINDOW_SECONDS,
+            },
+            { "retry-after": String(decision.retryAfterSeconds) },
+          );
+          for (const cookie of setCookies) response.headers.append("set-cookie", cookie);
+          return response;
+        }
+      }
 
       if (url.pathname === "/api/session" && request.method === "GET")
         return respond({

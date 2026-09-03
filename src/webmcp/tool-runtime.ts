@@ -6,6 +6,7 @@ import {
 } from "../contracts/venue-contracts.ts";
 import { createShortLivedAgentAuthorization, type AgentScope } from "../domain/authorization.ts";
 import { errorPayload, venueError } from "../domain/errors.ts";
+import { measureJsonResource } from "../security/resource-limits.ts";
 import {
   createVenueToolService,
   type AuthorizationDenial,
@@ -23,9 +24,6 @@ type JsonScalar = string | number | boolean | null;
 export type RedactedToolData = JsonScalar | RedactedToolData[] | { [key: string]: RedactedToolData };
 type RedactedRecord = { [key: string]: RedactedToolData };
 
-const encoder = new TextEncoder();
-const byteLength = (value: RedactedToolData | VenueToolInput): number =>
-  encoder.encode(JSON.stringify(value) ?? "null").byteLength;
 const SENSITIVE_KEYS =
   /^(apiKey|accessToken|refreshToken|authorization|password|secret|attendeeRecords|attendeeHealthRecords|contactEmail|contactPhone)$/i;
 
@@ -188,14 +186,11 @@ export async function executeVenueWebMcpTool({
         issuedBy: "venuemind-webmcp-host",
         clock,
       });
-    const inputBytes = byteLength(input);
-    if (inputBytes > contract.limits.maximumInputBytes)
-      throw venueError("TOOL_PAYLOAD_TOO_LARGE", {
-        ...metadata,
-        direction: "input",
-        actualBytes: inputBytes,
-        maximumBytes: contract.limits.maximumInputBytes,
-      });
+    measureJsonResource(input, {
+      surface: "webmcp-input",
+      maximumBytes: contract.limits.maximumInputBytes,
+      errorCode: "TOOL_PAYLOAD_TOO_LARGE",
+    });
 
     const service =
       toolService ??
@@ -216,14 +211,11 @@ export async function executeVenueWebMcpTool({
     });
     if (signal?.aborted) throw venueError("TOOL_CALL_CANCELLED", metadata);
     const data = redactToolData(output);
-    const outputBytes = byteLength(data);
-    if (outputBytes > contract.limits.maximumOutputBytes)
-      throw venueError("TOOL_PAYLOAD_TOO_LARGE", {
-        ...metadata,
-        direction: "output",
-        actualBytes: outputBytes,
-        maximumBytes: contract.limits.maximumOutputBytes,
-      });
+    measureJsonResource(data, {
+      surface: "webmcp-output",
+      maximumBytes: contract.limits.maximumOutputBytes,
+      errorCode: "TOOL_PAYLOAD_TOO_LARGE",
+    });
     const summary = resultSummary(contract.name, data);
     return {
       content: [{ type: "text", text: summary }],
