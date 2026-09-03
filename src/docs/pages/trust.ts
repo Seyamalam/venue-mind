@@ -19,6 +19,7 @@ export const trustPages = [
             "Excluded by design: attendee records, individual check-in events, raw integration credentials, free-form accessibility records, and retained generated export files.",
             "Browser recovery stores the current Project envelope locally; Cloudflare D1 stores durable application state. Vercel serves the frontend and Cloudflare runs the API Worker.",
             "Diagnostics use allowlisted bounded metadata and never raw geometry, Project payloads, identity attributes, cookies, credentials, or comment content.",
+            "Optional product analytics is off by default and stores only daily counts across fixed event, outcome, stage, and error-category dimensions. It excludes raw events, geometry, content, URLs, free text, credentials, and object, Project, or user identifiers.",
           ),
         ],
       },
@@ -26,7 +27,7 @@ export const trustPages = [
         id: "purpose",
         title: "Purpose and sharing",
         blocks: [
-          prose("VenueMind processes data to authenticate users, keep Project state, validate and simulate Plans, coordinate supervised review, generate requested exports, secure the service, and measure aggregate product reliability. Project data is not sold or used to train a model by VenueMind."),
+          prose("VenueMind processes data to authenticate users, keep Project state, validate and simulate Plans, coordinate supervised review, generate requested exports, secure the service, and measure aggregate product friction when analytics is enabled. Product analytics cannot grant automation authority, change supervision, or weaken Validation. Project data is not sold or used to train a model by VenueMind."),
           bullets(
             "Vercel processes frontend requests; Cloudflare processes API and D1 data. Their own service terms govern their infrastructure handling.",
             "Hashed share tokens allow the recipient selected by a user to read a bounded shared review. Revocation immediately removes that access.",
@@ -44,6 +45,7 @@ export const trustPages = [
             "Account export includes identity, memberships, relevant organization audit events, and Projects. Project exports are generated on demand and are not retained by VenueMind.",
             "Project deletion purges browser recovery immediately and D1 data at the configured deadline. Provider backups expire under the documented provider boundary after primary purge.",
             "Account deletion revokes sessions, suspends memberships, and anonymizes identity fields while retaining opaque security evidence until expiry.",
+            "Content-free product-analytics aggregates expire after 180 days and cannot be linked to an account, user, Project, or object.",
           ),
           links({ label: "Full data-protection contract", href: "/guides/data-protection.md" }),
         ],
@@ -55,9 +57,10 @@ export const trustPages = [
           bullets(
             "Export Project or account data from the product controls before deletion.",
             "Delete a Project with its exact-name confirmation or delete the account from organization settings.",
-            "The current preview keeps optional product analytics off; essential integrity and security logs remain active.",
+            "Product analytics is off by default. Settings provides deterministic opt-in and opt-out; essential integrity and security logs remain active.",
             "Revoke shared-review links and external adapter grants when no longer needed.",
           ),
+          links({ label: "Product analytics contract", href: "/guides/product-analytics.md" }),
         ],
       },
     ],
