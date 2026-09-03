@@ -259,6 +259,7 @@ export function createProjectStore({
         throw new Error("RECOVERY_COMMIT_VERIFY_FAILED");
       }
       storage.removeItem?.(autosaveKey(record.id));
+      storage.removeItem?.(`${quarantinePrefix}${record.id}`);
     } catch {
       // The remote record remains authoritative when the local recovery cache is unavailable.
     }
@@ -422,19 +423,27 @@ export function createProjectStore({
 
     async load(
       projectId: string,
-    ): Promise<Readonly<{ source: "local" | "remote"; record: LocalProjectRecord | null }>> {
+    ): Promise<Readonly<{
+      source: "local" | "remote";
+      record: LocalProjectRecord | null;
+      integrity: ProjectRecoveryIntegrity;
+    }>> {
       try {
         const response = await fetchImpl(`/api/projects/${encodeURIComponent(projectId)}`, {
           credentials: "same-origin",
           headers: requestHeaders({ accept: "application/json" }),
         });
-        if (response.status === 404) return { source: "remote", record: readLocal(projectId) };
+        if (response.status === 404) {
+          const record = readLocal(projectId);
+          return { source: "remote", record, integrity: store.inspectRecovery(projectId) };
+        }
         if (!response.ok) throw new Error(`Project load failed: ${response.status}`);
         const record = decodeProject(await responseJson(response));
         writeRemoteCache(record);
-        return { source: "remote", record };
+        return { source: "remote", record, integrity: store.inspectRecovery(projectId) };
       } catch {
-        return { source: "local", record: readLocal(projectId) };
+        const record = readLocal(projectId);
+        return { source: "local", record, integrity: store.inspectRecovery(projectId) };
       }
     },
 

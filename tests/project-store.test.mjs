@@ -232,6 +232,7 @@ test("corrupted browser recovery is quarantined without exposing its payload", a
   });
   const loaded = await store.load(recordInput.id);
   assert.equal(loaded.record, null);
+  assert.equal(loaded.integrity.status, "quarantined");
   assert.equal(storage.getItem(primaryKey), null);
   const quarantine = storage.getItem("venuemind.organization.org-local.quarantine.project-summit-forward");
   assert.ok(quarantine);

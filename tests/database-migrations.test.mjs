@@ -157,6 +157,31 @@ test("the restore drill proves a disposable restore matches source integrity evi
   }
 });
 
+test("an injected second-statement failure rolls back the entire Project write", async () => {
+  const directory = await mkdtemp(path.join(root, ".venuemind-atomic-write-"));
+  try {
+    const database = path.join(directory, "atomic.sqlite3");
+    await createFixture(database, 1);
+    await cli("migrate", "--database", database);
+    const before = JSON.parse(await sqlite(database, ".mode json\nSELECT name,revision,snapshot_json FROM projects JOIN project_states ON project_id=id WHERE id='project-fixture';\n"));
+    await assert.rejects(
+      () => sqlite(database, [
+        "PRAGMA foreign_keys=ON;",
+        "CREATE TRIGGER inject_state_failure BEFORE UPDATE ON project_states BEGIN SELECT RAISE(ROLLBACK, 'injected-partial-write'); END;",
+        "BEGIN IMMEDIATE;",
+        "UPDATE projects SET name='PARTIAL',revision=revision+1 WHERE id='project-fixture';",
+        "UPDATE project_states SET updated_at='2026-09-03T10:00:00.000Z' WHERE project_id='project-fixture';",
+        "COMMIT;",
+      ].join("\n")),
+      /injected-partial-write/,
+    );
+    const after = JSON.parse(await sqlite(database, ".mode json\nSELECT name,revision,snapshot_json FROM projects JOIN project_states ON project_id=id WHERE id='project-fixture';\n"));
+    assert.deepEqual(after, before);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test("migration checksum drift and database orphans fail closed", async () => {
   const directory = await mkdtemp(path.join(root, ".venuemind-integrity-"));
   try {
