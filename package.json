@@ -11,7 +11,7 @@
     "build:next": "next build",
     "build:worker": "npm run generate:migrations && node scripts/build-worker.mjs",
     "build:cloudflare": "npm run generate:contracts && npm run build:worker",
-    "deploy:cloudflare": "npm run build:cloudflare && wrangler deploy --env-file /dev/null",
+    "deploy:cloudflare": "npm run build:cloudflare && wrangler deploy --env=\"\" --env-file /dev/null",
     "deploy:cloudflare:staging": "npm run build:cloudflare && wrangler deploy --env staging --env-file /dev/null",
     "dev:cloudflare": "npm run build:worker && wrangler dev",
     "cf:typegen": "wrangler types --env-file /dev/null --env-interface CloudflareEnv worker-configuration.d.ts",

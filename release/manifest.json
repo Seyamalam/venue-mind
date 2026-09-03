@@ -45,7 +45,7 @@
   "releaseNote": "release/notes/1.0.0.json",
   "checksumAlgorithm": "sha256",
   "artifacts": {
-    "package.json": "ef90dba98d45b3b2633194a7b765859eb1e02e352046c52b89b2ee1f884a6e0f",
+    "package.json": "98edac2e145fbfaf8c4a1414d56d1115af4a26e2daee88a37e002e2b8b327500",
     "packages/mcp-server/package.json": "8079dc0cbd01f601bd0bfeb68992872f263b12e1679787155bc04194fcd0b98e",
     "packages/sdk/package.json": "a7b88928c2e9630a6c0c3559ff69a42f3f9c6de717fb6bd7f98d5bdafab580a8",
     "skills/manifest.json": "bba3a9ef74df235ce3bd133305f1b44fd5c84607fbb47752380e95dfc3613d65",
