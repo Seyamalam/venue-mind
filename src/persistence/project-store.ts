@@ -2,7 +2,6 @@ import {
   PROJECT_CREATE_ONLY_HEADER,
   PROJECT_EXPECTED_REVISION_HEADER,
   projectConflictData,
-  projectEtag,
   reconcileProjectRecords,
 } from "../domain/project-concurrency.ts";
 import {
@@ -346,11 +345,8 @@ export function createProjectStore({
         "content-type": "application/json",
         accept: "application/json",
         ...(createOnly
-          ? { "if-none-match": "*", [PROJECT_CREATE_ONLY_HEADER]: "1" }
-          : {
-              "if-match": projectEtag(record.id, record.revision ?? 1),
-              [PROJECT_EXPECTED_REVISION_HEADER]: String(record.revision ?? 1),
-            }),
+          ? { [PROJECT_CREATE_ONLY_HEADER]: "1" }
+          : { [PROJECT_EXPECTED_REVISION_HEADER]: String(record.revision ?? 1) }),
         ...(correlationId ? { "x-correlation-id": correlationId } : {}),
       }),
       body: JSON.stringify(record),
@@ -643,7 +639,6 @@ export function createProjectStore({
         headers: requestHeaders({
           accept: "application/json",
           "content-type": "application/json",
-          "if-match": projectEtag(projectId, loaded.record.revision),
           [PROJECT_EXPECTED_REVISION_HEADER]: String(loaded.record.revision),
         }),
         body: JSON.stringify({ reasonCode: "USER_REQUEST" }),

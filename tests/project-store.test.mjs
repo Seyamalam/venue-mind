@@ -38,7 +38,7 @@ const createRevisionServer = (initial) => {
           ? Response.json(remote, { headers: { etag: `"venuemind:${remote.id}:${remote.revision}"` } })
           : Response.json({ error: "missing" }, { status: 404 });
       const input = JSON.parse(init.body);
-      if (init.headers["if-none-match"] === "*") {
+      if (init.headers["x-venuemind-create-only"] === "1") {
         assert.equal(init.headers["x-venuemind-create-only"], "1");
         if (remote)
           return Response.json({ code: "PROJECT_ID_CONFLICT", details: { current: remote } }, { status: 409 });
@@ -46,7 +46,7 @@ const createRevisionServer = (initial) => {
         return Response.json(remote, { status: 201 });
       }
       const expected = `"venuemind:${remote.id}:${remote.revision}"`;
-      if (init.headers["if-match"] !== expected)
+      if (init.headers["x-venuemind-expected-revision"] !== String(remote.revision))
         return Response.json(
           {
             code: "PROJECT_REVISION_CONFLICT",
@@ -163,7 +163,6 @@ test("Project deletion purges every local Project key before explicitly acknowle
   await assert.rejects(() => store.deleteProject(remote.id, "WRONG"), (error) => error.code === "PROJECT_CONFIRMATION_MISMATCH");
   const result = await store.deleteProject(remote.id, remote.name);
   assert.equal(result.cacheDirective.acknowledgedAt, "2026-08-27T01:00:01.000Z");
-  assert.equal(calls.find((call) => call.init.method === "DELETE").init.headers["if-match"], '"venuemind:project-summit-forward:4"');
   assert.equal(calls.find((call) => call.init.method === "DELETE").init.headers["x-venuemind-expected-revision"], "4");
   assert.deepEqual(JSON.parse(calls.find((call) => call.init.method === "DELETE").init.body), { reasonCode: "USER_REQUEST" });
   assert.deepEqual(JSON.parse(calls.at(-1).init.body), { deletionRequestId: "project-deletion-1", directiveId: "cache-delete-1" });
@@ -279,7 +278,7 @@ test("import commit creates a missing Project and refuses to overwrite an existi
     clock: () => "2026-08-27T01:00:00.000Z",
     fetchImpl: async (_url, init = {}) => {
       if (init.method === "PUT") {
-        if (remoteRecord && init.headers["if-none-match"] === "*")
+        if (remoteRecord && init.headers["x-venuemind-create-only"] === "1")
           return Response.json({ error: "Project already exists" }, { status: 409 });
         remoteRecord = JSON.parse(init.body);
         return Response.json(remoteRecord, { status: 201 });

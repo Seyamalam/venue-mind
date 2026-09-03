@@ -115,15 +115,13 @@ if (mutate) {
     headers: {
       "content-type": "application/json",
       ...(existing
-        ? {
-            "if-match": current.headers.get("etag"),
-            "x-venuemind-expected-revision": String(existing.revision),
-          }
-        : { "if-none-match": "*", "x-venuemind-create-only": "1" }),
+        ? { "x-venuemind-expected-revision": String(existing.revision) }
+        : { "x-venuemind-create-only": "1" }),
     },
     body: JSON.stringify(record),
   });
-  assert.ok(saved.status === 200 || saved.status === 201, `Project persistence returned ${saved.status}: ${await saved.text()}`);
+  if (saved.status !== 200 && saved.status !== 201)
+    assert.fail(`Project persistence returned ${saved.status}: ${await saved.text()}`);
   const stored = await saved.json();
 
   const browserTwo = new CookieJar({ venuemind_demo_identity: demoIdentity });
@@ -136,7 +134,7 @@ if (mutate) {
   assert.equal(durable.revision, stored.revision);
   assert.equal(durable.snapshot.plan.version, approval.planVersion);
   assert.equal(durable.snapshot.ledger.at(-1).type, "proposal.approved");
-  assert.ok(JSON.parse(exported.content).ledger.length > 1);
+  assert.ok(JSON.parse(exported.content).activityLedger.length > 1);
   Object.assign(evidence, {
     goldenLoop: "pass",
     plan: `${inspection.planVersion}->${approval.planVersion}`,
