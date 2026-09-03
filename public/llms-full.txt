@@ -7852,6 +7852,7 @@ npm run check:generated
 - [Sharing and notifications](https://venue-mind-jet.vercel.app/guides/sharing-and-notifications.md)
 - [Registration and ticketing](https://venue-mind-jet.vercel.app/guides/registration-and-ticketing.md)
 - [Operational resources](https://venue-mind-jet.vercel.app/guides/operational-resources.md)
+- [Threat model](https://venue-mind-jet.vercel.app/guides/threat-model.md)
 - [Release checklist](https://venue-mind-jet.vercel.app/guides/release-checklist.md)
 - [Failure recovery runbook](https://venue-mind-jet.vercel.app/guides/runbooks/failure-recovery.md)
 - [Security reporting policy](https://venue-mind-jet.vercel.app/guides/security.md)

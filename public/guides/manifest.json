@@ -26,6 +26,11 @@
       "title": "Authentication and tenancy"
     },
     {
+      "sourcePath": "docs/threat-model.md",
+      "publicPath": "/guides/threat-model.md",
+      "title": "Threat model"
+    },
+    {
       "sourcePath": "docs/persistence-and-recovery.md",
       "publicPath": "/guides/persistence-and-recovery.md",
       "title": "Persistence and recovery"
