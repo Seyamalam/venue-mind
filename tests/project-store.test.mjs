@@ -183,6 +183,90 @@ test("local recovery storage remains available when the project endpoint is offl
   assert.equal(loaded.source, "local");
   assert.equal(loaded.record.schemaVersion, 10);
   assert.equal(loaded.record.snapshot.plan.version, "3.2");
+  assert.equal(store.inspectRecovery(recordInput.id).status, "pass");
+});
+
+test("an interrupted browser commit recovers the verified autosave journal", async () => {
+  const storage = createStorage();
+  const primaryKey = "venuemind.organization.org-local.project.project-summit-forward";
+  let interruptPrimary = true;
+  const interruptedStorage = {
+    ...storage,
+    get length() {
+      return storage.length;
+    },
+    setItem(key, value) {
+      if (key === primaryKey && interruptPrimary) {
+        interruptPrimary = false;
+        throw new Error("injected-tab-crash");
+      }
+      storage.setItem(key, value);
+    },
+  };
+  const offline = async () => {
+    throw new Error("offline");
+  };
+  const first = createProjectStore({ storage: interruptedStorage, fetchImpl: offline });
+  assert.equal((await first.save(recordInput)).source, "local");
+  assert.equal(storage.getItem(primaryKey), null);
+  assert.ok(storage.getItem("venuemind.organization.org-local.autosave.project-summit-forward"));
+
+  const restarted = createProjectStore({ storage, fetchImpl: offline });
+  const loaded = await restarted.load(recordInput.id);
+  assert.equal(loaded.record.snapshot.plan.version, "3.2");
+  assert.equal(loaded.integrity.status, "recovered");
+  assert.equal(restarted.inspectRecovery(recordInput.id).status, "pass");
+  assert.ok(storage.getItem(primaryKey));
+  assert.equal(storage.getItem("venuemind.organization.org-local.autosave.project-summit-forward"), null);
+});
+
+test("corrupted browser recovery is quarantined without exposing its payload", async () => {
+  const storage = createStorage();
+  const primaryKey = "venuemind.organization.org-local.project.project-summit-forward";
+  storage.setItem(primaryKey, '{"snapshot":{"secret":"do-not-copy"}}');
+  const store = createProjectStore({
+    storage,
+    fetchImpl: async () => {
+      throw new Error("offline");
+    },
+    clock: () => "2026-09-03T10:00:00.000Z",
+  });
+  const loaded = await store.load(recordInput.id);
+  assert.equal(loaded.record, null);
+  assert.equal(loaded.integrity.status, "quarantined");
+  assert.equal(storage.getItem(primaryKey), null);
+  const quarantine = storage.getItem("venuemind.organization.org-local.quarantine.project-summit-forward");
+  assert.ok(quarantine);
+  assert.doesNotMatch(quarantine, /do-not-copy/);
+  assert.equal(store.inspectRecovery(recordInput.id).status, "quarantined");
+});
+
+test("network interruption remains local and a later retry commits the exact recovery", async () => {
+  const storage = createStorage();
+  let online = false;
+  let remote = null;
+  let writes = 0;
+  const store = createProjectStore({
+    storage,
+    clock: () => "2026-09-03T10:00:00.000Z",
+    fetchImpl: async (_url, init = {}) => {
+      if (!online) throw new Error("injected-network-interruption");
+      if (init.method === "PUT") {
+        writes += 1;
+        remote = { ...JSON.parse(init.body), revision: 1 };
+        return Response.json(remote, { status: 201 });
+      }
+      return remote ? Response.json(remote) : Response.json({ code: "PROJECT_NOT_FOUND" }, { status: 404 });
+    },
+  });
+  const local = await store.save(recordInput);
+  assert.equal(local.source, "local");
+  assert.equal(writes, 0);
+  online = true;
+  const retried = await store.save({ ...recordInput, snapshot: local.record.snapshot });
+  assert.equal(retried.source, "remote");
+  assert.equal(writes, 1);
+  assert.equal(remote.snapshot.plan.version, "3.2");
 });
 
 test("import commit creates a missing Project and refuses to overwrite an existing ID", async () => {

@@ -978,6 +978,7 @@ export function App({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyMounted, setHistoryMounted] = useState(false);
   const [persistenceStatus, setPersistenceStatus] = useState("SYNC");
+  const [recoveryIntegrity, setRecoveryIntegrity] = useState("CHECK");
   const [syncConflict, setSyncConflict] = useState<ProjectConflict | null>(null);
   const [collaborationStatus, setCollaborationStatus] = useState("CONNECT");
   const [collaborationOpen, setCollaborationOpen] = useState(false);
@@ -1508,6 +1509,17 @@ export function App({
           lastOpenedAt: projectRecordMetadata.current.lastOpenedAt,
         });
         projectRecordMetadata.current = projectRecordMetadataFor(result.record);
+        const recovery = projectStore.inspectRecovery(projectId);
+        if (!cancelled)
+          setRecoveryIntegrity(
+            recovery.status === "pass"
+              ? "SAFE"
+              : recovery.status === "recovered"
+                ? "RECOVERED"
+                : recovery.status === "quarantined"
+                  ? "CACHE BLOCK"
+                  : "REMOTE ONLY",
+          );
         if (!cancelled)
           setPersistenceStatus(result.source === "remote" ? (result.reconciliation ? "MERGED" : "SAVED") : "LOCAL");
       } catch (error) {
@@ -1532,6 +1544,15 @@ export function App({
     const start = async () => {
       const loaded = await projectStore.load(projectId);
       if (cancelled) return;
+      setRecoveryIntegrity(
+        loaded.integrity.status === "pass"
+          ? "SAFE"
+          : loaded.integrity.status === "recovered"
+            ? "RECOVERED"
+            : loaded.integrity.status === "quarantined"
+              ? "CACHE BLOCK"
+              : "REMOTE ONLY",
+      );
       if (loaded.record?.schemaVersion === 10) {
         try {
           syncCommandResult(planner.execute({ type: "restore_snapshot", snapshot: loaded.record.snapshot }));
@@ -1541,6 +1562,9 @@ export function App({
         }
         projectRecordMetadata.current = projectRecordMetadataFor(loaded.record);
         setPersistenceStatus(loaded.source === "remote" ? "SAVED" : "LOCAL");
+      } else if (!loaded.record && loaded.integrity.status === "quarantined") {
+        setPersistenceStatus("INTEGRITY");
+        return;
       } else if (!loaded.record) {
         await queueSave();
       } else {
@@ -3965,6 +3989,9 @@ export function App({
           >
             Plan v{plannerState.plan.version}
             <span className={`save-indicator is-${persistenceStatus.toLowerCase()}`}>{persistenceStatus}</span>
+            <span className={`save-indicator is-${recoveryIntegrity.toLowerCase().replaceAll(" ", "-")}`} aria-label={`Recovery integrity ${recoveryIntegrity}`}>
+              {recoveryIntegrity}
+            </span>
             <CaretDown size={14} />
           </HeaderButton>
           <HeaderButton

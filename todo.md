@@ -959,17 +959,17 @@ Completion gate:
 
 ## 9.6 Reliability and recovery
 
-- [ ] Add crash-safe autosave boundaries.
-- [ ] Add network interruption and retry tests.
-- [ ] Add corrupted local-cache recovery.
-- [ ] Add partial database-write recovery.
-- [ ] Add worker restart and deployment compatibility tests.
-- [ ] Add backup restoration drills.
-- [ ] Add a visible system-integrity status derived from checks, not narrative messaging.
+- [x] Add crash-safe autosave boundaries.
+- [x] Add network interruption and retry tests.
+- [x] Add corrupted local-cache recovery.
+- [x] Add partial database-write recovery.
+- [x] Add worker restart and deployment compatibility tests.
+- [x] Add backup restoration drills.
+- [x] Add a visible system-integrity status derived from checks, not narrative messaging.
 
 Completion gate:
 
-- [ ] Every injected failure either leaves state unchanged or produces a recoverable, ledgered state with no silent data loss.
+- [x] Every injected failure either leaves state unchanged or produces a recoverable, ledgered state with no silent data loss.
 
 ---
 

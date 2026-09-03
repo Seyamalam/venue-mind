@@ -140,6 +140,48 @@ test("backup and staged restore preserve Project and ledger fingerprints", async
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
+test("the restore drill proves a disposable restore matches source integrity evidence", async () => {
+  const directory = await mkdtemp(path.join(root, ".venuemind-restore-drill-"));
+  try {
+    const source = path.join(directory, "source.sqlite3");
+    await createFixture(source, 1);
+    await cli("migrate", "--database", source);
+    const drill = await cli("drill", "--database", source);
+    assert.equal(drill.status, "pass");
+    assert.equal(drill.databaseSchemaVersion, DATABASE_SCHEMA_VERSION);
+    assert.equal(drill.projects[0].planFingerprint, expectedPlanFingerprint);
+    assert.equal(drill.projects[0].ledgerHeadHash, expectedLedgerHeadHash);
+    assert.match(drill.backupSha256, /^[a-f0-9]{64}$/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("an injected second-statement failure rolls back the entire Project write", async () => {
+  const directory = await mkdtemp(path.join(root, ".venuemind-atomic-write-"));
+  try {
+    const database = path.join(directory, "atomic.sqlite3");
+    await createFixture(database, 1);
+    await cli("migrate", "--database", database);
+    const before = JSON.parse(await sqlite(database, ".mode json\nSELECT name,revision,snapshot_json FROM projects JOIN project_states ON project_id=id WHERE id='project-fixture';\n"));
+    await assert.rejects(
+      () => sqlite(database, [
+        "PRAGMA foreign_keys=ON;",
+        "CREATE TRIGGER inject_state_failure BEFORE UPDATE ON project_states BEGIN SELECT RAISE(ROLLBACK, 'injected-partial-write'); END;",
+        "BEGIN IMMEDIATE;",
+        "UPDATE projects SET name='PARTIAL',revision=revision+1 WHERE id='project-fixture';",
+        "UPDATE project_states SET updated_at='2026-09-03T10:00:00.000Z' WHERE project_id='project-fixture';",
+        "COMMIT;",
+      ].join("\n")),
+      /injected-partial-write/,
+    );
+    const after = JSON.parse(await sqlite(database, ".mode json\nSELECT name,revision,snapshot_json FROM projects JOIN project_states ON project_id=id WHERE id='project-fixture';\n"));
+    assert.deepEqual(after, before);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test("migration checksum drift and database orphans fail closed", async () => {
   const directory = await mkdtemp(path.join(root, ".venuemind-integrity-"));
   try {

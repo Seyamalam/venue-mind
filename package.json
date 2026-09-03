@@ -23,6 +23,7 @@
     "db:verify": "node scripts/database-maintenance.mjs verify",
     "db:backup": "node scripts/database-maintenance.mjs backup",
     "db:restore": "node scripts/database-maintenance.mjs restore",
+    "db:drill": "node scripts/database-maintenance.mjs drill",
     "generate:examples": "node scripts/generate-client-examples.mjs",
     "generate:guides": "node scripts/generate-contributor-guides.mjs",
     "generate:sdk-types": "node scripts/generate-sdk-types.mjs",

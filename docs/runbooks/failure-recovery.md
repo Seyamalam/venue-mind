@@ -35,6 +35,8 @@ Use this runbook for Project load/save failure, corrupt generated artifacts, fai
 
 ## Database restore
 
+Before releases that change persistence or migrations, run `npm run db:drill -- --database <local-sqlite-path>`. The drill creates a temporary backup, verifies its checksum, restores it into an isolated database, compares every Project Plan fingerprint and ledger head with the source, emits only integrity evidence, and removes its temporary files.
+
 1. Never overwrite the only copy. Verify the backup manifest checksum and stage the restore into a separate database.
 2. Compare database migration version, SQLite integrity, orphan counts, Project fingerprints, and ledger head hashes.
 3. For D1 Time Travel, retain the current bookmark before restoring the verified target bookmark.

@@ -132,3 +132,59 @@ test("persists and retrieves project state through the API repository seam", asy
   assert.equal(conflict.status, 409);
   assert.equal((await conflict.json()).code, "PROJECT_ID_CONFLICT");
 });
+
+test("a fresh Worker instance loads the same durable Project without deployment-local state", async () => {
+  const records = new Map();
+  const user = { id: "user-restart", email: "restart@example.com", displayName: "Restart", status: "active" };
+  const organizations = [{ id: "org-restart", name: "Restart", slug: "restart", roles: ["organization-administrator"] }];
+  const options = {
+    secureCookies: false,
+    identityProvider: {
+      authenticate: () => ({ provider: "test", subject: "restart", email: user.email, displayName: user.displayName }),
+    },
+    createAccountRepository: () => ({
+      resolveSession: async () => null,
+      provision: async () => ({ user, organizations }),
+      createSession: async () => ({
+        id: "session-restart",
+        userId: user.id,
+        createdAt: "2026-09-03T00:00:00.000Z",
+        expiresAt: "2026-09-04T00:00:00.000Z",
+        lastSeenAt: "2026-09-03T00:00:00.000Z",
+        revokedAt: null,
+      }),
+    }),
+    createProjectRepository: () => ({
+      list: async (organizationId) => [...records.values()].filter((record) => record.organizationId === organizationId),
+      get: async (organizationId, id) => records.get(`${organizationId}:${id}`) ?? null,
+      put: async (organizationId, record) => {
+        const saved = { ...record, revision: 1 };
+        records.set(`${organizationId}:${record.id}`, saved);
+        return saved;
+      },
+    }),
+  };
+  const env = { DB: {} };
+  const snapshot = createVenuePlanner(summitForwardPlan).getSnapshot();
+  const record = {
+    id: "project-restart",
+    name: "RESTART",
+    activePlanId: snapshot.plan.id,
+    schemaVersion: 10,
+    snapshot,
+    createdAt: "2026-09-03T00:00:00.000Z",
+    updatedAt: "2026-09-03T00:00:00.000Z",
+  };
+  const beforeDeploy = createWorker(options);
+  const saved = await beforeDeploy.fetch(new Request("https://example.test/api/projects/project-restart", {
+    method: "PUT",
+    headers: { "content-type": "application/json", "if-none-match": "*" },
+    body: JSON.stringify(record),
+  }), env);
+  assert.equal(saved.status, 201);
+
+  const afterDeploy = createWorker(options);
+  const loaded = await afterDeploy.fetch(new Request("https://example.test/api/projects/project-restart"), env);
+  assert.equal(loaded.status, 200);
+  assert.equal((await loaded.json()).snapshot.plan.id, snapshot.plan.id);
+});
