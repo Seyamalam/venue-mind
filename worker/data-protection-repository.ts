@@ -22,6 +22,7 @@ const PROJECT_CASCADE_TABLES = Object.freeze([
   "live_occupancy_monitors",
   "event_day_incident_registers",
   "event_day_deviation_registers",
+  "post_event_reviews",
 ] as const);
 
 type Row = Record<string, unknown>;
@@ -524,8 +525,9 @@ export function createD1DataProtectionRepository(
              AND NOT EXISTS (SELECT 1 FROM live_occupancy_monitors m WHERE m.runbook_id=r.id AND m.updated_at>=?)
              AND NOT EXISTS (SELECT 1 FROM event_day_incident_registers i WHERE i.runbook_id=r.id AND i.updated_at>=?)
              AND NOT EXISTS (SELECT 1 FROM event_day_deviation_registers d WHERE d.runbook_id=r.id AND d.updated_at>=?)
+             AND NOT EXISTS (SELECT 1 FROM post_event_reviews p WHERE p.runbook_id=r.id AND p.updated_at>=?)
            ORDER BY r.updated_at,r.id LIMIT ?`,
-          organizationId, operationalCutoff, operationalCutoff, operationalCutoff, operationalCutoff, operationalCutoff, remaining,
+          organizationId, operationalCutoff, operationalCutoff, operationalCutoff, operationalCutoff, operationalCutoff, operationalCutoff, remaining,
         );
         for (const row of runbooks) {
           const runbookId = String(row.id);
@@ -582,7 +584,7 @@ export function createD1DataProtectionRepository(
       const projects = await all(db, "SELECT id,organization_id,name,active_plan_id,created_at,updated_at,provenance_json,archived_at,deleted_at,recovery_until,pinned,last_opened_at,revision FROM projects WHERE id=? AND organization_id=?", projectId, organizationId);
       if (!projects.length) throw new DataProtectionConflict("PROJECT_NOT_FOUND");
       const exportedAt = clock();
-      const [states, collaboration, presence, shareLinks, notifications, outbox, runbooks, tasks, transitions, ledger, receipts, occupancy, incidents, deviations, deletions] = await Promise.all([
+      const [states, collaboration, presence, shareLinks, notifications, outbox, runbooks, tasks, transitions, ledger, receipts, occupancy, incidents, deviations, postEventReviews, deletions] = await Promise.all([
         all(db, "SELECT * FROM project_states WHERE project_id=?", projectId),
         all(db, "SELECT * FROM project_collaboration_events WHERE project_id=? AND organization_id=? ORDER BY id", projectId, organizationId),
         all(db, "SELECT * FROM project_presence WHERE project_id=? AND organization_id=? ORDER BY session_id", projectId, organizationId),
@@ -597,6 +599,7 @@ export function createD1DataProtectionRepository(
         all(db, "SELECT * FROM live_occupancy_monitors WHERE project_id=? AND organization_id=? ORDER BY created_at", projectId, organizationId),
         all(db, "SELECT * FROM event_day_incident_registers WHERE project_id=? AND organization_id=? ORDER BY created_at", projectId, organizationId),
         all(db, "SELECT * FROM event_day_deviation_registers WHERE project_id=? AND organization_id=? ORDER BY created_at", projectId, organizationId),
+        all(db, "SELECT * FROM post_event_reviews WHERE project_id=? AND organization_id=? ORDER BY created_at", projectId, organizationId),
         all(db, "SELECT * FROM project_deletion_requests WHERE project_id=? AND organization_id=? ORDER BY requested_at", projectId, organizationId),
       ]);
       const payload = Object.freeze({
@@ -611,6 +614,7 @@ export function createD1DataProtectionRepository(
           event_day_runbook_transitions: mapRows(transitions, ["evidence_json"], ["session_id"]), event_day_runbook_ledger: mapRows(ledger, ["details_json"], ["session_id"]),
           event_day_runbook_receipts: mapRows(receipts, ["receipt_json"]), live_occupancy_monitors: mapRows(occupancy, ["baseline_json", "monitor_json"]),
           event_day_incident_registers: mapRows(incidents, ["baseline_json", "register_json"]), event_day_deviation_registers: mapRows(deviations, ["baseline_json", "register_json"]),
+          post_event_reviews: mapRows(postEventReviews, ["baseline_json", "review_json"]),
           project_deletion_requests: mapRows(deletions, ["purge_verification_json"]),
         }),
       });
