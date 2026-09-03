@@ -4,6 +4,56 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* VenueMind Design 2: paper plan, graphite notation, violet revision layer. */
+  --vm-color-ink: #1d1e1c;
+  --vm-color-ink-soft: #555750;
+  --vm-color-muted: #6f706d;
+  --vm-color-paper: #faf9f6;
+  --vm-color-canvas: #f0eee8;
+  --vm-color-surface: #fdfcf9;
+  --vm-color-line: #deddd7;
+  --vm-color-line-strong: #cbc7bd;
+  --vm-color-violet: #6845e8;
+  --vm-color-violet-soft: #efecfb;
+  --vm-color-violet-line: #8a73ed;
+  --vm-color-success-text: #286638;
+  --vm-color-success-bg: #e7f3e5;
+  --vm-color-warning-text: #7a4a0b;
+  --vm-color-warning-bg: #fff0da;
+  --vm-color-danger-text: #8d2923;
+  --vm-color-danger-bg: #fae9e7;
+  --vm-color-offline-text: #4f3aa0;
+  --vm-color-offline-bg: #ece8ff;
+  --vm-font-display: var(--font-inter), "Inter Variable", Inter, sans-serif;
+  --vm-font-body: var(--font-inter), "Inter Variable", Inter, sans-serif;
+  --vm-font-utility: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --vm-type-display-xl: clamp(3rem, 7vw, 5.375rem);
+  --vm-type-title: 1.5rem;
+  --vm-type-body: 0.875rem;
+  --vm-type-label: 0.625rem;
+  --vm-type-micro: 0.5rem;
+  --vm-weight-regular: 500;
+  --vm-weight-label: 750;
+  --vm-weight-critical: 850;
+  --vm-space-1: 0.25rem;
+  --vm-space-2: 0.5rem;
+  --vm-space-3: 0.75rem;
+  --vm-space-4: 1rem;
+  --vm-space-5: 1.5rem;
+  --vm-space-6: 2rem;
+  --vm-space-7: 3rem;
+  --vm-border-hairline: 1px;
+  --vm-radius-control: 0.375rem;
+  --vm-radius-panel: 0.625rem;
+  --vm-shadow-raised: 0 1rem 2.375rem rgba(42, 38, 32, 0.16);
+  --vm-shadow-overlay: 0 1.75rem 4.5rem rgba(34, 31, 25, 0.24);
+  --vm-icon-sm: 0.875rem;
+  --vm-icon-md: 1.125rem;
+  --vm-icon-lg: 1.5rem;
+  --vm-motion-fast: 120ms;
+  --vm-motion-standard: 180ms;
+  --vm-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --vm-focus-ring: 0 0 0 3px rgba(104, 69, 232, 0.24);
   --background: oklch(0.982 0.004 95);
   --foreground: oklch(0.235 0.006 95);
   --card: oklch(0.992 0.003 95);
@@ -67,12 +117,32 @@
   display: grid;
   place-content: center;
   gap: 0.75rem;
-  background: var(--background);
-  color: var(--muted-foreground);
-  font: 750 0.625rem/1 var(--font-inter), ui-monospace, monospace;
+  background: var(--vm-color-paper);
+  color: var(--vm-color-muted);
+  font: var(--vm-weight-label) var(--vm-type-label)/1 var(--vm-font-utility);
   letter-spacing: 0.12em;
   text-align: center;
 }
+
+.route-state::before {
+  width: var(--vm-icon-sm);
+  height: var(--vm-icon-sm);
+  border: var(--vm-border-hairline) solid currentColor;
+  border-radius: 50%;
+  content: "";
+}
+
+.route-state[data-state="loading"]::before {
+  border-color: var(--vm-color-line-strong);
+  border-top-color: var(--vm-color-violet);
+  animation: vm-state-spin 900ms linear infinite;
+}
+
+.route-state[data-state="empty"]::before { border-style: dashed; }
+.route-state[data-state="offline"] { color: var(--vm-color-offline-text); }
+.route-state[data-state="conflict"],
+.route-state[data-state="invalid"] { color: var(--vm-color-danger-text); }
+.route-state[data-state="disabled"] { color: var(--vm-color-muted); opacity: 0.58; }
 
 .route-state :is(a, button) {
   min-height: 2rem;
@@ -83,4 +153,10 @@
   color: var(--foreground);
   text-decoration: none;
   cursor: pointer;
+}
+
+@keyframes vm-state-spin { to { transform: rotate(1turn); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .route-state[data-state="loading"]::before { animation: none; border-style: dotted; }
 }

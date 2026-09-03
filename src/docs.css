@@ -1,4 +1,4 @@
-:root { --doc-ink: #22231f; --doc-muted: #6f716a; --doc-paper: #faf9f5; --doc-line: #deddd6; --doc-violet: #6845e8; }
+:root { --doc-ink: var(--vm-color-ink); --doc-muted: var(--vm-color-muted); --doc-paper: var(--vm-color-paper); --doc-line: var(--vm-color-line); --doc-violet: var(--vm-color-violet); }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--doc-paper); color: var(--doc-ink); font-family: var(--font-inter, "Inter Variable"), Inter, sans-serif; }

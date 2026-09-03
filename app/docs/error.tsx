@@ -1,7 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { RouteState } from "@/components/route-state";
 
 export default function DocsError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  return <main className="route-state" role="alert"><strong>DOCS ERROR</strong><Button type="button" variant="outline" onClick={reset}>RETRY</Button></main>;
+  return <RouteState state="invalid" label="DOCS ERROR" action={<Button type="button" variant="outline" onClick={reset}>RETRY</Button>} />;
 }

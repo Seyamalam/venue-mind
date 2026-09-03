@@ -1,3 +1,5 @@
+import { RouteState } from "@/components/route-state";
+
 export default function SettingsLoading() {
-  return <main className="route-state" role="status"><strong>SETTINGS</strong><span>LOAD</span></main>;
+  return <RouteState state="loading" label="SETTINGS" detail="LOAD" />;
 }
