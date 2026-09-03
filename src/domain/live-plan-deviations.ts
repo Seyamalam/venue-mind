@@ -160,6 +160,8 @@ const affectedIdsFor = (change: PlanningChange): string[] => {
     throw venueError("DEVIATION_INVALID", { reason: "spatial-effects-required" });
   if ((change.planningEffects?.length ?? 0) > 0)
     fail("DEVIATION_INVALID", { reason: "planning-effects-not-operational" });
+  if (change.effects && Object.keys(change.effects).length > 0)
+    fail("DEVIATION_INVALID", { reason: "metric-effects-not-operational" });
   if (spatialEffects.some((effect) => effect.operation === "update_room_boundary"))
     fail("DEVIATION_INVALID", { reason: "room-boundary-change-not-operational" });
   const ids = [
