@@ -6,6 +6,7 @@ import { Input } from "../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "../components/ui/select";
 import { Sheet, SheetContent, SheetTitle } from "../components/ui/sheet";
 import { Textarea } from "../components/ui/textarea";
+import { VirtualList } from "./VirtualList";
 import type { CommentAnchor, CommentSubjectKind, VenueComment } from "./domain/comments";
 import type { CommentsState, ValueCallback, ValueOption, VoidCallback } from "./ui-types";
 
@@ -306,8 +307,12 @@ export function CommentsPanel({
             ]}
           />
         </div>
-        <div className="comment-list">
-          {filtered.map((comment) => (
+        <VirtualList
+          className="comment-list"
+          items={filtered}
+          estimateSize={184}
+          getKey={(comment) => comment.id}
+          renderItem={(comment) => (
             <article
               className={`${comment.id === selectedCommentId ? "is-selected" : ""} is-${comment.status}`}
               key={comment.id}
@@ -365,8 +370,8 @@ export function CommentsPanel({
                 </footer>
               </div>
             </article>
-          ))}
-        </div>
+          )}
+        />
       </SheetContent>
     </Sheet>
   );

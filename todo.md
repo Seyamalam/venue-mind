@@ -945,17 +945,17 @@ Completion gate:
 
 ## 9.5 Performance
 
-- [ ] Define target Plan sizes for small, medium, and large Projects.
-- [ ] Benchmark inspection, preview, Validation, branch switch, Approval, replay, load, and export.
-- [ ] Move expensive geometry work off the main UI thread.
-- [ ] Incrementally validate only affected Constraints where correctness permits.
-- [ ] Virtualize long ledgers, object lists, comments, and history.
-- [ ] Add spatial indexes for object queries and collision candidates.
-- [ ] Add performance regression budgets to CI.
+- [x] Define target Plan sizes for small, medium, and large Projects.
+- [x] Benchmark inspection, preview, Validation, branch switch, Approval, replay, load, and export.
+- [x] Move expensive geometry work off the main UI thread.
+- [x] Incrementally validate only affected Constraints where correctness permits.
+- [x] Virtualize long ledgers, object lists, comments, and history.
+- [x] Add spatial indexes for object queries and collision candidates.
+- [x] Add performance regression budgets to local verification.
 
 Completion gate:
 
-- [ ] The target large Plan remains interactively editable while Validation and simulation run within documented budgets.
+- [x] The target large Plan remains interactively editable while Validation and simulation run within documented budgets.
 
 ## 9.6 Reliability and recovery
 

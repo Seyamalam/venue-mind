@@ -16,6 +16,7 @@ import type { ObjectLock } from "./locks.ts";
 import type { PlanningChange } from "./planning-effects.ts";
 import type { FootprintPatch } from "./locks.ts";
 import type { EventBrief } from "./event-brief.ts";
+import { createVenueObjectSpatialIndex, spatialBoundsFromPoints } from "./spatial-index.ts";
 
 export interface RouteNode {
   id: string;
@@ -339,6 +340,7 @@ const buildRouteGraph = (objects: readonly VenueObject[]): RouteGraph => {
       object.route?.staffOnly !== true,
   );
   const blockers = objects.filter((object) => object.circulation?.blocksPath === true);
+  const blockerIndex = createVenueObjectSpatialIndex(blockers);
   const nodes = new Map<string, RouteNode>();
   const edges: RouteEdge[] = [];
   const nodeFor = (point: Point): RouteNode => {
@@ -362,7 +364,8 @@ const buildRouteGraph = (objects: readonly VenueObject[]): RouteGraph => {
       endNodeId: end.id,
       widthM: object.footprint.width,
       lengthM: round(distance(object.footprint.start, object.footprint.end)),
-      blockedByObjectIds: blockers
+      blockedByObjectIds: blockerIndex
+        .queryFootprint(object.footprint)
         .filter(
           (blocker) =>
             blocker.id !== object.id &&
@@ -468,6 +471,7 @@ const exitApproachPolygon = (exit: ExitObject, roomBoundary: RoomBoundary, depth
 
 const accessibilityEvidence = (plan: VenuePlan, sightlines: ReturnType<typeof sightlineEvidence>) => {
   const graph = buildRouteGraph(plan.objects);
+  const objectIndex = createVenueObjectSpatialIndex(plan.objects);
   const entrances = plan.objects.filter((object) => object.kind === "accessible_entrance");
   const destinations = plan.objects.filter((object) => object.accessibility?.destination === true);
   const nodesTouching = (object: VenueObject): string[] => {
@@ -573,7 +577,8 @@ const accessibilityEvidence = (plan: VenuePlan, sightlines: ReturnType<typeof si
       const sides: Array<"left" | "right"> = clearance.side === "both" ? ["left", "right"] : [clearance.side];
       return sides.map((side) => {
         const points = doorClearancePolygon(clearedDoor, side);
-        const obstructingObjectIds = plan.objects
+        const obstructingObjectIds = objectIndex
+          .queryBounds(spatialBoundsFromPoints(points))
           .filter(
             (object) =>
               object.id !== door.id &&
@@ -1033,10 +1038,12 @@ const circulationSnapshot = (plan: VenuePlan, graph: RouteGraph, capacity: Retur
       !["fire_exit", "door", "accessible_route", "aisle", "corridor", "service_lane"].includes(object.kind) &&
       object.circulation?.blocksExitApproach !== false,
   );
+  const approachBlockerIndex = createVenueObjectSpatialIndex(approachBlockers);
   const exitApproachZones = exits
     .map((exit) => {
       const points = exitApproachPolygon(exit, plan.spatial.roomBoundary, exitApproachDepthM);
-      const obstructingObjectIds = approachBlockers
+      const obstructingObjectIds = approachBlockerIndex
+        .queryBounds(spatialBoundsFromPoints(points))
         .filter((object) => polygonIntersectsFootprint(points, object.footprint))
         .map((object) => object.id)
         .sort();
@@ -1251,6 +1258,7 @@ const sightlineEvidence = (plan: VenuePlan) => {
     (object.sightline?.samples ?? []).map((sample) => ({ ...sample, seatingObjectId: object.id })),
   );
   const obstructions = plan.objects.filter((object) => (object.sightline?.opacity ?? 0) > 0);
+  const obstructionIndex = createVenueObjectSpatialIndex(obstructions);
   if (!focal) {
     return {
       source: "canonical-geometry",
@@ -1268,7 +1276,8 @@ const sightlineEvidence = (plan: VenuePlan) => {
   const rays = samples
     .map((sample) => {
       const viewingDistanceM = distance(sample.point, focal.point);
-      const blockers = obstructions.filter(
+      const rayFootprint: LineFootprint = { kind: "line", start: sample.point, end: focal.point, width: 0 };
+      const blockers = obstructionIndex.queryFootprint(rayFootprint).filter(
         (object) =>
           object.id !== sample.seatingObjectId &&
           (object.sightline?.heightM ?? object.elevationM ?? 0) > Math.min(sample.eyeHeightM, focal.elevationM) &&

@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Sheet, SheetContent, SheetTitle } from "../components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Textarea } from "../components/ui/textarea";
+import { VirtualList } from "./VirtualList";
 import type { ActivityLedgerEntry } from "./domain/activity-ledger";
 import type { VenueObject } from "./domain/geometry";
 import type { ObjectLock } from "./domain/locks";
@@ -144,8 +145,12 @@ export function HistoryPanel({
           </TabsList>
 
           {tab === "versions" && (
-            <div className="history-list">
-              {versionEvents.map((entry) => {
+            <VirtualList
+              className="history-list"
+              items={versionEvents}
+              estimateSize={54}
+              getKey={(entry) => entry.id}
+              renderItem={(entry) => {
                 const eventVersion = entry.details.toVersion ?? entry.details.version ?? version;
                 return (
                   <div className="history-row" key={entry.id}>
@@ -157,16 +162,17 @@ export function HistoryPanel({
                     <time>{entry.occurredAt.slice(11, 16)}</time>
                   </div>
                 );
-              })}
-            </div>
+              }}
+            />
           )}
 
           {tab === "ledger" && (
-            <div className="history-list">
-              {ledger
-                .slice()
-                .reverse()
-                .map((entry) => (
+            <VirtualList
+              className="history-list"
+              items={ledger.slice().reverse()}
+              estimateSize={54}
+              getKey={(entry) => entry.id}
+              renderItem={(entry) => (
                   <div className="ledger-row" key={entry.id}>
                     <span className={`actor-badge is-${entry.actor}`}>
                       {entry.actor === "agent" ? "AI" : entry.actor === "human" ? "HU" : "SY"}
@@ -177,8 +183,8 @@ export function HistoryPanel({
                     </div>
                     <time>{entry.occurredAt.slice(11, 16)}</time>
                   </div>
-                ))}
-            </div>
+              )}
+            />
           )}
 
           {tab === "branches" && (

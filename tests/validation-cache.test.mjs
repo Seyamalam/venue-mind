@@ -16,6 +16,12 @@ test("Validation cache returns byte-equivalent results for identical immutable i
   const state = structuredClone(createVenuePlanner(summitForwardPlan).getSnapshot());
 
   const first = engine.validate(state);
+  assert.deepEqual(engine.cacheEvidence().lastRun, {
+    inputFingerprint: first.inputFingerprint,
+    outcome: "miss",
+    reusedConstraintIds: [],
+    recomputedConstraintIds: first.checks.map((check) => check.constraintId),
+  });
   first.checks[0].label = "caller mutation";
   const second = engine.validate(state);
   const third = engine.validate(structuredClone(state));
@@ -26,6 +32,11 @@ test("Validation cache returns byte-equivalent results for identical immutable i
   assert.equal(JSON.stringify(third), JSON.stringify(second));
   assert.equal(JSON.stringify(independent), JSON.stringify(second));
   assert.equal(third.inputFingerprint, second.inputFingerprint);
+  assert.equal(engine.cacheEvidence().strategy, "exact-whole-input");
+  assert.equal(engine.cacheEvidence().hits, 2);
+  assert.equal(engine.cacheEvidence().misses, 1);
+  assert.deepEqual(engine.cacheEvidence().lastRun.recomputedConstraintIds, []);
+  assert.deepEqual(engine.cacheEvidence().lastRun.reusedConstraintIds, second.checks.map((check) => check.constraintId));
 });
 
 test("Validation cache ignores ledger noise and invalidates relevant geometry, parameters, and brief input", () => {

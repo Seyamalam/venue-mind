@@ -3941,6 +3941,14 @@ line.editor-object.is-selected {
   align-content: start;
   gap: 8px;
 }
+.virtual-list > .virtual-list-space {
+  min-width: 0;
+}
+.virtual-list-item > .history-row,
+.virtual-list-item > .ledger-row,
+.virtual-list-item > article {
+  height: calc(100% - 8px);
+}
 .comment-list article {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);
