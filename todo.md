@@ -977,20 +977,20 @@ Completion gate:
 
 ## 10.1 Studio accessibility
 
-- [ ] Complete keyboard navigation for canvas, drawers, branch controls, history, validation, and Approval.
-- [ ] Add visible focus states to every interactive control.
-- [ ] Add semantic names for icon-only controls.
-- [ ] Add accessible canvas alternatives for object selection and editing.
-- [ ] Announce Validation and Proposal state changes through appropriate live regions.
-- [ ] Preserve usability at 200% zoom.
-- [ ] Support reduced motion.
-- [ ] Verify color is never the only carrier of status.
-- [ ] Test contrast for ghost Changes, failures, warnings, locks, and selection.
-- [ ] Add automated accessibility checks and a manual checklist.
+- [x] Complete keyboard navigation for canvas, drawers, branch controls, history, validation, and Approval.
+- [x] Add visible focus states to every interactive control.
+- [x] Add semantic names for icon-only controls.
+- [x] Add accessible canvas alternatives for object selection and editing.
+- [x] Announce Validation and Proposal state changes through appropriate live regions.
+- [x] Preserve usability at 200% zoom.
+- [x] Support reduced motion.
+- [x] Verify color is never the only carrier of status.
+- [x] Test contrast for ghost Changes, failures, warnings, locks, and selection.
+- [x] Add automated accessibility checks and a manual checklist.
 
 Completion gate:
 
-- [ ] The complete golden loop can be operated and understood without a pointing device.
+- [x] The complete golden loop can be operated and understood without a pointing device.
 
 ## 10.2 Responsive workspace
 
@@ -1045,11 +1045,11 @@ Completion gate:
 - [x] Split the heavy editor, simulations, and comments surfaces behind interaction-driven client chunks.
 - [x] Split history and sharing surfaces from the initial Studio runtime with interaction preloads and persistent close transitions.
 - [x] Remove the obsolete compatibility SPA entry, dependencies, alternate-host packaging, and static Worker fallback.
-- [ ] Verify route-specific bundles, WebMCP cleanup, persistence recovery, collaboration teardown, accessibility, and visual parity.
+- [x] Verify route-specific bundles, WebMCP cleanup, persistence recovery, collaboration teardown, accessibility, and visual parity.
 
 Completion gate:
 
-- [ ] Next.js is the production frontend, public/docs routes exclude the Studio runtime, all product routes preserve Design 2 without narrative UI copy, and the complete local verification gate passes.
+- [x] Next.js is the production frontend, public/docs routes exclude the Studio runtime, all product routes preserve Design 2 without narrative UI copy, and the complete local verification gate passes.
 
 ---
 
