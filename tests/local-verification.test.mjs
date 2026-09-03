@@ -18,6 +18,7 @@ test("the local plan covers every required source, security, build, and test bou
     "lint",
     "typecheck",
     "generated-drift",
+    "release-integrity",
     "skill-validation",
     "dependency-scan",
     "secret-scan",
@@ -142,7 +143,7 @@ test("documentation defines one local-only completion command and no CI mileston
     readFile(path.join(root, "README.md"), "utf8"),
     readFile(path.join(root, "todo.md"), "utf8"),
   ]);
-  for (const boundary of ["npm run verify:local", "Vercel Next.js", "Cloudflare Worker", "MCP server", "SDK", "migration", "browser", ".artifacts/local-verification"]) {
+  for (const boundary of ["npm run verify:local", "release provenance", "Vercel Next.js", "Cloudflare Worker", "MCP server", "SDK", "migration", "browser", ".artifacts/local-verification"]) {
     assert.match(guide, new RegExp(boundary.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
   }
   assert.match(readme, /npm run verify:local/);

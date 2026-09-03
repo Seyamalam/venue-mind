@@ -1078,7 +1078,7 @@ Completion gate:
 ## 11.2 Local verification
 
 - [x] Add clean-install preconditions plus format, lint, typecheck, test, build, and artifact verification phases.
-- [x] Add generated-contract and generated-doc drift checks.
+- [x] Add generated-contract, generated-doc, and release-integrity drift checks.
 - [x] Add skill validation.
 - [x] Add dependency and redacted secret scanning.
 - [x] Add migration tests.

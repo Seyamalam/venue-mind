@@ -10,6 +10,7 @@ export const LOCAL_VERIFICATION_PHASES = Object.freeze([
   npmScript("lint", "Lint", "lint"),
   npmScript("typecheck", "All typechecks", "typecheck"),
   npmScript("generated-drift", "Generated contract and documentation drift", "check:generated"),
+  npmScript("release-integrity", "Release provenance and checksum integrity", "verify:release"),
   npmScript("skill-validation", "Skill validation", "validate:skills"),
   Object.freeze({
     id: "dependency-scan",
