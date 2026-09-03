@@ -1075,7 +1075,7 @@ Completion gate:
 
 - [ ] Each production boundary has at least one failure test proving errors do not partially mutate accepted state.
 
-## 11.2 CI
+## 11.2 Local verification
 
 - [ ] Add install, format, lint, typecheck, test, build, and artifact verification jobs.
 - [ ] Add generated-contract and generated-doc drift checks.
@@ -1088,7 +1088,7 @@ Completion gate:
 
 Completion gate:
 
-- [ ] A clean CI run proves source, generated artifacts, tests, production build, worker bundle, MCP bundle, and skills are mutually compatible.
+- [ ] A clean local verification run proves source, generated artifacts, tests, production build, worker bundle, MCP bundle, and skills are mutually compatible.
 
 ## 11.3 Release process
 
@@ -1114,10 +1114,10 @@ Completion gate:
 - [x] Keep Vercel as the only frontend deployment and Cloudflare as the API and D1 boundary.
 - [ ] Bind the production D1 database.
 - [ ] Configure production environment values and secrets.
-- [ ] Configure custom domain and HTTPS.
+- [ ] Configure the stable production domain and managed HTTPS within the free-tier boundary.
 - [ ] Add security headers and content security policy.
 - [ ] Add cache policy for static assets, schemas, and agent discovery files.
-- [ ] Verify SPA route fallback and API 404 behavior.
+- [ ] Verify Next.js route/not-found behavior and API 404 behavior.
 - [ ] Verify `/docs`, `/llms.txt`, `/llms-full.txt`, and `/schemas/*` in production.
 - [ ] Run post-deployment golden-loop smoke tests.
 
