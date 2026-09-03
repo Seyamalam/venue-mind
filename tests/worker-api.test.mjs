@@ -99,7 +99,7 @@ test("persists and retrieves project state through the API repository seam", asy
   const saved = await api.fetch(
     new Request("https://example.test/api/projects/project-summit-forward", {
       method: "PUT",
-      headers: { "content-type": "application/json", "x-correlation-id": "corr-worker-001", "if-none-match": "*" },
+      headers: { "content-type": "application/json", "x-correlation-id": "corr-worker-001", "x-venuemind-create-only": "1" },
       body: JSON.stringify(record),
     }),
     env,
@@ -120,6 +120,32 @@ test("persists and retrieves project state through the API repository seam", asy
     lastOpenedAt: null,
   });
   assert.equal((await listed.json()).projects.length, 1);
+
+  const updated = await api.fetch(
+    new Request("https://example.test/api/projects/project-summit-forward", {
+      method: "PUT",
+      headers: { "content-type": "application/json", "x-venuemind-expected-revision": "1" },
+      body: JSON.stringify({ ...record, revision: 1, updatedAt: "2026-08-27T00:01:00.000Z" }),
+    }),
+    env,
+  );
+  assert.equal(updated.status, 200);
+  assert.equal((await updated.json()).revision, 2);
+
+  const disagreeing = await api.fetch(
+    new Request("https://example.test/api/projects/project-summit-forward", {
+      method: "PUT",
+      headers: {
+        "content-type": "application/json",
+        "if-match": '"venuemind:project-summit-forward:2"',
+        "x-venuemind-expected-revision": "1",
+      },
+      body: JSON.stringify({ ...record, revision: 2 }),
+    }),
+    env,
+  );
+  assert.equal(disagreeing.status, 400);
+  assert.equal((await disagreeing.json()).code, "PROJECT_PRECONDITION_INVALID");
 
   const conflict = await api.fetch(
     new Request("https://example.test/api/projects/project-summit-forward", {

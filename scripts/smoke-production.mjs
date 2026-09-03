@@ -114,7 +114,12 @@ if (mutate) {
     method: "PUT",
     headers: {
       "content-type": "application/json",
-      ...(existing ? { "if-match": current.headers.get("etag") } : { "if-none-match": "*" }),
+      ...(existing
+        ? {
+            "if-match": current.headers.get("etag"),
+            "x-venuemind-expected-revision": String(existing.revision),
+          }
+        : { "if-none-match": "*", "x-venuemind-create-only": "1" }),
     },
     body: JSON.stringify(record),
   });

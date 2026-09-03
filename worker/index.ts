@@ -1,7 +1,13 @@
 import { createD1AccountRepository, isOrganizationAdministrator } from "./account-repository.ts";
 import { createStaticIdentityProvider, type IdentityProvider } from "./authentication.ts";
 import { createD1ProjectRepository, ProjectRevisionConflict, type ProjectRecord } from "./project-repository.ts";
-import { parseProjectEtag, projectEtag } from "../src/domain/project-concurrency.ts";
+import {
+  PROJECT_CREATE_ONLY_HEADER,
+  PROJECT_EXPECTED_REVISION_HEADER,
+  parseProjectEtag,
+  parseProjectExpectedRevision,
+  projectEtag,
+} from "../src/domain/project-concurrency.ts";
 import { stableFingerprint } from "../src/domain/activity-ledger.ts";
 import { collaborationEventPayload, projectCollaborationEventTypes } from "../src/domain/collaboration-events.ts";
 import { createD1CollaborationRepository, createMemoryCollaborationRepository } from "./collaboration-repository.ts";
@@ -1386,9 +1392,19 @@ export function createWorker(options: WorkerOptions = {}) {
       if (projectDeletionMatch && request.method === "DELETE") {
         if (!admin) return apiError(403, "ORGANIZATION_ADMIN_REQUIRED", "Organization administrator required");
         const projectId = pathCapture(projectDeletionMatch, 1);
-        const expectedRevision = parseProjectEtag(request.headers.get("if-match") ?? "", projectId);
+        const ifMatch = request.headers.get("if-match");
+        const customExpectedRevision = request.headers.get(PROJECT_EXPECTED_REVISION_HEADER);
+        if (ifMatch === null && customExpectedRevision === null)
+          return apiError(428, "PROJECT_PRECONDITION_REQUIRED", "A Project revision precondition is required");
+        const etagRevision = ifMatch === null ? null : parseProjectEtag(ifMatch, projectId);
+        const headerRevision = parseProjectExpectedRevision(customExpectedRevision);
+        if ((ifMatch !== null && etagRevision === null) || (customExpectedRevision !== null && headerRevision === null))
+          return apiError(400, "PROJECT_PRECONDITION_INVALID", "Project revision precondition is invalid");
+        if (etagRevision !== null && headerRevision !== null && etagRevision !== headerRevision)
+          return apiError(400, "PROJECT_PRECONDITION_INVALID", "Project revision preconditions disagree");
+        const expectedRevision = etagRevision ?? headerRevision;
         if (expectedRevision === null)
-          return apiError(428, "PROJECT_PRECONDITION_REQUIRED", "A valid If-Match Project ETag is required");
+          return apiError(428, "PROJECT_PRECONDITION_REQUIRED", "A Project revision precondition is required");
         let body: Record<string, unknown>;
         try {
           body = await readObjectBody(request);
@@ -2637,9 +2653,20 @@ export function createWorker(options: WorkerOptions = {}) {
         }
         const record = body;
         const current = await projects.get(organization.id, projectId);
-        const createOnly = request.headers.get("if-none-match") === "*";
+        const ifNoneMatch = request.headers.get("if-none-match");
+        const customCreateOnly = request.headers.get(PROJECT_CREATE_ONLY_HEADER);
         const ifMatch = request.headers.get("if-match");
-        if (createOnly && ifMatch)
+        const customExpectedRevision = request.headers.get(PROJECT_EXPECTED_REVISION_HEADER);
+        if (customCreateOnly !== null && customCreateOnly !== "1")
+          return apiError(400, "PROJECT_PRECONDITION_INVALID", "Project creation precondition is invalid");
+        const createOnly = ifNoneMatch === "*" || customCreateOnly === "1";
+        const etagRevision = ifMatch === null ? null : parseProjectEtag(ifMatch, projectId);
+        const headerRevision = parseProjectExpectedRevision(customExpectedRevision);
+        if ((ifMatch !== null && etagRevision === null) || (customExpectedRevision !== null && headerRevision === null))
+          return apiError(400, "PROJECT_PRECONDITION_INVALID", "Project revision precondition is invalid");
+        if (etagRevision !== null && headerRevision !== null && etagRevision !== headerRevision)
+          return apiError(400, "PROJECT_PRECONDITION_INVALID", "Project revision preconditions disagree");
+        if (createOnly && (ifMatch !== null || customExpectedRevision !== null))
           return apiError(400, "PROJECT_PRECONDITION_INVALID", "Choose one Project write precondition");
         if (createOnly && current)
           return apiError(
@@ -2654,13 +2681,13 @@ export function createWorker(options: WorkerOptions = {}) {
             current: null,
             expectedRevision: null,
           });
-        if (!createOnly && !ifMatch)
-          return apiError(428, "PROJECT_PRECONDITION_REQUIRED", "If-Match is required for an existing Project");
-        const expectedRevision = ifMatch ? parseProjectEtag(ifMatch, projectId) : null;
+        if (!createOnly && ifMatch === null && customExpectedRevision === null)
+          return apiError(428, "PROJECT_PRECONDITION_REQUIRED", "A Project revision precondition is required for an existing Project");
+        const expectedRevision = etagRevision ?? headerRevision;
         if (!createOnly && expectedRevision === null)
-          return apiError(400, "PROJECT_ETAG_INVALID", "Project ETag is invalid");
+          return apiError(400, "PROJECT_PRECONDITION_INVALID", "Project revision precondition is invalid");
         if (!createOnly && body.revision !== undefined && body.revision !== expectedRevision)
-          return apiError(400, "PROJECT_REVISION_INVALID", "Project body revision does not match If-Match");
+          return apiError(400, "PROJECT_REVISION_INVALID", "Project body revision does not match its precondition");
         const persistenceSpan = startTelemetrySpan(requestObservability, {
           component: "repository",
           operation: "persistence",

@@ -5,6 +5,9 @@ const clone = <T>(value: T): T => structuredClone(value);
 const comparable = (value: unknown): string => JSON.stringify(value ?? null);
 const changed = (base: unknown, value: unknown): boolean => comparable(base) !== comparable(value);
 
+export const PROJECT_CREATE_ONLY_HEADER = "x-venuemind-create-only";
+export const PROJECT_EXPECTED_REVISION_HEADER = "x-venuemind-expected-revision";
+
 export const PROJECT_MUTABLE_FIELDS: readonly ProjectMutableField[] = Object.freeze([
   "name",
   "activePlanId",
@@ -27,6 +30,12 @@ export function parseProjectEtag(value: string | null | undefined, projectId: st
   const match = /^"venuemind:([^:]+):(\d+)"$/.exec(value?.trim() ?? "");
   if (!match || !match[1] || decodeURIComponent(match[1]) !== projectId) return null;
   const revision = Number(match[2]);
+  return Number.isSafeInteger(revision) && revision > 0 ? revision : null;
+}
+
+export function parseProjectExpectedRevision(value: string | null | undefined): number | null {
+  if (!/^\d+$/u.test(value?.trim() ?? "")) return null;
+  const revision = Number(value);
   return Number.isSafeInteger(revision) && revision > 0 ? revision : null;
 }
 

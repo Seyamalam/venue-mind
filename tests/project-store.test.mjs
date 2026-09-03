@@ -39,6 +39,7 @@ const createRevisionServer = (initial) => {
           : Response.json({ error: "missing" }, { status: 404 });
       const input = JSON.parse(init.body);
       if (init.headers["if-none-match"] === "*") {
+        assert.equal(init.headers["x-venuemind-create-only"], "1");
         if (remote)
           return Response.json({ code: "PROJECT_ID_CONFLICT", details: { current: remote } }, { status: 409 });
         remote = { ...input, revision: 1 };
@@ -163,6 +164,7 @@ test("Project deletion purges every local Project key before explicitly acknowle
   const result = await store.deleteProject(remote.id, remote.name);
   assert.equal(result.cacheDirective.acknowledgedAt, "2026-08-27T01:00:01.000Z");
   assert.equal(calls.find((call) => call.init.method === "DELETE").init.headers["if-match"], '"venuemind:project-summit-forward:4"');
+  assert.equal(calls.find((call) => call.init.method === "DELETE").init.headers["x-venuemind-expected-revision"], "4");
   assert.deepEqual(JSON.parse(calls.find((call) => call.init.method === "DELETE").init.body), { reasonCode: "USER_REQUEST" });
   assert.deepEqual(JSON.parse(calls.at(-1).init.body), { deletionRequestId: "project-deletion-1", directiveId: "cache-delete-1" });
   assert.equal(storage.length, 0);

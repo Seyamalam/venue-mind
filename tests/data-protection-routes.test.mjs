@@ -77,7 +77,7 @@ test("admin data-protection routes enforce exact bodies and return an immediate 
   assert.equal((await accountExport.json()).dataProtection.serverStored, false);
 
   const deletion = await api.fetch(new Request("https://api.example.test/api/projects/project-alpha", {
-    method: "DELETE", headers: { ...headers, "if-match": '"venuemind:project-alpha:1"' }, body: JSON.stringify({ reasonCode: "CUSTOMER_REQUEST" }),
+    method: "DELETE", headers: { ...headers, "x-venuemind-expected-revision": "1" }, body: JSON.stringify({ reasonCode: "CUSTOMER_REQUEST" }),
   }), env);
   assert.equal(deletion.status, 202);
   assert.equal(deletion.headers.get("clear-site-data"), '"cache"');

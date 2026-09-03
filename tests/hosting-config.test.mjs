@@ -56,6 +56,8 @@ test("production smoke check exercises public routes and an opt-in durable golde
     'type: "approve_proposal"',
     'type: "export_plan"',
     'const browserTwo = new CookieJar',
+    '"x-venuemind-create-only": "1"',
+    '"x-venuemind-expected-revision": String(existing.revision)',
   ])
     assert.match(source, new RegExp(signature.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "u"));
   assert.match(source, /const mutate = process\.argv\.includes\("--write"\)/u);
