@@ -37,62 +37,62 @@ Agents inspect accepted Plans, preview Proposals, validate Constraints, compare 
 
 ## Tools
 
-- venue.list_projects: List durable VenueMind Projects available to the current authenticated or local host scope without returning full snapshots.
-- venue.open_project: Select one durable Project as the active Project for this agent session. This never changes accepted Plan truth.
-- venue.inspect_templates: Read versioned Venue, Room, and Inventory Item Templates, including starter room types and current inventory availability metadata.
-- venue.get_project_brief: Read the structured Event Brief, stable Requirement IDs, priorities, ownership, ambiguity flags, and accepted-Plan versus active-Proposal coverage.
-- venue.list_constraints: List versioned Constraints with current evaluation status, thresholds, policy sources, and remediation metadata.
-- venue.inspect_layout: Read the active venue plan, stable object IDs, locked objects, constraints, metrics, proposal state, and branch summaries.
-- venue.get_object: Read one stable object with scoped accepted or Proposal geometry, operational metadata, and effective Locks.
-- venue.search_objects: Search stable venue objects with bounded text, kind, layer, Lock, and accepted-versus-Proposal filters.
-- venue.preview_revision: Create a non-destructive venue revision preview. The result remains pending until a human approves it in VenueMind.
-- venue.preview_template_update: Create a non-destructive Proposal containing safe Room Template differences while preserving Project Overrides. Human Approval is always required.
-- venue.apply_edit: Create one non-destructive, undoable spatial editing Change for placement, transform, duplication, alignment, distribution, grouping, zoning, paste, or deletion.
-- venue.measure_objects: Measure deterministic center points and pairwise distances for selected Project objects.
-- venue.validate_layout: Validate the visible proposal or committed plan against locks, accessibility, capacity, sightlines, and circulation constraints.
-- venue.get_validation_evidence: Read deterministic evidence for the current Validation, optionally restricted to stable Constraint IDs.
-- venue.list_proposal_branches: Compare proposal branches by base version, change count, validation status, unresolved issues, and projected metrics.
-- venue.compare_proposal_branches: Compare two Proposal Branches by spatial object differences, Change membership, projected metrics, and deterministic Constraint improvements or regressions.
-- venue.create_proposal_branch: Create and activate a non-destructive proposal branch using a balanced, access-first, circulation-first, or sightlines-first strategy.
-- venue.switch_proposal_branch: Activate an existing proposal branch in the visible VenueMind workspace without approving it.
-- venue.update_proposal_branch: Update a Proposal Branch name or review notes without changing its Proposal geometry.
-- venue.duplicate_proposal_branch: Duplicate the current or a prior Proposal revision into a new active Branch with preserved stable Change IDs.
-- venue.archive_proposal_branch: Archive a Proposal Branch without deleting its revisions or audit history.
-- venue.restore_proposal_branch: Restore an archived Proposal Branch to the active comparison set.
-- venue.detect_proposal_conflicts: Detect stale-base, deleted-dependency, locked-object, same-object, and Constraint-regression conflicts for a Proposal Branch.
-- venue.rebase_proposal: Rebase a stale Proposal Branch onto the latest accepted Plan Version while preserving unchanged stable Change IDs.
-- venue.request_adjustment: Create a new non-destructive Proposal revision recording an agent-requested adjustment. Human Approval is still required.
-- venue.list_comments: Read comments by status, author, subject kind, or decision relevance without changing planning state.
-- venue.add_comment: Add a non-planning Comment anchored to an immutable VenueMind subject or spatial coordinate.
-- venue.edit_comment: Edit Comment text, mentions, or decision relevance while retaining immutable edit history.
-- venue.set_comment_status: Resolve or reopen a Comment without changing its immutable anchor or planning state.
-- venue.get_change_log: Read the ordered human and agent Activity Ledger for the active Plan.
-- venue.replay_history: Verify the Activity Ledger hash chain and replay accepted Plan transitions against the current Plan fingerprint.
-- venue.list_scenarios: Read stored immutable Scenario definitions without running a simulation.
-- venue.list_scenario_runs: Read queued, running, completed, cancelled, and failed Simulation Runs, including progress and partial results.
-- venue.get_scenario_result: Read one stable Scenario Run and its completed or partial result, with density frames omitted unless explicitly requested.
-- venue.run_scenario: Run one seeded operations, ingress-egress, or spatial queue Scenario against an exact Proposal Branch geometry. Results never replace deterministic Validation.
-- venue.compare_simulations: Compare two completed Runs with matching Scenario fingerprints and engine versions across Proposal Branches, including clearance, bottleneck, and accessible-route deltas for flow models.
-- venue.export_simulation: Export one completed Simulation Run with its normalized Scenario parameters, engine version, input fingerprint, and confidence metadata.
-- venue.inspect_live_occupancy: Read the current aggregate-only Live Occupancy projection, source freshness, active Alerts, simulation deltas, and incident Ledger without person-level records.
-- venue.ingest_occupancy_signal: Ingest one bounded aggregate Occupancy Signal from a registration total, sensor, or manual counter with stable source and scope IDs.
-- venue.refresh_live_occupancy: Refresh Live Occupancy freshness and derived Alerts at the server-accepted instant without changing any aggregate count.
-- venue.export_live_occupancy: Export the verified aggregate-only Live Occupancy audit artifact with baseline, observations, Alerts, receipts, and hash-chained incident Ledger.
-- venue.inspect_incidents: Inspect the Runbook-bound Incident Register or one stable Operational Incident with structured severity, category, owner, location, acknowledgement, escalation, evidence, and ordered ledger state.
-- venue.report_incident: Report one structured Operational Incident against an object or coordinate in the frozen accepted Plan without claiming acknowledgement, escalation, ownership, resolution, or emergency authority.
-- venue.export_incident_record: Export one verified post-event Operational Incident record with frozen Plan and Emergency Plan provenance, transitions, structured handoffs, receipts, and hash-chained ledger evidence.
-- venue.inspect_live_plan_deviations: Inspect the Runbook-bound Live Plan Deviation Register, deterministic active overlay, and filtered temporary or revision-candidate deviation records without changing accepted Plan truth.
-- venue.record_live_plan_deviation: Record one validated event-day Change against the frozen accepted Plan with stable object IDs, available live Constraints, reason, author evidence, and exact retry identity.
-- venue.end_live_plan_deviation: End one active temporary or revision-candidate deviation with optimistic Deviation revision control and an immutable reasoned transition.
-- venue.create_post_event_deviation_proposal: Create a normal review-state Proposal from ended revision-candidate deviations. The accepted Plan remains unchanged and Approval remains human-only in VenueMind Studio.
-- venue.export_live_plan_deviations: Export a verified record that keeps the approved Plan, live deviation overlay, and post-event recommended revisions explicitly separate.
-- venue.inspect_post_event_review: Inspect a Runbook-bound Post-event Review, outcome comparisons, Lessons, proposals, and ledger integrity.
-- venue.record_post_event_observation: Record one evidence-bound outcome against a frozen Prediction.
-- venue.record_post_event_lesson: Record one Lesson linked to a Comparison and frozen Requirement or Constraint IDs.
-- venue.create_template_improvement_proposal: Create an evidence-traced Template Improvement Proposal pending human review.
-- venue.export_post_event_report: Export an integrity-verified Post-event Report with provenance and ledger evidence.
-- venue.export_audit_package: Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.
-- venue.export_plan: Export the validated Plan as JSON, compact text, layered SVG, print-ready plan or emergency PDF, object, inventory, staffing, production, catering, or replenishment CSV, staffing or production SVG, or a portable audit package.
+- venue.list_projects: List Projects
+- venue.open_project: Open Project
+- venue.inspect_templates: Inspect Templates
+- venue.get_project_brief: Get Project Brief
+- venue.list_constraints: List Constraints
+- venue.inspect_layout: Inspect Layout
+- venue.get_object: Get Object
+- venue.search_objects: Search Objects
+- venue.preview_revision: Preview Revision
+- venue.preview_template_update: Preview Template Update
+- venue.apply_edit: Apply Edit
+- venue.measure_objects: Measure Objects
+- venue.validate_layout: Validate Layout
+- venue.get_validation_evidence: Get Validation Evidence
+- venue.list_proposal_branches: List Proposal Branches
+- venue.compare_proposal_branches: Compare Proposal Branches
+- venue.create_proposal_branch: Create Proposal Branch
+- venue.switch_proposal_branch: Switch Proposal Branch
+- venue.update_proposal_branch: Update Proposal Branch
+- venue.duplicate_proposal_branch: Duplicate Proposal Branch
+- venue.archive_proposal_branch: Archive Proposal Branch
+- venue.restore_proposal_branch: Restore Proposal Branch
+- venue.detect_proposal_conflicts: Detect Proposal Conflicts
+- venue.rebase_proposal: Rebase Proposal
+- venue.request_adjustment: Request Adjustment
+- venue.list_comments: List Comments
+- venue.add_comment: Add Comment
+- venue.edit_comment: Edit Comment
+- venue.set_comment_status: Set Comment Status
+- venue.get_change_log: Get Change Log
+- venue.replay_history: Replay History
+- venue.list_scenarios: List Scenarios
+- venue.list_scenario_runs: List Scenario Runs
+- venue.get_scenario_result: Get Scenario Result
+- venue.run_scenario: Run Scenario
+- venue.compare_simulations: Compare Simulations
+- venue.export_simulation: Export Simulation
+- venue.inspect_live_occupancy: Inspect Live Occupancy
+- venue.ingest_occupancy_signal: Ingest Occupancy Signal
+- venue.refresh_live_occupancy: Refresh Live Occupancy
+- venue.export_live_occupancy: Export Live Occupancy
+- venue.inspect_incidents: Inspect Incidents
+- venue.report_incident: Report Incident
+- venue.export_incident_record: Export Incident Record
+- venue.inspect_live_plan_deviations: Inspect Live Plan Deviations
+- venue.record_live_plan_deviation: Record Live Plan Deviation
+- venue.end_live_plan_deviation: End Live Plan Deviation
+- venue.create_post_event_deviation_proposal: Create Post Event Deviation Proposal
+- venue.export_live_plan_deviations: Export Live Plan Deviations
+- venue.inspect_post_event_review: Inspect Post Event Review
+- venue.record_post_event_observation: Record Post Event Observation
+- venue.record_post_event_lesson: Record Post Event Lesson
+- venue.create_template_improvement_proposal: Create Template Improvement Proposal
+- venue.export_post_event_report: Export Post Event Report
+- venue.export_audit_package: Export Audit Package
+- venue.export_plan: Export Plan
 
 ## Agent skills
 

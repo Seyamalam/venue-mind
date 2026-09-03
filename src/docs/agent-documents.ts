@@ -117,7 +117,7 @@ ${link("Complete agent reference", "/llms-full.txt")}
 
 ## Tools
 
-${venueToolContracts.map((tool: { name: string; description: string }) => `- ${tool.name}: ${tool.description}`).join("\n")}
+${venueToolContracts.map((tool) => `- ${tool.name}: ${tool.title}`).join("\n")}
 
 ## Agent skills
 

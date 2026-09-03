@@ -50,7 +50,7 @@
     "packages/sdk/package.json": "a7b88928c2e9630a6c0c3559ff69a42f3f9c6de717fb6bd7f98d5bdafab580a8",
     "skills/manifest.json": "bba3a9ef74df235ce3bd133305f1b44fd5c84607fbb47752380e95dfc3613d65",
     "public/venue-tools.json": "f7ebf721dbf4c0b02da66df582c35134f0d8e7be63501b306ce26c592a878421",
-    "db/migrations-manifest.json": "af593b187acde96c748603253bb3f3c07f4d43cd5df3fa70fa27afe6628d4f4b",
+    "db/migrations-manifest.json": "412e15f9f5cb7759973fde256be16dd4db882b3c5e40c7f3af359dc920febfc1",
     "wrangler.jsonc": "4391a9095f23530b0da7f94a95336907f74aae2f18c7e5be34cd5ef3a461de3b",
     "vercel.json": "e3a8bdcb7a99edb464b9a66f10ea4cb2902c9fc6ed0068cb142de5f72e8a8116"
   }
