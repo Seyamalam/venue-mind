@@ -140,6 +140,23 @@ test("backup and staged restore preserve Project and ledger fingerprints", async
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
+test("the restore drill proves a disposable restore matches source integrity evidence", async () => {
+  const directory = await mkdtemp(path.join(root, ".venuemind-restore-drill-"));
+  try {
+    const source = path.join(directory, "source.sqlite3");
+    await createFixture(source, 1);
+    await cli("migrate", "--database", source);
+    const drill = await cli("drill", "--database", source);
+    assert.equal(drill.status, "pass");
+    assert.equal(drill.databaseSchemaVersion, DATABASE_SCHEMA_VERSION);
+    assert.equal(drill.projects[0].planFingerprint, expectedPlanFingerprint);
+    assert.equal(drill.projects[0].ledgerHeadHash, expectedLedgerHeadHash);
+    assert.match(drill.backupSha256, /^[a-f0-9]{64}$/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test("migration checksum drift and database orphans fail closed", async () => {
   const directory = await mkdtemp(path.join(root, ".venuemind-integrity-"));
   try {

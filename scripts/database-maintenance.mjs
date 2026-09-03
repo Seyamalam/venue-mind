@@ -210,10 +210,42 @@ async function restore(backupPath, databasePath) {
   } finally { await rm(directory, { recursive: true, force: true }); }
 }
 
-if (!command || !database) throw new Error("Usage: database-maintenance.mjs <migrate|verify|backup|restore|export-projects> --database <path>");
+async function drill(databasePath) {
+  const directory = await mkdtemp(path.join(tmpdir(), "venuemind-restore-drill-"));
+  const backupPath = path.join(directory, "backup.sqlite3");
+  const restoredPath = path.join(directory, "restored.sqlite3");
+  try {
+    const sourceVerification = await verifyDatabase(databasePath);
+    if (sourceVerification.status !== "pass") throw new Error("RESTORE_DRILL_SOURCE_INTEGRITY_FAILED");
+    const created = await backup(databasePath, backupPath);
+    const restored = await restore(backupPath, restoredPath);
+    const evidence = (projects) => projects.map(({ id, planFingerprint, ledgerHeadHash, status }) => ({
+      id,
+      planFingerprint: planFingerprint ?? null,
+      ledgerHeadHash: ledgerHeadHash ?? null,
+      status,
+    }));
+    const sourceProjects = evidence(sourceVerification.projects);
+    const restoredProjects = evidence(restored.verification.projects);
+    if (JSON.stringify(sourceProjects) !== JSON.stringify(restoredProjects)) {
+      throw new Error("RESTORE_DRILL_EVIDENCE_MISMATCH");
+    }
+    return {
+      status: "pass",
+      databaseSchemaVersion: created.databaseSchemaVersion,
+      backupSha256: created.sha256,
+      projects: restoredProjects,
+    };
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+}
+
+if (!command || !database) throw new Error("Usage: database-maintenance.mjs <migrate|verify|backup|restore|drill|export-projects> --database <path>");
 if (command === "migrate") print(await migrate(database, has("--dry-run"), option("--project-export")));
 else if (command === "verify") print(await verifyDatabase(database));
 else if (command === "backup") print(await backup(database, option("--output") || `${database}.backup.sqlite3`));
 else if (command === "restore") print(await restore(option("--backup"), database));
+else if (command === "drill") print(await drill(database));
 else if (command === "export-projects") print({ status: "exported", files: await exportProjects(database, option("--output") || `${database}.projects`) });
 else throw new Error(`Unknown database command: ${command}`);
