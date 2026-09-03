@@ -24,7 +24,6 @@ interface StorageLike {
   key(index: number): string | null;
   removeItem(key: string): void;
   setItem(key: string, value: string): void;
-  removeItem?(key: string): void;
 }
 
 export interface ProjectDeletionReceipt {
@@ -290,7 +289,12 @@ export function createProjectStore({
     writeSyncBase(record);
   };
   const purgeLocalProject = (projectId: string): void => {
-    const keys = [localKey(projectId), syncBaseKey(projectId)];
+    const keys = [
+      localKey(projectId),
+      syncBaseKey(projectId),
+      autosaveKey(projectId),
+      `${quarantinePrefix}${projectId}`,
+    ];
     for (let index = 0; index < storage.length; index += 1) {
       const key = storage.key(index);
       if (key?.startsWith(`${recoveryPrefix}${projectId}.`)) keys.push(key);
