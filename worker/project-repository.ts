@@ -68,7 +68,7 @@ export function createD1ProjectRepository(db: D1Database) {
                 s.schema_version, s.snapshot_json
          FROM projects p
          JOIN project_states s ON s.project_id = p.id
-         WHERE p.organization_id = ?
+         WHERE p.organization_id = ? AND p.deleted_at IS NULL
          ORDER BY p.updated_at DESC`,
         )
         .bind(organizationId)
@@ -85,7 +85,7 @@ export function createD1ProjectRepository(db: D1Database) {
                 s.schema_version, s.snapshot_json
          FROM projects p
          JOIN project_states s ON s.project_id = p.id
-         WHERE p.id = ? AND p.organization_id = ?`,
+         WHERE p.id = ? AND p.organization_id = ? AND p.deleted_at IS NULL`,
         )
         .bind(projectId, organizationId)
         .first<Record<string, unknown>>();
