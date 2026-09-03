@@ -131,16 +131,16 @@ export function HistoryPanel({
         <Tabs className="history-tabs-shell" value={tab} onValueChange={setTab}>
           <TabsList className="history-tabs" aria-label="Plan control views">
             <TabsTrigger value="versions">
-              <ClockCounterClockwise /> Versions
+              <ClockCounterClockwise aria-hidden="true" /> Versions
             </TabsTrigger>
             <TabsTrigger value="ledger">
-              <ListBullets /> Ledger
+              <ListBullets aria-hidden="true" /> Ledger
             </TabsTrigger>
             <TabsTrigger value="branches">
-              <GitBranch /> Branches
+              <GitBranch aria-hidden="true" /> Branches
             </TabsTrigger>
             <TabsTrigger value="locks">
-              <MapPin /> Locks
+              <MapPin aria-hidden="true" /> Locks
             </TabsTrigger>
           </TabsList>
 
@@ -150,10 +150,12 @@ export function HistoryPanel({
               items={versionEvents}
               estimateSize={54}
               getKey={(entry) => entry.id}
+              role="list"
+              ariaLabel="Plan versions"
               renderItem={(entry) => {
                 const eventVersion = entry.details.toVersion ?? entry.details.version ?? version;
                 return (
-                  <div className="history-row" key={entry.id}>
+                  <div className="history-row" role="listitem" key={entry.id}>
                     <span className="history-node" />
                     <div>
                       <strong>v{eventVersion}</strong>
@@ -172,17 +174,19 @@ export function HistoryPanel({
               items={ledger.slice().reverse()}
               estimateSize={54}
               getKey={(entry) => entry.id}
+              role="list"
+              ariaLabel="Activity ledger"
               renderItem={(entry) => (
-                  <div className="ledger-row" key={entry.id}>
-                    <span className={`actor-badge is-${entry.actor}`}>
-                      {entry.actor === "agent" ? "AI" : entry.actor === "human" ? "HU" : "SY"}
-                    </span>
-                    <div>
-                      <strong>{entry.type}</strong>
-                      <small>#{String(entry.sequence).padStart(3, "0")}</small>
-                    </div>
-                    <time>{entry.occurredAt.slice(11, 16)}</time>
+                <div className="ledger-row" role="listitem" key={entry.id}>
+                  <span className={`actor-badge is-${entry.actor}`}>
+                    {entry.actor === "agent" ? "AI" : entry.actor === "human" ? "HU" : "SY"}
+                  </span>
+                  <div>
+                    <strong>{entry.type}</strong>
+                    <small>#{String(entry.sequence).padStart(3, "0")}</small>
                   </div>
+                  <time>{entry.occurredAt.slice(11, 16)}</time>
+                </div>
               )}
             />
           )}
@@ -233,10 +237,11 @@ export function HistoryPanel({
                   <Columns data-icon="inline-start" /> Compare
                 </Button>
               </div>
-              <div className="branch-list">
+              <div className="branch-list" role="list" aria-label="Proposal branches">
                 {branches.map((branch) => (
                   <div
                     className={`branch-entry ${branch.active ? "active" : ""} ${branch.archived ? "is-archived" : ""}`}
+                    role="listitem"
                     key={branch.id}
                   >
                     <Button
@@ -245,9 +250,11 @@ export function HistoryPanel({
                       className={`branch-card ${branch.active ? "active" : ""}`}
                       disabled={branch.archived}
                       onClick={() => onSwitchBranch(branch.id)}
+                      aria-current={branch.active ? "true" : undefined}
+                      aria-label={`${branch.name}; ${branch.archived ? "archived" : branch.stale ? "stale" : branch.validationStatus}; ${branch.changedItems} changes; ${branch.revisionCount} revisions`}
                     >
                       <span>
-                        <GitBranch data-icon="inline-start" />
+                        <GitBranch data-icon="inline-start" aria-hidden="true" />
                         <strong>{branch.name}</strong>
                       </span>
                       <span className={`branch-status is-${branch.stale ? "fail" : branch.validationStatus}`}>

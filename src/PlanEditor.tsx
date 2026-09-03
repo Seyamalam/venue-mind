@@ -1,4 +1,13 @@
-import { useEffect, useEffectEvent, useMemo, useRef, useState, type FocusEvent, type PointerEvent } from "react";
+import {
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+  type FocusEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent,
+} from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Toggle } from "../components/ui/toggle";
@@ -19,6 +28,7 @@ import type {
   VenueProposal,
 } from "./domain/geometry";
 import type { VenueComment } from "./domain/comments";
+import { describeVenueObject, nextRovingIndex, validationAnnouncement } from "./accessibility/studio-accessibility";
 
 const clone = <T,>(value: T): T => structuredClone(value);
 const layers = [
@@ -60,6 +70,7 @@ const centerOf = (footprint: Footprint): Point => {
     y: footprint.points.reduce((sum, point) => sum + point.y, 0) / footprint.points.length,
   };
 };
+const fixedCoordinate = (value: number): string => Number(value.toFixed(2)).toString();
 
 const moveFootprint = (footprint: Footprint, delta: Point): Footprint => {
   const point = ({ x, y }: { x: number; y: number }) => ({ x: x + delta.x, y: y + delta.y });
@@ -92,12 +103,20 @@ function ObjectShape({
   selected,
   onPointerDown,
   draftDelta,
+  active,
+  label,
+  onFocus,
+  onKeyDown,
 }: {
   object: VenueObject;
   maxY: number;
   selected: boolean;
   onPointerDown: (event: PointerEvent<SVGElement>) => void;
   draftDelta?: Point | null;
+  active: boolean;
+  label: string;
+  onFocus: () => void;
+  onKeyDown: (event: ReactKeyboardEvent<SVGElement>) => void;
 }) {
   const footprint = draftDelta ? moveFootprint(object.footprint, draftDelta) : object.footprint;
   const layer = object.layer ?? "annotations";
@@ -105,6 +124,12 @@ function ObjectShape({
     className: `editor-object is-${layer} ${selected ? "is-selected" : ""}`,
     fill: palette[layer],
     onPointerDown,
+    onFocus,
+    onKeyDown,
+    role: "button",
+    tabIndex: active ? 0 : -1,
+    "aria-label": label,
+    "aria-pressed": selected,
     "data-object-id": object.id,
   };
   if (footprint.kind === "rectangle") return <polygon {...common} points={rectanglePoints(footprint, maxY)} />;
@@ -262,6 +287,9 @@ export function PlanEditor({
   const [clipboard, setClipboard] = useState<VenueObject[]>([]);
   const [shortcuts, setShortcuts] = useState(false);
   const [panels, setPanels] = useState({ layers: false, inspector: true, library: false });
+  const [objectListOpen, setObjectListOpen] = useState(false);
+  const [activeObjectId, setActiveObjectId] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState("");
   const [placeTemplate, setPlaceTemplate] = useState<InventoryTemplate | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const planObjectIds = useMemo(() => new Set(planObjects.map((object) => object.id)), [planObjects]);
@@ -277,6 +305,91 @@ export function PlanEditor({
     [focused, validationChecks],
   );
   const focusedPolygonPoints = focused?.footprint.kind === "polygon" ? focused.footprint.points : null;
+  const accessibleObjects = useMemo(
+    () => planObjects.filter((object) => layerState[object.layer ?? "annotations"].visible),
+    [layerState, planObjects],
+  );
+  const visibleObjects = useMemo(
+    () => visiblePlanObjects.filter((object) => layerState[object.layer ?? "annotations"].visible),
+    [layerState, visiblePlanObjects],
+  );
+  const effectiveActiveObjectId = visibleObjects.some((object) => object.id === activeObjectId)
+    ? activeObjectId
+    : (visibleObjects[0]?.id ?? null);
+  const validationMessage = validationAnnouncement(validation);
+
+  const announce = (message: string) => {
+    setAnnouncement("");
+    window.requestAnimationFrame(() => setAnnouncement(message));
+  };
+
+  const selectObject = (object: VenueObject, additive = false) => {
+    const next = additive
+      ? selected.includes(object.id)
+        ? selected.filter((id) => id !== object.id)
+        : [...selected, object.id]
+      : [object.id];
+    setSelected(next);
+    setActiveObjectId(object.id);
+    announce(`${object.label ?? object.id}; ${next.includes(object.id) ? "selected" : "not selected"}`);
+  };
+
+  const focusObject = (direction: "first" | "last" | "next" | "previous") => {
+    const currentIndex = visibleObjects.findIndex((object) => object.id === effectiveActiveObjectId);
+    const index = nextRovingIndex(visibleObjects.length, currentIndex, direction);
+    const object = visibleObjects[index];
+    if (!object) return;
+    setActiveObjectId(object.id);
+    window.requestAnimationFrame(() => {
+      const targets = svgRef.current?.querySelectorAll<SVGElement>("[data-object-id]");
+      targets?.[index]?.focus();
+    });
+    announce(describeVenueObject(object));
+  };
+
+  const handleObjectKeyDown = (event: ReactKeyboardEvent<SVGElement>, object: VenueObject) => {
+    if (event.key === "Home" || event.key === "End") {
+      focusObject(event.key === "Home" ? "first" : "last");
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+      if (event.ctrlKey || event.metaKey) {
+        if (!editable(object)) {
+          announce(`${object.label ?? object.id}; locked`);
+        } else {
+          const step = event.shiftKey ? 1 : snap.sizeM;
+          apply({
+            operation: "move",
+            objectIds: selected.includes(object.id) ? selected : [object.id],
+            delta: {
+              x: event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0,
+              y: event.key === "ArrowDown" ? -step : event.key === "ArrowUp" ? step : 0,
+            },
+          });
+          announce(`${object.label ?? object.id}; moved ${step} metres`);
+        }
+      } else {
+        focusObject(event.key === "ArrowLeft" || event.key === "ArrowUp" ? "previous" : "next");
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    if (event.key === "Enter" || event.key === " ") {
+      selectObject(object, event.shiftKey);
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    if (["Delete", "Backspace"].includes(event.key) && editable(object)) {
+      apply({ operation: "delete", objectIds: selected.includes(object.id) ? selected : [object.id] });
+      announce(`${object.label ?? object.id}; deleted`);
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
 
   const pointFromEvent = (event: PointerEvent<SVGElement>) => {
     const svg = svgRef.current;
@@ -463,6 +576,7 @@ export function PlanEditor({
         ? selected
         : [object.id];
     setSelected(next);
+    setActiveObjectId(object.id);
     if (editable(object))
       setDrag({
         kind: "move",
@@ -599,7 +713,7 @@ export function PlanEditor({
               ["zone", "ZON"],
             ] satisfies Array<[string, string]>
           ).map(([id, label]) => (
-            <ToggleGroupItem value={id} key={id}>
+            <ToggleGroupItem value={id} key={id} aria-label={`${id} tool`} aria-keyshortcuts={id === "select" ? "V" : id === "pan" ? "H" : undefined}>
               {label}
             </ToggleGroupItem>
           ))}
@@ -611,6 +725,9 @@ export function PlanEditor({
           }}
         >
           LIB
+        </Toggle>
+        <Toggle pressed={objectListOpen} onPressedChange={setObjectListOpen} aria-label="Toggle object list">
+          OBJ
         </Toggle>
         <i />
         <Button variant="ghost" size="xs" type="button" onClick={duplicate} disabled={!selected.length}>
@@ -684,6 +801,8 @@ export function PlanEditor({
           onClick={() => {
             setShortcuts(true);
           }}
+          aria-label="Open keyboard shortcuts"
+          aria-keyshortcuts="?"
         >
           ?
         </Button>
@@ -692,6 +811,29 @@ export function PlanEditor({
       <svg
         ref={svgRef}
         className={`editor-svg tool-${tool}`}
+        role="group"
+        tabIndex={0}
+        aria-labelledby="plan-editor-canvas-title"
+        aria-describedby="plan-editor-canvas-help"
+        onFocus={(event) => {
+          if (event.target === event.currentTarget) announce("Plan canvas; use arrow keys to enter object navigation");
+        }}
+        onKeyDown={(event) => {
+          if (event.target !== event.currentTarget) return;
+          if (["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown", "Home", "End"].includes(event.key)) {
+            const direction =
+              event.key === "Home"
+                ? "first"
+                : event.key === "End"
+                  ? "last"
+                  : event.key === "ArrowLeft" || event.key === "ArrowUp"
+                    ? "previous"
+                    : "next";
+            focusObject(direction);
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }}
         viewBox={`${view.x} ${view.y} ${view.width} ${view.height}`}
         onPointerDown={handleBackgroundDown}
         onPointerMove={handlePointerMove}
@@ -707,6 +849,10 @@ export function PlanEditor({
           }));
         }}
       >
+        <title id="plan-editor-canvas-title">Plan canvas</title>
+        <desc id="plan-editor-canvas-help">
+          Arrow keys move between objects. Enter selects. Control plus arrow moves selected objects. Delete removes editable objects.
+        </desc>
         <defs>
           <pattern id="editor-grid" width={snap.sizeM} height={snap.sizeM} patternUnits="userSpaceOnUse">
             <path d={`M ${snap.sizeM} 0 L 0 0 0 ${snap.sizeM}`} />
@@ -739,23 +885,28 @@ export function PlanEditor({
             />
           </g>
         )}
-        {visiblePlanObjects
-          .filter((object) => layerState[object.layer ?? "annotations"].visible)
-          .map((object) => {
-            const draftDelta = drag?.kind === "move" && drag.objectIds.includes(object.id) ? drag.delta : null;
-            return (
-              <ObjectShape
-                key={object.id}
-                object={object}
-                maxY={bounds.maxY}
-                selected={selected.includes(object.id)}
-                {...(draftDelta === undefined ? {} : { draftDelta })}
-                onPointerDown={(event) => {
-                  handleObjectDown(event, object);
-                }}
-              />
-            );
-          })}
+        {visibleObjects.map((object) => {
+          const draftDelta = drag?.kind === "move" && drag.objectIds.includes(object.id) ? drag.delta : null;
+          return (
+            <ObjectShape
+              key={object.id}
+              object={object}
+              maxY={bounds.maxY}
+              selected={selected.includes(object.id)}
+              active={object.id === effectiveActiveObjectId}
+              label={describeVenueObject(object)}
+              {...(draftDelta === undefined ? {} : { draftDelta })}
+              onPointerDown={(event) => {
+                handleObjectDown(event, object);
+              }}
+              onFocus={() => {
+                setActiveObjectId(object.id);
+                announce(describeVenueObject(object));
+              }}
+              onKeyDown={(event) => handleObjectKeyDown(event, object)}
+            />
+          );
+        })}
         <AnnotationPins
           comments={comments}
           planVersion={plan.version}
@@ -795,12 +946,67 @@ export function PlanEditor({
           })}
       </svg>
 
-      <div className="editor-status">
+      <div className="editor-status" role="status" aria-live="polite">
         <span>{tool.toUpperCase()}</span>
         <b>{selected.length} SEL</b>
+        <strong className={`is-${validation.status}`}>{validation.status.toUpperCase()}</strong>
         <span>{Math.round((fullView.width / view.width) * 100)}%</span>
         {measurement?.distances?.[0] && <strong>{measurement.distances[0].distanceM} m</strong>}
       </div>
+
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </div>
+      <div className="sr-only" role={validation.status === "fail" ? "alert" : "status"}>
+        {validationMessage}
+      </div>
+
+      {objectListOpen && (
+        <aside className="accessible-object-panel" aria-label="Plan objects">
+          <header>
+            <b>OBJECTS</b>
+            <span>{accessibleObjects.length}</span>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              type="button"
+              onClick={() => setObjectListOpen(false)}
+              aria-label="Close object list"
+            >
+              ×
+            </Button>
+          </header>
+          <ol>
+            {accessibleObjects.map((object) => {
+              const center = centerOf(object.footprint);
+              const objectChecks = validationChecks.filter((check) => check.evidence?.affectedObjectIds?.includes(object.id));
+              const objectStatus = objectChecks.some((check) => check.status === "fail")
+                ? "FAIL"
+                : objectChecks.some((check) => check.status === "warning")
+                  ? "WARN"
+                  : "PASS";
+              return (
+                <li key={object.id}>
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    className={selected.includes(object.id) ? "is-selected" : ""}
+                    aria-pressed={selected.includes(object.id)}
+                    onClick={() => selectObject(object)}
+                  >
+                    <span>
+                      <strong>{object.label ?? object.id}</strong>
+                      <small>{object.kind.toUpperCase().replaceAll("_", " ")}</small>
+                    </span>
+                    <code>{fixedCoordinate(center.x)} · {fixedCoordinate(center.y)}</code>
+                    <b className={`is-${objectStatus.toLowerCase()}`}>{objectStatus}</b>
+                  </Button>
+                </li>
+              );
+            })}
+          </ol>
+        </aside>
+      )}
 
       {panels.layers && (
         <aside className="layer-panel">
