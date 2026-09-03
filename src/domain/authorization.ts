@@ -44,6 +44,11 @@ export const VENUE_PERMISSIONS = [
   "deviation.record",
   "deviation.propose",
   "deviation.export",
+  "post-event.read",
+  "post-event.record",
+  "post-event.propose",
+  "post-event.review",
+  "post-event.export",
   "export.plan",
   "export.audit",
   "audit.read",
@@ -66,6 +71,7 @@ const viewer: readonly VenuePermission[] = [
   "occupancy.read",
   "incident.read",
   "deviation.read",
+  "post-event.read",
 ];
 const planner: readonly VenuePermission[] = [
   ...viewer,
@@ -78,6 +84,8 @@ const planner: readonly VenuePermission[] = [
   "incident.manage",
   "deviation.record",
   "deviation.propose",
+  "post-event.record",
+  "post-event.propose",
   "export.plan",
 ];
 const reviewer: readonly VenuePermission[] = [
@@ -86,6 +94,8 @@ const reviewer: readonly VenuePermission[] = [
   "comment.write",
   "incident.export",
   "deviation.export",
+  "post-event.review",
+  "post-event.export",
   "export.audit",
   "audit.read",
 ];
@@ -99,6 +109,9 @@ const safetyOfficer: readonly VenuePermission[] = [
     "incident.export",
     "deviation.record",
     "deviation.export",
+    "post-event.record",
+    "post-event.review",
+    "post-event.export",
     "audit.read",
   ]),
 ];
@@ -134,9 +147,16 @@ export const AGENT_SCOPE_PERMISSIONS = Object.freeze({
     "occupancy.read",
     "incident.read",
     "deviation.read",
+    "post-event.read",
     "audit.read",
   ]),
-  "venue:propose": Object.freeze(["proposal.create", "proposal.manage", "deviation.propose"]),
+  "venue:propose": Object.freeze([
+    "proposal.create",
+    "proposal.manage",
+    "deviation.propose",
+    "post-event.record",
+    "post-event.propose",
+  ]),
   "venue:comment": Object.freeze(["comment.read", "comment.write"]),
   "venue:simulate": Object.freeze(["simulation.read", "simulation.run"]),
   "venue:operate": Object.freeze([
@@ -146,8 +166,16 @@ export const AGENT_SCOPE_PERMISSIONS = Object.freeze({
     "incident.report",
     "deviation.read",
     "deviation.record",
+    "post-event.read",
+    "post-event.record",
   ]),
-  "venue:export": Object.freeze(["export.plan", "export.audit", "incident.export", "deviation.export"]),
+  "venue:export": Object.freeze([
+    "export.plan",
+    "export.audit",
+    "incident.export",
+    "deviation.export",
+    "post-event.export",
+  ]),
 } satisfies Readonly<Record<AgentScope, readonly VenuePermission[]>>);
 
 export const DEFAULT_APPROVAL_POLICY = Object.freeze({
@@ -327,6 +355,11 @@ const TOOL_PERMISSION = Object.freeze({
   "venue.end_live_plan_deviation": "deviation.record",
   "venue.create_post_event_deviation_proposal": "deviation.propose",
   "venue.export_live_plan_deviations": "deviation.export",
+  "venue.inspect_post_event_review": "post-event.read",
+  "venue.record_post_event_observation": "post-event.record",
+  "venue.record_post_event_lesson": "post-event.record",
+  "venue.create_template_improvement_proposal": "post-event.propose",
+  "venue.export_post_event_report": "post-event.export",
 } satisfies Readonly<Record<string, VenuePermission>>);
 
 const hasOwn = <T extends object>(value: T, key: PropertyKey): key is keyof T => Object.hasOwn(value, key);
