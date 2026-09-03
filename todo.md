@@ -1092,18 +1092,18 @@ Completion gate:
 
 ## 11.3 Release process
 
-- [ ] Define semantic versioning for product, Project schema, tools, MCP server, and skills.
-- [ ] Add a changelog generated from reviewed release notes.
-- [ ] Add preview, staging, and production environments.
-- [ ] Add database migration gates.
-- [ ] Add smoke tests after deployment.
-- [ ] Add rollback procedures for application and database changes.
-- [ ] Add compatibility checks for existing Projects before release.
-- [ ] Add release provenance and checksums for distributed artifacts.
+- [x] Define semantic versioning for product, Project schema, tools, MCP server, and skills.
+- [x] Add a changelog generated from reviewed release notes.
+- [x] Add preview, staging, and production environments.
+- [x] Add database migration gates.
+- [x] Add smoke tests after deployment.
+- [x] Add rollback procedures for application and database changes.
+- [x] Add compatibility checks for existing Projects before release.
+- [x] Add release provenance and checksums for distributed artifacts.
 
 Completion gate:
 
-- [ ] A release can be promoted, verified, and rolled back without losing accepted Plan or ledger data.
+- [x] A release can be promoted, verified, and rolled back without losing accepted Plan or ledger data.
 
 ---
 

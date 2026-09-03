@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "product": "1.0.0",
+  "projectSchema": 10,
+  "toolContract": "1.6.0",
+  "mcpServer": "0.7.0",
+  "sdk": "0.1.0",
+  "skills": {
+    "venuemind-plan": "1.1.0",
+    "venuemind-audit": "1.1.0",
+    "venuemind-access-review": "1.1.0",
+    "venuemind-crowd-flow": "1.1.0",
+    "venuemind-production-plan": "1.1.0",
+    "venuemind-event-day": "1.4.0"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "venue-mind",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "license": "MIT",
   "private": true,
   "type": "module",
@@ -53,6 +53,10 @@
     "verify:hosting": "node scripts/verify-hosting-config.mjs && node --test tests/hosting-config.test.mjs",
     "smoke:production": "node scripts/smoke-production.mjs",
     "smoke:production:write": "node scripts/smoke-production.mjs --write",
+    "generate:release": "node scripts/generate-release-artifacts.mjs",
+    "check:release": "node scripts/generate-release-artifacts.mjs --check && node scripts/verify-release.mjs",
+    "test:release": "node --test tests/release-system.test.mjs tests/interchange.test.mjs tests/database-migrations.test.mjs",
+    "verify:release": "npm run check:release && npm run test:release",
     "validate:skills": "node scripts/validate-skills.mjs",
     "prepare": "husky"
   },
