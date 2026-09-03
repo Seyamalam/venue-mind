@@ -121,6 +121,11 @@
       "title": "Release process"
     },
     {
+      "sourcePath": "docs/local-verification.md",
+      "publicPath": "/guides/local-verification.md",
+      "title": "Local verification"
+    },
+    {
       "sourcePath": "docs/release-checklist.md",
       "publicPath": "/guides/release-checklist.md",
       "title": "Release checklist"

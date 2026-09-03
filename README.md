@@ -44,10 +44,11 @@ Open the URL printed by Next.js. Use ChatGPT's in-app browser, or Chrome with We
 Verification runs locally; this repository intentionally has no GitHub Actions workflows.
 
 ```bash
-npm run build
-npm test
-npm run check:generated
+npm ci
+npm run verify:local
 ```
+
+The gate covers format, lint, every typecheck and test, generated drift, security scans, migrations, browser contracts, and all production builds. Failure logs remain local under `.artifacts/local-verification/`. See [Local verification](docs/local-verification.md).
 
 ## Repository map
 

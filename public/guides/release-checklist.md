@@ -18,8 +18,8 @@
 
 ## Verification
 
-- [ ] Run `npm test`.
-- [ ] Run `npm run build`.
+- [ ] Run `npm ci`.
+- [ ] Run `npm run verify:local` and retain its local summary.
 - [ ] Confirm the Studio, `/docs`, `/llms.txt`, `/llms-full.txt`, schemas, reference manifest, and client-example manifest return successful responses.
 - [ ] Review the bundle-size warning and record any accepted regression.
 - [ ] Run the failure recovery exercise when persistence, migration, ledger, or import code changed.

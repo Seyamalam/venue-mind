@@ -132,3 +132,19 @@ test("a failed phase stops execution and preserves redacted local evidence", asy
   const latest = JSON.parse(await readFile(path.join(root, ".artifacts", "local-verification", "latest.json"), "utf8"));
   assert.equal(latest.summary, `${caught.summary.runDirectory}/summary.json`);
 });
+
+test("documentation defines one local-only completion command and no CI milestone", async () => {
+  const root = path.resolve(new URL("../", import.meta.url).pathname);
+  const [guide, readme, todo] = await Promise.all([
+    readFile(path.join(root, "docs/local-verification.md"), "utf8"),
+    readFile(path.join(root, "README.md"), "utf8"),
+    readFile(path.join(root, "todo.md"), "utf8"),
+  ]);
+  for (const boundary of ["npm run verify:local", "Vercel Next.js", "Cloudflare Worker", "MCP server", "SDK", "migration", "browser", ".artifacts/local-verification"]) {
+    assert.match(guide, new RegExp(boundary.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
+  }
+  assert.match(readme, /npm run verify:local/);
+  assert.match(todo, /## 11\.2 Local verification/);
+  assert.doesNotMatch(todo, /\bCI\b/);
+  assert.doesNotMatch(guide, /live Safari or Firefox execution is verified/i);
+});

@@ -26,6 +26,7 @@ const guideSources = [
   ["docs/development.md", "development.md", "Local development"],
   ["docs/testing.md", "testing.md", "Testing by layer"],
   ["docs/release-process.md", "release-process.md", "Release process"],
+  ["docs/local-verification.md", "local-verification.md", "Local verification"],
   ["docs/release-checklist.md", "release-checklist.md", "Release checklist"],
   ["docs/production-hosting.md", "production-hosting.md", "Production hosting"],
   ["docs/runbooks/failure-recovery.md", "runbooks/failure-recovery.md", "Failure recovery runbook"],

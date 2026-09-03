@@ -8686,21 +8686,17 @@ Studio, WebMCP, and MCP converge on one planner command boundary. Shared contrac
 1. Read the source map and choose the command, Constraint, migration, or documentation path.
 2. Change the authoritative runtime source and its focused tests.
 3. Regenerate contracts, docs, examples, and skills.
-4. Run the full tests, production build, and drift gate.
+4. Run the complete local verification gate.
 
 ```bash
 npm ci
-npm run generate:contracts
-npm run generate:migrations
-npm run generate:docs
-npm test
-npm run build
-npm run check:generated
+npm run verify:local
 ```
 
 - [Contributor entry point](https://venue-mind-jet.vercel.app/guides/contributing.md)
 - [Local development](https://venue-mind-jet.vercel.app/guides/development.md)
 - [Testing by layer](https://venue-mind-jet.vercel.app/guides/testing.md)
+- [Local verification](https://venue-mind-jet.vercel.app/guides/local-verification.md)
 
 ## Extend commands and Constraints
 
