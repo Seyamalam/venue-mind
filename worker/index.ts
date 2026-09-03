@@ -75,6 +75,22 @@ import {
 } from "./rate-limit-repository.ts";
 import { createRateLimitService, mutationEndpointFamily } from "./rate-limit-service.ts";
 import { isLocalProjectRecord } from "../src/domain/project-types.ts";
+import {
+  createStructuredLogSink,
+  createTelemetryFanout,
+  isSafeCorrelationId,
+  safeCorrelationId,
+  startTelemetrySpan,
+  telemetryErrorCode,
+  type TelemetryEvent,
+  type TelemetrySink,
+} from "../src/observability/telemetry.ts";
+import {
+  createD1ObservabilityRepository,
+  createMemoryObservabilityRepository,
+  type ObservabilityRepository,
+} from "./observability-repository.ts";
+import { inspectDatabaseIntegrity } from "./database-migrations.ts";
 import type {
   AggregateOccupancySignal,
   IncidentCategory,
@@ -108,6 +124,7 @@ export { createD1DeviationRepository } from "./deviation-repository.ts";
 export { createD1PostEventReviewRepository } from "./post-event-review-repository.ts";
 export { createD1RateLimitRepository, createMemoryRateLimitRepository } from "./rate-limit-repository.ts";
 export { createD1DataProtectionRepository, DataProtectionConflict } from "./data-protection-repository.ts";
+export { createD1ObservabilityRepository, createMemoryObservabilityRepository } from "./observability-repository.ts";
 
 type ProjectRepository = ReturnType<typeof createD1ProjectRepository>;
 type AccountRepository = ReturnType<typeof createD1AccountRepository>;
@@ -140,6 +157,9 @@ type WorkerOptions = {
   createPostEventReviewRepository?: (db: D1Database) => PostEventReviewRepository;
   createRateLimitRepository?: (db: D1Database) => RateLimitRepository;
   createDataProtectionRepository?: (db: D1Database) => DataProtectionRepository;
+  createObservabilityRepository?: (db: D1Database, scopeHash: string) => ObservabilityRepository;
+  telemetrySink?: TelemetrySink;
+  integrityInspector?: (db: D1Database) => Promise<Readonly<{ status: string }>>;
   identityProvider?: IdentityProvider;
   emailDelivery?: EmailDelivery;
   secureCookies?: boolean;
@@ -694,6 +714,22 @@ const retainedProposals = (snapshot: {
   return [...new Map(proposals.filter((proposal) => proposal.id).map((proposal) => [proposal.id, proposal])).values()];
 };
 
+const requestAction = (method: string, pathname: string): string => {
+  if (pathname === "/api/health") return "health.read";
+  if (pathname.startsWith("/api/diagnostics/"))
+    return pathname.includes("/traces/") ? "diagnostics.trace" : "diagnostics.read";
+  if (pathname.startsWith("/api/projects")) return method === "GET" ? "projects.read" : "projects.write";
+  if (pathname.startsWith("/api/share/")) return "sharing.read";
+  if (pathname.includes("share-links")) return "sharing.write";
+  if (pathname.includes("runbooks")) return "runbook.operation";
+  if (pathname.includes("occupancy-monitors")) return "occupancy.operation";
+  if (pathname.includes("incident-registers")) return "incident.operation";
+  if (pathname.includes("deviation-registers")) return "deviation.operation";
+  if (pathname.includes("post-event-reviews")) return "post-event.operation";
+  if (pathname.startsWith("/api/session")) return "session.operation";
+  return "api.operation";
+};
+
 export function createWorker(options: WorkerOptions = {}) {
   const projectRepositoryFactory = options.createProjectRepository ?? createD1ProjectRepository;
   const accountRepositoryFactory = options.createAccountRepository ?? createD1AccountRepository;
@@ -727,6 +763,25 @@ export function createWorker(options: WorkerOptions = {}) {
   const log = (fields: Readonly<Record<string, unknown>>): void => {
     logSink(safeLogRecord(fields));
   };
+  const memoryObservability = new Map<string, ObservabilityRepository>();
+  const memoryObservabilityFactory = (_db: D1Database, scopeHash: string): ObservabilityRepository => {
+    const existing = memoryObservability.get(scopeHash);
+    if (existing) return existing;
+    const created = createMemoryObservabilityRepository({ clock });
+    memoryObservability.set(scopeHash, created);
+    return created;
+  };
+  const observabilityRepositoryFactory =
+    options.createObservabilityRepository ??
+    (options.createProjectRepository || options.createAccountRepository
+      ? memoryObservabilityFactory
+      : createD1ObservabilityRepository);
+  const structuredLog = options.telemetrySink ?? createStructuredLogSink();
+  const integrityInspector =
+    options.integrityInspector ??
+    (options.createProjectRepository || options.createAccountRepository
+      ? async () => ({ status: "pass" })
+      : inspectDatabaseIntegrity);
 
   const appendShareLedger = async (
     env: WorkerEnv,
@@ -852,8 +907,28 @@ export function createWorker(options: WorkerOptions = {}) {
   return {
     async fetch(request: Request, env: WorkerEnv) {
       const url = new URL(request.url);
+      const correlationId = safeCorrelationId(
+        request.headers.get("x-correlation-id"),
+        () => `corr-${crypto.randomUUID()}`,
+      );
+      const requestSpan = startTelemetrySpan(structuredLog, {
+        component: "api",
+        operation: "request",
+        correlationId,
+        action: requestAction(request.method, url.pathname),
+      });
+      let durableObservability: ObservabilityRepository | null = null;
+      let requestObservability: TelemetrySink = structuredLog;
+      const finishResponse = (response: Response): Response => {
+        const outcome =
+          response.status === 409 || response.status === 412 ? "conflict" : response.status >= 400 ? "failed" : "ok";
+        const terminal = requestSpan.end(outcome, response.status >= 400 ? `HTTP_${response.status}` : undefined);
+        if (durableObservability) void durableObservability.record(terminal).catch(() => undefined);
+        response.headers.set("x-correlation-id", correlationId);
+        return response;
+      };
       if (url.pathname === "/api/health" && request.method === "GET")
-        return json({ status: "ok", service: "venue-mind-api" });
+        return finishResponse(json({ status: "ok", service: "venue-mind-api" }));
       const publicShareMatch = url.pathname.match(/^\/api\/share\/([0-9a-f]{64})$/);
       if (publicShareMatch && request.method === "GET") {
         const sharing = sharingRepositoryFactory(env.DB);
@@ -925,7 +1000,7 @@ export function createWorker(options: WorkerOptions = {}) {
       const respond = (value: unknown, init: ResponseInit = {}) => {
         const response = json(value, init);
         for (const cookie of setCookies) response.headers.append("set-cookie", cookie);
-        return response;
+        return finishResponse(response);
       };
       const requestedOrganizationId =
         request.headers.get("x-venuemind-organization-id")?.trim() ||
@@ -936,7 +1011,44 @@ export function createWorker(options: WorkerOptions = {}) {
       const organization = requestedOrganizationId
         ? account.organizations.find((item) => item.id === requestedOrganizationId)
         : account.organizations[0];
+      const observabilityScopeHash = stableFingerprint("observability-scope", {
+        organizationId: organization?.id ?? "none",
+      });
+      durableObservability = observabilityRepositoryFactory(env.DB, observabilityScopeHash);
+      requestObservability = createTelemetryFanout(structuredLog, {
+        emit: (event: TelemetryEvent) => durableObservability?.record(event),
+      });
       const admin = organization ? isOrganizationAdministrator({ status: "active", roles: organization.roles }) : false;
+
+      if (url.pathname === "/api/diagnostics/health" && request.method === "GET") {
+        const integritySpan = startTelemetrySpan(structuredLog, {
+          component: "repository",
+          operation: "integrity",
+          correlationId,
+          action: "database.integrity",
+        });
+        try {
+          const integrity = await integrityInspector(env.DB);
+          const passing = integrity.status === "pass";
+          await durableObservability.record(
+            integritySpan.end(passing ? "ok" : "failed", passing ? undefined : "DATABASE_INTEGRITY_FAILED"),
+          );
+        } catch (cause) {
+          const error = cause instanceof Error ? cause : new Error("DATABASE_INTEGRITY_FAILED");
+          await durableObservability.record(integritySpan.end("failed", telemetryErrorCode(error)));
+        }
+        return respond(await durableObservability.snapshot(clock()));
+      }
+      const diagnosticsTraceMatch = url.pathname.match(/^\/api\/diagnostics\/traces\/([^/]+)$/);
+      if (diagnosticsTraceMatch && request.method === "GET") {
+        const requestedCorrelationId = pathCapture(diagnosticsTraceMatch, 1);
+        if (!isSafeCorrelationId(requestedCorrelationId))
+          return finishResponse(apiError(400, "CORRELATION_ID_INVALID", "Correlation ID is invalid"));
+        return respond({
+          correlationId: requestedCorrelationId,
+          events: await durableObservability.trace(requestedCorrelationId),
+        });
+      }
       const endpointFamily = mutationEndpointFamily(request.method, url.pathname);
       if (endpointFamily) {
         const decision = await createRateLimitService({ repository: rateLimitRepositoryFactory(env.DB), clock }).consume({
@@ -2451,8 +2563,11 @@ export function createWorker(options: WorkerOptions = {}) {
           return apiError(403, "PROJECT_WRITE_DENIED", "Project write role required");
         const snapshot = body.snapshot;
         try {
-          const planner = createVenuePlanner({ ...snapshot.plan, brief: snapshot.brief, proposal: snapshot.proposal });
-          await planner.execute({ type: "restore_snapshot", snapshot });
+          const planner = createVenuePlanner(
+            { ...snapshot.plan, brief: snapshot.brief, proposal: snapshot.proposal },
+            { observability: requestObservability },
+          );
+          await planner.execute({ type: "restore_snapshot", snapshot, correlationId });
         } catch (cause) {
           const error = errorInfo(cause);
           return apiError(
@@ -2488,8 +2603,15 @@ export function createWorker(options: WorkerOptions = {}) {
           return apiError(400, "PROJECT_ETAG_INVALID", "Project ETag is invalid");
         if (!createOnly && body.revision !== undefined && body.revision !== expectedRevision)
           return apiError(400, "PROJECT_REVISION_INVALID", "Project body revision does not match If-Match");
+        const persistenceSpan = startTelemetrySpan(requestObservability, {
+          component: "repository",
+          operation: "persistence",
+          correlationId,
+          action: "project.put",
+        });
         try {
           const saved = await projects.put(organization.id, record, { createOnly, expectedRevision });
+          persistenceSpan.end("ok");
           const collaboration = collaborationRepositoryFactory(env.DB);
           const collaborationTypes = projectCollaborationEventTypes(current, saved);
           for (const type of collaborationTypes) {
@@ -2512,12 +2634,11 @@ export function createWorker(options: WorkerOptions = {}) {
             await notifyOrganization("approval_completed", saved, { planVersion: saved.snapshot.plan.version });
           else if (collaborationTypes.includes("proposal.updated"))
             await notifyOrganization("review_requested", saved, { proposalId: saved.snapshot.proposal.id });
-          const correlationId = request.headers.get("x-correlation-id");
           return respond(saved, {
             status: createOnly ? 201 : 200,
             headers: {
               etag: projectEtag(saved.id, saved.revision),
-              ...(correlationId ? { "x-correlation-id": correlationId } : {}),
+              "x-correlation-id": correlationId,
             },
           });
         } catch (cause) {
@@ -2525,6 +2646,13 @@ export function createWorker(options: WorkerOptions = {}) {
             cause instanceof ProjectRevisionConflict ||
             (cause instanceof Error && cause.message === "PROJECT_REVISION_CONFLICT")
           ) {
+            persistenceSpan.end("conflict", "PROJECT_REVISION_CONFLICT");
+            startTelemetrySpan(requestObservability, {
+              component: "repository",
+              operation: "conflict",
+              correlationId,
+              action: "project.revision",
+            }).end("conflict", "PROJECT_REVISION_CONFLICT");
             const latest =
               cause instanceof ProjectRevisionConflict ? cause.current : await projects.get(organization.id, projectId);
             const preferences = await sharing.preferences(account.user.id);
@@ -2560,8 +2688,14 @@ export function createWorker(options: WorkerOptions = {}) {
               latest ? { etag: projectEtag(latest.id, latest.revision) } : undefined,
             );
           }
-          if (cause instanceof Error && cause.message === "PROJECT_ID_CONFLICT")
+          if (cause instanceof Error && cause.message === "PROJECT_ID_CONFLICT") {
+            persistenceSpan.end("conflict", "PROJECT_ID_CONFLICT");
             return apiError(409, "PROJECT_ID_CONFLICT", "Project ID belongs to another organization");
+          }
+          persistenceSpan.end(
+            "failed",
+            telemetryErrorCode(cause instanceof Error ? cause : new Error("PERSISTENCE_FAILED")),
+          );
           throw cause;
         }
       }

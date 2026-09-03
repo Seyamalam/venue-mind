@@ -15,6 +15,12 @@ import {
   selectRecoveryEnvelope,
   type RecoveryIntegrityStatus,
 } from "./recovery-envelope.ts";
+import {
+  startTelemetrySpan,
+  telemetryErrorCode,
+  type TelemetryClock,
+  type TelemetrySink,
+} from "../observability/telemetry.ts";
 
 const STORAGE_PREFIX = "venuemind.organization.";
 
@@ -47,6 +53,8 @@ export interface ProjectStoreOptions {
   readonly storage?: StorageLike;
   readonly clock?: () => string;
   readonly organizationId?: string;
+  readonly observability?: TelemetrySink;
+  readonly telemetryClock?: TelemetryClock;
 }
 
 export interface ProjectStoreResult<RecordType extends LocalProjectRecord = LocalProjectRecord> {
@@ -199,6 +207,8 @@ export function createProjectStore({
   storage = globalThis.localStorage,
   clock = () => new Date().toISOString(),
   organizationId = "org-local",
+  observability,
+  telemetryClock,
 }: ProjectStoreOptions = {}) {
   if (!organizationId.trim()) throw new TypeError("Project store requires an Organization ID");
   const organizationPrefix = `${STORAGE_PREFIX}${organizationId}.project.`;
@@ -492,6 +502,11 @@ export function createProjectStore({
         lastOpenedAt,
       } = input;
       const correlationId = snapshot.receipts.at(-1)?.correlationId ?? `project-save-${id}`;
+      const persistenceSpan = startTelemetrySpan(
+        observability,
+        { component: "repository", operation: "persistence", correlationId, action: "project.save" },
+        telemetryClock,
+      );
       const previous = readLocal(id);
       const selectedProvenance = provenance ?? previous?.provenance;
       const record: LocalProjectRecord = {
@@ -514,14 +529,25 @@ export function createProjectStore({
       writeLocal(record);
       try {
         const response = await put(record, { createOnly: record.revision === undefined, correlationId });
-        return await resolveWriteResponse({
+        const result = await resolveWriteResponse({
           response,
           base: readSyncBase(id) ?? previous,
           local: record,
           correlationId,
         });
+        persistenceSpan.end("ok");
+        return result;
       } catch (error) {
-        if (error instanceof ProjectStoreError && error.code === "PROJECT_REVISION_CONFLICT") throw error;
+        if (error instanceof ProjectStoreError && error.code === "PROJECT_REVISION_CONFLICT") {
+          persistenceSpan.end("conflict", error.code);
+          startTelemetrySpan(
+            observability,
+            { component: "repository", operation: "conflict", correlationId, action: "project.save" },
+            telemetryClock,
+          ).end("conflict", error.code);
+          throw error;
+        }
+        persistenceSpan.end("failed", error instanceof Error ? telemetryErrorCode(error) : "PERSISTENCE_FAILED");
         return { source: "local", record };
       }
     },

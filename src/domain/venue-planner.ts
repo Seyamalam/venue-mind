@@ -49,6 +49,13 @@ import type { ObjectLock } from "./locks.ts";
 import type { VenueComment } from "./comments.ts";
 import type { ApprovalPolicy, VenuePrincipal } from "./authorization.ts";
 import { assertCollectionLimit, measureJsonResource, VENUE_RESOURCE_LIMITS } from "../security/resource-limits.ts";
+import {
+  safeCorrelationId,
+  startTelemetrySpan,
+  telemetryErrorCode,
+  type TelemetryClock,
+  type TelemetrySink,
+} from "../observability/telemetry.ts";
 
 export interface PlannerCommand {
   type: string;
@@ -188,6 +195,8 @@ interface PlannerFactoryOptions {
         snapshotChecksum: string;
       }) => { snapshotId: string; snapshotChecksum: string } | null)
     | null;
+  observability?: TelemetrySink;
+  telemetryClock?: TelemetryClock;
 }
 interface OperationalResourceEvidence {
   kind: string;
@@ -546,7 +555,12 @@ const restoreSnapshot = (snapshot: PlannerSnapshot): PlannerSnapshot => {
     !Array.isArray(restored.editHistory?.redo)
   )
     fail("collection-shape-invalid");
-  assertCollectionLimit("planner-restore", "plan-objects", restored.plan.objects.length, VENUE_RESOURCE_LIMITS.projectObjects);
+  assertCollectionLimit(
+    "planner-restore",
+    "plan-objects",
+    restored.plan.objects.length,
+    VENUE_RESOURCE_LIMITS.projectObjects,
+  );
   assertCollectionLimit(
     "planner-restore",
     "plan-constraints",
@@ -559,12 +573,32 @@ const restoreSnapshot = (snapshot: PlannerSnapshot): PlannerSnapshot => {
     restored.proposal.changes.length,
     VENUE_RESOURCE_LIMITS.proposalChanges,
   );
-  assertCollectionLimit("planner-restore", "proposal-branches", restored.branches.length, VENUE_RESOURCE_LIMITS.proposalBranches);
+  assertCollectionLimit(
+    "planner-restore",
+    "proposal-branches",
+    restored.branches.length,
+    VENUE_RESOURCE_LIMITS.proposalBranches,
+  );
   assertCollectionLimit("planner-restore", "comments", restored.comments.length, VENUE_RESOURCE_LIMITS.comments);
-  assertCollectionLimit("planner-restore", "ledger-entries", restored.ledger.length, VENUE_RESOURCE_LIMITS.ledgerEntries);
-  assertCollectionLimit("planner-restore", "command-receipts", restored.receipts.length, VENUE_RESOURCE_LIMITS.commandReceipts);
+  assertCollectionLimit(
+    "planner-restore",
+    "ledger-entries",
+    restored.ledger.length,
+    VENUE_RESOURCE_LIMITS.ledgerEntries,
+  );
+  assertCollectionLimit(
+    "planner-restore",
+    "command-receipts",
+    restored.receipts.length,
+    VENUE_RESOURCE_LIMITS.commandReceipts,
+  );
   assertCollectionLimit("planner-restore", "scenarios", restored.scenarios.length, VENUE_RESOURCE_LIMITS.scenarios);
-  assertCollectionLimit("planner-restore", "scenario-runs", restored.scenarioRuns.length, VENUE_RESOURCE_LIMITS.scenarioRuns);
+  assertCollectionLimit(
+    "planner-restore",
+    "scenario-runs",
+    restored.scenarioRuns.length,
+    VENUE_RESOURCE_LIMITS.scenarioRuns,
+  );
   for (const branch of restored.branches) {
     assertCollectionLimit(
       "planner-restore",
@@ -876,6 +910,8 @@ export function createVenuePlanner(
     approvalPolicy,
     adapterPlanningBindings = {},
     operationalResourceFreshnessVerifier = null,
+    observability,
+    telemetryClock,
   }: PlannerFactoryOptions = {},
 ): VenuePlanner {
   measureJsonResource(initialPlan, {
@@ -1026,15 +1062,27 @@ export function createVenuePlanner(
 
   const authorize = (command: PlannerCommand, options: PlannerExecutionOptions = {}) => {
     const authorization = options.authorization ?? defaultAuthorization;
+    const correlationId = safeCorrelationId(
+      command.correlationId,
+      () => `corr-${commandFingerprint(command).slice(-8)}`,
+    );
+    const span = startTelemetrySpan(
+      observability,
+      { component: "planner", operation: "policy", correlationId, action: command.type },
+      telemetryClock,
+    );
     try {
       const effectiveApprovalPolicy = authorization?.approvalPolicy ?? approvalPolicy;
-      return assertVenueCommand({
+      const result = assertVenueCommand({
         command,
         ...authorization,
         projectId: options.projectId ?? authorization?.projectId ?? projectId,
         ...(effectiveApprovalPolicy ? { approvalPolicy: effectiveApprovalPolicy } : {}),
       });
+      span.end("ok");
+      return result;
     } catch (error) {
+      span.end("rejected", error instanceof Error ? telemetryErrorCode(error) : "AUTHORIZATION_FAILED");
       if (!(error instanceof VenueError) || error.code !== "AUTHORIZATION_DENIED") throw error;
       recordAuthorizationDenial({
         error,
@@ -2246,7 +2294,24 @@ export function createVenuePlanner(
         });
       const operationalResourceEvidence = verifyOperationalResourceFreshness(state.proposal);
       assertNoLockConflicts(state.plan, state.proposal.changes, state.projectLocks);
+      const validationSpan = startTelemetrySpan(
+        observability,
+        {
+          component: "planner",
+          operation: "validation",
+          correlationId: safeCorrelationId(
+            command.correlationId,
+            () => `corr-${commandFingerprint(command).slice(-8)}`,
+          ),
+          action: command.type,
+        },
+        telemetryClock,
+      );
       const validation = validateVenueState(state);
+      validationSpan.end(
+        validation.status === "pass" ? "ok" : "failed",
+        validation.status === "pass" ? undefined : "VALIDATION_FAILED",
+      );
       if (validation.status !== "pass")
         throw venueError("VALIDATION_FAILED", {
           validationId: validation.validationId,
@@ -2638,9 +2703,10 @@ export function createVenuePlanner(
     return promise;
   };
 
-  function execute<C extends PlannerReadCommand>(command: C, options?: PlannerExecutionOptions): PlannerReadResult<C>;
-  function execute(command: PlannerCommand, options?: PlannerExecutionOptions): object | Promise<object>;
-  function execute(command: PlannerCommand, options: PlannerExecutionOptions = {}): object | Promise<object> {
+  const executeUnobserved = (
+    command: PlannerCommand,
+    options: PlannerExecutionOptions = {},
+  ): object | Promise<object> => {
     if (!command || typeof command.type !== "string") throw venueError("COMMAND_INVALID");
     measureJsonResource(command, {
       surface: "planner-command",
@@ -2780,6 +2846,77 @@ export function createVenuePlanner(
     );
     publish({ ...nextState, ledger: sealActivityLedger(ledger), receipts: [...state.receipts, receipt] });
     return { ...result, receipt: publicReceipt(receipt) };
+  };
+
+  function execute<C extends PlannerReadCommand>(command: C, options?: PlannerExecutionOptions): PlannerReadResult<C>;
+  function execute(command: PlannerCommand, options?: PlannerExecutionOptions): object | Promise<object>;
+  function execute(command: PlannerCommand, options: PlannerExecutionOptions = {}): object | Promise<object> {
+    if (!command || typeof command.type !== "string") return executeUnobserved(command, options);
+    const correlationId = safeCorrelationId(
+      command.correlationId,
+      () => `corr-${commandFingerprint(command).slice(-8)}`,
+    );
+    const commandSpan = startTelemetrySpan(
+      observability,
+      { component: "planner", operation: "command", correlationId, action: command.type },
+      telemetryClock,
+    );
+    const operationSpan =
+      command.type === "validate_layout"
+        ? startTelemetrySpan(
+            observability,
+            { component: "planner", operation: "validation", correlationId, action: command.type },
+            telemetryClock,
+          )
+        : command.type === "run_scenario"
+          ? startTelemetrySpan(
+              observability,
+              { component: "planner", operation: "simulation", correlationId, action: command.type },
+              telemetryClock,
+            )
+          : command.type === "approve_proposal"
+            ? startTelemetrySpan(
+                observability,
+                { component: "planner", operation: "approval", correlationId, action: command.type },
+                telemetryClock,
+              )
+            : null;
+    const complete = (result: object): object => {
+      commandSpan.end("ok");
+      operationSpan?.end(command.type === "approve_proposal" ? "approved" : "ok");
+      if (command.type === "approve_proposal")
+        startTelemetrySpan(
+          observability,
+          { component: "planner", operation: "ledger", correlationId, action: "proposal.approved" },
+          telemetryClock,
+        ).end("ok");
+      return result;
+    };
+    const fail = (error: Error): never => {
+      const code = telemetryErrorCode(error);
+      const conflict = code.includes("CONFLICT");
+      commandSpan.end(conflict ? "conflict" : "failed", code);
+      operationSpan?.end(command.type === "approve_proposal" ? "rejected" : conflict ? "conflict" : "failed", code);
+      if (conflict)
+        startTelemetrySpan(
+          observability,
+          { component: "planner", operation: "conflict", correlationId, action: command.type },
+          telemetryClock,
+        ).end("conflict", code);
+      throw error;
+    };
+    try {
+      const result = executeUnobserved(command, options);
+      if (result instanceof Promise)
+        return result
+          .then(complete)
+          .catch((error: unknown) =>
+            fail(error instanceof Error ? error : new Error("Planner command failed", { cause: error })),
+          );
+      return complete(result);
+    } catch (error) {
+      return fail(error instanceof Error ? error : new Error("Planner command failed", { cause: error }));
+    }
   }
 
   const cancelActive = (reason = "cancelled"): boolean => scenarioRunner.cancelActive(reason);

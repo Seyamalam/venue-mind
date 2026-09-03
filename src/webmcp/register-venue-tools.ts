@@ -8,6 +8,7 @@ import type {
   ProjectOperations,
   ToolAuthorization,
 } from "../tools/venue-tool-service.ts";
+import type { TelemetryClock, TelemetrySink } from "../observability/telemetry.ts";
 import {
   DEFAULT_WEBMCP_SCOPES,
   executeVenueWebMcpTool,
@@ -55,6 +56,8 @@ export interface RegisterVenueToolOptions {
   readonly deviationOperations?: Partial<DeviationOperations>;
   readonly postEventOperations?: Partial<PostEventOperations>;
   readonly onLifecycle?: (lifecycle: ToolRegistrationLifecycle) => void;
+  readonly observability?: TelemetrySink;
+  readonly telemetryClock?: TelemetryClock;
 }
 
 const errorCode = (error: unknown): string => {
@@ -80,6 +83,8 @@ export async function registerVenueTools(
     deviationOperations,
     postEventOperations,
     onLifecycle = () => {},
+    observability,
+    telemetryClock,
   }: RegisterVenueToolOptions = {},
 ): Promise<ToolRegistrationLifecycle> {
   onLifecycle({ state: "registering", registered: 0, total: venueToolDefinitions.length, errorCode: null });
@@ -119,6 +124,8 @@ export async function registerVenueTools(
               ...(incidentOperations ? { incidentOperations } : {}),
               ...(deviationOperations ? { deviationOperations } : {}),
               ...(postEventOperations ? { postEventOperations } : {}),
+              ...(observability ? { observability } : {}),
+              ...(telemetryClock ? { telemetryClock } : {}),
             });
           },
         },
