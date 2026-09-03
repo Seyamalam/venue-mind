@@ -8,6 +8,7 @@ const guideSources = [
   ["docs/architecture.md", "architecture.md", "Architecture and extension paths"],
   ["docs/authentication-and-tenancy.md", "authentication-and-tenancy.md", "Authentication and tenancy"],
   ["docs/threat-model.md", "threat-model.md", "Threat model"],
+  ["docs/resource-limits.md", "resource-limits.md", "Resource limits"],
   ["docs/persistence-and-recovery.md", "persistence-and-recovery.md", "Persistence and recovery"],
   ["docs/optimistic-concurrency.md", "optimistic-concurrency.md", "Optimistic concurrency"],
   ["docs/realtime-collaboration.md", "realtime-collaboration.md", "Real-time collaboration"],
