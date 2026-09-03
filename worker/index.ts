@@ -1130,6 +1130,36 @@ export function createWorker(options: WorkerOptions = {}) {
           return apiError(400, "RETENTION_POLICY_INVALID", cause instanceof Error ? cause.message : "Retention policy is invalid");
         }
       }
+      if (url.pathname === "/api/data-protection/backup-expiry" && request.method === "GET") {
+        if (!admin) return apiError(403, "ORGANIZATION_ADMIN_REQUIRED", "Organization administrator required");
+        return respond({ expectations: await dataProtection.listBackupExpiryExpectations(organization.id) });
+      }
+      if (url.pathname === "/api/data-protection/backup-expiry/verify" && request.method === "POST") {
+        if (!admin) return apiError(403, "ORGANIZATION_ADMIN_REQUIRED", "Organization administrator required");
+        let body: Record<string, unknown>;
+        try {
+          body = await readObjectBody(request);
+        } catch {
+          return apiError(400, "BACKUP_EXPIRY_EVIDENCE_INVALID", "Backup expiry evidence payload is invalid");
+        }
+        if (
+          !hasExactKeys(body, ["deletionRequestId", "evidenceRef"]) ||
+          typeof body.deletionRequestId !== "string" ||
+          typeof body.evidenceRef !== "string"
+        ) return apiError(400, "BACKUP_EXPIRY_EVIDENCE_INVALID", "Backup expiry evidence payload is invalid");
+        try {
+          const evidence = await dataProtection.recordBackupExpiryEvidence(
+            organization.id,
+            account.user.id,
+            body.deletionRequestId,
+            body.evidenceRef,
+          );
+          log({ event: "backup.expiry_evidence_recorded", route: url.pathname, method: request.method, status: 200, projectId: evidence.projectId, occurredAt: evidence.verifiedAt });
+          return respond(evidence);
+        } catch (cause) {
+          return dataProtectionError(cause) ?? apiError(500, "BACKUP_EXPIRY_EVIDENCE_FAILED", "Backup expiry evidence failed");
+        }
+      }
 
       const projectExportMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/export$/);
       if (projectExportMatch && request.method === "GET") {
@@ -2542,6 +2572,17 @@ export function createWorker(options: WorkerOptions = {}) {
       env: WorkerEnv,
       context?: { waitUntil?: (promise: Promise<unknown>) => void },
     ) {
+      const retention = options.createProjectRepository && !options.createDataProtectionRepository
+        ? Promise.resolve(null)
+        : dataProtectionRepositoryFactory(env.DB).sweepRetention(50).then((summary) => {
+            log({
+              event: "retention.sweep_completed",
+              status: 200,
+              count: summary.deleted.projects + summary.deleted.runbooks + summary.deleted.securityAuditEvents + summary.deleted.deletionEvidence + summary.deleted.backupEvidence,
+              occurredAt: summary.completedAt,
+            });
+            return summary;
+          });
       const task = Promise.all([
         reconcileShareOperations(env, { limit: 100 }),
         drainNotificationEmail({
@@ -2549,6 +2590,7 @@ export function createWorker(options: WorkerOptions = {}) {
           delivery: options.emailDelivery ?? env.EMAIL_DELIVERY,
           clock,
         }),
+        retention,
       ]);
       if (context?.waitUntil) {
         context.waitUntil(task);

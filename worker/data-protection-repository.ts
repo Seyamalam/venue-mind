@@ -65,6 +65,36 @@ export interface ProjectDeletionEvidence {
   readonly evidenceFingerprint: string;
 }
 
+export interface BackupExpiryExpectation {
+  readonly schemaVersion: 1;
+  readonly deletionRequestId: string;
+  readonly organizationId: string;
+  readonly projectId: string;
+  readonly eligibleAt: string;
+  readonly status: "pending" | "eligible" | "operator-evidence-recorded";
+  readonly evidenceRef: string | null;
+  readonly verifiedAt: string | null;
+  readonly verifiedBy: string | null;
+  readonly fingerprint: string | null;
+  readonly claim: "eligibility-and-operator-evidence-only";
+}
+
+export interface RetentionSweepSummary {
+  readonly schemaVersion: 1;
+  readonly startedAt: string;
+  readonly completedAt: string;
+  readonly limit: number;
+  readonly deleted: Readonly<{
+    projects: number;
+    runbooks: number;
+    securityAuditEvents: number;
+    deletionEvidence: number;
+    backupEvidence: number;
+  }>;
+  readonly organizationsVisited: number;
+  readonly exhausted: boolean;
+}
+
 const ensureSchema = async (db: D1Database): Promise<void> => {
   if (initializedDatabases.has(db)) return;
   await applyDatabaseMigrations(db);
@@ -138,7 +168,8 @@ const mapDeletion = (row: Row): ProjectDeletionEvidence => {
     throw new TypeError("Stored Project deletion status is invalid");
   const requestedAt = String(row.requested_at);
   const recoveryUntil = String(row.recovery_until);
-  const backupDueAt = new Date(Date.parse(recoveryUntil) + 30 * 24 * 60 * 60 * 1_000).toISOString();
+  const backupDueAt = nullableText(row.backup_eligible_at) ??
+    new Date(Date.parse(recoveryUntil) + 30 * 24 * 60 * 60 * 1_000).toISOString();
   return Object.freeze({
     schemaVersion: 1,
     id: String(row.id),
@@ -217,6 +248,35 @@ export function createD1DataProtectionRepository(
       .bind(requestId, organizationId, projectId)
       .first<Row>();
     return row ? mapDeletion(row) : null;
+  };
+
+  const backupExpectations = async (organizationId: string): Promise<readonly BackupExpiryExpectation[]> => {
+    const now = clock();
+    const rows = await all(
+      db,
+      `SELECT d.id,d.organization_id,d.project_id,d.backup_eligible_at,v.evidence_ref,v.verified_at,v.verified_by,v.fingerprint
+       FROM project_deletion_requests d LEFT JOIN backup_expiry_verifications v ON v.deletion_request_id=d.id
+       WHERE d.organization_id=? AND d.status='purged' AND d.backup_eligible_at IS NOT NULL
+       ORDER BY d.backup_eligible_at,d.id`,
+      organizationId,
+    );
+    return Object.freeze(rows.map((row): BackupExpiryExpectation => {
+      const eligibleAt = String(row.backup_eligible_at);
+      const verifiedAt = nullableText(row.verified_at);
+      return Object.freeze({
+        schemaVersion: 1,
+        deletionRequestId: String(row.id),
+        organizationId: String(row.organization_id),
+        projectId: String(row.project_id),
+        eligibleAt,
+        status: verifiedAt ? "operator-evidence-recorded" : Date.parse(now) >= Date.parse(eligibleAt) ? "eligible" : "pending",
+        evidenceRef: nullableText(row.evidence_ref),
+        verifiedAt,
+        verifiedBy: nullableText(row.verified_by),
+        fingerprint: nullableText(row.fingerprint),
+        claim: "eligibility-and-operator-evidence-only",
+      });
+    }));
   };
 
   return Object.freeze({
@@ -350,13 +410,14 @@ export function createD1DataProtectionRepository(
       if (Date.parse(now) < Date.parse(current.recoveryUntil)) throw new DataProtectionConflict("PROJECT_RECOVERY_WINDOW_ACTIVE");
       const exists = await db.prepare("SELECT id FROM projects WHERE id=? AND organization_id=? AND deleted_at=?").bind(projectId, organizationId, current.requestedAt).first<{ id: string }>();
       if (!exists) throw new DataProtectionConflict("PROJECT_PURGE_CONFLICT");
+      const backupEligibleAt = new Date(Date.parse(now) + 30 * 24 * 60 * 60 * 1_000).toISOString();
       const verification: Record<string, number> = Object.fromEntries(
         [...PROJECT_CASCADE_TABLES, "notification_email_outbox_orphans"].map((table) => [table, 0]),
       );
       await db.batch([
         db.prepare("DELETE FROM projects WHERE id=? AND organization_id=? AND deleted_at=?").bind(projectId, organizationId, current.requestedAt),
-        db.prepare("UPDATE project_deletion_requests SET status='purged',purged_at=?,purged_by=?,purge_verification_json=? WHERE id=? AND organization_id=? AND status='recoverable'")
-          .bind(now, actorUserId, JSON.stringify(verification), requestId, organizationId),
+        db.prepare("UPDATE project_deletion_requests SET status='purged',purged_at=?,purged_by=?,backup_eligible_at=?,purge_verification_json=? WHERE id=? AND organization_id=? AND status='recoverable'")
+          .bind(now, actorUserId, backupEligibleAt, JSON.stringify(verification), requestId, organizationId),
       ]);
       const observedVerification: Record<string, number> = {};
       for (const table of PROJECT_CASCADE_TABLES) {
@@ -373,6 +434,147 @@ export function createD1DataProtectionRepository(
         projectId, deletionRequestId: requestId, cascadeTableCount: PROJECT_CASCADE_TABLES.length + 1, verified: true,
       });
       return evidence;
+    },
+
+    async listBackupExpiryExpectations(organizationId: string): Promise<readonly BackupExpiryExpectation[]> {
+      await ensureSchema(db);
+      return backupExpectations(organizationId);
+    },
+
+    async recordBackupExpiryEvidence(
+      organizationId: string,
+      actorUserId: string,
+      deletionRequestId: string,
+      evidenceRef: string,
+    ): Promise<BackupExpiryExpectation> {
+      await ensureSchema(db);
+      if (!/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,159}$/.test(evidenceRef))
+        throw new DataProtectionConflict("BACKUP_EXPIRY_EVIDENCE_INVALID");
+      const current = (await backupExpectations(organizationId)).find((item) => item.deletionRequestId === deletionRequestId);
+      if (!current) throw new DataProtectionConflict("BACKUP_EXPIRY_EXPECTATION_NOT_FOUND");
+      if (current.status === "pending") throw new DataProtectionConflict("BACKUP_EXPIRY_NOT_ELIGIBLE", { eligibleAt: current.eligibleAt });
+      if (current.status === "operator-evidence-recorded") {
+        if (current.evidenceRef !== evidenceRef)
+          throw new DataProtectionConflict("BACKUP_EXPIRY_EVIDENCE_CONFLICT");
+        return current;
+      }
+      const verifiedAt = clock();
+      const fingerprint = await sha256(JSON.stringify({ organizationId, actorUserId, deletionRequestId, evidenceRef, verifiedAt }));
+      await db.prepare("INSERT INTO backup_expiry_verifications (deletion_request_id,organization_id,project_id,eligible_at,evidence_ref,verified_at,verified_by,fingerprint) VALUES (?,?,?,?,?,?,?,?)")
+        .bind(deletionRequestId, organizationId, current.projectId, current.eligibleAt, evidenceRef, verifiedAt, actorUserId, fingerprint).run();
+      await audit(db, organizationId, actorUserId, "backup.expiry_operator_evidence_recorded", verifiedAt, {
+        projectId: current.projectId,
+        deletionRequestId,
+        eligibleAt: current.eligibleAt,
+        evidenceRef,
+        deletionClaimed: false,
+      });
+      const saved = (await backupExpectations(organizationId)).find((item) => item.deletionRequestId === deletionRequestId);
+      if (!saved) throw new DataProtectionConflict("BACKUP_EXPIRY_EVIDENCE_FAILED");
+      return saved;
+    },
+
+    async sweepRetention(limit = 50): Promise<RetentionSweepSummary> {
+      await ensureSchema(db);
+      if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+        throw new DataProtectionConflict("RETENTION_SWEEP_LIMIT_INVALID");
+      const startedAt = clock();
+      await db.prepare("DELETE FROM data_retention_purge_leases WHERE issued_at < ?")
+        .bind(new Date(Date.parse(startedAt) - 24 * 60 * 60 * 1_000).toISOString()).run();
+      const policies = await all(
+        db,
+        `SELECT o.id AS organization_id,
+          COALESCE(p.operational_sensitive_days,365) AS operational_sensitive_days,
+          COALESCE(p.security_evidence_days,400) AS security_evidence_days
+         FROM organizations o LEFT JOIN organization_retention_policies p ON p.organization_id=o.id
+         WHERE o.deleted_at IS NULL ORDER BY o.id`,
+      );
+      let remaining = limit;
+      let organizationsVisited = 0;
+      const deleted = { projects: 0, runbooks: 0, securityAuditEvents: 0, deletionEvidence: 0, backupEvidence: 0 };
+      for (const policy of policies) {
+        if (remaining === 0) break;
+        organizationsVisited += 1;
+        const before = { ...deleted };
+        const organizationId = String(policy.organization_id);
+        const operationalCutoff = new Date(Date.parse(startedAt) - Number(policy.operational_sensitive_days) * 86_400_000).toISOString();
+        const securityCutoff = new Date(Date.parse(startedAt) - Number(policy.security_evidence_days) * 86_400_000).toISOString();
+        const dueProjects = await all(
+          db,
+          "SELECT id,project_id FROM project_deletion_requests WHERE organization_id=? AND status='recoverable' AND recovery_until<=? ORDER BY recovery_until,id LIMIT ?",
+          organizationId,
+          startedAt,
+          remaining,
+        );
+        for (const row of dueProjects) {
+          await this.purgeProject(
+            organizationId,
+            String(row.project_id),
+            "system:data-retention",
+            String(row.id),
+          );
+          deleted.projects += 1;
+          remaining -= 1;
+        }
+        const runbooks = await all(
+          db,
+          `SELECT r.id,r.project_id FROM event_day_runbooks r
+           WHERE r.organization_id=? AND r.updated_at<?
+             AND NOT EXISTS (SELECT 1 FROM event_day_runbook_tasks t WHERE t.runbook_id=r.id AND t.updated_at>=?)
+             AND NOT EXISTS (SELECT 1 FROM live_occupancy_monitors m WHERE m.runbook_id=r.id AND m.updated_at>=?)
+             AND NOT EXISTS (SELECT 1 FROM event_day_incident_registers i WHERE i.runbook_id=r.id AND i.updated_at>=?)
+             AND NOT EXISTS (SELECT 1 FROM event_day_deviation_registers d WHERE d.runbook_id=r.id AND d.updated_at>=?)
+           ORDER BY r.updated_at,r.id LIMIT ?`,
+          organizationId, operationalCutoff, operationalCutoff, operationalCutoff, operationalCutoff, operationalCutoff, remaining,
+        );
+        for (const row of runbooks) {
+          const runbookId = String(row.id);
+          const projectId = String(row.project_id);
+          await db.batch([
+            db.prepare("INSERT INTO data_retention_purge_leases (runbook_id,organization_id,project_id,issued_at) VALUES (?,?,?,?)").bind(runbookId, organizationId, projectId, startedAt),
+            db.prepare("DELETE FROM event_day_runbooks WHERE id=? AND organization_id=? AND project_id=?").bind(runbookId, organizationId, projectId),
+            db.prepare("DELETE FROM data_retention_purge_leases WHERE runbook_id=? AND organization_id=?").bind(runbookId, organizationId),
+          ]);
+          deleted.runbooks += 1;
+          remaining -= 1;
+        }
+        const deleteBounded = async (table: "organization_audit_events" | "project_deletion_requests" | "backup_expiry_verifications", timestampColumn: string): Promise<number> => {
+          if (remaining === 0) return 0;
+          const terminalFilter = table === "project_deletion_requests"
+            ? " AND status IN ('recovered','purged') AND NOT EXISTS (SELECT 1 FROM backup_expiry_verifications v WHERE v.deletion_request_id=project_deletion_requests.id)"
+            : "";
+          const rows = await all(db, `SELECT ${table === "project_deletion_requests" ? "id" : table === "backup_expiry_verifications" ? "deletion_request_id AS id" : "id"} FROM ${table} WHERE organization_id=? AND ${timestampColumn}<?${terminalFilter} ORDER BY ${timestampColumn} LIMIT ?`, organizationId, securityCutoff, remaining);
+          const ids = rows.map((row) => String(row.id));
+          if (!ids.length) return 0;
+          const idColumn = table === "backup_expiry_verifications" ? "deletion_request_id" : "id";
+          await db.prepare(`DELETE FROM ${table} WHERE organization_id=? AND ${idColumn} IN (${ids.map(() => "?").join(",")})`).bind(organizationId, ...ids).run();
+          remaining -= ids.length;
+          return ids.length;
+        };
+        deleted.backupEvidence += await deleteBounded("backup_expiry_verifications", "verified_at");
+        deleted.deletionEvidence += await deleteBounded("project_deletion_requests", "COALESCE(purged_at,recovered_at,requested_at)");
+        deleted.securityAuditEvents += await deleteBounded("organization_audit_events", "occurred_at");
+        await audit(db, organizationId, "system:data-retention", "retention.sweep_completed", clock(), {
+          operationalCutoff,
+          securityCutoff,
+          deletedProjects: deleted.projects - before.projects,
+          deletedRunbooks: deleted.runbooks - before.runbooks,
+          deletedSecurityEvidence:
+            deleted.securityAuditEvents - before.securityAuditEvents +
+            deleted.deletionEvidence - before.deletionEvidence +
+            deleted.backupEvidence - before.backupEvidence,
+          batchLimit: limit,
+        });
+      }
+      return Object.freeze({
+        schemaVersion: 1,
+        startedAt,
+        completedAt: clock(),
+        limit,
+        deleted: Object.freeze({ ...deleted }),
+        organizationsVisited,
+        exhausted: remaining === 0,
+      });
     },
 
     async exportProject(organizationId: string, projectId: string, actorUserId: string) {

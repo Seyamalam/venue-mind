@@ -98,4 +98,51 @@ test("purge removes every Project aggregate through FKs and preserves auditable 
   assert.equal(await db.prepare("SELECT * FROM projects WHERE id='project-alpha'").first(), null);
   assert.equal((await db.prepare("SELECT COUNT(*) count FROM project_deletion_requests WHERE id=?").bind(requested.id).first()).count, 1);
   assert.equal((await db.prepare("SELECT COUNT(*) count FROM organization_audit_events WHERE event_type='project.deletion_purged'").first()).count, 1);
+  assert.equal((await repository.listBackupExpiryExpectations("org-alpha"))[0].status, "pending");
+  setNow("2026-10-04T00:00:00.001Z");
+  assert.equal((await repository.listBackupExpiryExpectations("org-alpha"))[0].status, "eligible");
+  const backupEvidence = await repository.recordBackupExpiryEvidence("org-alpha", "user-admin", requested.id, "drill:local-2026-10-04");
+  assert.equal(backupEvidence.status, "operator-evidence-recorded");
+  assert.equal(backupEvidence.claim, "eligibility-and-operator-evidence-only");
+  assert.match(backupEvidence.fingerprint, /^[0-9a-f]{64}$/);
+  assert.deepEqual(await repository.recordBackupExpiryEvidence("org-alpha", "user-admin", requested.id, "drill:local-2026-10-04"), backupEvidence);
+  await assert.rejects(
+    () => repository.recordBackupExpiryEvidence("org-alpha", "user-admin", requested.id, "drill:different"),
+    /BACKUP_EXPIRY_EVIDENCE_CONFLICT/,
+  );
+});
+
+test("retention sweep removes bounded old operational and security rows within each tenant", async (t) => {
+  const { db, repository, setNow } = await harness(); t.after(() => db.close());
+  await repository.setPolicy("org-alpha", "user-admin", { operationalSensitiveDays: 30, securityEvidenceDays: 90, projectRecoveryDays: 7 });
+  const old = "2025-01-01T00:00:00.000Z";
+  await db.batch([
+    db.prepare("INSERT INTO event_day_runbooks (id,organization_id,project_id,schema_version,source_plan_id,source_plan_version,source_plan_fingerprint,source_activity_ledger_head_hash,definition_json,frozen_by,frozen_at,updated_at,sequence,ledger_head_hash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)").bind("runbook-old", "org-alpha", "project-alpha", 1, "plan-alpha", "1", "fingerprint", "ledger-head", "{}", "user-admin", old, old, 0, "ledger-head"),
+    db.prepare("INSERT INTO organization_audit_events (id,organization_id,event_type,actor_user_id,details_json,fingerprint,occurred_at) VALUES (?,?,?,?,?,?,?)").bind("audit-old", "org-alpha", "old.event", "user-admin", "{}", "old-fingerprint", old),
+  ]);
+  setNow("2026-09-03T00:00:00.000Z");
+  const first = await repository.sweepRetention(1);
+  assert.equal(first.exhausted, true);
+  assert.equal(first.deleted.runbooks, 1);
+  assert.equal(await db.prepare("SELECT id FROM event_day_runbooks WHERE id='runbook-old'").first(), null);
+  assert.ok(await db.prepare("SELECT id FROM organization_audit_events WHERE id='audit-old'").first());
+  const second = await repository.sweepRetention(10);
+  assert.equal(second.deleted.securityAuditEvents, 1);
+  assert.equal(await db.prepare("SELECT id FROM organization_audit_events WHERE id='audit-old'").first(), null);
+  assert.equal((await db.prepare("SELECT COUNT(*) count FROM organization_audit_events WHERE event_type='retention.sweep_completed' AND organization_id='org-alpha'").first()).count, 2);
+  assert.equal((await db.prepare("SELECT COUNT(*) count FROM data_retention_purge_leases").first()).count, 0);
+});
+
+test("retention sweep purges due recoverable Projects under the same global batch bound", async (t) => {
+  const { db, repository, setNow } = await harness(); t.after(() => db.close());
+  await repository.setPolicy("org-alpha", "user-admin", { operationalSensitiveDays: 30, securityEvidenceDays: 90, projectRecoveryDays: 0 });
+  const requested = await repository.requestProjectDeletion("org-alpha", "project-alpha", "user-admin", 1, "CUSTOMER_REQUEST");
+  setNow("2026-09-03T00:00:00.001Z");
+  const summary = await repository.sweepRetention(1);
+  assert.equal(summary.exhausted, true);
+  assert.equal(summary.deleted.projects, 1);
+  assert.equal(await db.prepare("SELECT id FROM projects WHERE id='project-alpha'").first(), null);
+  const evidence = await db.prepare("SELECT status,purged_by FROM project_deletion_requests WHERE id=?").bind(requested.id).first();
+  assert.equal(evidence.status, "purged");
+  assert.equal(evidence.purged_by, "system:data-retention");
 });

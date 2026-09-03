@@ -26,7 +26,7 @@ class SqliteD1 {
 test("admin data-protection routes enforce exact bodies and return an immediate browser purge directive", async (t) => {
   const db = new SqliteD1(); t.after(() => db.close());
   const logs = [];
-  const now = "2026-09-03T00:00:00.000Z";
+  let now = "2026-09-03T00:00:00.000Z";
   const api = createWorker({
     secureCookies: false,
     clock: () => now,
@@ -88,6 +88,24 @@ test("admin data-protection routes enforce exact bodies and return an immediate 
     method: "POST", headers, body: JSON.stringify({ deletionRequestId: evidence.id, directiveId: evidence.cacheDirective.id }),
   }), env);
   assert.equal(ack.status, 200);
+  now = "2026-09-11T00:00:00.000Z";
+  const purge = await api.fetch(new Request("https://api.example.test/api/projects/project-alpha/deletion/purge", {
+    method: "POST", headers, body: JSON.stringify({ deletionRequestId: evidence.id }),
+  }), env);
+  assert.equal(purge.status, 200);
+  now = "2026-10-12T00:00:00.000Z";
+  const expectations = await api.fetch(new Request("https://api.example.test/api/data-protection/backup-expiry", { headers }), env);
+  assert.equal((await expectations.json()).expectations[0].status, "eligible");
+  const verified = await api.fetch(new Request("https://api.example.test/api/data-protection/backup-expiry/verify", {
+    method: "POST", headers, body: JSON.stringify({ deletionRequestId: evidence.id, evidenceRef: "drill:route-2026-10-12" }),
+  }), env);
+  assert.equal(verified.status, 200);
+  assert.equal((await verified.json()).claim, "eligibility-and-operator-evidence-only");
+  await db.prepare("INSERT INTO organization_audit_events (id,organization_id,event_type,actor_user_id,details_json,fingerprint,occurred_at) VALUES (?,?,?,?,?,?,?)")
+    .bind("audit-scheduled-old", session.activeOrganizationId, "old.event", session.user.id, "{}", "old-fingerprint", "2025-01-01T00:00:00.000Z").run();
+  await api.scheduled({}, env);
+  assert.equal(await db.prepare("SELECT id FROM organization_audit_events WHERE id='audit-scheduled-old'").first(), null);
+  assert.ok(logs.some((record) => record.event === "retention.sweep_completed"));
   assert.ok(logs.length >= 3);
   assert.doesNotMatch(JSON.stringify(logs), /admin@example|CUSTOMER_REQUEST/);
 });

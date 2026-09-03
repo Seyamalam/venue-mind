@@ -16,6 +16,9 @@
     "VENUEMIND_AUTH_MODE": "anonymous-demo",
     "VENUEMIND_APP_ORIGINS": "https://venue-mind-jet.vercel.app"
   },
+  "triggers": {
+    "crons": ["17 3 * * *"]
+  },
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1

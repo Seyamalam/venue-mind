@@ -31,10 +31,18 @@ Deleting a Project first creates a recoverable tombstone. Its browser cache is r
 
 Deleting an account immediately revokes sessions, suspends memberships, and anonymizes identity fields. Organization audit evidence retains opaque actor identifiers for integrity until its retention deadline.
 
+The Project store handles deletion as a server transaction, not a metadata edit. It sends the current Project ETag, removes the Project, synchronization base, and conflict-recovery keys from browser storage, then acknowledges the server-issued cache directive. A failed acknowledgement is surfaced as `PROJECT_CACHE_ACK_FAILED`; it never restores the removed cache.
+
+## Retention operations
+
+Organization administrators manage policy at `GET|PUT /api/data-protection/retention-policy`. The daily Worker schedule evaluates each active organization independently and deletes at most 50 eligible records per invocation. Due Project tombstones are purged first. Old Runbook roots are deleted only when the Runbook, tasks, occupancy monitor, incident register, and deviation register are all older than the operational cutoff. Foreign-key cascades remove their child receipts and ledgers under a short-lived, tenant-scoped purge lease. Old organization audit and completed deletion evidence use the security-evidence cutoff. Every visited organization receives a bounded sweep audit record with the applied cutoffs and counts.
+
+Backup expiry is an operator boundary, not an application deletion claim. `GET /api/data-protection/backup-expiry` reports eligibility 30 days after the actual D1 purge. After checking the provider-side retention state, an administrator may submit a non-secret evidence reference to `POST /api/data-protection/backup-expiry/verify`. VenueMind records immutable operator evidence with `claim: eligibility-and-operator-evidence-only`; it does not report that a Cloudflare backup was deleted.
+
 ## Secrets
 
 Production credentials belong in Vercel or Cloudflare encrypted environment-secret stores. VenueMind persists only validated opaque secret-reference names. There is no application database column or API for raw integration credentials.
 
 ## Verification
 
-The data-protection tests verify retention bounds, deletion coverage, collection boundaries, and log redaction. Database deletion tests verify the complete D1 cascade. Backup drills verify checksums and expiry expectations without copying secrets or downloaded exports.
+The data-protection tests verify retention bounds, strict admin routes, browser cache purge and acknowledgement, bounded tenant sweeps, deletion coverage, collection boundaries, and log redaction. Database deletion tests verify the complete D1 cascade. Backup drills verify eligibility, checksums, and immutable operator evidence without copying secrets or downloaded exports.
