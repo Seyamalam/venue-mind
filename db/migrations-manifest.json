@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "databaseSchemaVersion": 13,
+  "migrations": [
+    {
+      "version": 1,
+      "name": "initial_projects",
+      "checksum": "35c5016e7ae358e1a8f477845b742f6738661a43959baf78dfc8d3d98deabc18",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0001_initial_projects.sql",
+      "wrangler": "/db/wrangler/0001_initial_projects.sql",
+      "statementCount": 3
+    },
+    {
+      "version": 2,
+      "name": "project_lifecycle",
+      "checksum": "60b091a88ba6bfd1c5a327d7ba594e6c9d74e72579696e0057804bc9636e7f4b",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0002_project_lifecycle.sql",
+      "wrangler": "/db/wrangler/0002_project_lifecycle.sql",
+      "statementCount": 6
+    },
+    {
+      "version": 3,
+      "name": "accounts_and_tenancy",
+      "checksum": "9818dbe0d6e276af37e70d245f7c9558b1ad803458786ebef315e9af4ed10836",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0003_accounts_and_tenancy.sql",
+      "wrangler": "/db/wrangler/0003_accounts_and_tenancy.sql",
+      "statementCount": 17
+    },
+    {
+      "version": 4,
+      "name": "optimistic_concurrency",
+      "checksum": "bfac1ab0c7d6320045da6af0863e094ff270087262d56fa8507ab414a59b169b",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0004_optimistic_concurrency.sql",
+      "wrangler": "/db/wrangler/0004_optimistic_concurrency.sql",
+      "statementCount": 3
+    },
+    {
+      "version": 5,
+      "name": "realtime_collaboration",
+      "checksum": "9aaa50b1ee0f730ede2ba825a035471c2559cbd6dcb87524139822648478bea8",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0005_realtime_collaboration.sql",
+      "wrangler": "/db/wrangler/0005_realtime_collaboration.sql",
+      "statementCount": 4
+    },
+    {
+      "version": 6,
+      "name": "sharing_notifications",
+      "checksum": "b7271cddc304567f93e12c4177069a91187a2ab92a6ded865d5e625b8c05034d",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0006_sharing_notifications.sql",
+      "wrangler": "/db/wrangler/0006_sharing_notifications.sql",
+      "statementCount": 6
+    },
+    {
+      "version": 7,
+      "name": "sharing_delivery_integrity",
+      "checksum": "acab21ce5eb3565a9f9b322371a7bbd1d9efc09acac124f91a8c0cac0d438d1e",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0007_sharing_delivery_integrity.sql",
+      "wrangler": "/db/wrangler/0007_sharing_delivery_integrity.sql",
+      "statementCount": 23
+    },
+    {
+      "version": 8,
+      "name": "event_day_runbooks",
+      "checksum": "60c2ced659cdc107b6fb8d5eb0d80d70074f7a7cc903596404d435d7a4d3158b",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0008_event_day_runbooks.sql",
+      "wrangler": "/db/wrangler/0008_event_day_runbooks.sql",
+      "statementCount": 20
+    },
+    {
+      "version": 9,
+      "name": "live_occupancy",
+      "checksum": "1ce0ac407378f795c8a4a2e667574cb1e79d89bd6be06d1d8d24cde8690b0222",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0009_live_occupancy.sql",
+      "wrangler": "/db/wrangler/0009_live_occupancy.sql",
+      "statementCount": 3
+    },
+    {
+      "version": 10,
+      "name": "event_day_incident_registers",
+      "checksum": "7bf6326a405b1ff07cdddba95ecc4cdd55f42d5218a834d4e8378414f688be8a",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0010_event_day_incident_registers.sql",
+      "wrangler": "/db/wrangler/0010_event_day_incident_registers.sql",
+      "statementCount": 3
+    },
+    {
+      "version": 11,
+      "name": "live_plan_deviations",
+      "checksum": "155f05ed671127e2b39bb1baa1fca058468b41bdda217618cf5277461b02e4fb",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0011_live_plan_deviations.sql",
+      "wrangler": "/db/wrangler/0011_live_plan_deviations.sql",
+      "statementCount": 3
+    },
+    {
+      "version": 12,
+      "name": "post_event_reviews",
+      "checksum": "2e475db4832a0513de153e5008e4c403ddfef791fc827e6c84c50d5ca6cac477",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0012_post_event_reviews.sql",
+      "wrangler": "/db/wrangler/0012_post_event_reviews.sql",
+      "statementCount": 3
+    },
+    {
+      "version": 13,
+      "name": "api_rate_limits",
+      "checksum": "112cab88a7649c1f01e74511da187ac4ff29b25d33097f596691a0771aa7587a",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0013_api_rate_limits.sql",
+      "wrangler": "/db/wrangler/0013_api_rate_limits.sql",
+      "statementCount": 2
+    }
+  ]
+}
