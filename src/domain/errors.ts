@@ -305,6 +305,11 @@ export const errorCatalog = Object.freeze({
     "Tool payload exceeds its published size limit.",
     "Reduce the requested geometry or export payload and retry within the published byte limit.",
   ),
+  RESOURCE_LIMIT_EXCEEDED: define(
+    "RESOURCE_LIMIT_EXCEEDED",
+    "Product resource limit exceeded.",
+    "Reduce the bounded collection, geometry complexity, nesting depth, or payload size and retry.",
+  ),
   TOOL_CALL_CANCELLED: define(
     "TOOL_CALL_CANCELLED",
     "Tool call was cancelled.",

@@ -299,6 +299,11 @@
     "message": "Tool payload exceeds its published size limit.",
     "remediation": "Reduce the requested geometry or export payload and retry within the published byte limit."
   },
+  "RESOURCE_LIMIT_EXCEEDED": {
+    "code": "RESOURCE_LIMIT_EXCEEDED",
+    "message": "Product resource limit exceeded.",
+    "remediation": "Reduce the bounded collection, geometry complexity, nesting depth, or payload size and retry."
+  },
   "TOOL_CALL_CANCELLED": {
     "code": "TOOL_CALL_CANCELLED",
     "message": "Tool call was cancelled.",

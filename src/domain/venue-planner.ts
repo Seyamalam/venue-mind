@@ -48,6 +48,7 @@ import type { PlanningChange } from "./planning-effects.ts";
 import type { ObjectLock } from "./locks.ts";
 import type { VenueComment } from "./comments.ts";
 import type { ApprovalPolicy, VenuePrincipal } from "./authorization.ts";
+import { assertCollectionLimit, measureJsonResource, VENUE_RESOURCE_LIMITS } from "../security/resource-limits.ts";
 
 export interface PlannerCommand {
   type: string;
@@ -545,6 +546,39 @@ const restoreSnapshot = (snapshot: PlannerSnapshot): PlannerSnapshot => {
     !Array.isArray(restored.editHistory?.redo)
   )
     fail("collection-shape-invalid");
+  assertCollectionLimit("planner-restore", "plan-objects", restored.plan.objects.length, VENUE_RESOURCE_LIMITS.projectObjects);
+  assertCollectionLimit(
+    "planner-restore",
+    "plan-constraints",
+    restored.plan.constraints.length,
+    VENUE_RESOURCE_LIMITS.projectConstraints,
+  );
+  assertCollectionLimit(
+    "planner-restore",
+    "proposal-changes",
+    restored.proposal.changes.length,
+    VENUE_RESOURCE_LIMITS.proposalChanges,
+  );
+  assertCollectionLimit("planner-restore", "proposal-branches", restored.branches.length, VENUE_RESOURCE_LIMITS.proposalBranches);
+  assertCollectionLimit("planner-restore", "comments", restored.comments.length, VENUE_RESOURCE_LIMITS.comments);
+  assertCollectionLimit("planner-restore", "ledger-entries", restored.ledger.length, VENUE_RESOURCE_LIMITS.ledgerEntries);
+  assertCollectionLimit("planner-restore", "command-receipts", restored.receipts.length, VENUE_RESOURCE_LIMITS.commandReceipts);
+  assertCollectionLimit("planner-restore", "scenarios", restored.scenarios.length, VENUE_RESOURCE_LIMITS.scenarios);
+  assertCollectionLimit("planner-restore", "scenario-runs", restored.scenarioRuns.length, VENUE_RESOURCE_LIMITS.scenarioRuns);
+  for (const branch of restored.branches) {
+    assertCollectionLimit(
+      "planner-restore",
+      "branch-revisions",
+      branch.revisions.length,
+      VENUE_RESOURCE_LIMITS.branchRevisions,
+    );
+    assertCollectionLimit(
+      "planner-restore",
+      "branch-proposal-changes",
+      branch.proposal.changes.length,
+      VENUE_RESOURCE_LIMITS.proposalChanges,
+    );
+  }
   if (
     restored.ledger.some(
       (entry) =>
@@ -844,6 +878,28 @@ export function createVenuePlanner(
     operationalResourceFreshnessVerifier = null,
   }: PlannerFactoryOptions = {},
 ): VenuePlanner {
+  measureJsonResource(initialPlan, {
+    surface: "planner-initial-plan",
+    maximumBytes: VENUE_RESOURCE_LIMITS.projectRecordBytes,
+  });
+  assertCollectionLimit(
+    "planner-initial-plan",
+    "plan-objects",
+    initialPlan.objects.length,
+    VENUE_RESOURCE_LIMITS.projectObjects,
+  );
+  assertCollectionLimit(
+    "planner-initial-plan",
+    "plan-constraints",
+    initialPlan.constraints.length,
+    VENUE_RESOURCE_LIMITS.projectConstraints,
+  );
+  assertCollectionLimit(
+    "planner-initial-plan",
+    "proposal-changes",
+    initialPlan.proposal.changes.length,
+    VENUE_RESOURCE_LIMITS.proposalChanges,
+  );
   const durableInitialPlan =
     Object.keys(adapterPlanningBindings).length && initialPlan?.brief?.planningEffectBindings === undefined
       ? {
@@ -2586,6 +2642,13 @@ export function createVenuePlanner(
   function execute(command: PlannerCommand, options?: PlannerExecutionOptions): object | Promise<object>;
   function execute(command: PlannerCommand, options: PlannerExecutionOptions = {}): object | Promise<object> {
     if (!command || typeof command.type !== "string") throw venueError("COMMAND_INVALID");
+    measureJsonResource(command, {
+      surface: "planner-command",
+      maximumBytes:
+        command.type === "restore_snapshot"
+          ? VENUE_RESOURCE_LIMITS.plannerRestoreCommandBytes
+          : VENUE_RESOURCE_LIMITS.plannerCommandBytes,
+    });
     authorize(command, options);
     if (command.type === "run_scenario") return executeScenarioCommand(command);
     const pendingKey = command.idempotencyKey?.trim();

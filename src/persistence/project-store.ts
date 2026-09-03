@@ -8,6 +8,7 @@ import {
   type ProjectRecord,
   type SaveProjectInput,
 } from "../domain/project-types.ts";
+import { measureJsonResource, VENUE_RESOURCE_LIMITS } from "../security/resource-limits.ts";
 
 const STORAGE_PREFIX = "venuemind.organization.";
 
@@ -187,8 +188,12 @@ export function createProjectStore({
   const put = (
     record: LocalProjectRecord,
     { createOnly = false, correlationId }: Readonly<{ createOnly?: boolean; correlationId?: string }> = {},
-  ): Promise<Response> =>
-    fetchImpl(`/api/projects/${encodeURIComponent(record.id)}`, {
+  ): Promise<Response> => {
+    measureJsonResource(record, {
+      surface: "browser-project-save",
+      maximumBytes: VENUE_RESOURCE_LIMITS.projectRecordBytes,
+    });
+    return fetchImpl(`/api/projects/${encodeURIComponent(record.id)}`, {
       method: "PUT",
       credentials: "same-origin",
       headers: requestHeaders({
@@ -199,6 +204,7 @@ export function createProjectStore({
       }),
       body: JSON.stringify(record),
     });
+  };
 
   const resolveWriteResponse = async ({
     response,
