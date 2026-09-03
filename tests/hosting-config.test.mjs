@@ -18,6 +18,7 @@ test("production hosting keeps one frontend and one durable API boundary", async
       name: "venue-mind-production",
       migrationDirectory: "db/wrangler",
     },
+    staging: { service: "venue-mind-api-staging", database: "venue-mind-staging" },
     objectStorage: "disabled",
     securityHeaderCount: 8,
   });

@@ -5,6 +5,7 @@ VenueMind has one public application boundary and one durable data boundary:
 - `https://venue-mind-jet.vercel.app` serves the Next.js application and public agent documentation.
 - `https://venue-mind-api.seyamalam41.workers.dev` serves API requests only.
 - Cloudflare D1 database `venue-mind-production` stores durable product state for the Worker.
+- Cloudflare D1 database `venue-mind-staging` stores synthetic staging state for `venue-mind-api-staging`.
 - Object storage and file evidence are disabled. VenueMind does not require R2.
 
 The Vercel project domain is the stable production domain and includes managed HTTPS. A paid vanity domain is not a production prerequisite. The Worker must return `API_ROUTE_REQUIRED` for non-API paths, and Vercel is the sole frontend host.
@@ -41,3 +42,5 @@ The write smoke test uses the fixed `project-production-smoke` Project and an is
 Keep the previous verified Vercel deployment, Worker deployment version, D1 bookmark, and SQL export until both smoke commands pass. If an application deploy fails, restore the previous Vercel deployment and Worker version without reverting accepted data. If a migration causes a data-integrity failure, stop writes, capture a new bookmark and export, then use the documented D1 Time Travel procedure only after verifying the target bookmark. Re-run migration verification and both smoke tests after recovery.
 
 Never delete or rewrite an accepted Plan or Activity Ledger entry to make a rollback pass.
+
+The staging Worker is deployed with `npm run deploy:cloudflare:staging`. Its dedicated D1 binding must be migrated and verified before the production database. Staging accepts synthetic data only and never uses the production D1 database ID.

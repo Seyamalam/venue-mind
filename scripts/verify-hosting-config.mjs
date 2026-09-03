@@ -13,6 +13,8 @@ export async function verifyHostingConfig() {
   const worker = JSON.parse(workerSource);
   const vercel = JSON.parse(vercelSource);
   const database = worker.d1_databases?.find(({ binding }) => binding === "DB");
+  const staging = worker.env?.staging;
+  const stagingDatabase = staging?.d1_databases?.find(({ binding }) => binding === "DB");
 
   assert.equal(vercel.framework, "nextjs");
   assert.equal(vercel.buildCommand, "npm run build:vercel");
@@ -27,6 +29,14 @@ export async function verifyHostingConfig() {
   assert.equal("r2_buckets" in worker, false);
   assert.equal("assets" in worker, false);
   assert.equal("pages_build_output_dir" in worker, false);
+  assert.equal(staging?.name, "venue-mind-api-staging");
+  assert.equal(stagingDatabase?.database_name, "venue-mind-staging");
+  assert.match(stagingDatabase?.database_id ?? "", /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/u);
+  assert.equal(stagingDatabase?.migrations_dir, "db/wrangler");
+  assert.notEqual(stagingDatabase?.database_id, database.database_id);
+  assert.equal(staging?.vars?.VENUEMIND_AUTH_MODE, "anonymous-demo");
+  assert.equal("r2_buckets" in staging, false);
+  assert.equal("assets" in staging, false);
 
   const headers = await nextConfig.headers?.();
   const global = headers?.find(({ source }) => source === "/:path*")?.headers ?? [];
@@ -48,6 +58,7 @@ export async function verifyHostingConfig() {
     frontend: { provider: "vercel", framework: "nextjs", origin: worker.vars.VENUEMIND_APP_ORIGINS },
     api: { provider: "cloudflare-workers", service: worker.name },
     database: { provider: "cloudflare-d1", name: database.database_name, migrationDirectory: database.migrations_dir },
+    staging: { service: staging.name, database: stagingDatabase.database_name },
     objectStorage: "disabled",
     securityHeaderCount: global.length,
   };
