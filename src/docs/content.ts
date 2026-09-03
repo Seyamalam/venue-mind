@@ -740,7 +740,7 @@ export const docsPages: readonly PublishedDocsPage[] = contentPages.map((page) =
     ...page,
     description: page.summary,
     canonicalPath: page.slug === "overview" ? "/docs" : `/docs/${page.slug}`,
-    lastReviewedVersion: "VenueMind 0.7.0",
+    lastReviewedVersion: "VenueMind 1.0.0",
     audience: metadata?.audience ?? page.audience ?? [],
     compatibility: metadata?.compatibility ?? page.compatibility ?? [],
   };

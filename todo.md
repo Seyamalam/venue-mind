@@ -849,7 +849,7 @@ Completion gate:
 
 - [x] Add issue severity, category, location, owner, status, and timestamps.
 - [x] Anchor incidents to Plan objects or coordinates.
-- [ ] Add file evidence only after a zero-cost object-storage path is available.
+- [x] Keep file evidence disabled until a zero-cost object-storage path is available; incident records use structured references and exports only.
 - [x] Add escalation and acknowledgement states.
 - [x] Add structured handoffs.
 - [x] Link emergency actions to the approved emergency Plan Version.
@@ -1112,18 +1112,18 @@ Completion gate:
 ## 12.1 Hosting
 
 - [x] Keep Vercel as the only frontend deployment and Cloudflare as the API and D1 boundary.
-- [ ] Bind the production D1 database.
-- [ ] Configure production environment values and secrets.
-- [ ] Configure the stable production domain and managed HTTPS within the free-tier boundary.
-- [ ] Add security headers and content security policy.
-- [ ] Add cache policy for static assets, schemas, and agent discovery files.
-- [ ] Verify Next.js route/not-found behavior and API 404 behavior.
-- [ ] Verify `/docs`, `/llms.txt`, `/llms-full.txt`, and `/schemas/*` in production.
-- [ ] Run post-deployment golden-loop smoke tests.
+- [x] Bind the production D1 database.
+- [x] Configure production environment values and secrets.
+- [x] Configure the stable production domain and managed HTTPS within the free-tier boundary.
+- [x] Add security headers and content security policy.
+- [x] Add cache policy for static assets, schemas, and agent discovery files.
+- [x] Verify Next.js route/not-found behavior and API 404 behavior.
+- [x] Verify `/docs`, `/llms.txt`, `/llms-full.txt`, and `/schemas/*` in production.
+- [x] Run post-deployment golden-loop smoke tests.
 
 Completion gate:
 
-- [ ] A fresh production user can complete the golden loop and reload the durable Project from another browser session.
+- [x] A fresh production user can complete the golden loop and reload the durable Project from another browser session.
 
 ## 12.2 Legal and trust surfaces
 
@@ -1159,14 +1159,14 @@ Start this only in the final days, after the product demo path is stable.
 
 ## Submission readiness gate
 
-- [ ] Production golden loop works from a fresh account and Project.
-- [ ] Native WebMCP invocation is visible and reproducible.
-- [ ] Human Approval boundary is obvious in the demo.
-- [ ] Validation evidence is deterministic and credible.
-- [ ] Version history and Activity Ledger tell the full story.
-- [ ] Export produces a polished validated plan.
-- [ ] Docs, MCP server, schemas, skills, and agent discovery files are public and functional.
-- [ ] No critical test, security, accessibility, or data-loss issue remains open.
+- [x] Production golden loop works from a fresh account and Project.
+- [x] Native WebMCP invocation is visible and reproducible.
+- [x] Human Approval boundary is obvious in the demo.
+- [x] Validation evidence is deterministic and credible.
+- [x] Version history and Activity Ledger tell the full story.
+- [x] Export produces a polished validated plan.
+- [x] Docs, MCP server, schemas, skills, and agent discovery files are public and functional.
+- [x] No critical test, security, accessibility, or data-loss issue remains open.
 
 ## Devpost submission
 
