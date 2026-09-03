@@ -25,6 +25,13 @@ import {
 } from "../components/ui/alert-dialog";
 import { Button } from "../components/ui/button";
 import { writeClipboardText } from "./browser-platform";
+import {
+  loadProductAnalyticsMetrics,
+  productAnalyticsPreference,
+  setProductAnalyticsPreference,
+  type ProductAnalyticsPreference,
+} from "./analytics/product-analytics-client";
+import type { ProductAnalyticsMetrics } from "./analytics/product-analytics";
 import { Input } from "../components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import "./organization-settings.css";
@@ -69,6 +76,14 @@ export function OrganizationSettings({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [status, setStatus] = useState("SYNC");
+  const [analyticsPreference, setAnalyticsPreferenceState] = useState<ProductAnalyticsPreference>(() =>
+    productAnalyticsPreference(typeof window === "undefined" ? null : window.localStorage),
+  );
+  const [analyticsResult, setAnalyticsResult] = useState<Readonly<{
+    organizationId: string | null;
+    metrics: ProductAnalyticsMetrics | null;
+    status: string;
+  }>>({ organizationId: null, metrics: null, status: "LOAD" });
 
   const refresh = useCallback(async () => {
     if (!administrator) {
@@ -92,6 +107,34 @@ export function OrganizationSettings({
   useEffect(() => {
     void Promise.resolve().then(refresh);
   }, [refresh]);
+  useEffect(() => {
+    if (!administrator) return;
+    let active = true;
+    void loadProductAnalyticsMetrics(organizationId)
+      .then((metrics) => {
+        if (!active) return;
+        setAnalyticsResult({ organizationId, metrics, status: "SYNCED" });
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setAnalyticsResult({ organizationId, metrics: null, status: codeFor(error) });
+      });
+    return () => {
+      active = false;
+    };
+  }, [administrator, organizationId]);
+
+  const toggleAnalytics = () => {
+    const next = analyticsPreference === "enabled" ? "disabled" : "enabled";
+    setProductAnalyticsPreference(window.localStorage, next);
+    setAnalyticsPreferenceState(next);
+  };
+  const analyticsMetrics = analyticsResult.organizationId === organizationId ? analyticsResult.metrics : null;
+  const analyticsStatus = !administrator
+    ? "ADMIN ONLY"
+    : analyticsResult.organizationId === organizationId
+      ? analyticsResult.status
+      : "LOAD";
 
   const invite = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -377,6 +420,53 @@ export function OrganizationSettings({
                 </AlertDialogContent>
               </AlertDialog>
             </div>
+          </article>
+
+          <article className="analytics-settings">
+            <div className="settings-heading">
+              <span>PRODUCT ANALYTICS</span>
+              <strong>{analyticsPreference === "enabled" ? "ON" : "OFF"}</strong>
+            </div>
+            <div className="analytics-controls">
+              <Button
+                className="account-action-button analytics-toggle"
+                type="button"
+                aria-pressed={analyticsPreference === "enabled"}
+                onClick={toggleAnalytics}
+              >
+                {analyticsPreference === "enabled" ? "OPT OUT" : "OPT IN"}
+              </Button>
+              <code>{analyticsStatus}</code>
+            </div>
+            {administrator && analyticsMetrics && (
+              <div className="analytics-metrics">
+                <div className="analytics-summary">
+                  <span>
+                    <small>WINDOW</small>
+                    <strong>{analyticsMetrics.windowDays}D</strong>
+                  </span>
+                  <span>
+                    <small>EVENTS</small>
+                    <strong>{analyticsMetrics.totals.reduce((sum, metric) => sum + metric.count, 0)}</strong>
+                  </span>
+                </div>
+                <div className="analytics-boundary">
+                  <code>FRICTION ONLY</code>
+                  <code>AUTH NONE</code>
+                  <code>SUPERVISION UNCHANGED</code>
+                </div>
+                {analyticsMetrics.totals.map((metric) => (
+                  <div
+                    className="analytics-metric-row"
+                    key={`${metric.eventName}:${metric.outcome}:${metric.stage}:${metric.errorCategory ?? "none"}`}
+                  >
+                    <strong>{metric.eventName.toUpperCase()}</strong>
+                    <code>{metric.outcome.toUpperCase()}</code>
+                    <span>{metric.count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </article>
         </section>
 

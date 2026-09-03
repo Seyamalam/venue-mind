@@ -143,6 +143,56 @@ export const productAnalyticsInterpretation = Object.freeze({
   supervisionPolicy: "unchanged",
 } as const);
 
+export const decodeProductAnalyticsMetrics = (value: unknown): ProductAnalyticsMetrics => {
+  if (!isRecord(value)) throw new TypeError("PRODUCT_ANALYTICS_METRICS_INVALID");
+  const keys = Object.keys(value).sort().join("|");
+  if (keys !== ["fromDay", "interpretation", "schemaVersion", "throughDay", "totals", "windowDays"].join("|"))
+    throw new TypeError("PRODUCT_ANALYTICS_METRICS_INVALID");
+  const interpretation = value["interpretation"];
+  if (
+    value["schemaVersion"] !== PRODUCT_ANALYTICS_SCHEMA_VERSION ||
+    typeof value["windowDays"] !== "number" ||
+    !Number.isSafeInteger(value["windowDays"]) ||
+    value["windowDays"] < 1 ||
+    value["windowDays"] > PRODUCT_ANALYTICS_MAX_WINDOW_DAYS ||
+    typeof value["fromDay"] !== "string" ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(value["fromDay"]) ||
+    typeof value["throughDay"] !== "string" ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(value["throughDay"]) ||
+    !Array.isArray(value["totals"]) ||
+    !isRecord(interpretation) ||
+    Object.keys(interpretation).sort().join("|") !==
+      ["automationAuthority", "purpose", "supervisionPolicy"].join("|") ||
+    interpretation["purpose"] !== productAnalyticsInterpretation.purpose ||
+    interpretation["automationAuthority"] !== productAnalyticsInterpretation.automationAuthority ||
+    interpretation["supervisionPolicy"] !== productAnalyticsInterpretation.supervisionPolicy
+  )
+    throw new TypeError("PRODUCT_ANALYTICS_METRICS_INVALID");
+  const totals = value["totals"].map((item): ProductAnalyticsMetric => {
+    if (!isRecord(item) || Object.keys(item).sort().join("|") !== [...exactKeys, "count"].sort().join("|"))
+      throw new TypeError("PRODUCT_ANALYTICS_METRICS_INVALID");
+    const count = item["count"];
+    if (typeof count !== "number" || !Number.isSafeInteger(count) || count < 1)
+      throw new TypeError("PRODUCT_ANALYTICS_METRICS_INVALID");
+    const event = decodeProductAnalyticsEvent({
+      schemaVersion: item["schemaVersion"],
+      eventName: item["eventName"],
+      outcome: item["outcome"],
+      stage: item["stage"],
+      errorCategory: item["errorCategory"],
+    });
+    return Object.freeze({ ...event, count });
+  });
+  return Object.freeze({
+    schemaVersion: PRODUCT_ANALYTICS_SCHEMA_VERSION,
+    windowDays: value["windowDays"],
+    fromDay: value["fromDay"],
+    throughDay: value["throughDay"],
+    totals: Object.freeze(totals),
+    interpretation: productAnalyticsInterpretation,
+  });
+};
+
 export const productAnalyticsErrorCategory = (
   error: unknown,
   fallback: ProductAnalyticsErrorCategory = "unknown",
