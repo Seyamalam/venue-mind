@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { BellIcon as Bell, LinkSimpleIcon as LinkSimple } from "@phosphor-icons/react";
 import { Button } from "../components/ui/button";
+import { writeClipboardText } from "./browser-platform";
 import { Popover, PopoverTrigger } from "../components/ui/popover";
 import {
   NOTIFICATION_EVENT_TYPES,
@@ -249,7 +250,7 @@ export function SharingControls({ projectId, organizationId, proposalId, canMana
                     void create();
                   }}
                   onCopy={() => {
-                    void navigator.clipboard?.writeText(createdUrl);
+                    void writeClipboardText(createdUrl);
                   }}
                   onRevoke={(id) => {
                     void revoke(id);

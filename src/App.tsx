@@ -115,6 +115,8 @@ import { createPostEventReviewStore, type PostEventReviewOutboxCommand } from ".
 import { createPostEventReviewRemote } from "./persistence/post-event-review-remote";
 import { synchronizePostEventReview } from "./persistence/post-event-review-sync";
 import { registerVenueTools } from "./webmcp/register-venue-tools";
+import { writeClipboardText } from "./browser-platform";
+import { useWorkspaceViewport } from "./use-workspace-viewport";
 import type { RegisterVenueToolOptions, ToolRegistrationLifecycle } from "./webmcp/register-venue-tools";
 import type { WebMcpPlanner } from "./webmcp/tool-runtime";
 import type { IncidentOperations, OccupancyOperations, PostEventOperations } from "./tools/venue-tool-service";
@@ -280,7 +282,7 @@ function ToolRegistration({
     const modelContext = document.modelContext;
     if (typeof modelContext?.registerTool !== "function") {
       onLifecycle({
-        state: "failed",
+        state: "unregistered",
         registered: 0,
         total: venueToolContracts.length,
         errorCode: "WEBMCP_UNSUPPORTED",
@@ -843,6 +845,9 @@ export function App({
   accountStore,
   navigate = browserNavigate,
 }: AppProps) {
+  const workspaceViewport = useWorkspaceViewport();
+  const canEditLayout = workspaceViewport === "desktop";
+  const canDecideProposal = workspaceViewport !== "mobile";
   const organizationRoles = useMemo<readonly string[]>(
     () =>
       account?.organizations.find((organization) => organization.id === organizationId)?.roles ?? [
@@ -1004,6 +1009,7 @@ export function App({
   const [briefFilter, setBriefFilter] = useState("all");
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
+  const editorActive = canEditLayout && editorOpen;
   const [waiverReason, setWaiverReason] = useState("operational-acceptance");
   const [emergencyReviewerId, setEmergencyReviewerId] = useState("");
   const [emergencyReviewerRole, setEmergencyReviewerRole] = useState("safety-officer");
@@ -2384,8 +2390,9 @@ export function App({
   };
 
   const handleCopyRunbookHandoff = (handoff: RunbookHandoffView) => {
-    void navigator.clipboard?.writeText(JSON.stringify(handoff, null, 2));
-    notify("HANDOFF COPIED");
+    void writeClipboardText(JSON.stringify(handoff, null, 2)).then((method) => {
+      notify(method === "unavailable" ? "COPY UNAVAILABLE" : "HANDOFF COPIED");
+    });
   };
 
   const handleExportRunbook = () => {
@@ -3917,7 +3924,7 @@ export function App({
   };
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell workspace-${workspaceViewport}`} data-workspace-mode={workspaceViewport}>
       <ToolRegistration
         planner={planner}
         projectStore={projectStore}
@@ -4068,6 +4075,7 @@ export function App({
               </PopoverContent>
             </div>
           </Popover>
+          {workspaceViewport === "mobile" && <span className="read-only-chip">READ ONLY</span>}
           <HeaderButton
             ref={historyTriggerRef}
             className="history-button"
@@ -4090,13 +4098,15 @@ export function App({
             </span>
             <CaretDown size={14} />
           </HeaderButton>
-          <HeaderButton
-            className={`edit-button ${editorOpen ? "is-active" : ""}`}
-            ariaLabel="Toggle plan editor"
-            onClick={() => setEditorOpen((open) => !open)}
-          >
-            {editorOpen ? "REVIEW" : "EDIT"}
-          </HeaderButton>
+          {canEditLayout && (
+            <HeaderButton
+              className={`edit-button ${editorActive ? "is-active" : ""}`}
+              ariaLabel="Toggle plan editor"
+              onClick={() => setEditorOpen((open) => !open)}
+            >
+              {editorActive ? "REVIEW" : "EDIT"}
+            </HeaderButton>
+          )}
           <HeaderButton
             className={`comments-button ${commentsOpen ? "is-active" : ""}`}
             ariaLabel="Open comments"
@@ -4353,9 +4363,11 @@ export function App({
           <section className="brief-section">
             <div className="eyebrow-row">
               <span className="eyebrow">Event brief</span>
-              <Button type="button" variant="ghost" size="xs" className="text-button" onClick={openBriefEditor}>
-                Edit
-              </Button>
+              {canEditLayout && (
+                <Button type="button" variant="ghost" size="xs" className="text-button" onClick={openBriefEditor}>
+                  Edit
+                </Button>
+              )}
             </div>
             <h1>{plannerState.plan.event.program}</h1>
             <p className="attendee-count">
@@ -4594,7 +4606,7 @@ export function App({
               </div>
             )}
 
-            <div className="decision-actions">
+            {canDecideProposal && <div className="decision-actions">
               <Button
                 className={`primary-action ${proposalState === "approved" ? "is-approved" : ""}`}
                 type="button"
@@ -4630,12 +4642,12 @@ export function App({
               >
                 <ChatCircle size={20} /> Request adjustment
               </Button>
-            </div>
+            </div>}
           </section>
         </aside>
 
         <section className="canvas-column" aria-label="Venue plan workspace">
-          <div className={`plan-canvas mode-${viewMode} state-${proposalState} ${editorOpen ? "is-editing" : ""}`}>
+          <div className={`plan-canvas mode-${viewMode} state-${proposalState} ${editorActive ? "is-editing" : ""}`}>
             {projectId === "project-summit-forward" ? (
               <Image
                 className="floorplan-image"
@@ -4820,7 +4832,7 @@ export function App({
                 <i>{simulationOverlay.frame.peakDensityPersonsPerM2} P/M²</i>
               </div>
             )}
-            {!editorOpen && (
+            {!editorActive && (
               <svg className="annotation-overlay" viewBox="0 0 30 20" aria-label="Coordinate comments">
                 <AnnotationPins
                   comments={plannerState.comments}
@@ -4832,7 +4844,7 @@ export function App({
               </svg>
             )}
 
-            {editorOpen && (
+            {editorActive && (
               <Suspense
                 fallback={
                   <div className="panel-loading" role="status">
@@ -4861,7 +4873,7 @@ export function App({
               </Suspense>
             )}
 
-            {!editorOpen && (
+            {!editorActive && (
               <div className="proposal-overlays" aria-label="Agent proposal changes">
                 {changes.map((change, index) => {
                   const conflict = lockConflicts.find((item) => item.changeId === change.id);

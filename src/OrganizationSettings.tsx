@@ -24,6 +24,7 @@ import {
   AlertDialogTrigger,
 } from "../components/ui/alert-dialog";
 import { Button } from "../components/ui/button";
+import { writeClipboardText } from "./browser-platform";
 import { Input } from "../components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import "./organization-settings.css";
@@ -269,7 +270,7 @@ export function OrganizationSettings({
                   className="invite-copy-button"
                   type="button"
                   onClick={() => {
-                    void navigator.clipboard?.writeText(inviteToken);
+                    void writeClipboardText(inviteToken);
                   }}
                 >
                   COPY

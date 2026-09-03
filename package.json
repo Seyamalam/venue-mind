@@ -47,6 +47,7 @@
     "test:worker": "npm run build:worker && node --test tests/worker-api.test.mjs",
     "test:skills": "npm run build:skills && node --test tests/skills.test.mjs",
     "test:tutorials": "node scripts/verify-tutorials.mjs",
+    "test:browser": "node --test tests/browser-platform.test.mjs tests/responsive-browser-ui.test.mjs",
     "validate:skills": "node scripts/validate-skills.mjs",
     "prepare": "husky"
   },

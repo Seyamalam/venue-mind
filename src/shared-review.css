@@ -32,7 +32,21 @@
 .shared-review-grid li small { color: #7163ae; font: 650 7px ui-monospace, SFMono-Regular, Menlo, monospace; }
 
 @media (max-width: 760px) {
-  .shared-review-heading { grid-template-columns: 1fr 1fr; }
+  .shared-review > header { height: 56px; padding-inline: 18px; }
+  .shared-review-heading { grid-template-columns: 1fr 1fr; gap: 18px; padding: 30px 20px 20px; }
   .shared-review-heading span:first-child { grid-column: 1 / -1; }
-  .shared-review-grid { grid-template-columns: 1fr; }
+  .shared-review-grid { grid-template-columns: 1fr; padding: 0 20px 40px; }
+  .shared-review-grid article { min-height: 0; }
+}
+
+@media (pointer: coarse) {
+  .shared-review :is(a, button) { min-height: 44px; }
+}
+
+@media print {
+  .shared-review { background: white; }
+  .shared-review > header { display: none; }
+  .shared-review-heading { padding-top: 0; }
+  .shared-review-grid { padding-bottom: 0; }
+  .shared-review-grid article { break-inside: avoid; box-shadow: none; }
 }

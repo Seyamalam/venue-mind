@@ -120,7 +120,7 @@ export function DocsPage({ page, pages }: { page: DocsPageData; pages: readonly 
   return (
     <div className="docs-shell">
       <header className="docs-header">
-        <Link href={{ pathname: "/docs/[[...slug]]", query: {} }} className="docs-brand">
+        <Link href={{ pathname: "/docs" }} className="docs-brand">
           <Image src="/assets/venuemind-mark.webp" alt="" width={32} height={32} />
           <strong>VenueMind</strong>
           <span>Docs</span>
@@ -170,7 +170,7 @@ export function DocsPage({ page, pages }: { page: DocsPageData; pages: readonly 
             <span>Reviewed for {page.lastReviewedVersion}</span>
           </div>
           {page.slug === "overview" && (
-            <Link href={{ pathname: "/docs/[[...slug]]", query: { slug: ["quickstart"] } }} className="docs-cta">
+            <Link href={{ pathname: "/docs/quickstart" }} className="docs-cta">
               <TerminalWindow size={18} />
               Quickstart
               <ArrowRight size={16} />
