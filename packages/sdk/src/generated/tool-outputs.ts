@@ -1319,6 +1319,50 @@ export interface VenueMindToolOutputMap {
     mimeType: "application/json";
     content: string;
   };
+  "venue.inspect_live_plan_deviations": {
+    register: VenueMindLivePlanDeviationRegister;
+    deviations: VenueMindLivePlanDeviation[];
+    overlay: VenueMindLivePlanDeviationOverlay;
+  };
+  "venue.record_live_plan_deviation": {
+    register: VenueMindLivePlanDeviationRegister;
+    deviation: VenueMindLivePlanDeviation | null;
+    proposal: {
+      [k: string]: unknown;
+    } | null;
+    receipt: {
+      [k: string]: unknown;
+    };
+    duplicate: boolean;
+  };
+  "venue.end_live_plan_deviation": {
+    register: VenueMindLivePlanDeviationRegister;
+    deviation: VenueMindLivePlanDeviation | null;
+    proposal: {
+      [k: string]: unknown;
+    } | null;
+    receipt: {
+      [k: string]: unknown;
+    };
+    duplicate: boolean;
+  };
+  "venue.create_post_event_deviation_proposal": {
+    register: VenueMindLivePlanDeviationRegister;
+    deviation: VenueMindLivePlanDeviation | null;
+    proposal: {
+      [k: string]: unknown;
+    } | null;
+    receipt: {
+      [k: string]: unknown;
+    };
+    duplicate: boolean;
+  };
+  "venue.export_live_plan_deviations": {
+    filename: string;
+    mediaType: "application/json";
+    content: string;
+    fingerprint: string;
+  };
   "venue.export_audit_package": VenueMindPlanExport;
   "venue.export_plan": VenueMindPlanExport;
 }
@@ -2411,6 +2455,127 @@ export interface VenueMindIncidentLocationContext {
   point?: {
     x: number;
     y: number;
+  };
+}
+export interface VenueMindLivePlanDeviationRegister {
+  schemaVersion: 1;
+  id: string;
+  projectId: string;
+  runbookVersionId: string;
+  source: {
+    [k: string]: unknown;
+  };
+  baseline: {
+    [k: string]: unknown;
+  };
+  deviations: VenueMindLivePlanDeviation[];
+  recommendations: {
+    [k: string]: unknown;
+  }[];
+  transitions: {
+    [k: string]: unknown;
+  }[];
+  receipts: {
+    [k: string]: unknown;
+  }[];
+  ledger: {
+    [k: string]: unknown;
+  }[];
+  revision: number;
+  createdAt: string;
+  createdBy: string;
+  updatedAt: string;
+}
+export interface VenueMindLivePlanDeviation {
+  schemaVersion: 1;
+  id: string;
+  sequence: number;
+  revision: number;
+  runbookVersionId: string;
+  disposition: "temporary" | "revision-candidate";
+  status: "active" | "ended";
+  reasonCode: string;
+  location: {
+    [k: string]: unknown;
+  };
+  /**
+   * @minItems 1
+   */
+  affectedObjectIds: [string, ...string[]];
+  change: {
+    id: string;
+    number?: number;
+    title?: string;
+    shortTitle?: string;
+    label?: string;
+    editor?: {
+      [k: string]: unknown;
+    };
+    metrics?: [string, string][];
+    /**
+     * @minItems 1
+     * @maxItems 100
+     */
+    targetObjectIds: [string, ...string[]];
+    /**
+     * @maxItems 100
+     */
+    targetRequirementIds?: string[];
+    effects?: {
+      [k: string]: unknown;
+    };
+    planningEffects?: {
+      [k: string]: unknown;
+    }[];
+    /**
+     * @minItems 1
+     * @maxItems 100
+     */
+    spatialEffects: [
+      {
+        [k: string]: unknown;
+      },
+      ...{
+        [k: string]: unknown;
+      }[]
+    ];
+    semantic?: {
+      [k: string]: unknown;
+    };
+    lineage?: {
+      [k: string]: unknown;
+    };
+    templateUpdate?: {
+      [k: string]: unknown;
+    };
+  };
+  objectLineage: {
+    [k: string]: unknown;
+  }[];
+  validation: {
+    [k: string]: unknown;
+  };
+  authored: {
+    [k: string]: unknown;
+  };
+  ended: {
+    [k: string]: unknown;
+  } | null;
+}
+export interface VenueMindLivePlanDeviationOverlay {
+  registerId: string;
+  registerRevision: number;
+  runbookVersionId: string;
+  acceptedPlanId: string;
+  acceptedPlanVersion: string | number;
+  acceptedPlanFingerprint: string;
+  activeDeviationIds: string[];
+  overlayPlan: {
+    [k: string]: unknown;
+  };
+  overlayFingerprint: string;
+  validation: {
+    [k: string]: unknown;
   };
 }
 export interface VenueMindPlanExport {

@@ -75,6 +75,13 @@ export interface IncidentOperations {
   reportIncident: Operation;
   exportIncidentRecord: Operation;
 }
+export interface DeviationOperations {
+  inspectLivePlanDeviations: Operation;
+  recordLivePlanDeviation: Operation;
+  endLivePlanDeviation: Operation;
+  createPostEventDeviationProposal: Operation;
+  exportLivePlanDeviations: Operation;
+}
 export interface AuthorizationProviderContext {
   readonly name: VenueToolName;
   readonly input: VenueToolInput;
@@ -92,6 +99,7 @@ export interface VenueToolServiceOptions {
   readonly projectOperations?: ProjectOperations;
   readonly occupancyOperations?: Partial<OccupancyOperations>;
   readonly incidentOperations?: Partial<IncidentOperations>;
+  readonly deviationOperations?: Partial<DeviationOperations>;
   readonly authorization?: ToolAuthorization;
   readonly authorizationProvider?: (context: AuthorizationProviderContext) => MaybePromise<ToolAuthorization>;
   readonly recordAuthorizationDenial?: (denial: AuthorizationDenial) => MaybePromise<void>;
@@ -128,6 +136,7 @@ export function createVenueToolService({
   projectOperations,
   occupancyOperations,
   incidentOperations,
+  deviationOperations,
   authorization: defaultAuthorization = TRUSTED_LOCAL_AUTHORIZATION,
   authorizationProvider,
   recordAuthorizationDenial,
@@ -221,6 +230,25 @@ export function createVenueToolService({
               ? incidentOperations?.reportIncident
               : incidentOperations?.exportIncidentRecord;
         if (!operation) throw venueError("INCIDENT_TOOL_UNAVAILABLE", { toolName: name });
+        output = await operation(input, operationContext);
+      } else if (
+        name === "venue.inspect_live_plan_deviations" ||
+        name === "venue.record_live_plan_deviation" ||
+        name === "venue.end_live_plan_deviation" ||
+        name === "venue.create_post_event_deviation_proposal" ||
+        name === "venue.export_live_plan_deviations"
+      ) {
+        const operation =
+          name === "venue.inspect_live_plan_deviations"
+            ? deviationOperations?.inspectLivePlanDeviations
+            : name === "venue.record_live_plan_deviation"
+              ? deviationOperations?.recordLivePlanDeviation
+              : name === "venue.end_live_plan_deviation"
+                ? deviationOperations?.endLivePlanDeviation
+                : name === "venue.create_post_event_deviation_proposal"
+                  ? deviationOperations?.createPostEventDeviationProposal
+                  : deviationOperations?.exportLivePlanDeviations;
+        if (!operation) throw venueError("DEVIATION_TOOL_UNAVAILABLE", { toolName: name });
         output = await operation(input, operationContext);
       } else {
         output = await executeCommand(commandForVenueTool(name, input, source), operationContext);

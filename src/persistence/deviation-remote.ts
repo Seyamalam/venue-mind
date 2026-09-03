@@ -8,8 +8,9 @@ import {
 
 export interface DeviationExportArtifact {
   readonly filename: string;
-  readonly mimeType: "application/json";
+  readonly mediaType: "application/json";
   readonly content: string;
+  readonly fingerprint: string;
 }
 export interface DeviationRemoteResult {
   readonly status?: "created" | "already-applied";
@@ -68,8 +69,9 @@ const isProposal = (value: unknown): value is VenueProposal =>
 const isArtifact = (value: unknown): value is DeviationExportArtifact =>
   isRecord(value) &&
   isNonEmptyString(value["filename"]) &&
-  value["mimeType"] === "application/json" &&
-  typeof value["content"] === "string";
+  value["mediaType"] === "application/json" &&
+  typeof value["content"] === "string" &&
+  isNonEmptyString(value["fingerprint"]);
 
 const invalidResponse = (message: string): never => {
   throw new DeviationRemoteError(message, "DEVIATION_RESPONSE_INVALID", 502, {});

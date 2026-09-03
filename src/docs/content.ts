@@ -108,7 +108,7 @@ const contentPages: readonly DocsPage[] = [
         title: "Runtime boundary",
         blocks: [
           bullets(
-            "Contract version 1.4.0 is attached to every published tool.",
+            "Contract version 1.5.0 is attached to every published tool.",
             "Lifecycle states: detecting, registering, ready, failed, unsupported, unregistered.",
             "Every invocation returns a compact text summary and versioned structured content.",
             "Mutation receipts retain caller idempotency and correlation metadata.",
@@ -161,7 +161,7 @@ const contentPages: readonly DocsPage[] = [
         title: "Protocol surfaces",
         blocks: [
           bullets(
-            "46 tools generated from one shared contract source across WebMCP and standalone MCP.",
+            "51 tools generated from one shared contract source across WebMCP and standalone MCP.",
             "Current Project, Plan Version, Proposal, schema, documentation, and compatibility resources.",
             "Project and Plan Version resource templates with completion.",
             "Supervised planning and Plan audit prompts.",
@@ -238,11 +238,11 @@ const contentPages: readonly DocsPage[] = [
         title: "Compatibility",
         blocks: [
           bullets(
-            "MCP server 0.6.0.",
+            "MCP server 0.7.0.",
             "Preferred protocol revision 2026-07-28.",
             "Minimum supported revision 2025-03-26.",
-            "Tool contract 1.4.0.",
-            "Approval, Occupancy Alert acknowledgement, and Incident response authority: human-only.",
+            "Tool contract 1.5.0.",
+            "Approval, Occupancy Alert acknowledgement, and Incident response authority: human-only. Live Plan Deviation tools create records and review-state post-event Proposals only.",
           ),
         ],
       },
@@ -262,7 +262,7 @@ const contentPages: readonly DocsPage[] = [
     group: "Agents",
     title: "Agent skills",
     eyebrow: "Reusable planning behavior",
-    summary: "Six versioned skill packages teach supervised VenueMind workflows against tool contract 1.4.0.",
+    summary: "Six versioned skill packages teach supervised VenueMind workflows against tool contract 1.5.0.",
     sections: [
       {
         id: "plan-skill",
@@ -511,6 +511,18 @@ const contentPages: readonly DocsPage[] = [
     summary: "Visible changes to VenueMind contracts, workflows, compatibility, and operational guidance.",
     sections: [
       {
+        id: "tool-contract-1-5-0",
+        title: "Tool contract 1.5.0",
+        blocks: [
+          bullets(
+            "Added shared Live Plan Deviation inspection, recording, ending, post-event Proposal, and verified export tools.",
+            "Kept the approved Plan immutable; live Changes exist only in the Deviation overlay until a human approves a later Proposal through Studio.",
+            "Added exact Deviation schemas, retry-safe browser persistence, MCP Project-session support, typed SDK methods, WebMCP parity, and event-day skill guidance.",
+            "Updated MCP 0.7.0, schemas, examples, llms.txt, llms-full.txt, and the generated documentation catalog together.",
+          ),
+        ],
+      },
+      {
         id: "tool-contract-1-4-0",
         title: "Tool contract 1.4.0",
         blocks: [
@@ -681,19 +693,19 @@ const metadataBySlug: Readonly<
 > = {
   overview: {
     audience: ["operators", "developers", "agents"],
-    compatibility: ["Project schema 10", "Tool contract 1.4.0"],
+    compatibility: ["Project schema 10", "Tool contract 1.5.0"],
   },
-  quickstart: { audience: ["operators", "developers"], compatibility: ["MCP 0.6.0", "Tool contract 1.4.0"] },
+  quickstart: { audience: ["operators", "developers"], compatibility: ["MCP 0.7.0", "Tool contract 1.5.0"] },
   concepts: {
     audience: ["operators", "developers", "agents"],
     compatibility: ["Project schema 10", "Validation 2.7.0"],
   },
-  webmcp: { audience: ["agent integrators", "developers"], compatibility: ["WebMCP 1.4.0", "46 tools"] },
-  mcp: { audience: ["agent integrators", "developers"], compatibility: ["MCP 0.6.0", "Protocol 2026-07-28"] },
-  skills: { audience: ["agents", "developers"], compatibility: ["Skills 1.3.0", "Tool contract 1.4.0"] },
+  webmcp: { audience: ["agent integrators", "developers"], compatibility: ["WebMCP 1.5.0", "51 tools"] },
+  mcp: { audience: ["agent integrators", "developers"], compatibility: ["MCP 0.7.0", "Protocol 2026-07-28"] },
+  skills: { audience: ["agents", "developers"], compatibility: ["Skills 1.4.0", "Tool contract 1.5.0"] },
   contracts: {
     audience: ["developers", "agent integrators"],
-    compatibility: ["Project schema 10", "Tool contract 1.4.0"],
+    compatibility: ["Project schema 10", "Tool contract 1.5.0"],
   },
   changelog: {
     audience: ["operators", "developers", "agent integrators"],
@@ -711,7 +723,7 @@ export const docsPages: readonly PublishedDocsPage[] = contentPages.map((page) =
     ...page,
     description: page.summary,
     canonicalPath: page.slug === "overview" ? "/docs" : `/docs/${page.slug}`,
-    lastReviewedVersion: "VenueMind 0.6.0",
+    lastReviewedVersion: "VenueMind 0.7.0",
     audience: metadata?.audience ?? page.audience ?? [],
     compatibility: metadata?.compatibility ?? page.compatibility ?? [],
   };

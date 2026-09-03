@@ -489,6 +489,11 @@
     "message": "Live Plan Deviation Register is unavailable.",
     "remediation": "Create the register from the active Event Day Runbook before inspecting or recording deviations."
   },
+  "DEVIATION_TOOL_UNAVAILABLE": {
+    "code": "DEVIATION_TOOL_UNAVAILABLE",
+    "message": "Live Plan Deviation tool Adapter is unavailable.",
+    "remediation": "Open VenueMind Studio or connect an MCP Project session with Live Plan Deviation operations enabled."
+  },
   "DEVIATION_NOT_FOUND": {
     "code": "DEVIATION_NOT_FOUND",
     "message": "Live Plan Deviation is unavailable.",

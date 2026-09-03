@@ -99,6 +99,11 @@ VenueMind lets agents inspect accepted Plans, preview non-destructive Proposals,
 - venue.inspect_incidents: Inspect the Runbook-bound Incident Register or one stable Operational Incident with structured severity, category, owner, location, acknowledgement, escalation, evidence, and ordered ledger state.
 - venue.report_incident: Report one structured Operational Incident against an object or coordinate in the frozen accepted Plan without claiming acknowledgement, escalation, ownership, resolution, or emergency authority.
 - venue.export_incident_record: Export one verified post-event Operational Incident record with frozen Plan and Emergency Plan provenance, transitions, structured handoffs, receipts, and hash-chained ledger evidence.
+- venue.inspect_live_plan_deviations: Inspect the Runbook-bound Live Plan Deviation Register, deterministic active overlay, and filtered temporary or revision-candidate deviation records without changing accepted Plan truth.
+- venue.record_live_plan_deviation: Record one validated event-day Change against the frozen accepted Plan with stable object IDs, available live Constraints, reason, author evidence, and exact retry identity.
+- venue.end_live_plan_deviation: End one active temporary or revision-candidate deviation with optimistic Deviation revision control and an immutable reasoned transition.
+- venue.create_post_event_deviation_proposal: Create a normal review-state Proposal from ended revision-candidate deviations. The accepted Plan remains unchanged and Approval remains human-only in VenueMind Studio.
+- venue.export_live_plan_deviations: Export a verified record that keeps the approved Plan, live deviation overlay, and post-event recommended revisions explicitly separate.
 - venue.export_audit_package: Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.
 - venue.export_plan: Export the validated Plan as JSON, compact text, layered SVG, print-ready plan or emergency PDF, object, inventory, staffing, production, catering, or replenishment CSV, staffing or production SVG, or a portable audit package.
 
@@ -109,7 +114,7 @@ VenueMind lets agents inspect accepted Plans, preview non-destructive Proposals,
 - venuemind-access-review 1.1.0
 - venuemind-crowd-flow 1.1.0
 - venuemind-production-plan 1.1.0
-- venuemind-event-day 1.3.0
+- venuemind-event-day 1.4.0
 
 ## Compatibility
 
@@ -119,10 +124,10 @@ VenueMind lets agents inspect accepted Plans, preview non-destructive Proposals,
 - Validation engine: 2.7.0
 - Simulation engine: 1.2.1
 - Activity Ledger: 1
-- Tool contracts: 1.4.0
-- MCP server: 0.6.0
+- Tool contracts: 1.5.0
+- MCP server: 0.7.0
 - TypeScript SDK: 0.1.0
-- Agent skills: 1.3.0
+- Agent skills: 1.4.0
 - Interchange Package: 1 + Project schema 10
 
 ## Machine-readable contracts

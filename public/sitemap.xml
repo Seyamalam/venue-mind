@@ -72,6 +72,11 @@
   <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-inspect-incidents</loc><lastmod>2026-08-27</lastmod></url>
   <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-report-incident</loc><lastmod>2026-08-27</lastmod></url>
   <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-incident-record</loc><lastmod>2026-08-27</lastmod></url>
+  <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-inspect-live-plan-deviations</loc><lastmod>2026-08-27</lastmod></url>
+  <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-record-live-plan-deviation</loc><lastmod>2026-08-27</lastmod></url>
+  <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-end-live-plan-deviation</loc><lastmod>2026-08-27</lastmod></url>
+  <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-create-post-event-deviation-proposal</loc><lastmod>2026-08-27</lastmod></url>
+  <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-live-plan-deviations</loc><lastmod>2026-08-27</lastmod></url>
   <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-audit-package</loc><lastmod>2026-08-27</lastmod></url>
   <url><loc>https://venue-mind-jet.vercel.app/docs/reference-tool-venue-export-plan</loc><lastmod>2026-08-27</lastmod></url>
   <url><loc>https://venue-mind-jet.vercel.app/docs/reference-command-inspect-templates</loc><lastmod>2026-08-27</lastmod></url>

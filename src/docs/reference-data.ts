@@ -587,14 +587,14 @@ export const VERSION_REFERENCE = Object.freeze([
     current: VENUE_TOOL_CONTRACT_VERSION,
     compatibility: "Shared by WebMCP, standalone MCP, schemas, examples, and skills.",
   },
-  { surface: "MCP server", current: "0.6.0", compatibility: "Preferred protocol 2026-07-28; minimum 2025-03-26." },
+  { surface: "MCP server", current: "0.7.0", compatibility: "Preferred protocol 2026-07-28; minimum 2025-03-26." },
   {
     surface: "TypeScript SDK",
     current: "0.1.0",
     compatibility:
       "ESM-only on Node.js 22+; SDK SemVer remains independent of tool, adapter, and Project schema versions.",
   },
-  { surface: "Agent skills", current: "1.3.0", compatibility: `Targets tool contract ${VENUE_TOOL_CONTRACT_VERSION}.` },
+  { surface: "Agent skills", current: "1.4.0", compatibility: `Targets tool contract ${VENUE_TOOL_CONTRACT_VERSION}.` },
   {
     surface: "Interchange Package",
     current: "1 + Project schema 10",

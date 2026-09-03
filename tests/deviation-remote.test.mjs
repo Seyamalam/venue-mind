@@ -26,7 +26,14 @@ test("Deviation remote scopes create, get, sync, and export to one Project", asy
   const fetchImpl = async (url, init = {}) => {
     calls.push({ url, init });
     const payload = url.endsWith("/export")
-      ? { artifact: { filename: "live-plan-deviations.json", mimeType: "application/json", content: "{}" } }
+      ? {
+          artifact: {
+            filename: "live-plan-deviations.json",
+            mediaType: "application/json",
+            content: "{}",
+            fingerprint: "live-plan-deviation-export-12345678",
+          },
+        }
       : url.endsWith("commands:sync")
         ? { acknowledgements: [], register }
         : { register };

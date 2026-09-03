@@ -1,6 +1,7 @@
 import { venueToolContracts, type VenueToolContract, type VenueToolInput } from "../contracts/venue-contracts.ts";
 import type { AgentScope } from "../domain/authorization.ts";
 import type {
+  DeviationOperations,
   IncidentOperations,
   OccupancyOperations,
   ProjectOperations,
@@ -50,6 +51,7 @@ export interface RegisterVenueToolOptions {
   readonly projectOperations?: ProjectOperations;
   readonly occupancyOperations?: Partial<OccupancyOperations>;
   readonly incidentOperations?: Partial<IncidentOperations>;
+  readonly deviationOperations?: Partial<DeviationOperations>;
   readonly onLifecycle?: (lifecycle: ToolRegistrationLifecycle) => void;
 }
 
@@ -73,6 +75,7 @@ export async function registerVenueTools(
     projectOperations,
     occupancyOperations,
     incidentOperations,
+    deviationOperations,
     onLifecycle = () => {},
   }: RegisterVenueToolOptions = {},
 ): Promise<ToolRegistrationLifecycle> {
@@ -111,6 +114,7 @@ export async function registerVenueTools(
               ...(projectOperations ? { projectOperations } : {}),
               ...(occupancyOperations ? { occupancyOperations } : {}),
               ...(incidentOperations ? { incidentOperations } : {}),
+              ...(deviationOperations ? { deviationOperations } : {}),
             });
           },
         },

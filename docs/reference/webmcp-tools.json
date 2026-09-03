@@ -11,7 +11,7 @@
       "additionalProperties": false
     },
     "title": "List Projects",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -120,7 +120,7 @@
       "additionalProperties": false
     },
     "title": "Open Project",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -221,7 +221,7 @@
       "additionalProperties": false
     },
     "title": "Inspect Templates",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -461,7 +461,7 @@
       "additionalProperties": false
     },
     "title": "Get Project Brief",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -736,7 +736,7 @@
       "additionalProperties": false
     },
     "title": "List Constraints",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -941,7 +941,7 @@
       "additionalProperties": false
     },
     "title": "Inspect Layout",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -2167,7 +2167,7 @@
       "additionalProperties": false
     },
     "title": "Get Object",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -3596,7 +3596,7 @@
       "additionalProperties": false
     },
     "title": "Search Objects",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -3922,7 +3922,7 @@
       "additionalProperties": false
     },
     "title": "Preview Revision",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -4065,7 +4065,7 @@
       "additionalProperties": false
     },
     "title": "Preview Template Update",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -10000,7 +10000,7 @@
       "additionalProperties": false
     },
     "title": "Apply Edit",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -10161,7 +10161,7 @@
       "additionalProperties": false
     },
     "title": "Measure Objects",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -10275,7 +10275,7 @@
       "additionalProperties": false
     },
     "title": "Validate Layout",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -10773,7 +10773,7 @@
       "additionalProperties": false
     },
     "title": "Get Validation Evidence",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -11251,7 +11251,7 @@
       "additionalProperties": false
     },
     "title": "List Proposal Branches",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -11438,7 +11438,7 @@
       "additionalProperties": false
     },
     "title": "Compare Proposal Branches",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -11504,7 +11504,7 @@
       "additionalProperties": false
     },
     "title": "Create Proposal Branch",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -11639,7 +11639,7 @@
       "additionalProperties": false
     },
     "title": "Switch Proposal Branch",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -11775,7 +11775,7 @@
       "additionalProperties": false
     },
     "title": "Update Proposal Branch",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -11915,7 +11915,7 @@
       "additionalProperties": false
     },
     "title": "Duplicate Proposal Branch",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -12053,7 +12053,7 @@
       "additionalProperties": false
     },
     "title": "Archive Proposal Branch",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -12179,7 +12179,7 @@
       "additionalProperties": false
     },
     "title": "Restore Proposal Branch",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -12290,7 +12290,7 @@
       "additionalProperties": false
     },
     "title": "Detect Proposal Conflicts",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -12488,7 +12488,7 @@
       "additionalProperties": false
     },
     "title": "Rebase Proposal",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -12645,7 +12645,7 @@
       "additionalProperties": false
     },
     "title": "Request Adjustment",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:propose"
     },
@@ -12781,7 +12781,7 @@
       "additionalProperties": false
     },
     "title": "List Comments",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -13027,7 +13027,7 @@
       "additionalProperties": false
     },
     "title": "Add Comment",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:comment"
     },
@@ -13342,7 +13342,7 @@
       "additionalProperties": false
     },
     "title": "Edit Comment",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:comment"
     },
@@ -13485,7 +13485,7 @@
       "additionalProperties": false
     },
     "title": "Set Comment Status",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:comment"
     },
@@ -13597,7 +13597,7 @@
       "additionalProperties": false
     },
     "title": "Get Change Log",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -13722,7 +13722,7 @@
       "additionalProperties": false
     },
     "title": "Replay History",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -13931,7 +13931,7 @@
       "additionalProperties": false
     },
     "title": "List Scenarios",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -14370,7 +14370,7 @@
       "additionalProperties": false
     },
     "title": "List Scenario Runs",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -15551,7 +15551,7 @@
       "additionalProperties": false
     },
     "title": "Get Scenario Result",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:simulate"
     },
@@ -17069,7 +17069,7 @@
       "additionalProperties": false
     },
     "title": "Run Scenario",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:simulate"
     },
@@ -17838,7 +17838,7 @@
       "additionalProperties": false
     },
     "title": "Compare Simulations",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:simulate"
     },
@@ -17998,7 +17998,7 @@
       "additionalProperties": false
     },
     "title": "Export Simulation",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:export"
     },
@@ -18055,7 +18055,7 @@
       "additionalProperties": false
     },
     "title": "Inspect Live Occupancy",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -18655,7 +18655,7 @@
       "additionalProperties": false
     },
     "title": "Ingest Occupancy Signal",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:operate"
     },
@@ -19205,7 +19205,7 @@
       "additionalProperties": false
     },
     "title": "Refresh Live Occupancy",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:operate"
     },
@@ -19732,7 +19732,7 @@
       "additionalProperties": false
     },
     "title": "Export Live Occupancy",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:export"
     },
@@ -19832,7 +19832,7 @@
       "additionalProperties": false
     },
     "title": "Inspect Incidents",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:read"
     },
@@ -20589,7 +20589,7 @@
       "additionalProperties": false
     },
     "title": "Report Incident",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:operate"
     },
@@ -21247,7 +21247,7 @@
       "additionalProperties": false
     },
     "title": "Export Incident Record",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:export"
     },
@@ -21297,6 +21297,1137 @@
     ]
   },
   {
+    "name": "venue.inspect_live_plan_deviations",
+    "description": "Inspect the Runbook-bound Live Plan Deviation Register, deterministic active overlay, and filtered temporary or revision-candidate deviation records without changing accepted Plan truth.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "status": {
+          "enum": [
+            "active",
+            "ended"
+          ]
+        },
+        "disposition": {
+          "enum": [
+            "temporary",
+            "revision-candidate"
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 50
+        }
+      },
+      "additionalProperties": false
+    },
+    "title": "Inspect Live Plan Deviations",
+    "contractVersion": "1.5.0",
+    "authorization": {
+      "requiredScope": "venue:read"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 1048576
+    },
+    "exampleInput": {
+      "status": "active",
+      "limit": 25
+    },
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "register",
+        "deviations",
+        "overlay"
+      ],
+      "properties": {
+        "register": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://venuemind.dev/schemas/live-plan-deviation-register.schema.json",
+          "title": "VenueMind Live Plan Deviation Register",
+          "type": "object",
+          "required": [
+            "schemaVersion",
+            "id",
+            "projectId",
+            "runbookVersionId",
+            "source",
+            "baseline",
+            "deviations",
+            "recommendations",
+            "transitions",
+            "receipts",
+            "ledger",
+            "revision",
+            "createdAt",
+            "createdBy",
+            "updatedAt"
+          ],
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "projectId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "runbookVersionId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source": {
+              "type": "object"
+            },
+            "baseline": {
+              "type": "object"
+            },
+            "deviations": {
+              "type": "array",
+              "items": {
+                "$ref": "https://venuemind.dev/schemas/live-plan-deviation.schema.json"
+              }
+            },
+            "recommendations": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "transitions": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "receipts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "ledger": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "createdBy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": false
+        },
+        "deviations": {
+          "type": "array",
+          "items": {
+            "$ref": "https://venuemind.dev/schemas/live-plan-deviation.schema.json"
+          }
+        },
+        "overlay": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://venuemind.dev/schemas/live-plan-deviation-overlay.schema.json",
+          "title": "VenueMind Live Plan Deviation Overlay",
+          "type": "object",
+          "required": [
+            "registerId",
+            "registerRevision",
+            "runbookVersionId",
+            "acceptedPlanId",
+            "acceptedPlanVersion",
+            "acceptedPlanFingerprint",
+            "activeDeviationIds",
+            "overlayPlan",
+            "overlayFingerprint",
+            "validation"
+          ],
+          "properties": {
+            "registerId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "registerRevision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "runbookVersionId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "acceptedPlanId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "acceptedPlanVersion": {
+              "type": [
+                "string",
+                "number"
+              ]
+            },
+            "acceptedPlanFingerprint": {
+              "type": "string",
+              "minLength": 1
+            },
+            "activeDeviationIds": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "overlayPlan": {
+              "type": "object"
+            },
+            "overlayFingerprint": {
+              "type": "string",
+              "minLength": 1
+            },
+            "validation": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "DEVIATION_REGISTER_NOT_FOUND",
+      "DEVIATION_NOT_FOUND",
+      "DEVIATION_TOOL_UNAVAILABLE",
+      "DEVIATION_INVALID",
+      "DEVIATION_LOCATION_INVALID",
+      "DEVIATION_REVISION_CONFLICT",
+      "DEVIATION_REGISTER_REVISION_CONFLICT",
+      "DEVIATION_LEDGER_INTEGRITY_FAILED"
+    ]
+  },
+  {
+    "name": "venue.record_live_plan_deviation",
+    "description": "Record one validated event-day Change against the frozen accepted Plan with stable object IDs, available live Constraints, reason, author evidence, and exact retry identity.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "disposition": {
+          "enum": [
+            "temporary",
+            "revision-candidate"
+          ]
+        },
+        "reasonCode": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "location": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "planObjectId"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "plan-object"
+                },
+                "planObjectId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "point"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "coordinate"
+                },
+                "point": {
+                  "type": "object",
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "affectedObjectIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        },
+        "availableConstraintIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        },
+        "change": {
+          "type": "object",
+          "required": [
+            "id",
+            "targetObjectIds",
+            "spatialEffects"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            },
+            "number": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            },
+            "shortTitle": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            },
+            "editor": {
+              "type": "object"
+            },
+            "metrics": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "targetObjectIds": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 100,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              }
+            },
+            "targetRequirementIds": {
+              "type": "array",
+              "maxItems": 100,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              }
+            },
+            "effects": {
+              "type": "object"
+            },
+            "planningEffects": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "spatialEffects": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 100,
+              "items": {
+                "type": "object"
+              }
+            },
+            "semantic": {
+              "type": "object"
+            },
+            "lineage": {
+              "type": "object"
+            },
+            "templateUpdate": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "deviationId",
+        "disposition",
+        "reasonCode",
+        "location",
+        "affectedObjectIds",
+        "availableConstraintIds",
+        "change",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Record Live Plan Deviation",
+    "contractVersion": "1.5.0",
+    "authorization": {
+      "requiredScope": "venue:operate"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "deviationId": "deviation-east-exit-control",
+      "disposition": "temporary",
+      "reasonCode": "LIVE_EGRESS_CONTROL",
+      "location": {
+        "kind": "plan-object",
+        "planObjectId": "obj-fire-exit-east"
+      },
+      "affectedObjectIds": [
+        "obj-fire-exit-east"
+      ],
+      "availableConstraintIds": [
+        "constraint-emergency-readiness",
+        "constraint-peak-congestion"
+      ],
+      "change": {
+        "id": "change-live-egress-control",
+        "targetObjectIds": [
+          "obj-fire-exit-east"
+        ],
+        "spatialEffects": [
+          {
+            "operation": "update_metadata",
+            "objectId": "obj-fire-exit-east",
+            "values": {
+              "label": "East exit — controlled"
+            }
+          }
+        ]
+      },
+      "idempotencyKey": "example-deviation-record-001"
+    },
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "register",
+        "deviation",
+        "proposal",
+        "receipt",
+        "duplicate"
+      ],
+      "properties": {
+        "register": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://venuemind.dev/schemas/live-plan-deviation-register.schema.json",
+          "title": "VenueMind Live Plan Deviation Register",
+          "type": "object",
+          "required": [
+            "schemaVersion",
+            "id",
+            "projectId",
+            "runbookVersionId",
+            "source",
+            "baseline",
+            "deviations",
+            "recommendations",
+            "transitions",
+            "receipts",
+            "ledger",
+            "revision",
+            "createdAt",
+            "createdBy",
+            "updatedAt"
+          ],
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "projectId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "runbookVersionId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source": {
+              "type": "object"
+            },
+            "baseline": {
+              "type": "object"
+            },
+            "deviations": {
+              "type": "array",
+              "items": {
+                "$ref": "https://venuemind.dev/schemas/live-plan-deviation.schema.json"
+              }
+            },
+            "recommendations": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "transitions": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "receipts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "ledger": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "createdBy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": false
+        },
+        "deviation": {
+          "anyOf": [
+            {
+              "$ref": "https://venuemind.dev/schemas/live-plan-deviation.schema.json"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "proposal": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "receipt": {
+          "type": "object"
+        },
+        "duplicate": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT",
+      "DEVIATION_REGISTER_NOT_FOUND",
+      "DEVIATION_NOT_FOUND",
+      "DEVIATION_TOOL_UNAVAILABLE",
+      "DEVIATION_INVALID",
+      "DEVIATION_LOCATION_INVALID",
+      "DEVIATION_REVISION_CONFLICT",
+      "DEVIATION_REGISTER_REVISION_CONFLICT",
+      "DEVIATION_LEDGER_INTEGRITY_FAILED"
+    ]
+  },
+  {
+    "name": "venue.end_live_plan_deviation",
+    "description": "End one active temporary or revision-candidate deviation with optimistic Deviation revision control and an immutable reasoned transition.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "expectedDeviationRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reasonCode": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "deviationId",
+        "expectedDeviationRevision",
+        "reasonCode",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "End Live Plan Deviation",
+    "contractVersion": "1.5.0",
+    "authorization": {
+      "requiredScope": "venue:operate"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "deviationId": "deviation-east-exit-control",
+      "expectedDeviationRevision": 1,
+      "reasonCode": "CONTROL_RELEASED",
+      "idempotencyKey": "example-deviation-end-001"
+    },
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "register",
+        "deviation",
+        "proposal",
+        "receipt",
+        "duplicate"
+      ],
+      "properties": {
+        "register": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://venuemind.dev/schemas/live-plan-deviation-register.schema.json",
+          "title": "VenueMind Live Plan Deviation Register",
+          "type": "object",
+          "required": [
+            "schemaVersion",
+            "id",
+            "projectId",
+            "runbookVersionId",
+            "source",
+            "baseline",
+            "deviations",
+            "recommendations",
+            "transitions",
+            "receipts",
+            "ledger",
+            "revision",
+            "createdAt",
+            "createdBy",
+            "updatedAt"
+          ],
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "projectId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "runbookVersionId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source": {
+              "type": "object"
+            },
+            "baseline": {
+              "type": "object"
+            },
+            "deviations": {
+              "type": "array",
+              "items": {
+                "$ref": "https://venuemind.dev/schemas/live-plan-deviation.schema.json"
+              }
+            },
+            "recommendations": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "transitions": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "receipts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "ledger": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "createdBy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": false
+        },
+        "deviation": {
+          "anyOf": [
+            {
+              "$ref": "https://venuemind.dev/schemas/live-plan-deviation.schema.json"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "proposal": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "receipt": {
+          "type": "object"
+        },
+        "duplicate": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT",
+      "DEVIATION_REGISTER_NOT_FOUND",
+      "DEVIATION_NOT_FOUND",
+      "DEVIATION_TOOL_UNAVAILABLE",
+      "DEVIATION_INVALID",
+      "DEVIATION_LOCATION_INVALID",
+      "DEVIATION_REVISION_CONFLICT",
+      "DEVIATION_REGISTER_REVISION_CONFLICT",
+      "DEVIATION_LEDGER_INTEGRITY_FAILED"
+    ]
+  },
+  {
+    "name": "venue.create_post_event_deviation_proposal",
+    "description": "Create a normal review-state Proposal from ended revision-candidate deviations. The accepted Plan remains unchanged and Approval remains human-only in VenueMind Studio.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "goal": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "deviationIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique retry key for this semantic command."
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional caller correlation identifier."
+        }
+      },
+      "required": [
+        "proposalId",
+        "goal",
+        "deviationIds",
+        "idempotencyKey"
+      ],
+      "additionalProperties": false
+    },
+    "title": "Create Post Event Deviation Proposal",
+    "contractVersion": "1.5.0",
+    "authorization": {
+      "requiredScope": "venue:propose"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 262144
+    },
+    "exampleInput": {
+      "proposalId": "proposal-post-event-egress",
+      "goal": "Retain the validated event-day egress control",
+      "deviationIds": [
+        "deviation-east-exit-control"
+      ],
+      "idempotencyKey": "example-deviation-proposal-001"
+    },
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "register",
+        "deviation",
+        "proposal",
+        "receipt",
+        "duplicate"
+      ],
+      "properties": {
+        "register": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://venuemind.dev/schemas/live-plan-deviation-register.schema.json",
+          "title": "VenueMind Live Plan Deviation Register",
+          "type": "object",
+          "required": [
+            "schemaVersion",
+            "id",
+            "projectId",
+            "runbookVersionId",
+            "source",
+            "baseline",
+            "deviations",
+            "recommendations",
+            "transitions",
+            "receipts",
+            "ledger",
+            "revision",
+            "createdAt",
+            "createdBy",
+            "updatedAt"
+          ],
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "projectId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "runbookVersionId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source": {
+              "type": "object"
+            },
+            "baseline": {
+              "type": "object"
+            },
+            "deviations": {
+              "type": "array",
+              "items": {
+                "$ref": "https://venuemind.dev/schemas/live-plan-deviation.schema.json"
+              }
+            },
+            "recommendations": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "transitions": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "receipts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "ledger": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "createdBy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": false
+        },
+        "deviation": {
+          "anyOf": [
+            {
+              "$ref": "https://venuemind.dev/schemas/live-plan-deviation.schema.json"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "proposal": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "receipt": {
+          "type": "object"
+        },
+        "duplicate": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "IDEMPOTENCY_KEY_REQUIRED",
+      "IDEMPOTENCY_KEY_CONFLICT",
+      "DEVIATION_REGISTER_NOT_FOUND",
+      "DEVIATION_NOT_FOUND",
+      "DEVIATION_TOOL_UNAVAILABLE",
+      "DEVIATION_INVALID",
+      "DEVIATION_LOCATION_INVALID",
+      "DEVIATION_REVISION_CONFLICT",
+      "DEVIATION_REGISTER_REVISION_CONFLICT",
+      "DEVIATION_LEDGER_INTEGRITY_FAILED"
+    ]
+  },
+  {
+    "name": "venue.export_live_plan_deviations",
+    "description": "Export a verified record that keeps the approved Plan, live deviation overlay, and post-event recommended revisions explicitly separate.",
+    "annotations": {
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "title": "Export Live Plan Deviations",
+    "contractVersion": "1.5.0",
+    "authorization": {
+      "requiredScope": "venue:export"
+    },
+    "limits": {
+      "maximumInputBytes": 65536,
+      "maximumOutputBytes": 2000000
+    },
+    "exampleInput": {},
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "filename",
+        "mediaType",
+        "content",
+        "fingerprint"
+      ],
+      "properties": {
+        "filename": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mediaType": {
+          "const": "application/json"
+        },
+        "content": {
+          "type": "string"
+        },
+        "fingerprint": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "errors": [
+      "TOOL_SCOPE_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "AGENT_GRANT_INVALID",
+      "TOOL_PAYLOAD_TOO_LARGE",
+      "TOOL_CALL_CANCELLED",
+      "VENUE_INTERNAL_ERROR",
+      "DEVIATION_REGISTER_NOT_FOUND",
+      "DEVIATION_NOT_FOUND",
+      "DEVIATION_TOOL_UNAVAILABLE",
+      "DEVIATION_INVALID",
+      "DEVIATION_LOCATION_INVALID",
+      "DEVIATION_REVISION_CONFLICT",
+      "DEVIATION_REGISTER_REVISION_CONFLICT",
+      "DEVIATION_LEDGER_INTEGRITY_FAILED"
+    ]
+  },
+  {
     "name": "venue.export_audit_package",
     "description": "Export the portable audit package with Plan, Proposal, Validation, receipts, Comments, replay, and hash-chained Activity Ledger evidence.",
     "annotations": {
@@ -21308,7 +22439,7 @@
       "additionalProperties": false
     },
     "title": "Export Audit Package",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:export"
     },
@@ -21412,7 +22543,7 @@
       "additionalProperties": false
     },
     "title": "Export Plan",
-    "contractVersion": "1.4.0",
+    "contractVersion": "1.5.0",
     "authorization": {
       "requiredScope": "venue:export"
     },

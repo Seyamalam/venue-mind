@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/live-plan-deviation-overlay.schema.json",
+  "title": "VenueMind Live Plan Deviation Overlay",
+  "type": "object",
+  "required": [
+    "registerId",
+    "registerRevision",
+    "runbookVersionId",
+    "acceptedPlanId",
+    "acceptedPlanVersion",
+    "acceptedPlanFingerprint",
+    "activeDeviationIds",
+    "overlayPlan",
+    "overlayFingerprint",
+    "validation"
+  ],
+  "properties": {
+    "registerId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "registerRevision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "runbookVersionId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "acceptedPlanId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "acceptedPlanVersion": {
+      "type": [
+        "string",
+        "number"
+      ]
+    },
+    "acceptedPlanFingerprint": {
+      "type": "string",
+      "minLength": 1
+    },
+    "activeDeviationIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "overlayPlan": {
+      "type": "object"
+    },
+    "overlayFingerprint": {
+      "type": "string",
+      "minLength": 1
+    },
+    "validation": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

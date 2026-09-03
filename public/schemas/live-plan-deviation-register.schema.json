@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://venuemind.dev/schemas/live-plan-deviation-register.schema.json",
+  "title": "VenueMind Live Plan Deviation Register",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "projectId",
+    "runbookVersionId",
+    "source",
+    "baseline",
+    "deviations",
+    "recommendations",
+    "transitions",
+    "receipts",
+    "ledger",
+    "revision",
+    "createdAt",
+    "createdBy",
+    "updatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "projectId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "runbookVersionId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "object"
+    },
+    "baseline": {
+      "type": "object"
+    },
+    "deviations": {
+      "type": "array",
+      "items": {
+        "$ref": "https://venuemind.dev/schemas/live-plan-deviation.schema.json"
+      }
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "receipts": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "ledger": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "createdBy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

@@ -20,6 +20,9 @@ const schemas = [
   ["project-open-result", "VenueMindProjectOpenResult"],
   ["layout-inspection", "VenueMindLayoutInspection"],
   ["preview-revision-result", "VenueMindPreviewRevisionResult"],
+  ["live-plan-deviation", "VenueMindLivePlanDeviation"],
+  ["live-plan-deviation-register", "VenueMindLivePlanDeviationRegister"],
+  ["live-plan-deviation-overlay", "VenueMindLivePlanDeviationOverlay"],
 ];
 
 const venueMindResolver = {
@@ -102,8 +105,13 @@ const apiReference = {
       { method: "proposals.preview", tool: "venue.preview_revision" },
       { method: "validations.run", tool: "venue.validate_layout" },
       { method: "ledger.list", tool: "venue.get_change_log" },
+      { method: "deviations.inspect", tool: "venue.inspect_live_plan_deviations" },
+      { method: "deviations.record", tool: "venue.record_live_plan_deviation" },
+      { method: "deviations.end", tool: "venue.end_live_plan_deviation" },
+      { method: "deviations.createPostEventProposal", tool: "venue.create_post_event_deviation_proposal" },
       { method: "exports.plan", tool: "venue.export_plan" },
       { method: "exports.audit", tool: "venue.export_audit_package" },
+      { method: "exports.deviations", tool: "venue.export_live_plan_deviations" },
     ],
     approval: "intentionally-absent",
   },

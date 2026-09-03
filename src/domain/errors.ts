@@ -495,6 +495,11 @@ export const errorCatalog = Object.freeze({
     "Live Plan Deviation Register is unavailable.",
     "Create the register from the active Event Day Runbook before inspecting or recording deviations.",
   ),
+  DEVIATION_TOOL_UNAVAILABLE: define(
+    "DEVIATION_TOOL_UNAVAILABLE",
+    "Live Plan Deviation tool Adapter is unavailable.",
+    "Open VenueMind Studio or connect an MCP Project session with Live Plan Deviation operations enabled.",
+  ),
   DEVIATION_NOT_FOUND: define(
     "DEVIATION_NOT_FOUND",
     "Live Plan Deviation is unavailable.",

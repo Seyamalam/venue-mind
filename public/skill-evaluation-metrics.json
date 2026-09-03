@@ -1,9 +1,9 @@
 {
-  "cases": 12,
+  "cases": 13,
   "packages": 6,
-  "requiredToolSelections": 73,
+  "requiredToolSelections": 78,
   "toolSelectionAccuracy": 1,
-  "referencedTools": 89,
+  "referencedTools": 94,
   "unnecessaryCalls": 0,
   "unnecessaryCallRate": 0
 }

@@ -47,7 +47,7 @@ test("WebMCP registers every versioned contract and publishes lifecycle progress
     ),
     true,
   );
-  assert.match(modelContext.tools.get("venue.inspect_layout").description, /Contract 1\.4\.0\./);
+  assert.match(modelContext.tools.get("venue.inspect_layout").description, /Contract 1\.5\.0\./);
 
   controller.abort();
   assert.equal(modelContext.tools.size, 0);
@@ -61,7 +61,7 @@ test("WebMCP invocation returns a compact summary plus bounded structured conten
   const result = await modelContext.tools.get("venue.inspect_layout").execute({}, {});
 
   assert.match(result.content[0].text, /Plan plan-summit-forward-2026 v3\.2/);
-  assert.equal(result.structuredContent.contractVersion, "1.4.0");
+  assert.equal(result.structuredContent.contractVersion, "1.5.0");
   assert.equal(result.structuredContent.authorizationScope, "venue:read");
   assert.match(result.structuredContent.correlationId, /^corr-webmcp-/);
   assert.equal(result.structuredContent.data.planId, "plan-summit-forward-2026");

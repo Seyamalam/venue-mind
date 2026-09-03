@@ -202,6 +202,57 @@
   "venue.export_incident_record": {
     "incidentId": "incident-example-001"
   },
+  "venue.inspect_live_plan_deviations": {
+    "status": "active",
+    "limit": 25
+  },
+  "venue.record_live_plan_deviation": {
+    "deviationId": "deviation-east-exit-control",
+    "disposition": "temporary",
+    "reasonCode": "LIVE_EGRESS_CONTROL",
+    "location": {
+      "kind": "plan-object",
+      "planObjectId": "obj-fire-exit-east"
+    },
+    "affectedObjectIds": [
+      "obj-fire-exit-east"
+    ],
+    "availableConstraintIds": [
+      "constraint-emergency-readiness",
+      "constraint-peak-congestion"
+    ],
+    "change": {
+      "id": "change-live-egress-control",
+      "targetObjectIds": [
+        "obj-fire-exit-east"
+      ],
+      "spatialEffects": [
+        {
+          "operation": "update_metadata",
+          "objectId": "obj-fire-exit-east",
+          "values": {
+            "label": "East exit — controlled"
+          }
+        }
+      ]
+    },
+    "idempotencyKey": "example-deviation-record-001"
+  },
+  "venue.end_live_plan_deviation": {
+    "deviationId": "deviation-east-exit-control",
+    "expectedDeviationRevision": 1,
+    "reasonCode": "CONTROL_RELEASED",
+    "idempotencyKey": "example-deviation-end-001"
+  },
+  "venue.create_post_event_deviation_proposal": {
+    "proposalId": "proposal-post-event-egress",
+    "goal": "Retain the validated event-day egress control",
+    "deviationIds": [
+      "deviation-east-exit-control"
+    ],
+    "idempotencyKey": "example-deviation-proposal-001"
+  },
+  "venue.export_live_plan_deviations": {},
   "venue.export_audit_package": {},
   "venue.export_plan": {
     "format": "json"
