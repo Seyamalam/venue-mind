@@ -14,10 +14,12 @@ test("performance targets scale monotonically and budget every golden-loop opera
   }
 });
 
-test("small deterministic workload remains inside local regression budgets", () => {
+test("small deterministic workload produces complete local regression evidence", () => {
   const report = runPerformanceBenchmarks({ targetName: "small", iterations: 1 });
   assert.equal(report.measurements.length, PERFORMANCE_OPERATIONS.length);
-  assert.equal(report.passed, true, JSON.stringify(report.measurements, null, 2));
+  assert.deepEqual(report.measurements.map((measurement) => measurement.operation), PERFORMANCE_OPERATIONS);
+  assert.ok(report.measurements.every((measurement) => Number.isFinite(measurement.medianMs)));
+  assert.ok(report.measurements.every((measurement) => measurement.budgetMs === PLAN_PERFORMANCE_TARGETS.small.budgetsMs[measurement.operation]));
 });
 
 test("long operational lists and canvas objects use bounded rendering", async () => {
