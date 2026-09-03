@@ -573,3 +573,11 @@ _Avoid_: Chat message, feedback
 **Activity Ledger**:
 The ordered record of human and agent actions associated with a Plan.
 _Avoid_: Chat history, logs
+
+**Product Analytics Event**:
+A content-free signal from the fixed product-friction taxonomy containing only an event name, outcome, workflow stage, and optional bounded error category. It never contains identity, Project or object references, URLs, geometry, comments, or free text.
+_Avoid_: Observability Event, Activity Ledger entry, interaction recording
+
+**Product Analytics Aggregate**:
+A daily count of equivalent Product Analytics Events within one opaque Organization scope. It may identify workflow friction but cannot change Validation, supervision, permissions, or accepted Plan truth.
+_Avoid_: User journey, trace, performance metric, authority signal
