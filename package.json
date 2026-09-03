@@ -27,7 +27,7 @@
     "generate:examples": "node scripts/generate-client-examples.mjs",
     "generate:guides": "node scripts/generate-contributor-guides.mjs",
     "generate:sdk-types": "node scripts/generate-sdk-types.mjs",
-    "generate:docs": "npm run generate:examples && npm run generate:guides && node scripts/generate-agent-docs.mjs && node scripts/generate-site-metadata.mjs",
+    "generate:docs": "npm run generate:examples && npm run generate:guides && node scripts/generate-license-notices.mjs && node scripts/generate-agent-docs.mjs && node scripts/generate-site-metadata.mjs",
     "check:generated": "node scripts/check-generated-drift.mjs",
     "start": "next start",
     "preview": "next start",
