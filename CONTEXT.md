@@ -60,6 +60,30 @@ _Avoid_: Activity Ledger entry, narrative update, last-write-wins save
 A deterministic structured projection of pending, active, blocked, overdue, evidence-gap, and completed task IDs at one Runbook ledger sequence.
 _Avoid_: editable summary, chat message, accepted Plan change
 
+**Post-event Review**:
+A Runbook-bound aggregate that freezes accepted planning and event-day operational evidence, records structured observations and lessons, and derives retrospective comparisons without changing the accepted Plan.
+_Avoid_: report blob, Plan revision, editable runbook summary
+
+**Post-event Prediction**:
+A structured expected outcome for one metric and scope, with comparison direction, tolerance, and exact references into the Post-event Review's frozen evidence.
+_Avoid_: observation, target without provenance, narrative forecast
+
+**Post-event Observation**:
+An append-only measured, estimated, or explicitly unavailable outcome bound to one Post-event Prediction and frozen evidence.
+_Avoid_: prediction, mutable metric, unsupported recollection
+
+**Post-event Comparison**:
+A deterministic predicted-versus-observed result classified as matched, better, worse, or insufficient evidence.
+_Avoid_: subjective rating, Lesson, approval decision
+
+**Post-event Lesson**:
+A structured finding and recommended action linked to one Post-event Comparison and stable Requirement or Constraint IDs.
+_Avoid_: narrative note, automatic Plan Change, Template publication
+
+**Template Improvement Proposal**:
+A normal planning Proposal whose Changes are traced to observed Post-event Lessons. Human review may approve it as a recommendation, but never publishes a template or changes the accepted Plan.
+_Avoid_: automatic template update, accepted Plan, post-event report
+
 **Synchronization Conflict**:
 A structured stale-write result containing base, local, and current remote Project records plus their changed and overlapping fields.
 _Avoid_: offline error, validation conflict, last-write-wins
