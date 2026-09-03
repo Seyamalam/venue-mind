@@ -1,3 +1,4 @@
+-- VenueMind database schema v14: data protection controls.
 -- migration-destructive: false
 -- migration-requires-project-export: false
 CREATE TABLE organization_retention_policies (
