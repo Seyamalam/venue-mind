@@ -4,6 +4,7 @@ export const DATA_CLASSES = [
   "operational-sensitive",
   "account-identity",
   "security-evidence",
+  "product-analytics",
   "secret-reference",
 ] as const;
 
@@ -50,6 +51,13 @@ export const DEFAULT_RETENTION_RULES = Object.freeze({
   "security-evidence": Object.freeze({
     dataClass: "security-evidence",
     activeDays: 400,
+    deletedRecoveryDays: 0,
+    backupExpiryDays: 30,
+    stores: Object.freeze(["d1-primary", "backup"] satisfies DataStore[]),
+  }),
+  "product-analytics": Object.freeze({
+    dataClass: "product-analytics",
+    activeDays: 180,
     deletedRecoveryDays: 0,
     backupExpiryDays: 30,
     stores: Object.freeze(["d1-primary", "backup"] satisfies DataStore[]),
@@ -152,4 +160,8 @@ export const DATA_COLLECTION_BOUNDARIES = Object.freeze({
   serverStoredExports: false,
   aggregateOccupancyOnly: true,
   opaqueSecretReferencesOnly: true,
+  productAnalyticsDefaultEnabled: false,
+  productAnalyticsAggregateOnly: true,
+  productAnalyticsIdentityStored: false,
+  productAnalyticsContentStored: false,
 });

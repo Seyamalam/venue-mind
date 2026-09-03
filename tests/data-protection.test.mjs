@@ -67,5 +67,11 @@ test("collection boundaries retain aggregate operations and reject person-level 
     serverStoredExports: false,
     aggregateOccupancyOnly: true,
     opaqueSecretReferencesOnly: true,
+    productAnalyticsDefaultEnabled: false,
+    productAnalyticsAggregateOnly: true,
+    productAnalyticsIdentityStored: false,
+    productAnalyticsContentStored: false,
   });
+  assert.equal(DEFAULT_RETENTION_RULES["product-analytics"].activeDays, 180);
+  assert.equal(DEFAULT_RETENTION_RULES["product-analytics"].deletedRecoveryDays, 0);
 });

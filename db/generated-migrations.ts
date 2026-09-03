@@ -250,6 +250,18 @@ export const DATABASE_MIGRATIONS = Object.freeze([
       "CREATE INDEX idx_observability_events_time ON observability_events(scope_hash, occurred_at DESC)",
       "CREATE INDEX idx_observability_events_correlation ON observability_events(scope_hash, correlation_id, occurred_at)"
     ]
+  },
+  {
+    "version": 16,
+    "name": "product_analytics",
+    "checksum": "2ab20058c0a231f0289277633aac4c8472b548feaef9c79618ecdee8e791124b",
+    "destructive": false,
+    "requiresProjectExport": false,
+    "statements": [
+      "-- VenueMind database schema v16: aggregate-only product analytics.\nCREATE TABLE product_analytics_daily (\n  scope_hash TEXT NOT NULL CHECK (length(scope_hash) = 64 AND scope_hash NOT GLOB '*[^0-9a-f]*'),\n  metric_day TEXT NOT NULL CHECK (length(metric_day) = 10),\n  event_name TEXT NOT NULL CHECK (event_name IN ('golden-loop.completed', 'validation.completed', 'adjustment.cycle', 'branch.compared', 'export.completed', 'product.error', 'workflow.abandoned')),\n  outcome TEXT NOT NULL CHECK (outcome IN ('completed', 'pass', 'warn', 'fail', 'requested', 'compared', 'exported', 'error', 'abandoned')),\n  stage TEXT NOT NULL CHECK (stage IN ('inspect', 'preview', 'validate', 'review', 'approve', 'adjust', 'compare', 'export')),\n  error_category TEXT NOT NULL CHECK (error_category IN ('none', 'authorization', 'validation', 'conflict', 'persistence', 'export', 'unknown')),\n  event_count INTEGER NOT NULL CHECK (event_count BETWEEN 1 AND 2147483647),\n  updated_at TEXT NOT NULL,\n  PRIMARY KEY (scope_hash, metric_day, event_name, outcome, stage, error_category)\n)",
+      "CREATE INDEX idx_product_analytics_daily_window ON product_analytics_daily(scope_hash, metric_day DESC)",
+      "CREATE INDEX idx_product_analytics_daily_retention ON product_analytics_daily(metric_day)"
+    ]
   }
 ]);
-export const DATABASE_SCHEMA_VERSION = 15;
+export const DATABASE_SCHEMA_VERSION = 16;

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "databaseSchemaVersion": 15,
+  "databaseSchemaVersion": 16,
   "migrations": [
     {
       "version": 1,
@@ -150,6 +150,16 @@
       "requiresProjectExport": false,
       "source": "/db/migrations/0015_observability.sql",
       "wrangler": "/db/wrangler/0015_observability.sql",
+      "statementCount": 3
+    },
+    {
+      "version": 16,
+      "name": "product_analytics",
+      "checksum": "2ab20058c0a231f0289277633aac4c8472b548feaef9c79618ecdee8e791124b",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0016_product_analytics.sql",
+      "wrangler": "/db/wrangler/0016_product_analytics.sql",
       "statementCount": 3
     }
   ]

@@ -45,6 +45,7 @@ const postEventReviewTables = ["post_event_reviews"];
 const rateLimitTables = ["api_rate_limit_windows"];
 const dataProtectionTables = ["organization_retention_policies", "project_deletion_requests"];
 const observabilityTables = ["observability_events"];
+const productAnalyticsTables = ["product_analytics_daily"];
 
 async function legacyBaseline(db: D1Database) {
   const { results: tableRows } = await db
@@ -108,12 +109,18 @@ async function legacyBaseline(db: D1Database) {
   if (!hasObservability && observabilityTables.some((table) => tables.has(table)))
     throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasObservability && !hasDataProtection) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  const hasProductAnalytics = productAnalyticsTables.every((table) => tables.has(table));
+  if (!hasProductAnalytics && productAnalyticsTables.some((table) => tables.has(table)))
+    throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  if (hasProductAnalytics && !hasObservability) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasDeviations && !hasIncidents) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasIncidents && !hasOccupancy) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasOccupancy && !hasRunbooks) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasRunbooks && !hasSharingDelivery) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
-  return hasObservability
-    ? 15
+  return hasProductAnalytics
+    ? 16
+    : hasObservability
+      ? 15
     : hasDataProtection
       ? 14
     : hasRateLimits
@@ -299,6 +306,10 @@ export async function inspectDatabaseIntegrity(db: D1Database) {
     [
       "observability-event-invalid",
       "SELECT COUNT(*) AS count FROM observability_events WHERE length(event_id) NOT BETWEEN 1 AND 96 OR length(scope_hash) != 64 OR length(correlation_id) NOT BETWEEN 1 AND 96 OR duration_ms < 0 OR duration_ms > 3600000",
+    ],
+    [
+      "product-analytics-aggregate-invalid",
+      "SELECT COUNT(*) AS count FROM product_analytics_daily WHERE length(scope_hash) != 64 OR length(metric_day) != 10 OR event_count < 1 OR event_count > 2147483647",
     ],
   ] satisfies readonly (readonly [string, string])[]) {
     const { results } = await db.prepare(sql).all<{ count: number }>();

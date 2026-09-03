@@ -9,6 +9,7 @@ const guideSources = [
   ["docs/authentication-and-tenancy.md", "authentication-and-tenancy.md", "Authentication and tenancy"],
   ["docs/threat-model.md", "threat-model.md", "Threat model"],
   ["docs/data-protection.md", "data-protection.md", "Data protection"],
+  ["docs/product-analytics.md", "product-analytics.md", "Product analytics"],
   ["docs/terms.md", "terms.md", "Preview terms"],
   ["docs/trust-and-safety.md", "trust-and-safety.md", "Trust and safety boundaries"],
   ["docs/resource-limits.md", "resource-limits.md", "Resource limits"],

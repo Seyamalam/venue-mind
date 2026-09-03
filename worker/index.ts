@@ -92,6 +92,15 @@ import {
   type ObservabilityRepository,
 } from "./observability-repository.ts";
 import { inspectDatabaseIntegrity } from "./database-migrations.ts";
+import {
+  PRODUCT_ANALYTICS_MAX_WINDOW_DAYS,
+  decodeProductAnalyticsEvent,
+} from "../src/analytics/product-analytics.ts";
+import {
+  createD1ProductAnalyticsRepository,
+  createMemoryProductAnalyticsRepository,
+  type ProductAnalyticsRepository,
+} from "./product-analytics-repository.ts";
 import type {
   AggregateOccupancySignal,
   IncidentCategory,
@@ -126,9 +135,20 @@ export { createD1PostEventReviewRepository } from "./post-event-review-repositor
 export { createD1RateLimitRepository, createMemoryRateLimitRepository } from "./rate-limit-repository.ts";
 export { createD1DataProtectionRepository, DataProtectionConflict } from "./data-protection-repository.ts";
 export { createD1ObservabilityRepository, createMemoryObservabilityRepository } from "./observability-repository.ts";
+export { createD1ProductAnalyticsRepository, createMemoryProductAnalyticsRepository } from "./product-analytics-repository.ts";
 
 type ProjectRepository = ReturnType<typeof createD1ProjectRepository>;
 type AccountRepository = ReturnType<typeof createD1AccountRepository>;
+
+const opaqueProductAnalyticsScopeHash = async (organizationId: string): Promise<string> =>
+  [...new Uint8Array(
+    await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(`venuemind-product-analytics\u0000organization\u0000${organizationId}`),
+    ),
+  )]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 type CollaborationRepository = ReturnType<typeof createD1CollaborationRepository>;
 type SharingRepository = ReturnType<typeof createD1SharingRepository>;
 type RunbookRepository = ReturnType<typeof createD1RunbookRepository>;
@@ -161,6 +181,7 @@ type WorkerOptions = {
   createObservabilityRepository?: (db: D1Database, scopeHash: string) => ObservabilityRepository;
   telemetrySink?: TelemetrySink;
   integrityInspector?: (db: D1Database) => Promise<Readonly<{ status: string }>>;
+  createProductAnalyticsRepository?: (db: D1Database, scopeHash: string) => ProductAnalyticsRepository;
   identityProvider?: IdentityProvider;
   emailDelivery?: EmailDelivery;
   secureCookies?: boolean;
@@ -719,6 +740,7 @@ const requestAction = (method: string, pathname: string): string => {
   if (pathname === "/api/health") return "health.read";
   if (pathname.startsWith("/api/diagnostics/"))
     return pathname.includes("/traces/") ? "diagnostics.trace" : "diagnostics.read";
+  if (pathname.startsWith("/api/analytics/")) return method === "GET" ? "analytics.read" : "analytics.write";
   if (pathname.startsWith("/api/projects")) return method === "GET" ? "projects.read" : "projects.write";
   if (pathname.startsWith("/api/share/")) return "sharing.read";
   if (pathname.includes("share-links")) return "sharing.write";
@@ -783,6 +805,19 @@ export function createWorker(options: WorkerOptions = {}) {
     (options.createProjectRepository || options.createAccountRepository
       ? async () => ({ status: "pass" })
       : inspectDatabaseIntegrity);
+  const memoryProductAnalytics = new Map<string, ProductAnalyticsRepository>();
+  const memoryProductAnalyticsFactory = (_db: D1Database, scopeHash: string): ProductAnalyticsRepository => {
+    const existing = memoryProductAnalytics.get(scopeHash);
+    if (existing) return existing;
+    const created = createMemoryProductAnalyticsRepository({ clock });
+    memoryProductAnalytics.set(scopeHash, created);
+    return created;
+  };
+  const productAnalyticsRepositoryFactory =
+    options.createProductAnalyticsRepository ??
+    (options.createProjectRepository || options.createAccountRepository
+      ? memoryProductAnalyticsFactory
+      : createD1ProductAnalyticsRepository);
 
   const appendShareLedger = async (
     env: WorkerEnv,
@@ -1018,6 +1053,30 @@ export function createWorker(options: WorkerOptions = {}) {
         emit: (event: TelemetryEvent) => durableObservability?.record(event),
       });
       const admin = organization ? isOrganizationAdministrator({ status: "active", roles: organization.roles }) : false;
+
+      const productAnalyticsScopeHash = await opaqueProductAnalyticsScopeHash(organization?.id ?? "none");
+      const productAnalytics = productAnalyticsRepositoryFactory(env.DB, productAnalyticsScopeHash);
+      if (url.pathname === "/api/analytics/events" && request.method === "POST") {
+        if (!organization)
+          return finishResponse(apiError(403, "ORGANIZATION_ACCESS_DENIED", "Active organization membership required"));
+        try {
+          await productAnalytics.increment(decodeProductAnalyticsEvent(await readObjectBody(request)), clock());
+          return respond({ status: "recorded" }, { status: 202 });
+        } catch {
+          return finishResponse(apiError(400, "PRODUCT_ANALYTICS_EVENT_INVALID", "Analytics event invalid"));
+        }
+      }
+      if (url.pathname === "/api/analytics/metrics" && request.method === "GET") {
+        if (!organization || !admin)
+          return finishResponse(apiError(403, "ANALYTICS_READ_DENIED", "Organization administrator role required"));
+        if ([...url.searchParams.keys()].some((key) => key !== "days"))
+          return finishResponse(apiError(400, "PRODUCT_ANALYTICS_WINDOW_INVALID", "Analytics window invalid"));
+        const rawDays = url.searchParams.get("days") ?? "30";
+        const days = Number(rawDays);
+        if (!/^\d+$/.test(rawDays) || !Number.isSafeInteger(days) || days < 1 || days > PRODUCT_ANALYTICS_MAX_WINDOW_DAYS)
+          return finishResponse(apiError(400, "PRODUCT_ANALYTICS_WINDOW_INVALID", "Analytics window invalid"));
+        return respond(await productAnalytics.metrics(days, clock()));
+      }
 
       if (url.pathname === "/api/diagnostics/health" && request.method === "GET") {
         const integritySpan = startTelemetrySpan(structuredLog, {
@@ -2724,6 +2783,7 @@ export function createWorker(options: WorkerOptions = {}) {
           clock,
         }),
         retention,
+        productAnalyticsRepositoryFactory(env.DB, "0".repeat(64)).prune(clock()),
       ]);
       if (context?.waitUntil) {
         context.waitUntil(task);

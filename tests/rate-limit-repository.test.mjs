@@ -63,7 +63,7 @@ test("migration 13 remains installed with opaque bounded API rate windows and in
   const db = new SqliteD1();
   t.after(() => db.close());
   const migrated = await applyDatabaseMigrations(db);
-  assert.equal(DATABASE_SCHEMA_VERSION, 15);
+  assert.equal(DATABASE_SCHEMA_VERSION, 16);
   assert.equal(migrated.currentVersion, DATABASE_SCHEMA_VERSION);
   const columns = await db.prepare("PRAGMA table_info(api_rate_limit_windows)").all();
   assert.deepEqual(

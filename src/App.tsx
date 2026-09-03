@@ -167,6 +167,11 @@ import {
   telemetryErrorCode,
   type TelemetryRecorder,
 } from "./observability/telemetry";
+import {
+  createProductAnalyticsClient,
+  productAnalyticsEvent,
+} from "./analytics/product-analytics-client";
+import { productAnalyticsErrorCategory } from "./analytics/product-analytics";
 
 const briefIcons: Record<string, PhosphorIcon> = {
   accessibility: Wheelchair,
@@ -884,6 +889,10 @@ export function App({
     ["venue-administrator", "organization-administrator"].includes(role),
   );
   const observability = useMemo(() => createMemoryTelemetry(), []);
+  const productAnalytics = useMemo(
+    () => createProductAnalyticsClient({ organizationId }),
+    [organizationId],
+  );
   const planner = useMemo(() => {
     const generatedPlan = createEmptyVenuePlan({ projectId });
     const initialPlan: VenuePlanDocument =
@@ -1129,6 +1138,30 @@ export function App({
   const collaborationClientRef = useRef<ReturnType<typeof createCollaborationClient> | null>(null);
   const persistenceStatusRef = useRef("SYNC");
   const saveInFlightRef = useRef(false);
+  const lastAnalyticsValidationFingerprint = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (lastAnalyticsValidationFingerprint.current === validation.inputFingerprint) return;
+    lastAnalyticsValidationFingerprint.current = validation.inputFingerprint;
+    productAnalytics.markStage("validate");
+    void productAnalytics.capture(
+      productAnalyticsEvent("validation.completed", {
+        outcome: validation.status,
+        stage: "validate",
+        errorCategory: null,
+      }),
+    );
+  }, [productAnalytics, validation.inputFingerprint, validation.status]);
+
+  useEffect(() => {
+    const abandon = () => {
+      void productAnalytics.abandon();
+    };
+    window.addEventListener("pagehide", abandon);
+    return () => {
+      window.removeEventListener("pagehide", abandon);
+    };
+  }, [productAnalytics]);
 
   const acceptedLedgerEntry = useMemo(
     () =>
@@ -1715,6 +1748,7 @@ export function App({
   };
 
   const handleApprove = () => {
+    productAnalytics.markStage("approve");
     const metadata = commandMetadata("approve");
     const span = startTelemetrySpan(observability, {
       component: "client",
@@ -1741,12 +1775,27 @@ export function App({
         ...metadata,
       });
       span.end("approved");
+      void productAnalytics.capture(
+        productAnalyticsEvent("golden-loop.completed", {
+          outcome: "completed",
+          stage: "approve",
+          errorCategory: null,
+        }),
+      );
+      productAnalytics.complete();
       refreshHealth();
       setAdjustmentOpen(false);
       setViewMode("proposed");
       notify(`Plan v${resultString(result, "planVersion")} applied`);
     } catch (error) {
       span.end("rejected", error instanceof Error ? telemetryErrorCode(error) : "APPROVAL_FAILED");
+      void productAnalytics.capture(
+        productAnalyticsEvent("product.error", {
+          outcome: "error",
+          stage: "approve",
+          errorCategory: productAnalyticsErrorCategory(error),
+        }),
+      );
       refreshHealth();
       notify(errorMessage(error, "APPROVAL FAILED"));
     }
@@ -1805,6 +1854,7 @@ export function App({
   };
 
   const handleEdit = (edit: EditingCommand) => {
+    productAnalytics.markStage("preview");
     try {
       const result = planner.execute({
         type: "apply_edit",
@@ -1820,6 +1870,13 @@ export function App({
       notify(`${resultString(result, "operation").toUpperCase()} · ${resultNumber(result, "changedItems")} CHG`);
       return syncCommandResult(result);
     } catch (error) {
+      void productAnalytics.capture(
+        productAnalyticsEvent("product.error", {
+          outcome: "error",
+          stage: "preview",
+          errorCategory: productAnalyticsErrorCategory(error),
+        }),
+      );
       notify(errorCode(error, "EDIT FAILED"));
       return null;
     }
@@ -1886,6 +1943,7 @@ export function App({
   const handleAdjustmentSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!adjustment.trim()) return;
+    productAnalytics.markStage("adjust");
     try {
       syncCommandResult(
         planner.execute({
@@ -1899,8 +1957,22 @@ export function App({
       setAdjustmentOpen(false);
       setAdjustment("");
       setViewMode("proposed");
+      void productAnalytics.capture(
+        productAnalyticsEvent("adjustment.cycle", {
+          outcome: "requested",
+          stage: "adjust",
+          errorCategory: null,
+        }),
+      );
       notify("Adjustment sent");
     } catch (error) {
+      void productAnalytics.capture(
+        productAnalyticsEvent("product.error", {
+          outcome: "error",
+          stage: "adjust",
+          errorCategory: productAnalyticsErrorCategory(error),
+        }),
+      );
       notify(errorMessage(error, "ADJUSTMENT FAILED"));
     }
   };
@@ -1919,6 +1991,7 @@ export function App({
   };
 
   const handleExport = async (format: string) => {
+    productAnalytics.markStage("export");
     try {
       let exported: DownloadArtifact;
       if (format === "package") {
@@ -1943,8 +2016,22 @@ export function App({
       }
       downloadExport(exported);
       setExportOpen(false);
+      void productAnalytics.capture(
+        productAnalyticsEvent("export.completed", {
+          outcome: "exported",
+          stage: "export",
+          errorCategory: null,
+        }),
+      );
       notify(`${format.toUpperCase()} READY`);
     } catch (error) {
+      void productAnalytics.capture(
+        productAnalyticsEvent("product.error", {
+          outcome: "error",
+          stage: "export",
+          errorCategory: productAnalyticsErrorCategory(error, "export"),
+        }),
+      );
       notify(errorCode(error, "EXPORT FAILED"));
     }
   };
@@ -2107,6 +2194,7 @@ export function App({
     if (activeBranches.length < 2) return;
     const firstBranch = activeBranches[0];
     if (!firstBranch) return;
+    productAnalytics.markStage("compare");
     const left = activeBranches.some((branch) => branch.id === compareLeftBranchId)
       ? compareLeftBranchId
       : firstBranch.id;
@@ -2118,6 +2206,13 @@ export function App({
         : fallbackRight,
     );
     setComparisonOpen(true);
+    void productAnalytics.capture(
+      productAnalyticsEvent("branch.compared", {
+        outcome: "compared",
+        stage: "compare",
+        errorCategory: null,
+      }),
+    );
   };
 
   const handleSwitchBranch = (branchId: string) => {

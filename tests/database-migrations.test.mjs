@@ -112,7 +112,7 @@ test("untracked complete event-day runbook schema adopts v8 and applies later op
     const dryRun = await cli("migrate", "--database", database, "--dry-run");
     assert.equal(dryRun.currentVersion, 8);
     assert.equal(dryRun.adoptionRequired, true);
-    assert.deepEqual(dryRun.pending.map((migration) => migration.version), [9, 10, 11, 12, 13, 14, 15]);
+    assert.deepEqual(dryRun.pending.map((migration) => migration.version), [9, 10, 11, 12, 13, 14, 15, 16]);
     const migrated = await cli("migrate", "--database", database);
     assert.equal(migrated.currentVersion, DATABASE_SCHEMA_VERSION);
     assert.equal(migrated.applied.filter((item) => item.adopted).length, 8);

@@ -36,6 +36,11 @@
       "title": "Data protection"
     },
     {
+      "sourcePath": "docs/product-analytics.md",
+      "publicPath": "/guides/product-analytics.md",
+      "title": "Product analytics"
+    },
+    {
       "sourcePath": "docs/terms.md",
       "publicPath": "/guides/terms.md",
       "title": "Preview terms"

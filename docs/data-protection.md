@@ -1,6 +1,6 @@
 # Data protection
 
-VenueMind stores venue geometry, planning decisions, aggregate event-day observations, operational incidents, user identity, and tamper-evident audit evidence. It does not store attendee records, individual occupancy events, raw integration credentials, or generated export files.
+VenueMind stores venue geometry, planning decisions, aggregate event-day observations, operational incidents, user identity, tamper-evident audit evidence, and optional aggregate product metrics. It does not store attendee records, individual occupancy events, raw integration credentials, generated export files, or Project content in product analytics.
 
 ## Classification and defaults
 
@@ -11,6 +11,7 @@ VenueMind stores venue geometry, planning decisions, aggregate event-day observa
 | Operational sensitive | Runbook, occupancy aggregates, incidents, deviations, post-event review | 365 days | 30 days | 30 days after purge |
 | Account identity | Email, display name, membership | Account lifetime | None | 30 days |
 | Security evidence | Session, authorization, organization audit | 400 days | None | 30 days |
+| Product analytics | Daily content-free event counts | 180 days | None | 30 days |
 | Secret reference | Opaque environment binding names | Configuration lifetime | None | Not stored in D1 or backups |
 
 Organization administrators may shorten or extend operational retention from 30 days to seven years, security evidence from 90 days to seven years, and Project recovery from zero to 30 days. The runtime rejects values outside these bounds.
@@ -22,6 +23,7 @@ Organization administrators may shorten or extend operational retention from 30 
 - Integration adapters receive secrets through scoped readers. Project records, command receipts, logs, exports, and browser caches never receive raw credentials.
 - Exports are generated on demand and returned directly. VenueMind does not retain them in object storage.
 - Diagnostic logs use an allowlist of bounded scalar fields and omit request bodies, payloads, snapshots, geometry, identity attributes, cookies, and credentials.
+- Product analytics is off by default and can be enabled or disabled deterministically in Settings. Its seven event types contain only schema version, event name, fixed outcome, fixed workflow stage, and a fixed error category when applicable. The server persists daily counts under a one-way organization scope hash; it never persists analytics event rows, geometry, Project or comment content, URLs, free text, credentials, or object, Project, or user identifiers.
 
 ## Export and deletion
 
@@ -30,6 +32,8 @@ Account export includes the account, its memberships, relevant organization audi
 Deleting a Project first creates a recoverable tombstone. Its browser cache is removed immediately. At the configured deadline, the D1 Project row is purged and foreign-key cascades remove accepted state, runbooks, occupancy, incidents, deviations, post-event reviews, receipts, and ledgers. Backups expire 30 days after the primary purge. Previously downloaded exports remain under the downloader's control because VenueMind does not retain a server copy.
 
 Deleting an account immediately revokes sessions, suspends memberships, and anonymizes identity fields. Organization audit evidence retains opaque actor identifiers for integrity until its retention deadline.
+
+Product-analytics aggregates cannot be linked back to a Project, object, or user and therefore are not included in account or Project export or deletion. They expire after 180 days. Turning analytics off stops future collection from that browser immediately; it does not alter product behavior or human supervision.
 
 The Project store handles deletion as a server transaction, not a metadata edit. It sends the current Project ETag, removes the Project, synchronization base, and conflict-recovery keys from browser storage, then acknowledges the server-issued cache directive. A failed acknowledgement is surfaced as `PROJECT_CACHE_ACK_FAILED`; it never restores the removed cache.
 

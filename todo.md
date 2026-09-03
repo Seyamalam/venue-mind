@@ -1141,15 +1141,15 @@ Completion gate:
 
 ## 12.3 Product analytics
 
-- [ ] Define a privacy-preserving event taxonomy.
-- [ ] Track golden-loop completion, validation outcomes, Adjustment cycles, branch comparison, and export.
-- [ ] Track errors and abandonment without collecting raw geometry or event content by default.
-- [ ] Add opt-out controls where required.
-- [ ] Use analytics to identify friction, not to weaken supervision.
+- [x] Define a privacy-preserving event taxonomy.
+- [x] Track golden-loop completion, validation outcomes, Adjustment cycles, branch comparison, and export.
+- [x] Track errors and abandonment without collecting raw geometry or event content by default.
+- [x] Add opt-out controls where required.
+- [x] Use analytics to identify friction, not to weaken supervision.
 
 Completion gate:
 
-- [ ] Product metrics answer where users fail in the golden loop without exposing sensitive Project content.
+- [x] Product metrics answer where users fail in the golden loop without exposing sensitive Project content.
 
 ---
 
