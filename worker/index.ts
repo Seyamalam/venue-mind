@@ -44,6 +44,8 @@ import { createIncidentCommandBus } from "../src/domain/incident-command-bus.ts"
 import { createD1IncidentRepository, IncidentRegisterConflict } from "./incident-repository.ts";
 import { createDeviationCommandBus } from "../src/domain/deviation-command-bus.ts";
 import { createD1DeviationRepository, DeviationRegisterConflict } from "./deviation-repository.ts";
+import { createD1DataProtectionRepository, DataProtectionConflict } from "./data-protection-repository.ts";
+import { safeLogRecord } from "../src/security/data-protection.ts";
 import {
   decodeDeviationCreateBody,
   decodeDeviationMutationCommand,
@@ -105,6 +107,7 @@ export { createD1IncidentRepository } from "./incident-repository.ts";
 export { createD1DeviationRepository } from "./deviation-repository.ts";
 export { createD1PostEventReviewRepository } from "./post-event-review-repository.ts";
 export { createD1RateLimitRepository, createMemoryRateLimitRepository } from "./rate-limit-repository.ts";
+export { createD1DataProtectionRepository, DataProtectionConflict } from "./data-protection-repository.ts";
 
 type ProjectRepository = ReturnType<typeof createD1ProjectRepository>;
 type AccountRepository = ReturnType<typeof createD1AccountRepository>;
@@ -115,6 +118,7 @@ type OccupancyRepository = ReturnType<typeof createD1OccupancyRepository>;
 type IncidentRepository = ReturnType<typeof createD1IncidentRepository>;
 type DeviationRepository = ReturnType<typeof createD1DeviationRepository>;
 type PostEventReviewRepository = ReturnType<typeof createD1PostEventReviewRepository>;
+type DataProtectionRepository = ReturnType<typeof createD1DataProtectionRepository>;
 type EmailDelivery = {
   send: (message: {
     idempotencyKey: string;
@@ -135,10 +139,12 @@ type WorkerOptions = {
   createDeviationRepository?: (db: D1Database) => DeviationRepository;
   createPostEventReviewRepository?: (db: D1Database) => PostEventReviewRepository;
   createRateLimitRepository?: (db: D1Database) => RateLimitRepository;
+  createDataProtectionRepository?: (db: D1Database) => DataProtectionRepository;
   identityProvider?: IdentityProvider;
   emailDelivery?: EmailDelivery;
   secureCookies?: boolean;
   clock?: () => string;
+  log?: (record: Readonly<Record<string, string | number | boolean | null>>) => void;
 };
 
 const SESSION_COOKIE = "venuemind_session";
@@ -300,6 +306,10 @@ const readObjectBody = async (request: Request): Promise<Record<string, unknown>
   if (!isRecord(body)) throw new TypeError("JSON body must be an object");
   return body;
 };
+const hasExactKeys = (value: Record<string, unknown>, expected: readonly string[]): boolean => {
+  const keys = Object.keys(value).sort();
+  return keys.length === expected.length && keys.every((key, index) => key === [...expected].sort()[index]);
+};
 const errorInfo = (cause: unknown): { code?: string; message?: string; details?: unknown } => {
   if (!isRecord(cause)) return cause instanceof Error ? { message: cause.message } : {};
   return {
@@ -337,6 +347,14 @@ const requestBodyError = (cause: unknown): Response => {
       safeResourceLimitDetails(error.details),
     );
   return apiError(400, "INVALID_JSON", "Invalid JSON body");
+};
+const dataProtectionError = (cause: unknown): Response | null => {
+  if (!(cause instanceof DataProtectionConflict)) return null;
+  const status = cause.code.includes("NOT_FOUND") ? 404
+    : cause.code.includes("REVISION") || cause.code.includes("ALREADY") || cause.code.includes("WINDOW") || cause.code.includes("CONFLICT") || cause.code.includes("RECOVERABLE") || cause.code.includes("PURGEABLE") || cause.code.includes("ACTIVE")
+      ? 409
+      : 400;
+  return apiError(status, cause.code, cause.code.toLowerCase().replaceAll("_", " "), cause.details);
 };
 const occupancySimulation = (value: unknown): OccupancySimulationBaseline | null => {
   if (value == null) return null;
@@ -702,6 +720,13 @@ export function createWorker(options: WorkerOptions = {}) {
     (options.createProjectRepository || options.createAccountRepository
       ? () => memoryRateLimits
       : createD1RateLimitRepository);
+  const dataProtectionRepositoryFactory = options.createDataProtectionRepository ?? ((db: D1Database) => createD1DataProtectionRepository(db, { clock }));
+  const logSink = options.log ?? ((record: Readonly<Record<string, string | number | boolean | null>>) => {
+    console.info(JSON.stringify(record));
+  });
+  const log = (fields: Readonly<Record<string, unknown>>): void => {
+    logSink(safeLogRecord(fields));
+  };
 
   const appendShareLedger = async (
     env: WorkerEnv,
@@ -1040,7 +1065,24 @@ export function createWorker(options: WorkerOptions = {}) {
         const accountExport = await accounts.exportAccount(account.user.id);
         const repository = projectRepositoryFactory(env.DB);
         const projects = (await Promise.all(account.organizations.map((item) => repository.list(item.id)))).flat();
-        return respond({ ...accountExport, projects });
+        // A custom Project repository must provide the matching data-protection repository to expose its aggregates.
+        if (options.createProjectRepository && !options.createDataProtectionRepository)
+          return respond({ ...accountExport, projects });
+        const protection = dataProtectionRepositoryFactory(env.DB);
+        const accountData = await protection.exportAccount(
+          account.user.id,
+          account.organizations.map((item) => item.id),
+        );
+        const projectScopes = (
+          await Promise.all(
+            account.organizations.map(async (item) =>
+              (await protection.listOrganizationProjectIds(item.id)).map((projectId) => ({ organizationId: item.id, projectId })),
+            ),
+          )
+        ).flat();
+        const projectExports = await Promise.all(projectScopes.map((scope) =>
+          protection.exportProject(scope.organizationId, scope.projectId, account.user.id)));
+        return respond({ ...accountExport, projects, dataProtection: accountData, projectExports });
       }
       if (url.pathname === "/api/account" && request.method === "DELETE") {
         const result = await accounts.requestAccountDeletion(account.user.id);
@@ -1056,6 +1098,159 @@ export function createWorker(options: WorkerOptions = {}) {
       const incidents = incidentRepositoryFactory(env.DB);
       const deviations = deviationRepositoryFactory(env.DB);
       const postEventReviews = postEventReviewRepositoryFactory(env.DB);
+      const dataProtection = dataProtectionRepositoryFactory(env.DB);
+
+      if (url.pathname === "/api/data-protection/retention-policy" && request.method === "GET") {
+        if (!admin) return apiError(403, "ORGANIZATION_ADMIN_REQUIRED", "Organization administrator required");
+        return respond(await dataProtection.getPolicy(organization.id, account.user.id));
+      }
+      if (url.pathname === "/api/data-protection/retention-policy" && request.method === "PUT") {
+        if (!admin) return apiError(403, "ORGANIZATION_ADMIN_REQUIRED", "Organization administrator required");
+        let body: Record<string, unknown>;
+        try {
+          body = await readObjectBody(request);
+        } catch {
+          return apiError(400, "RETENTION_POLICY_INVALID", "Retention policy payload is invalid");
+        }
+        if (
+          !hasExactKeys(body, ["operationalSensitiveDays", "securityEvidenceDays", "projectRecoveryDays"]) ||
+          typeof body.operationalSensitiveDays !== "number" ||
+          typeof body.securityEvidenceDays !== "number" ||
+          typeof body.projectRecoveryDays !== "number"
+        ) return apiError(400, "RETENTION_POLICY_INVALID", "Retention policy payload is invalid");
+        try {
+          const policy = await dataProtection.setPolicy(organization.id, account.user.id, {
+            operationalSensitiveDays: body.operationalSensitiveDays,
+            securityEvidenceDays: body.securityEvidenceDays,
+            projectRecoveryDays: body.projectRecoveryDays,
+          });
+          log({ event: "retention.policy_updated", route: url.pathname, method: request.method, status: 200, occurredAt: policy.updatedAt });
+          return respond(policy);
+        } catch (cause) {
+          return apiError(400, "RETENTION_POLICY_INVALID", cause instanceof Error ? cause.message : "Retention policy is invalid");
+        }
+      }
+      if (url.pathname === "/api/data-protection/backup-expiry" && request.method === "GET") {
+        if (!admin) return apiError(403, "ORGANIZATION_ADMIN_REQUIRED", "Organization administrator required");
+        return respond({ expectations: await dataProtection.listBackupExpiryExpectations(organization.id) });
+      }
+      if (url.pathname === "/api/data-protection/backup-expiry/verify" && request.method === "POST") {
+        if (!admin) return apiError(403, "ORGANIZATION_ADMIN_REQUIRED", "Organization administrator required");
+        let body: Record<string, unknown>;
+        try {
+          body = await readObjectBody(request);
+        } catch {
+          return apiError(400, "BACKUP_EXPIRY_EVIDENCE_INVALID", "Backup expiry evidence payload is invalid");
+        }
+        if (
+          !hasExactKeys(body, ["deletionRequestId", "evidenceRef"]) ||
+          typeof body.deletionRequestId !== "string" ||
+          typeof body.evidenceRef !== "string"
+        ) return apiError(400, "BACKUP_EXPIRY_EVIDENCE_INVALID", "Backup expiry evidence payload is invalid");
+        try {
+          const evidence = await dataProtection.recordBackupExpiryEvidence(
+            organization.id,
+            account.user.id,
+            body.deletionRequestId,
+            body.evidenceRef,
+          );
+          log({ event: "backup.expiry_evidence_recorded", route: url.pathname, method: request.method, status: 200, projectId: evidence.projectId, occurredAt: evidence.verifiedAt });
+          return respond(evidence);
+        } catch (cause) {
+          return dataProtectionError(cause) ?? apiError(500, "BACKUP_EXPIRY_EVIDENCE_FAILED", "Backup expiry evidence failed");
+        }
+      }
+
+      const projectExportMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/export$/);
+      if (projectExportMatch && request.method === "GET") {
+        if (!admin) return apiError(403, "ORGANIZATION_ADMIN_REQUIRED", "Organization administrator required");
+        const projectId = pathCapture(projectExportMatch, 1);
+        try {
+          const exported = await dataProtection.exportProject(organization.id, projectId, account.user.id);
+          log({ event: "project.export_generated", route: url.pathname, method: request.method, status: 200, projectId, occurredAt: exported.exportedAt });
+          return respond(exported, {
+            headers: { "content-disposition": `attachment; filename="venuemind-project-${encodeURIComponent(projectId)}.json"` },
+          });
+        } catch (cause) {
+          return dataProtectionError(cause) ?? apiError(500, "PROJECT_EXPORT_FAILED", "Project export failed");
+        }
+      }
+
+      const projectDeletionActionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/deletion\/(cache-ack|recover|purge)$/);
+      if (projectDeletionActionMatch && request.method === "POST") {
+        if (!admin) return apiError(403, "ORGANIZATION_ADMIN_REQUIRED", "Organization administrator required");
+        const projectId = pathCapture(projectDeletionActionMatch, 1);
+        const action = pathCapture(projectDeletionActionMatch, 2);
+        let body: Record<string, unknown>;
+        try {
+          body = await readObjectBody(request);
+        } catch {
+          return apiError(400, "PROJECT_DELETION_PAYLOAD_INVALID", "Project deletion payload is invalid");
+        }
+        const expectedKeys = action === "cache-ack" ? ["deletionRequestId", "directiveId"] : ["deletionRequestId"];
+        if (
+          !hasExactKeys(body, expectedKeys) ||
+          typeof body.deletionRequestId !== "string" ||
+          (action === "cache-ack" && typeof body.directiveId !== "string")
+        ) return apiError(400, "PROJECT_DELETION_PAYLOAD_INVALID", "Project deletion payload is invalid");
+        try {
+          const result = action === "cache-ack"
+            ? await dataProtection.acknowledgeBrowserCacheDeletion(
+                organization.id,
+                projectId,
+                account.user.id,
+                body.deletionRequestId,
+                String(body.directiveId),
+              )
+            : action === "recover"
+              ? await dataProtection.recoverProject(organization.id, projectId, account.user.id, body.deletionRequestId)
+              : await dataProtection.purgeProject(organization.id, projectId, account.user.id, body.deletionRequestId);
+          log({ event: `project.deletion_${action}`, route: url.pathname, method: request.method, status: 200, projectId, occurredAt: clock() });
+          return respond(result);
+        } catch (cause) {
+          return dataProtectionError(cause) ?? apiError(500, "PROJECT_DELETION_FAILED", "Project deletion operation failed");
+        }
+      }
+
+      const projectDeletionMatch = url.pathname.match(/^\/api\/projects\/([^/]+)$/);
+      if (projectDeletionMatch && request.method === "DELETE") {
+        if (!admin) return apiError(403, "ORGANIZATION_ADMIN_REQUIRED", "Organization administrator required");
+        const projectId = pathCapture(projectDeletionMatch, 1);
+        const expectedRevision = parseProjectEtag(request.headers.get("if-match") ?? "", projectId);
+        if (expectedRevision === null)
+          return apiError(428, "PROJECT_PRECONDITION_REQUIRED", "A valid If-Match Project ETag is required");
+        let body: Record<string, unknown>;
+        try {
+          body = await readObjectBody(request);
+        } catch {
+          return apiError(400, "PROJECT_DELETION_PAYLOAD_INVALID", "Project deletion payload is invalid");
+        }
+        if (
+          !hasExactKeys(body, ["reasonCode"]) ||
+          typeof body.reasonCode !== "string" ||
+          !/^[A-Z0-9][A-Z0-9_-]{0,79}$/.test(body.reasonCode)
+        ) return apiError(400, "PROJECT_DELETION_PAYLOAD_INVALID", "Project deletion payload is invalid");
+        try {
+          const evidence = await dataProtection.requestProjectDeletion(
+            organization.id,
+            projectId,
+            account.user.id,
+            expectedRevision,
+            body.reasonCode,
+          );
+          log({ event: "project.deletion_requested", route: url.pathname, method: request.method, status: 202, projectId, revision: evidence.projectRevision, occurredAt: evidence.requestedAt });
+          return respond(evidence, {
+            status: 202,
+            headers: {
+              etag: projectEtag(projectId, evidence.projectRevision),
+              "clear-site-data": '"cache"',
+              "x-venuemind-cache-directive": evidence.cacheDirective.id,
+            },
+          });
+        } catch (cause) {
+          return dataProtectionError(cause) ?? apiError(500, "PROJECT_DELETION_FAILED", "Project deletion request failed");
+        }
+      }
       const notifyOrganization = async (
         eventType: NotificationEventType,
         record: ProjectRecord,
@@ -2377,6 +2572,17 @@ export function createWorker(options: WorkerOptions = {}) {
       env: WorkerEnv,
       context?: { waitUntil?: (promise: Promise<unknown>) => void },
     ) {
+      const retention = options.createProjectRepository && !options.createDataProtectionRepository
+        ? Promise.resolve(null)
+        : dataProtectionRepositoryFactory(env.DB).sweepRetention(50).then((summary) => {
+            log({
+              event: "retention.sweep_completed",
+              status: 200,
+              count: summary.deleted.projects + summary.deleted.runbooks + summary.deleted.securityAuditEvents + summary.deleted.deletionEvidence + summary.deleted.backupEvidence,
+              occurredAt: summary.completedAt,
+            });
+            return summary;
+          });
       const task = Promise.all([
         reconcileShareOperations(env, { limit: 100 }),
         drainNotificationEmail({
@@ -2384,6 +2590,7 @@ export function createWorker(options: WorkerOptions = {}) {
           delivery: options.emailDelivery ?? env.EMAIL_DELIVERY,
           clock,
         }),
+        retention,
       ]);
       if (context?.waitUntil) {
         context.waitUntil(task);

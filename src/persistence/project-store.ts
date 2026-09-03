@@ -16,7 +16,24 @@ interface StorageLike {
   readonly length: number;
   getItem(key: string): string | null;
   key(index: number): string | null;
+  removeItem(key: string): void;
   setItem(key: string, value: string): void;
+}
+
+export interface ProjectDeletionReceipt {
+  readonly schemaVersion: 1;
+  readonly id: string;
+  readonly projectId: string;
+  readonly projectRevision: number;
+  readonly status: "recoverable";
+  readonly recoveryUntil: string;
+  readonly cacheDirective: Readonly<{
+    id: string;
+    action: "delete-project-cache";
+    issuedAt: string;
+    acknowledgedAt: string | null;
+    acknowledgedBy: string | null;
+  }>;
 }
 
 export interface ProjectStoreOptions {
@@ -120,6 +137,40 @@ const decodeProjectList = (value: unknown): readonly LocalProjectRecord[] => {
   }
   return value["projects"].map(decodeProject);
 };
+const decodeDeletionReceipt = (value: unknown): ProjectDeletionReceipt => {
+  if (
+    !isObject(value) ||
+    value["schemaVersion"] !== 1 ||
+    typeof value["id"] !== "string" ||
+    typeof value["projectId"] !== "string" ||
+    typeof value["projectRevision"] !== "number" ||
+    value["status"] !== "recoverable" ||
+    typeof value["recoveryUntil"] !== "string" ||
+    !isObject(value["cacheDirective"]) ||
+    typeof value["cacheDirective"]["id"] !== "string" ||
+    value["cacheDirective"]["action"] !== "delete-project-cache" ||
+    typeof value["cacheDirective"]["issuedAt"] !== "string" ||
+    (value["cacheDirective"]["acknowledgedAt"] !== null &&
+      typeof value["cacheDirective"]["acknowledgedAt"] !== "string") ||
+    (value["cacheDirective"]["acknowledgedBy"] !== null &&
+      typeof value["cacheDirective"]["acknowledgedBy"] !== "string")
+  ) throw new Error("Project deletion endpoint returned invalid evidence");
+  return {
+    schemaVersion: 1,
+    id: value["id"],
+    projectId: value["projectId"],
+    projectRevision: value["projectRevision"],
+    status: "recoverable",
+    recoveryUntil: value["recoveryUntil"],
+    cacheDirective: {
+      id: value["cacheDirective"]["id"],
+      action: "delete-project-cache",
+      issuedAt: value["cacheDirective"]["issuedAt"],
+      acknowledgedAt: value["cacheDirective"]["acknowledgedAt"],
+      acknowledgedBy: value["cacheDirective"]["acknowledgedBy"],
+    },
+  };
+};
 
 const isProjectConflict = (value: unknown): value is ProjectConflict =>
   isObject(value) &&
@@ -170,6 +221,14 @@ export function createProjectStore({
   const writeRemoteCache = (record: LocalProjectRecord): void => {
     writeLocal(record);
     writeSyncBase(record);
+  };
+  const purgeLocalProject = (projectId: string): void => {
+    const keys = [localKey(projectId), syncBaseKey(projectId)];
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (key?.startsWith(`${recoveryPrefix}${projectId}.`)) keys.push(key);
+    }
+    for (const key of new Set(keys)) storage.removeItem(key);
   };
   const writeRecovery = (conflict: ProjectConflict): string | null => {
     try {
@@ -438,19 +497,45 @@ export function createProjectStore({
       return store.updateMetadata(projectId, { name: normalized });
     },
 
-    async softDelete(projectId: string, confirmationName: string): Promise<ProjectStoreResult> {
+    async deleteProject(projectId: string, confirmationName: string): Promise<ProjectDeletionReceipt> {
       const loaded = await store.load(projectId);
       if (!loaded.record) throw new ProjectStoreError("PROJECT_NOT_FOUND", `Project not found: ${projectId}`);
       if (confirmationName !== loaded.record.name) {
         throw new ProjectStoreError("PROJECT_CONFIRMATION_MISMATCH", "Project confirmation does not match");
       }
-      const deletedAt = clock();
-      const recoveryUntil = new Date(Date.parse(deletedAt) + 7 * 24 * 60 * 60 * 1000).toISOString();
-      return store.updateMetadata(projectId, { deletedAt, recoveryUntil, archivedAt: null, pinned: false });
-    },
-
-    restoreDeleted(projectId: string): Promise<ProjectStoreResult> {
-      return store.updateMetadata(projectId, { deletedAt: null, recoveryUntil: null });
+      if (loaded.record.revision === undefined)
+        throw new ProjectStoreError("PROJECT_REVISION_REQUIRED", "Project revision is required");
+      const response = await fetchImpl(`/api/projects/${encodeURIComponent(projectId)}`, {
+        method: "DELETE",
+        credentials: "same-origin",
+        headers: requestHeaders({
+          accept: "application/json",
+          "content-type": "application/json",
+          "if-match": projectEtag(projectId, loaded.record.revision),
+        }),
+        body: JSON.stringify({ reasonCode: "USER_REQUEST" }),
+      });
+      if (!response.ok) {
+        const payload = await responseJson(response);
+        const code = isObject(payload) && typeof payload["code"] === "string" ? payload["code"] : "PROJECT_DELETE_FAILED";
+        throw new ProjectStoreError(code, "Project deletion failed");
+      }
+      const receipt = decodeDeletionReceipt(await responseJson(response));
+      if (receipt.projectId !== projectId)
+        throw new ProjectStoreError("PROJECT_DELETE_EVIDENCE_INVALID", "Project deletion evidence is invalid");
+      purgeLocalProject(projectId);
+      const acknowledgement = await fetchImpl(`/api/projects/${encodeURIComponent(projectId)}/deletion/cache-ack`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: requestHeaders({ accept: "application/json", "content-type": "application/json" }),
+        body: JSON.stringify({ deletionRequestId: receipt.id, directiveId: receipt.cacheDirective.id }),
+      });
+      if (!acknowledgement.ok)
+        throw new ProjectStoreError("PROJECT_CACHE_ACK_FAILED", "Project cache acknowledgement failed");
+      const acknowledged = decodeDeletionReceipt(await responseJson(acknowledgement));
+      if (acknowledged.cacheDirective.acknowledgedAt === null)
+        throw new ProjectStoreError("PROJECT_CACHE_ACK_INVALID", "Project cache acknowledgement is invalid");
+      return acknowledged;
     },
 
     acceptRemote(record: ProjectRecord): ProjectRecord {

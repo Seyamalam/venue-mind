@@ -43,6 +43,7 @@ const incidentTables = ["event_day_incident_registers"];
 const deviationTables = ["event_day_deviation_registers"];
 const postEventReviewTables = ["post_event_reviews"];
 const rateLimitTables = ["api_rate_limit_windows"];
+const dataProtectionTables = ["organization_retention_policies", "project_deletion_requests"];
 
 async function legacyBaseline(db: D1Database) {
   const { results: tableRows } = await db
@@ -98,13 +99,19 @@ async function legacyBaseline(db: D1Database) {
   if (!hasRateLimits && rateLimitTables.some((table) => tables.has(table)))
     throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasRateLimits && !hasPostEventReviews) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  const hasDataProtection = dataProtectionTables.every((table) => tables.has(table));
+  if (!hasDataProtection && dataProtectionTables.some((table) => tables.has(table)))
+    throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
+  if (hasDataProtection && !hasRateLimits) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasDeviations && !hasIncidents) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasIncidents && !hasOccupancy) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasOccupancy && !hasRunbooks) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
   if (hasRunbooks && !hasSharingDelivery) throw new Error("MIGRATION_LEGACY_SCHEMA_PARTIAL");
-  return hasRateLimits
-    ? 13
-    : hasPostEventReviews
+  return hasDataProtection
+    ? 14
+    : hasRateLimits
+      ? 13
+      : hasPostEventReviews
       ? 12
     : hasDeviations
       ? 11

@@ -917,17 +917,17 @@ Completion gate:
 
 ## 9.3 Data protection
 
-- [ ] Classify stored data and document retention defaults.
-- [ ] Minimize personal data in event, registration, and incident workflows.
-- [ ] Encrypt secrets and integration credentials.
-- [ ] Add export and deletion workflows.
-- [ ] Add organization retention policies.
-- [ ] Redact secrets and sensitive data from logs.
-- [ ] Validate backup deletion expectations.
+- [x] Classify stored data and document retention defaults.
+- [x] Minimize personal data in event, registration, and incident workflows.
+- [x] Encrypt secrets and integration credentials.
+- [x] Add export and deletion workflows.
+- [x] Add organization retention policies.
+- [x] Redact secrets and sensitive data from logs.
+- [x] Validate backup deletion expectations.
 
 Completion gate:
 
-- [ ] A Project deletion audit proves primary data, derived exports, caches, and configured backups follow the documented policy.
+- [x] A Project deletion audit proves primary data, derived exports, caches, and configured backups follow the documented policy.
 
 ## 9.4 Observability
 

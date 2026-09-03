@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "databaseSchemaVersion": 13,
+  "databaseSchemaVersion": 14,
   "migrations": [
     {
       "version": 1,
@@ -131,6 +131,16 @@
       "source": "/db/migrations/0013_api_rate_limits.sql",
       "wrangler": "/db/wrangler/0013_api_rate_limits.sql",
       "statementCount": 2
+    },
+    {
+      "version": 14,
+      "name": "data_protection",
+      "checksum": "5a1a43df6cce6741f205264326a5e7c8ae3991907c86c35b4a62ee64b0a8cd38",
+      "destructive": false,
+      "requiresProjectExport": false,
+      "source": "/db/migrations/0014_data_protection.sql",
+      "wrangler": "/db/wrangler/0014_data_protection.sql",
+      "statementCount": 17
     }
   ]
 }

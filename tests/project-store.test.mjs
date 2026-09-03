@@ -85,7 +85,7 @@ test("remote project storage is authoritative and cached for recovery", async ()
   assert.ok(storage.getItem("venuemind.organization.org-local.project.project-summit-forward"));
 });
 
-test("Project metadata lifecycle is recoverable and preserves the snapshot", async () => {
+test("Project metadata lifecycle preserves the snapshot", async () => {
   const storage = createStorage();
   let remoteRecord = null;
   const store = createProjectStore({
@@ -110,21 +110,62 @@ test("Project metadata lifecycle is recoverable and preserves the snapshot", asy
   assert.equal(remoteRecord.archivedAt, "2026-08-27T01:00:00.000Z");
   assert.deepEqual(remoteRecord.snapshot, originalSnapshot);
 
-  await assert.rejects(
-    () => store.softDelete(recordInput.id, "wrong"),
-    (error) => error.code === "PROJECT_CONFIRMATION_MISMATCH",
-  );
-  await store.softDelete(recordInput.id, "SummitForward Copy");
-  assert.equal(remoteRecord.deletedAt, "2026-08-27T01:00:00.000Z");
-  assert.equal(remoteRecord.recoveryUntil, "2026-09-03T01:00:00.000Z");
-  assert.equal(remoteRecord.pinned, false);
-
-  await store.restoreDeleted(recordInput.id);
   await store.archive(recordInput.id, false);
   assert.equal(remoteRecord.deletedAt, null);
   assert.equal(remoteRecord.recoveryUntil, null);
   assert.equal(remoteRecord.archivedAt, null);
   assert.deepEqual(remoteRecord.snapshot, originalSnapshot);
+});
+
+test("Project deletion purges every local Project key before explicitly acknowledging the server directive", async () => {
+  const storage = createStorage();
+  const remote = {
+    ...recordInput,
+    organizationId: "org-local",
+    schemaVersion: 10,
+    revision: 4,
+    updatedAt: "2026-08-27T01:00:00.000Z",
+    archivedAt: null,
+    deletedAt: null,
+    recoveryUntil: null,
+    pinned: false,
+    lastOpenedAt: null,
+  };
+  const calls = [];
+  const evidence = {
+    schemaVersion: 1,
+    id: "project-deletion-1",
+    projectId: remote.id,
+    projectRevision: 5,
+    status: "recoverable",
+    recoveryUntil: "2026-09-03T01:00:00.000Z",
+    cacheDirective: {
+      id: "cache-delete-1",
+      action: "delete-project-cache",
+      issuedAt: "2026-08-27T01:00:00.000Z",
+      acknowledgedAt: null,
+      acknowledgedBy: null,
+    },
+  };
+  const store = createProjectStore({
+    storage,
+    fetchImpl: async (url, init = {}) => {
+      calls.push({ url, init });
+      if (String(url).endsWith("/deletion/cache-ack"))
+        return Response.json({ ...evidence, cacheDirective: { ...evidence.cacheDirective, acknowledgedAt: "2026-08-27T01:00:01.000Z", acknowledgedBy: "user-1" } });
+      if (init.method === "DELETE") return Response.json(evidence, { status: 202 });
+      return Response.json(remote);
+    },
+  });
+  await store.load(remote.id);
+  storage.setItem(`venuemind.organization.org-local.recovery.${remote.id}.4.1`, "recovery");
+  await assert.rejects(() => store.deleteProject(remote.id, "WRONG"), (error) => error.code === "PROJECT_CONFIRMATION_MISMATCH");
+  const result = await store.deleteProject(remote.id, remote.name);
+  assert.equal(result.cacheDirective.acknowledgedAt, "2026-08-27T01:00:01.000Z");
+  assert.equal(calls.find((call) => call.init.method === "DELETE").init.headers["if-match"], '"venuemind:project-summit-forward:4"');
+  assert.deepEqual(JSON.parse(calls.find((call) => call.init.method === "DELETE").init.body), { reasonCode: "USER_REQUEST" });
+  assert.deepEqual(JSON.parse(calls.at(-1).init.body), { deletionRequestId: "project-deletion-1", directiveId: "cache-delete-1" });
+  assert.equal(storage.length, 0);
 });
 
 test("local recovery storage remains available when the project endpoint is offline", async () => {

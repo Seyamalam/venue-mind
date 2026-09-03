@@ -221,19 +221,24 @@ export function ProjectDashboard({
     if (!project || deleteConfirmation !== project.name || deleting) return;
     setDeleting(true);
     try {
-      replaceProject((await store.softDelete(project.id, deleteConfirmation)).record);
+      await store.deleteProject(project.id, deleteConfirmation);
+      setProjects((current) => current.filter((item) => item.id !== project.id));
+      setSource("DELETED");
       setDeleteTarget(null);
       setDeleteConfirmation("");
     } catch (error: unknown) {
-      setImportError(errorCode(error, "DELETE_FAILED"));
+      const code = errorCode(error, "DELETE_FAILED");
+      if (code === "PROJECT_CACHE_ACK_FAILED" || code === "PROJECT_CACHE_ACK_INVALID") {
+        setProjects((current) => current.filter((item) => item.id !== project.id));
+        setSource("ACK FAILED");
+        setDeleteTarget(null);
+        setDeleteConfirmation("");
+      }
+      setImportError(code);
     } finally {
       setDeleting(false);
     }
   };
-  const restoreProject = async (project: LocalProjectRecord) => {
-    replaceProject((await store.restoreDeleted(project.id)).record);
-  };
-
   const createProject = async () => {
     if (creating) return;
     setCreating(true);
@@ -498,12 +503,7 @@ export function ProjectDashboard({
                       </DropdownMenuTrigger>
                     </span>
                     <DropdownMenuContent className="project-action-menu" align="end" sideOffset={6}>
-                      {project.deletedAt ? (
-                        <DropdownMenuItem className="project-action-item" onSelect={() => void restoreProject(project)}>
-                          <ArrowCounterClockwise />
-                          RESTORE
-                        </DropdownMenuItem>
-                      ) : (
+                      {!project.deletedAt && (
                         <>
                           <DropdownMenuItem className="project-action-item" onSelect={() => void pinProject(project)}>
                             <PushPin weight={project.pinned ? "fill" : "regular"} />
