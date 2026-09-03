@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "environments": {
+    "preview": {
+      "frontend": "vercel-preview",
+      "api": "wrangler-local",
+      "database": "d1-local",
+      "dataClass": "synthetic-only",
+      "promotionSource": null
+    },
+    "staging": {
+      "frontend": "vercel-preview",
+      "api": "cloudflare-workers-staging",
+      "database": "venue-mind-staging",
+      "dataClass": "synthetic-only",
+      "promotionSource": "preview"
+    },
+    "production": {
+      "frontend": "https://venue-mind-jet.vercel.app",
+      "api": "https://venue-mind-api.seyamalam41.workers.dev",
+      "database": "venue-mind-production",
+      "dataClass": "customer",
+      "promotionSource": "staging"
+    }
+  }
+}

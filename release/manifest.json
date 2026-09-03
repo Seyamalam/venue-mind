@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "release": {
+    "schemaVersion": 1,
+    "product": "1.0.0",
+    "projectSchema": 10,
+    "toolContract": "1.6.0",
+    "mcpServer": "0.7.0",
+    "sdk": "0.1.0",
+    "skills": {
+      "venuemind-plan": "1.1.0",
+      "venuemind-audit": "1.1.0",
+      "venuemind-access-review": "1.1.0",
+      "venuemind-crowd-flow": "1.1.0",
+      "venuemind-production-plan": "1.1.0",
+      "venuemind-event-day": "1.4.0"
+    }
+  },
+  "environments": {
+    "schemaVersion": 1,
+    "environments": {
+      "preview": {
+        "frontend": "vercel-preview",
+        "api": "wrangler-local",
+        "database": "d1-local",
+        "dataClass": "synthetic-only",
+        "promotionSource": null
+      },
+      "staging": {
+        "frontend": "vercel-preview",
+        "api": "cloudflare-workers-staging",
+        "database": "venue-mind-staging",
+        "dataClass": "synthetic-only",
+        "promotionSource": "preview"
+      },
+      "production": {
+        "frontend": "https://venue-mind-jet.vercel.app",
+        "api": "https://venue-mind-api.seyamalam41.workers.dev",
+        "database": "venue-mind-production",
+        "dataClass": "customer",
+        "promotionSource": "staging"
+      }
+    }
+  },
+  "releaseNote": "release/notes/1.0.0.json",
+  "checksumAlgorithm": "sha256",
+  "artifacts": {
+    "package.json": "602c909181845aab36d9c7020eeb977aeb5976727cd99042ef6886da35dce501",
+    "packages/mcp-server/package.json": "8079dc0cbd01f601bd0bfeb68992872f263b12e1679787155bc04194fcd0b98e",
+    "packages/sdk/package.json": "a7b88928c2e9630a6c0c3559ff69a42f3f9c6de717fb6bd7f98d5bdafab580a8",
+    "skills/manifest.json": "bba3a9ef74df235ce3bd133305f1b44fd5c84607fbb47752380e95dfc3613d65",
+    "public/venue-tools.json": "f7ebf721dbf4c0b02da66df582c35134f0d8e7be63501b306ce26c592a878421",
+    "db/migrations-manifest.json": "af593b187acde96c748603253bb3f3c07f4d43cd5df3fa70fa27afe6628d4f4b",
+    "wrangler.jsonc": "518a87962292a128d3e8e941287daab5e62ff4de0335074c6f66fd1631c38d6c",
+    "vercel.json": "e3a8bdcb7a99edb464b9a66f10ea4cb2902c9fc6ed0068cb142de5f72e8a8116"
+  }
+}

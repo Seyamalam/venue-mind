@@ -116,9 +116,19 @@
       "title": "Testing by layer"
     },
     {
+      "sourcePath": "docs/release-process.md",
+      "publicPath": "/guides/release-process.md",
+      "title": "Release process"
+    },
+    {
       "sourcePath": "docs/release-checklist.md",
       "publicPath": "/guides/release-checklist.md",
       "title": "Release checklist"
+    },
+    {
+      "sourcePath": "docs/production-hosting.md",
+      "publicPath": "/guides/production-hosting.md",
+      "title": "Production hosting"
     },
     {
       "sourcePath": "docs/runbooks/failure-recovery.md",
