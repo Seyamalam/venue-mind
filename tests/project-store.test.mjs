@@ -214,6 +214,7 @@ test("an interrupted browser commit recovers the verified autosave journal", asy
   const restarted = createProjectStore({ storage, fetchImpl: offline });
   const loaded = await restarted.load(recordInput.id);
   assert.equal(loaded.record.snapshot.plan.version, "3.2");
+  assert.equal(loaded.integrity.status, "recovered");
   assert.equal(restarted.inspectRecovery(recordInput.id).status, "pass");
   assert.ok(storage.getItem(primaryKey));
   assert.equal(storage.getItem("venuemind.organization.org-local.autosave.project-summit-forward"), null);

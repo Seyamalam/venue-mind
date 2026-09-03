@@ -219,6 +219,16 @@ export function createProjectStore({
     const journal = inspectRecoveryEnvelope(storage.getItem(autosaveKey(projectId)), isLocalProjectRecord);
     return selectRecoveryEnvelope(committed, journal);
   };
+  const recoveryIntegrity = (
+    projectId: string,
+    inspection: ReturnType<typeof inspectLocal>,
+  ): ProjectRecoveryIntegrity => ({
+    status: inspection.status,
+    projectId,
+    sequence: inspection.envelope?.sequence ?? null,
+    committedAt: inspection.envelope?.committedAt ?? null,
+    reason: inspection.reason,
+  });
   const quarantineLocal = (projectId: string, reason: string): void => {
     try {
       storage.setItem(
@@ -434,16 +444,32 @@ export function createProjectStore({
           headers: requestHeaders({ accept: "application/json" }),
         });
         if (response.status === 404) {
+          const beforeRecovery = inspectLocal(projectId);
           const record = readLocal(projectId);
-          return { source: "remote", record, integrity: store.inspectRecovery(projectId) };
+          return {
+            source: "remote",
+            record,
+            integrity:
+              beforeRecovery.status === "recovered"
+                ? recoveryIntegrity(projectId, beforeRecovery)
+                : store.inspectRecovery(projectId),
+          };
         }
         if (!response.ok) throw new Error(`Project load failed: ${response.status}`);
         const record = decodeProject(await responseJson(response));
         writeRemoteCache(record);
         return { source: "remote", record, integrity: store.inspectRecovery(projectId) };
       } catch {
+        const beforeRecovery = inspectLocal(projectId);
         const record = readLocal(projectId);
-        return { source: "local", record, integrity: store.inspectRecovery(projectId) };
+        return {
+          source: "local",
+          record,
+          integrity:
+            beforeRecovery.status === "recovered"
+              ? recoveryIntegrity(projectId, beforeRecovery)
+              : store.inspectRecovery(projectId),
+        };
       }
     },
 

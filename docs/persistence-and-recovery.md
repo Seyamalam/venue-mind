@@ -27,6 +27,7 @@ flowchart TD
 - Every accepted or Proposal state is serialized as one schema-versioned Project record.
 - The remote repository is authoritative when its endpoint succeeds.
 - A browser recovery write occurs before or alongside each remote save attempt.
+- Browser recovery uses a checksummed, monotonic journal/commit envelope; corrupt bytes are quarantined without copying Project content into diagnostics.
 - `REMOTE` and `LOCAL` status are user-visible; local-only work is never presented as synchronized.
 - Import Preview performs checksum, schema, geometry, stable-ID, Lock, ledger, and replay checks before create-only commit.
 
@@ -50,6 +51,8 @@ Each authoritative Project record carries a positive `revision` and a strong ETa
 The browser retains the last synchronized base separately from the local recovery record. A bounded three-way comparison retries independent field changes once. Overlapping planning state remains local, appears as `SYNC CONFLICT`, and can be attached to current remote truth as an auditable Recovery Branch. Normal Proposal conflict detection, rebase, Validation, and human Approval still apply.
 
 Numbered database migrations, checksum verification, integrity/orphan inspection, Project safety export, backup, staged restore, and D1 Point-in-Time Recovery are specified in `docs/database-operations.md`.
+
+Failure injection, derived Studio integrity states, restart compatibility, and the disposable restore drill are specified in `docs/reliability-and-recovery.md`.
 
 Real-time clients receive durable revision events rather than raw snapshot patches. Reconnect resumes from the last Collaboration Cursor; a missing chain link forces a full authoritative reload. Presence uses expiring leases and is never part of Project truth. See `docs/realtime-collaboration.md`.
 
