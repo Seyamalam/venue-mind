@@ -22,5 +22,26 @@
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1
+  },
+  "env": {
+    "staging": {
+      "name": "venue-mind-api-staging",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "venue-mind-staging",
+          "database_id": "3ad04366-a3e4-4d1d-b320-a46e1d030a1c",
+          "migrations_dir": "db/wrangler"
+        }
+      ],
+      "vars": {
+        "VENUEMIND_AUTH_MODE": "anonymous-demo",
+        "VENUEMIND_APP_ORIGINS": "https://venue-mind-jet.vercel.app"
+      },
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1
+      }
+    }
   }
 }
