@@ -1,0 +1,99 @@
+1
+00:00:00,080 --> 00:00:02,400
+The operator asks for a 6-foot center
+
+2
+00:00:02,400 --> 00:00:05,440
+aisle, better sightlines, and no movement
+
+3
+00:00:05,440 --> 00:00:08,480
+of locked objects. The agent starts with
+
+4
+00:00:08,480 --> 00:00:09,527
+inspect layout.
+
+5
+00:00:09,637 --> 00:00:12,217
+Preview revision creates a branch, not a
+
+6
+00:00:12,217 --> 00:00:15,917
+mutation. Four violet ghost changes stay separate
+
+7
+00:00:15,917 --> 00:00:19,874
+from plan v3.2 until a person decides.
+
+8
+00:00:19,994 --> 00:00:24,824
+Validate layout checks accessibility, capacity, circulation, object
+
+9
+00:00:24,824 --> 00:00:27,894
+locks and sightlines. Here, the route
+
+10
+00:00:27,894 --> 00:00:32,474
+remains 1.829 meters wide, all 400
+
+11
+00:00:32,474 --> 00:00:35,127
+seats remain and every lock is preserved.
+
+12
+00:00:35,217 --> 00:00:37,857
+the agent cannot approve its own work.
+
+13
+00:00:37,857 --> 00:00:40,517
+A human reviews the same evidence, then
+
+14
+00:00:40,517 --> 00:00:41,890
+commits the proposal.
+
+15
+00:00:42,010 --> 00:00:45,550
+VenueMind commits v3.3 through the same
+
+16
+00:00:45,550 --> 00:00:48,390
+typed command bus used by the interface,
+
+17
+00:00:48,390 --> 00:00:50,930
+then records who changed what, why, and
+
+18
+00:00:50,930 --> 00:00:53,666
+when in a hash-chained activity ledger.
+
+19
+00:00:53,826 --> 00:00:57,506
+Finally, the agent exports the validated plan.
+
+20
+00:00:57,506 --> 00:01:01,086
+Browser WebMCP, the interface, and the
+
+21
+00:01:01,086 --> 00:01:04,616
+stand-alone MCP server all use one generated
+
+22
+00:01:04,616 --> 00:01:05,896
+contract registry.
+
+23
+00:01:06,006 --> 00:01:09,486
+That is VenueMind. Agents move venue work
+
+24
+00:01:09,486 --> 00:01:12,396
+forward, while people keep authority and every
+
+25
+00:01:12,396 --> 00:01:14,685
+accepted change stays explainable.

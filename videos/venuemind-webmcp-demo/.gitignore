@@ -1,0 +1,12 @@
+renders/
+snapshots/
+.hyperframes/
+.thumbnails/
+.waveform-cache/
+.media/
+assets/voice/01.wav
+upgrade-baseline.html.txt
+capture/workflow.webm
+capture/01-studio.png
+capture/raw-contact.jpg
+capture/native-export.png

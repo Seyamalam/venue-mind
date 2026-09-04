@@ -1,0 +1,3603 @@
+{
+  "content": [
+    {
+      "text": "Validation pass · 0 unresolved · validation-ed3f8c64",
+      "type": "text"
+    }
+  ],
+  "structuredContent": {
+    "authorizationScope": "venue:read",
+    "contractVersion": "1.6.0",
+    "correlationId": "corr-webmcp-a61302a0-efd6-49ab-804a-ad616d4b90d8",
+    "data": {
+      "authorizedEmergencyReviewerRoles": [
+        "safety-officer",
+        "venue-administrator"
+      ],
+      "blockingIssues": 0,
+      "candidateGeometryFingerprint": "geom-4514a6c8",
+      "candidateMetrics": {
+        "accessibleRouteWidthFt": 6,
+        "attendeeCapacity": 400,
+        "eastRouteClear": true,
+        "peakCongestionIndex": 66.5,
+        "queueBufferSqFt": 120,
+        "serviceLaneWidthFt": 6,
+        "sightlineCoverage": 1
+      },
+      "cateringEvidence": "[Circular]",
+      "checks": [
+        {
+          "actual": 1.829,
+          "category": "accessibility",
+          "constraintId": "constraint-accessible-route",
+          "evaluator": "accessible_route_graph",
+          "evidence": {
+            "actual": 1.829,
+            "affectedObjectIds": [],
+            "comparator": "gte",
+            "details": {
+              "accessibleDoorObjectIds": [
+                "obj-door-south-access"
+              ],
+              "accessibleSeatSampleIds": [
+                "seat-east-01",
+                "seat-east-05",
+                "seat-west-01",
+                "seat-west-04"
+              ],
+              "accessibleSeatSightlineCoverageRatio": 1,
+              "accessibleSeatSightlineSections": [
+                {
+                  "blockedSampleIds": [],
+                  "coverageRatio": 1,
+                  "evidenceRayIds": [
+                    "ray-seat-east-01-focal-stage-center",
+                    "ray-seat-east-05-focal-stage-center"
+                  ],
+                  "objectId": "obj-seating-east",
+                  "sampleIds": [
+                    "seat-east-01",
+                    "seat-east-05"
+                  ]
+                },
+                {
+                  "blockedSampleIds": [],
+                  "coverageRatio": 1,
+                  "evidenceRayIds": [
+                    "ray-seat-west-01-focal-stage-center",
+                    "ray-seat-west-04-focal-stage-center"
+                  ],
+                  "objectId": "obj-seating-west",
+                  "sampleIds": [
+                    "seat-west-01",
+                    "seat-west-04"
+                  ]
+                }
+              ],
+              "accessibleSeatingSections": [
+                {
+                  "accessibleSeats": 4,
+                  "companionSeats": 4,
+                  "objectId": "obj-seating-east"
+                },
+                {
+                  "accessibleSeats": 4,
+                  "companionSeats": 4,
+                  "objectId": "obj-seating-west"
+                }
+              ],
+              "accessibleSeats": 8,
+              "blockedAccessibleSeatSampleIds": [],
+              "companionAdjacencySatisfied": true,
+              "companionSeats": 8,
+              "connected": true,
+              "doorClearanceZones": [
+                {
+                  "depthM": 1.5,
+                  "doorObjectId": "obj-door-south-access",
+                  "id": "door-clearance-obj-door-south-access-left",
+                  "latchSideM": 0.45,
+                  "obstructingObjectIds": [],
+                  "points": [
+                    {
+                      "x": 13.65,
+                      "y": 0.1
+                    },
+                    {
+                      "x": 16.35,
+                      "y": 0.1
+                    },
+                    {
+                      "x": 16.35,
+                      "y": 1.6
+                    },
+                    {
+                      "x": 13.65,
+                      "y": 1.6
+                    }
+                  ],
+                  "side": "left",
+                  "status": "clear"
+                }
+              ],
+              "edges": [
+                {
+                  "blockedByObjectIds": [],
+                  "endNodeId": "node-29.9:10",
+                  "id": "edge-obj-route-exit-east",
+                  "lengthM": 14.9,
+                  "objectId": "obj-route-exit-east",
+                  "startNodeId": "node-15:10",
+                  "widthM": 1.829
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "endNodeId": "node-15:10",
+                  "id": "edge-obj-route-main",
+                  "lengthM": 9.5,
+                  "objectId": "obj-route-main",
+                  "startNodeId": "node-15:0.5",
+                  "widthM": 1.829
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "endNodeId": "node-21:17",
+                  "id": "edge-obj-route-north-link-a",
+                  "lengthM": 9.22,
+                  "objectId": "obj-route-north-link-a",
+                  "startNodeId": "node-15:10",
+                  "widthM": 1.829
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "endNodeId": "node-11:19",
+                  "id": "edge-obj-route-north-link-b",
+                  "lengthM": 10.198,
+                  "objectId": "obj-route-north-link-b",
+                  "startNodeId": "node-21:17",
+                  "widthM": 1.829
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "endNodeId": "node-16:10",
+                  "id": "edge-obj-route-seating-east",
+                  "lengthM": 1,
+                  "objectId": "obj-route-seating-east",
+                  "startNodeId": "node-15:10",
+                  "widthM": 1.829
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "endNodeId": "node-14:10",
+                  "id": "edge-obj-route-seating-west",
+                  "lengthM": 1,
+                  "objectId": "obj-route-seating-west",
+                  "startNodeId": "node-15:10",
+                  "widthM": 1.829
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "endNodeId": "node-7:10",
+                  "id": "edge-obj-route-stage",
+                  "lengthM": 8,
+                  "objectId": "obj-route-stage",
+                  "startNodeId": "node-15:10",
+                  "widthM": 1.829
+                }
+              ],
+              "entranceObjectIds": [
+                "obj-accessible-entrance-south"
+              ],
+              "graphFingerprint": "graph-8afec60e",
+              "minimumAccessibleSeats": 8,
+              "minimumClearWidthM": 1.829,
+              "minimumDoorClearWidthM": 1.8,
+              "minimumTurningClearanceM": 1.5,
+              "missingAccessibleSeatSampleSectionIds": [],
+              "nodes": [
+                {
+                  "edgeIds": [
+                    "edge-obj-route-north-link-b"
+                  ],
+                  "id": "node-11:19",
+                  "point": {
+                    "x": 11,
+                    "y": 19
+                  }
+                },
+                {
+                  "edgeIds": [
+                    "edge-obj-route-seating-west"
+                  ],
+                  "id": "node-14:10",
+                  "point": {
+                    "x": 14,
+                    "y": 10
+                  }
+                },
+                {
+                  "edgeIds": [
+                    "edge-obj-route-main"
+                  ],
+                  "id": "node-15:0.5",
+                  "point": {
+                    "x": 15,
+                    "y": 0.5
+                  }
+                },
+                {
+                  "edgeIds": [
+                    "edge-obj-route-exit-east",
+                    "edge-obj-route-main",
+                    "edge-obj-route-north-link-a",
+                    "edge-obj-route-seating-east",
+                    "edge-obj-route-seating-west",
+                    "edge-obj-route-stage"
+                  ],
+                  "id": "node-15:10",
+                  "point": {
+                    "x": 15,
+                    "y": 10
+                  }
+                },
+                {
+                  "edgeIds": [
+                    "edge-obj-route-seating-east"
+                  ],
+                  "id": "node-16:10",
+                  "point": {
+                    "x": 16,
+                    "y": 10
+                  }
+                },
+                {
+                  "edgeIds": [
+                    "edge-obj-route-north-link-a",
+                    "edge-obj-route-north-link-b"
+                  ],
+                  "id": "node-21:17",
+                  "point": {
+                    "x": 21,
+                    "y": 17
+                  }
+                },
+                {
+                  "edgeIds": [
+                    "edge-obj-route-exit-east"
+                  ],
+                  "id": "node-29.9:10",
+                  "point": {
+                    "x": 29.9,
+                    "y": 10
+                  }
+                },
+                {
+                  "edgeIds": [
+                    "edge-obj-route-stage"
+                  ],
+                  "id": "node-7:10",
+                  "point": {
+                    "x": 7,
+                    "y": 10
+                  }
+                }
+              ],
+              "obstructedDoorObjectIds": [],
+              "policy": {
+                "effectiveDate": "2026-01-01",
+                "jurisdiction": "US venue policy",
+                "source": "Harborview Access Standard 2026"
+              },
+              "rampPolicy": {
+                "minimumClearWidthM": 0.915,
+                "minimumEdgeProtectionHeightM": 0.1,
+                "minimumLandingLengthM": 1.525,
+                "minimumSlopeRatio": 12,
+                "requireHandrails": true
+              },
+              "ramps": [],
+              "reachableDestinationIds": [
+                "obj-fire-exit-east",
+                "obj-fire-exit-north",
+                "obj-restroom-accessible",
+                "obj-seating-east",
+                "obj-seating-west",
+                "obj-stage-west"
+              ],
+              "routeObjectIds": [
+                "obj-route-exit-east",
+                "obj-route-main",
+                "obj-route-north-link-a",
+                "obj-route-north-link-b",
+                "obj-route-seating-east",
+                "obj-route-seating-west",
+                "obj-route-stage"
+              ],
+              "seatingDistributed": true,
+              "source": "canonical-geometry",
+              "turningClearanceM": 1.829,
+              "unreachableDestinationIds": []
+            },
+            "metric": "minimumClearWidthM",
+            "threshold": 1.8,
+            "unit": "m"
+          },
+          "id": "check-accessible-route",
+          "label": "Accessible route",
+          "remediation": "Connect every required destination and increase the minimum clear route width.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "status": "pass",
+          "threshold": 1.8,
+          "unit": "m",
+          "waivable": false,
+          "waiver": null
+        },
+        {
+          "actual": 8,
+          "category": "accessibility",
+          "constraintId": "constraint-accessible-seating",
+          "evaluator": "accessible_seating",
+          "evidence": {
+            "actual": 8,
+            "affectedObjectIds": [
+              "obj-seating-east",
+              "obj-seating-west"
+            ],
+            "comparator": "gte",
+            "details": "[Circular]",
+            "metric": "accessibleSeats",
+            "threshold": 8,
+            "unit": "seats"
+          },
+          "id": "check-accessible-seating",
+          "label": "Accessible seating",
+          "remediation": "Add distributed accessible and companion seating positions.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "status": "pass",
+          "threshold": 8,
+          "unit": "seats",
+          "waivable": false,
+          "waiver": null
+        },
+        {
+          "actual": 1,
+          "category": "accessibility",
+          "constraintId": "constraint-accessible-seating-sightlines",
+          "evaluator": "accessible_seating_sightlines",
+          "evidence": {
+            "actual": 1,
+            "affectedObjectIds": [],
+            "comparator": "gte",
+            "details": {
+              "blockedSampleIds": [],
+              "missingSampleSectionIds": [],
+              "sampleIds": [
+                "seat-east-01",
+                "seat-east-05",
+                "seat-west-01",
+                "seat-west-04"
+              ],
+              "sections": [
+                "[Circular]",
+                "[Circular]"
+              ]
+            },
+            "metric": "accessibleSeatSightlineCoverage",
+            "threshold": 1,
+            "unit": "ratio"
+          },
+          "id": "check-accessible-seating-sightlines",
+          "label": "Accessible seating sightlines",
+          "remediation": "Move obstructions or relocate accessible seating samples until every section has a clear focal-point ray.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "status": "pass",
+          "threshold": 1,
+          "unit": "ratio",
+          "waivable": false,
+          "waiver": null
+        },
+        {
+          "actual": 1.8,
+          "category": "accessibility",
+          "constraintId": "constraint-door-clearance",
+          "evaluator": "door_clearance",
+          "evidence": {
+            "actual": 1.8,
+            "affectedObjectIds": [],
+            "comparator": "gte",
+            "details": {
+              "clearanceZones": [
+                "[Circular]"
+              ],
+              "doorObjectIds": [
+                "obj-door-south-access"
+              ],
+              "obstructedDoorObjectIds": []
+            },
+            "metric": "minimumDoorClearWidthM",
+            "threshold": 0.915,
+            "unit": "m"
+          },
+          "id": "check-door-clearance",
+          "label": "Door clearance",
+          "remediation": "Clear the maneuvering zone and restore the required accessible door width.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "status": "pass",
+          "threshold": 0.915,
+          "unit": "m",
+          "waivable": false,
+          "waiver": null
+        },
+        {
+          "actual": null,
+          "category": "accessibility",
+          "constraintId": "constraint-temporary-ramps",
+          "evaluator": "temporary_ramp",
+          "evidence": {
+            "actual": null,
+            "affectedObjectIds": [],
+            "comparator": "gte",
+            "details": {
+              "policy": "[Circular]",
+              "ramps": []
+            },
+            "metric": "minimumRampSlopeRatio",
+            "threshold": 12,
+            "unit": "run-per-rise"
+          },
+          "id": "check-temporary-ramps",
+          "label": "Temporary ramps",
+          "remediation": "Increase ramp run, clear width, landing, or edge protection and add required handrails.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "status": "not-applicable",
+          "threshold": 12,
+          "unit": "run-per-rise",
+          "waivable": false,
+          "waiver": null
+        },
+        {
+          "actual": 1.829,
+          "category": "accessibility",
+          "constraintId": "constraint-turning-clearance",
+          "evaluator": "turning_clearance",
+          "evidence": {
+            "actual": 1.829,
+            "affectedObjectIds": [
+              "obj-route-exit-east",
+              "obj-route-main",
+              "obj-route-north-link-a",
+              "obj-route-north-link-b",
+              "obj-route-seating-east",
+              "obj-route-seating-west",
+              "obj-route-stage"
+            ],
+            "comparator": "gte",
+            "details": "[Circular]",
+            "metric": "turningClearanceM",
+            "threshold": 1.5,
+            "unit": "m"
+          },
+          "id": "check-turning-clearance",
+          "label": "Turning clearance",
+          "remediation": "Increase the clear turning diameter at route junctions.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "status": "pass",
+          "threshold": 1.5,
+          "unit": "m",
+          "waivable": false,
+          "waiver": null
+        },
+        {
+          "actual": 400,
+          "category": "capacity",
+          "constraintId": "constraint-capacity",
+          "evaluator": "occupancy_capacity",
+          "evidence": {
+            "actual": 400,
+            "affectedObjectIds": [],
+            "comparator": "gte",
+            "details": {
+              "attendeeTarget": 400,
+              "changeDeltas": [
+                {
+                  "changeId": "chg-seat-center-shift",
+                  "effectiveCapacityDelta": 0,
+                  "operationalLoadDelta": 0,
+                  "placedCapacityDelta": 0,
+                  "sectionDeltas": [],
+                  "zoneDeltas": []
+                },
+                {
+                  "changeId": "chg-center-aisle-width",
+                  "effectiveCapacityDelta": 0,
+                  "operationalLoadDelta": 0,
+                  "placedCapacityDelta": 0,
+                  "sectionDeltas": [],
+                  "zoneDeltas": []
+                },
+                {
+                  "changeId": "chg-av-desk-east",
+                  "effectiveCapacityDelta": 0,
+                  "operationalLoadDelta": 0,
+                  "placedCapacityDelta": 0,
+                  "sectionDeltas": [],
+                  "zoneDeltas": []
+                },
+                {
+                  "changeId": "chg-refreshment-buffer",
+                  "effectiveCapacityDelta": 0,
+                  "operationalLoadDelta": 0,
+                  "placedCapacityDelta": 0,
+                  "sectionDeltas": [],
+                  "zoneDeltas": []
+                }
+              ],
+              "densityCapacity": 623,
+              "densityM2PerAttendee": 0.8,
+              "effectiveCapacity": 400,
+              "excludedAreaM2": 101.336,
+              "excludedObjectIds": [
+                "obj-av-desk",
+                "obj-bar-east",
+                "obj-column-southwest",
+                "obj-refreshment-east",
+                "obj-restricted-production",
+                "obj-restroom-accessible",
+                "obj-stage-west"
+              ],
+              "explanations": [],
+              "nonAttendeeLoad": 38,
+              "occupancyMode": "theater",
+              "operationalCounts": {
+                "performers": 10,
+                "staff": 20,
+                "vendors": 8
+              },
+              "operationalLoad": 438,
+              "placedCapacity": 400,
+              "roomAreaM2": 600,
+              "sectionCapacities": [
+                {
+                  "capacity": 200,
+                  "deltaFromMinimum": 20,
+                  "headroom": 20,
+                  "label": "East seating",
+                  "maximumCapacity": 220,
+                  "minimumCapacity": 180,
+                  "objectId": "obj-seating-east",
+                  "status": "within-limit",
+                  "zoneId": "zone-keynote-floor"
+                },
+                {
+                  "capacity": 200,
+                  "deltaFromMinimum": 20,
+                  "headroom": 20,
+                  "label": "West seating",
+                  "maximumCapacity": 220,
+                  "minimumCapacity": 180,
+                  "objectId": "obj-seating-west",
+                  "status": "within-limit",
+                  "zoneId": "zone-keynote-floor"
+                }
+              ],
+              "sectionViolations": [],
+              "source": "canonical-geometry",
+              "usableRoomAreaM2": 498.664,
+              "venueMaximum": 450,
+              "zoneCapacities": [
+                {
+                  "capacity": 400,
+                  "deltaFromMinimum": 10,
+                  "headroom": 10,
+                  "label": "Keynote floor",
+                  "maximumCapacity": 410,
+                  "minimumCapacity": 390,
+                  "sectionObjectIds": [
+                    "obj-seating-east",
+                    "obj-seating-west"
+                  ],
+                  "status": "within-limit",
+                  "zoneId": "zone-keynote-floor"
+                }
+              ],
+              "zoneViolations": []
+            },
+            "metric": "effectiveCapacity",
+            "threshold": 400,
+            "unit": "attendees"
+          },
+          "id": "check-capacity",
+          "label": "Capacity",
+          "remediation": "Restore sufficient placed capacity or reduce the operational load.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "status": "pass",
+          "threshold": 400,
+          "unit": "attendees",
+          "waivable": false,
+          "waiver": null
+        },
+        {
+          "actual": 0,
+          "category": "catering",
+          "constraintId": "constraint-catering-readiness",
+          "evaluator": "catering_readiness",
+          "evidence": {
+            "actual": 0,
+            "affectedObjectIds": [],
+            "comparator": "lte",
+            "details": {
+              "accessibleServicePoints": [
+                {
+                  "accessibleServicePoint": true,
+                  "maximumServiceHeightM": 0.915,
+                  "serviceHeightM": 0.9,
+                  "stationObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "accessibleServicePoint": true,
+                  "maximumServiceHeightM": 0.915,
+                  "serviceHeightM": 0.86,
+                  "stationObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                }
+              ],
+              "demandShareTotal": 1,
+              "evidenceFingerprint": "catering-planning-edec0e12",
+              "geometryFingerprint": "geom-4514a6c8",
+              "invalidStationReferences": [],
+              "inventory": [
+                {
+                  "available": 20,
+                  "id": "inventory-inventory-template-buffet-station-1.0.0",
+                  "itemName": "Buffet station",
+                  "placedObjectIds": [
+                    "obj-refreshment-east"
+                  ],
+                  "requested": 2,
+                  "shortage": 0,
+                  "status": "available",
+                  "templateId": "inventory-template-buffet-station",
+                  "version": "1.0.0"
+                },
+                {
+                  "available": 12,
+                  "id": "inventory-inventory-template-mobile-bar-1.0.0",
+                  "itemName": "Mobile bar",
+                  "placedObjectIds": [
+                    "obj-bar-east"
+                  ],
+                  "requested": 2,
+                  "shortage": 0,
+                  "status": "available",
+                  "templateId": "inventory-template-mobile-bar",
+                  "version": "1.0.0"
+                }
+              ],
+              "inventoryShortages": [],
+              "kind": "catering-planning-result",
+              "missingSupportKinds": [],
+              "phaseCapacity": [
+                {
+                  "demandRatio": 0.25,
+                  "durationMinutes": 45,
+                  "label": "Arrival",
+                  "phaseId": "phase-arrival",
+                  "requiredPersons": 100,
+                  "serviceCapacityPersons": 877,
+                  "stations": [
+                    {
+                      "allocatedDemandPersons": 40,
+                      "demandRatePerMinute": 0.889,
+                      "estimatedPeakQueuePersons": 0,
+                      "queueBufferPersons": 18,
+                      "serviceCapacityPersons": 337,
+                      "serviceRatePerMinute": 7.5,
+                      "stationObjectId": "obj-bar-east",
+                      "status": "pass",
+                      "utilizationRatio": 0.119
+                    },
+                    {
+                      "allocatedDemandPersons": 60,
+                      "demandRatePerMinute": 1.333,
+                      "estimatedPeakQueuePersons": 0,
+                      "queueBufferPersons": 24,
+                      "serviceCapacityPersons": 540,
+                      "serviceRatePerMinute": 12,
+                      "stationObjectId": "obj-refreshment-east",
+                      "status": "pass",
+                      "utilizationRatio": 0.111
+                    }
+                  ],
+                  "status": "pass"
+                },
+                {
+                  "demandRatio": 0.75,
+                  "durationMinutes": 30,
+                  "label": "Break",
+                  "phaseId": "phase-break",
+                  "requiredPersons": 300,
+                  "serviceCapacityPersons": 585,
+                  "stations": [
+                    {
+                      "allocatedDemandPersons": 120,
+                      "demandRatePerMinute": 4,
+                      "estimatedPeakQueuePersons": 0,
+                      "queueBufferPersons": 18,
+                      "serviceCapacityPersons": 225,
+                      "serviceRatePerMinute": 7.5,
+                      "stationObjectId": "obj-bar-east",
+                      "status": "pass",
+                      "utilizationRatio": 0.533
+                    },
+                    {
+                      "allocatedDemandPersons": 180,
+                      "demandRatePerMinute": 6,
+                      "estimatedPeakQueuePersons": 0,
+                      "queueBufferPersons": 24,
+                      "serviceCapacityPersons": 360,
+                      "serviceRatePerMinute": 12,
+                      "stationObjectId": "obj-refreshment-east",
+                      "status": "pass",
+                      "utilizationRatio": 0.5
+                    }
+                  ],
+                  "status": "pass"
+                },
+                {
+                  "demandRatio": 1,
+                  "durationMinutes": 60,
+                  "label": "Lunch",
+                  "phaseId": "phase-lunch",
+                  "requiredPersons": 400,
+                  "serviceCapacityPersons": 1170,
+                  "stations": [
+                    {
+                      "allocatedDemandPersons": 160,
+                      "demandRatePerMinute": 2.667,
+                      "estimatedPeakQueuePersons": 0,
+                      "queueBufferPersons": 18,
+                      "serviceCapacityPersons": 450,
+                      "serviceRatePerMinute": 7.5,
+                      "stationObjectId": "obj-bar-east",
+                      "status": "pass",
+                      "utilizationRatio": 0.356
+                    },
+                    {
+                      "allocatedDemandPersons": 240,
+                      "demandRatePerMinute": 4,
+                      "estimatedPeakQueuePersons": 0,
+                      "queueBufferPersons": 24,
+                      "serviceCapacityPersons": 720,
+                      "serviceRatePerMinute": 12,
+                      "stationObjectId": "obj-refreshment-east",
+                      "status": "pass",
+                      "utilizationRatio": 0.333
+                    }
+                  ],
+                  "status": "pass"
+                }
+              ],
+              "planId": "plan-summit-forward-2026",
+              "planVersion": "3.2",
+              "policy": {
+                "allowedReplenishmentCrossingControls": [
+                  "marshal",
+                  "timed-crossing"
+                ],
+                "maximumAccessibleServiceHeightM": 0.915,
+                "minimumAccessibleServicePoints": 2,
+                "minimumSeparationFromEmergencyM": 1,
+                "minimumSeparationFromProductionM": 0.5,
+                "phases": [
+                  {
+                    "demandRatio": 0.25,
+                    "durationMinutes": 45,
+                    "id": "phase-arrival",
+                    "label": "Arrival"
+                  },
+                  {
+                    "demandRatio": 0.75,
+                    "durationMinutes": 30,
+                    "id": "phase-break",
+                    "label": "Break"
+                  },
+                  {
+                    "demandRatio": 1,
+                    "durationMinutes": 60,
+                    "id": "phase-lunch",
+                    "label": "Lunch"
+                  }
+                ],
+                "queueHorizonMinutes": 10,
+                "schemaVersion": 1
+              },
+              "queueConflicts": [],
+              "replenishmentRoutes": [
+                {
+                  "crossingControl": "timed-crossing",
+                  "crossingObjectIds": [
+                    "obj-route-exit-east"
+                  ],
+                  "missingEndpointIds": [],
+                  "routeObjectId": "obj-route-replenishment-east",
+                  "sourceObjectId": "obj-kitchen-northeast",
+                  "status": "pass",
+                  "targetObjectIds": [
+                    "obj-bar-east",
+                    "obj-refreshment-east"
+                  ]
+                }
+              ],
+              "schemaVersion": 1,
+              "separationChecks": [
+                {
+                  "distanceM": 5.933,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-assembly-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 1.742,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-av-desk",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 17.262,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-backstage-west",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 7.383,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-cable-loom-main",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 10.699,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-camera-center",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 9.666,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-command-post-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 5.1,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-emergency-access-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 5.43,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-equipment-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 4.412,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-exit-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 15.472,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-exit-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 11.535,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-first-aid-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 7.183,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-projector-center",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 15.925,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-screen-stage",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 16.147,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-speaker-stage-north",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 15.119,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-speaker-stage-south",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 11.934,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-stage-west",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-bar-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 5.972,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-assembly-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 11.087,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-av-desk",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 20.66,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-backstage-west",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 11.75,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-cable-loom-main",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 6.514,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-camera-center",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 3.681,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-command-post-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 15.6,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-emergency-access-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 2.663,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-equipment-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 5.473,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-exit-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 12.9,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-exit-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 6.519,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-first-aid-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 11.523,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-projector-center",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 18.964,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-screen-stage",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 18.079,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-speaker-stage-north",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 20.289,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-speaker-stage-south",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 15.407,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-stage-west",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-kitchen-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 9.127,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-assembly-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 12.312,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-av-desk",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 18.176,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-backstage-west",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 9.849,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-cable-loom-main",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 3.836,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-camera-center",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 1.037,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-command-post-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 15.6,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-emergency-access-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 5.113,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-equipment-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 7.608,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-exit-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 10.4,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-exit-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 3.876,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-first-aid-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 9.649,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-projector-center",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 16.546,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-screen-stage",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 15.527,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-speaker-stage-north",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 18.116,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-speaker-stage-south",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 12.955,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-stage-west",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-prep-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 9.046,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-assembly-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 1.545,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-av-desk",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 15.875,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-backstage-west",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 7.383,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-cable-loom-main",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 12.989,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-camera-center",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 12.41,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-command-post-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 1.1,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-emergency-access-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 9.233,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-equipment-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 7.447,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-exit-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 16.708,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-exit-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 13.905,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-first-aid-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 7.14,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-projector-center",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 14.243,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-screen-stage",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 15.653,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-speaker-stage-north",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 13.3,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-speaker-stage-south",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 10.627,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-stage-west",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-refreshment-east",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 5.482,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-assembly-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 11.57,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-av-desk",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 24.015,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-backstage-west",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 14.533,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-cable-loom-main",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 10.452,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-camera-center",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 7.747,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-command-post-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 14.732,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-emergency-access-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 3.04,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-equipment-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 4.58,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-exit-east",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 16.683,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-fire-exit-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 10.581,
+                  "minimumDistanceM": 1,
+                  "otherObjectId": "obj-first-aid-north",
+                  "separationType": "emergency",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 14.333,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-projector-center",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 22.378,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-screen-stage",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 21.577,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-speaker-stage-north",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 23.264,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-speaker-stage-south",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                },
+                {
+                  "distanceM": 18.723,
+                  "minimumDistanceM": 0.5,
+                  "otherObjectId": "obj-stage-west",
+                  "separationType": "production",
+                  "serviceObjectId": "obj-waste-northeast",
+                  "status": "pass"
+                }
+              ],
+              "stations": [
+                {
+                  "accessibleServicePoint": true,
+                  "allergenLabels": [
+                    "contains-citrus"
+                  ],
+                  "demandShare": 0.4,
+                  "dietaryOptions": [
+                    "alcohol-free",
+                    "low-sugar"
+                  ],
+                  "label": "Beverage bar",
+                  "objectId": "obj-bar-east",
+                  "queueBufferPersons": 18,
+                  "queueZoneObjectId": "obj-queue-bar-east",
+                  "replenishmentSourceObjectId": "obj-kitchen-northeast",
+                  "servers": 3,
+                  "serviceHeightM": 0.9,
+                  "serviceRatePerServerMinute": 2.5,
+                  "type": "bar",
+                  "waterSourceObjectId": "obj-water-northeast"
+                },
+                {
+                  "accessibleServicePoint": true,
+                  "allergenLabels": [
+                    "contains-dairy",
+                    "contains-nuts"
+                  ],
+                  "demandShare": 0.6,
+                  "dietaryOptions": [
+                    "gluten-aware",
+                    "vegan",
+                    "vegetarian"
+                  ],
+                  "label": "Buffet",
+                  "objectId": "obj-refreshment-east",
+                  "queueBufferPersons": 24,
+                  "queueZoneObjectId": "obj-queue-buffet-east",
+                  "replenishmentSourceObjectId": "obj-kitchen-northeast",
+                  "servers": 4,
+                  "serviceHeightM": 0.86,
+                  "serviceRatePerServerMinute": 3,
+                  "type": "buffet",
+                  "waterSourceObjectId": "obj-water-northeast"
+                }
+              ],
+              "summary": {
+                "accessibleServicePoints": 2,
+                "circulationConflictCount": 1,
+                "inventoryShortages": 0,
+                "minimumPhaseServiceCapacityPersons": 585,
+                "missingSupportObjects": 0,
+                "queueRiskCount": 0,
+                "separationFailures": 0,
+                "stationCount": 2,
+                "status": "pass",
+                "uncontrolledCirculationConflictCount": 0
+              },
+              "supportObjectIds": [
+                "obj-kitchen-northeast",
+                "obj-prep-northeast",
+                "obj-waste-northeast",
+                "obj-water-northeast"
+              ],
+              "targetAttendance": 400
+            },
+            "metric": "cateringFailedChecks",
+            "threshold": 0,
+            "unit": "checks"
+          },
+          "id": "check-catering-readiness",
+          "label": "Catering readiness",
+          "remediation": "Resolve service capacity, queue, separation, access, support, or replenishment failures.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "status": "pass",
+          "threshold": 0,
+          "unit": "checks",
+          "waivable": false,
+          "waiver": null
+        },
+        {
+          "actual": 66.5,
+          "category": "circulation",
+          "constraintId": "constraint-peak-congestion",
+          "evaluator": "circulation_graph",
+          "evidence": {
+            "actual": 66.5,
+            "affectedObjectIds": [],
+            "comparator": "lte",
+            "details": {
+              "blockedRouteObjectIds": [],
+              "blockingObjectIds": [],
+              "bottleneckLoads": [
+                {
+                  "demand": 219,
+                  "id": "bottleneck-exit-obj-fire-exit-north",
+                  "kind": "exit",
+                  "loadIndex": 87.6,
+                  "objectId": "obj-fire-exit-north",
+                  "ratedDemand": 250
+                },
+                {
+                  "demand": 219,
+                  "id": "bottleneck-exit-obj-fire-exit-east",
+                  "kind": "exit",
+                  "loadIndex": 48.7,
+                  "objectId": "obj-fire-exit-east",
+                  "ratedDemand": 450
+                },
+                {
+                  "demand": 200,
+                  "id": "bottleneck-junction-node-15:10",
+                  "kind": "aisle-intersection",
+                  "loadIndex": 30.3,
+                  "nodeId": "node-15:10",
+                  "ratedDemand": 6.6
+                },
+                {
+                  "demand": 200,
+                  "id": "bottleneck-route-obj-route-exit-east",
+                  "kind": "route",
+                  "loadIndex": 30.3,
+                  "objectId": "obj-route-exit-east",
+                  "ratedDemand": 6.6
+                },
+                {
+                  "demand": 200,
+                  "id": "bottleneck-route-obj-route-north-link-b",
+                  "kind": "route",
+                  "loadIndex": 30.3,
+                  "objectId": "obj-route-north-link-b",
+                  "ratedDemand": 6.6
+                },
+                {
+                  "demand": 200,
+                  "id": "bottleneck-route-obj-route-seating-west",
+                  "kind": "route",
+                  "loadIndex": 30.3,
+                  "objectId": "obj-route-seating-west",
+                  "ratedDemand": 6.6
+                },
+                {
+                  "demand": 0,
+                  "id": "bottleneck-queue-obj-queue-bar-east",
+                  "kind": "queue",
+                  "loadIndex": 0,
+                  "objectId": "obj-queue-bar-east",
+                  "ratedDemand": 18
+                },
+                {
+                  "demand": 0,
+                  "id": "bottleneck-queue-obj-queue-buffet-east",
+                  "kind": "queue",
+                  "loadIndex": 0,
+                  "objectId": "obj-queue-buffet-east",
+                  "ratedDemand": 24
+                },
+                {
+                  "demand": 0,
+                  "id": "bottleneck-route-obj-route-main",
+                  "kind": "route",
+                  "loadIndex": 0,
+                  "objectId": "obj-route-main",
+                  "ratedDemand": 6.6
+                },
+                {
+                  "demand": 0,
+                  "id": "bottleneck-route-obj-route-north-link-a",
+                  "kind": "route",
+                  "loadIndex": 0,
+                  "objectId": "obj-route-north-link-a",
+                  "ratedDemand": 6.6
+                },
+                {
+                  "demand": 0,
+                  "id": "bottleneck-route-obj-route-seating-east",
+                  "kind": "route",
+                  "loadIndex": 0,
+                  "objectId": "obj-route-seating-east",
+                  "ratedDemand": 6.6
+                },
+                {
+                  "demand": 0,
+                  "id": "bottleneck-route-obj-route-stage",
+                  "kind": "route",
+                  "loadIndex": 0,
+                  "objectId": "obj-route-stage",
+                  "ratedDemand": 6.6
+                }
+              ],
+              "bottleneckWidthM": 1.829,
+              "changeDeltas": [
+                {
+                  "blockedRouteObjectIds": [],
+                  "changeId": "chg-seat-center-shift",
+                  "changedPathObjectIds": [],
+                  "newlyDisconnectedOccupiedObjectIds": [],
+                  "peakCongestionIndexDelta": 0,
+                  "resolvedDisconnectedOccupiedObjectIds": []
+                },
+                {
+                  "blockedRouteObjectIds": [],
+                  "changeId": "chg-center-aisle-width",
+                  "changedPathObjectIds": [],
+                  "newlyDisconnectedOccupiedObjectIds": [],
+                  "peakCongestionIndexDelta": -33.3,
+                  "resolvedDisconnectedOccupiedObjectIds": []
+                },
+                {
+                  "blockedRouteObjectIds": [],
+                  "changeId": "chg-av-desk-east",
+                  "changedPathObjectIds": [],
+                  "newlyDisconnectedOccupiedObjectIds": [],
+                  "peakCongestionIndexDelta": 0,
+                  "resolvedDisconnectedOccupiedObjectIds": []
+                },
+                {
+                  "blockedRouteObjectIds": [],
+                  "changeId": "chg-refreshment-buffer",
+                  "changedPathObjectIds": [],
+                  "newlyDisconnectedOccupiedObjectIds": [],
+                  "peakCongestionIndexDelta": 0,
+                  "resolvedDisconnectedOccupiedObjectIds": []
+                }
+              ],
+              "connected": true,
+              "criticalRouteEdges": [
+                {
+                  "edgeId": "edge-obj-route-seating-west",
+                  "impactedOccupiedObjectIds": [
+                    "obj-seating-west"
+                  ],
+                  "routeObjectId": "obj-route-seating-west"
+                }
+              ],
+              "disconnectedOccupiedObjectIds": [],
+              "exitApproachZones": [
+                {
+                  "depthM": 1.2,
+                  "exitObjectId": "obj-fire-exit-east",
+                  "id": "exit-approach-obj-fire-exit-east",
+                  "obstructingObjectIds": [],
+                  "points": [
+                    {
+                      "x": 29.9,
+                      "y": 8.5
+                    },
+                    {
+                      "x": 29.9,
+                      "y": 11.5
+                    },
+                    {
+                      "x": 28.7,
+                      "y": 11.5
+                    },
+                    {
+                      "x": 28.7,
+                      "y": 8.5
+                    }
+                  ],
+                  "status": "clear"
+                },
+                {
+                  "depthM": 1.2,
+                  "exitObjectId": "obj-fire-exit-north",
+                  "id": "exit-approach-obj-fire-exit-north",
+                  "obstructingObjectIds": [],
+                  "points": [
+                    {
+                      "x": 10,
+                      "y": 19
+                    },
+                    {
+                      "x": 12,
+                      "y": 19
+                    },
+                    {
+                      "x": 12,
+                      "y": 17.8
+                    },
+                    {
+                      "x": 10,
+                      "y": 17.8
+                    }
+                  ],
+                  "status": "clear"
+                }
+              ],
+              "exitObjectIds": [
+                "obj-fire-exit-east",
+                "obj-fire-exit-north"
+              ],
+              "graphEdges": [
+                {
+                  "blockedByObjectIds": [],
+                  "endNodeId": "node-29.9:10",
+                  "id": "edge-obj-route-exit-east",
+                  "lengthM": 14.9,
+                  "objectId": "obj-route-exit-east",
+                  "startNodeId": "node-15:10",
+                  "widthM": 1.829
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "endNodeId": "node-15:10",
+                  "id": "edge-obj-route-main",
+                  "lengthM": 9.5,
+                  "objectId": "obj-route-main",
+                  "startNodeId": "node-15:0.5",
+                  "widthM": 1.829
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "endNodeId": "node-21:17",
+                  "id": "edge-obj-route-north-link-a",
+                  "lengthM": 9.22,
+                  "objectId": "obj-route-north-link-a",
+                  "startNodeId": "node-15:10",
+                  "widthM": 1.829
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "endNodeId": "node-11:19",
+                  "id": "edge-obj-route-north-link-b",
+                  "lengthM": 10.198,
+                  "objectId": "obj-route-north-link-b",
+                  "startNodeId": "node-21:17",
+                  "widthM": 1.829
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "endNodeId": "node-16:10",
+                  "id": "edge-obj-route-seating-east",
+                  "lengthM": 1,
+                  "objectId": "obj-route-seating-east",
+                  "startNodeId": "node-15:10",
+                  "widthM": 1.829
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "endNodeId": "node-14:10",
+                  "id": "edge-obj-route-seating-west",
+                  "lengthM": 1,
+                  "objectId": "obj-route-seating-west",
+                  "startNodeId": "node-15:10",
+                  "widthM": 1.829
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "endNodeId": "node-7:10",
+                  "id": "edge-obj-route-stage",
+                  "lengthM": 8,
+                  "objectId": "obj-route-stage",
+                  "startNodeId": "node-15:10",
+                  "widthM": 1.829
+                }
+              ],
+              "graphFingerprint": "graph-8afec60e",
+              "graphNodes": [
+                {
+                  "edgeIds": [
+                    "edge-obj-route-north-link-b"
+                  ],
+                  "id": "node-11:19",
+                  "point": {
+                    "x": 11,
+                    "y": 19
+                  }
+                },
+                {
+                  "edgeIds": [
+                    "edge-obj-route-seating-west"
+                  ],
+                  "id": "node-14:10",
+                  "point": {
+                    "x": 14,
+                    "y": 10
+                  }
+                },
+                {
+                  "edgeIds": [
+                    "edge-obj-route-main"
+                  ],
+                  "id": "node-15:0.5",
+                  "point": {
+                    "x": 15,
+                    "y": 0.5
+                  }
+                },
+                {
+                  "edgeIds": [
+                    "edge-obj-route-exit-east",
+                    "edge-obj-route-main",
+                    "edge-obj-route-north-link-a",
+                    "edge-obj-route-seating-east",
+                    "edge-obj-route-seating-west",
+                    "edge-obj-route-stage"
+                  ],
+                  "id": "node-15:10",
+                  "point": {
+                    "x": 15,
+                    "y": 10
+                  }
+                },
+                {
+                  "edgeIds": [
+                    "edge-obj-route-seating-east"
+                  ],
+                  "id": "node-16:10",
+                  "point": {
+                    "x": 16,
+                    "y": 10
+                  }
+                },
+                {
+                  "edgeIds": [
+                    "edge-obj-route-north-link-a",
+                    "edge-obj-route-north-link-b"
+                  ],
+                  "id": "node-21:17",
+                  "point": {
+                    "x": 21,
+                    "y": 17
+                  }
+                },
+                {
+                  "edgeIds": [
+                    "edge-obj-route-exit-east"
+                  ],
+                  "id": "node-29.9:10",
+                  "point": {
+                    "x": 29.9,
+                    "y": 10
+                  }
+                },
+                {
+                  "edgeIds": [
+                    "edge-obj-route-stage"
+                  ],
+                  "id": "node-7:10",
+                  "point": {
+                    "x": 7,
+                    "y": 10
+                  }
+                }
+              ],
+              "obstructedExitObjectIds": [],
+              "occupiedObjectIds": [
+                "obj-seating-east",
+                "obj-seating-west"
+              ],
+              "peakCongestionIndex": 66.5,
+              "phaseProfiles": [
+                {
+                  "congestionIndex": 45.6,
+                  "demand": 300,
+                  "phase": "ingress"
+                },
+                {
+                  "congestionIndex": 21.3,
+                  "demand": 140,
+                  "phase": "interval"
+                },
+                {
+                  "congestionIndex": 66.5,
+                  "demand": 438,
+                  "phase": "egress"
+                },
+                {
+                  "congestionIndex": 66.5,
+                  "demand": 438,
+                  "phase": "emergency"
+                }
+              ],
+              "routeObjectIds": [
+                "obj-route-exit-east",
+                "obj-route-main",
+                "obj-route-north-link-a",
+                "obj-route-north-link-b",
+                "obj-route-seating-east",
+                "obj-route-seating-west",
+                "obj-route-stage"
+              ],
+              "shortestExitPaths": [
+                {
+                  "distanceM": 10.198,
+                  "exitObjectId": "obj-fire-exit-north",
+                  "occupiedObjectId": "obj-seating-east",
+                  "routeObjectIds": [
+                    "obj-route-north-link-b"
+                  ]
+                },
+                {
+                  "distanceM": 15.9,
+                  "exitObjectId": "obj-fire-exit-east",
+                  "occupiedObjectId": "obj-seating-west",
+                  "routeObjectIds": [
+                    "obj-route-exit-east",
+                    "obj-route-seating-west"
+                  ]
+                }
+              ],
+              "source": "canonical-geometry"
+            },
+            "metric": "peakCongestionIndex",
+            "threshold": 80,
+            "unit": "index"
+          },
+          "id": "check-circulation",
+          "label": "Peak congestion",
+          "remediation": "Increase circulation width, reconnect occupied zones, or reduce phase demand.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "status": "pass",
+          "threshold": 80,
+          "unit": "index",
+          "waivable": false,
+          "waiver": null
+        },
+        {
+          "actual": 0,
+          "category": "emergency",
+          "constraintId": "constraint-emergency-readiness",
+          "evaluator": "emergency_readiness",
+          "evidence": {
+            "actual": 0,
+            "affectedObjectIds": [],
+            "comparator": "lte",
+            "details": {
+              "accessLaneChecks": [
+                {
+                  "clearWidthM": 1.2,
+                  "laneObjectId": "obj-emergency-access-east",
+                  "minimumClearWidthM": 1.2,
+                  "obstructingObjectIds": [],
+                  "status": "pass"
+                }
+              ],
+              "assemblyChecks": [
+                {
+                  "assemblyPointObjectId": "obj-assembly-east",
+                  "capacityPersons": 450,
+                  "designatedExitObjectIds": [
+                    "obj-fire-exit-east",
+                    "obj-fire-exit-north"
+                  ],
+                  "missingExitObjectIds": [],
+                  "status": "pass"
+                }
+              ],
+              "assemblyPointObjectIds": [
+                "obj-assembly-east"
+              ],
+              "commandPostObjectIds": [
+                "obj-command-post-north"
+              ],
+              "degradedScenarios": [
+                {
+                  "affectedZoneObjectIds": [
+                    "obj-seating-west"
+                  ],
+                  "alternativeRoutes": [
+                    {
+                      "distanceM": 20.418,
+                      "exitObjectId": "obj-fire-exit-north",
+                      "routeObjectIds": [
+                        "obj-route-north-link-a",
+                        "obj-route-north-link-b",
+                        "obj-route-seating-west"
+                      ],
+                      "zoneObjectId": "obj-seating-west"
+                    }
+                  ],
+                  "assumptions": [
+                    "all-attendees-evacuate",
+                    "east-exit-fully-unavailable",
+                    "no-lift-use-during-fire",
+                    "staff-assist-access-needs"
+                  ],
+                  "baselinePaths": [
+                    {
+                      "distanceM": 15.9,
+                      "exitObjectId": "obj-fire-exit-east",
+                      "routeObjectIds": [
+                        "obj-route-exit-east",
+                        "obj-route-seating-west"
+                      ],
+                      "status": "available",
+                      "targetNodeId": "node-29.9:10",
+                      "zoneObjectId": "obj-seating-west"
+                    },
+                    {
+                      "distanceM": 10.198,
+                      "exitObjectId": "obj-fire-exit-north",
+                      "routeObjectIds": [
+                        "obj-route-north-link-b"
+                      ],
+                      "status": "available",
+                      "targetNodeId": "node-11:19",
+                      "zoneObjectId": "obj-seating-east"
+                    }
+                  ],
+                  "capacityImpact": {
+                    "availableExitCapacityPersons": 250,
+                    "baselineExitCapacityPersons": 700,
+                    "deltaPersons": -450,
+                    "operationalLoadPersons": 438,
+                    "shortfallPersons": 188
+                  },
+                  "evidenceFingerprint": "emergency-scenario-7633819f",
+                  "geometryFingerprint": "geom-4514a6c8",
+                  "hardFailures": [
+                    {
+                      "actual": 250,
+                      "affectedObjectIds": [
+                        "obj-fire-exit-north"
+                      ],
+                      "code": "EXIT_CAPACITY_SHORTFALL",
+                      "required": 438
+                    }
+                  ],
+                  "kind": "emergency-degraded-scenario-result",
+                  "planId": "plan-summit-forward-2026",
+                  "planVersion": "3.2",
+                  "powerFailures": [],
+                  "reachableExitObjectIds": [
+                    "obj-fire-exit-north"
+                  ],
+                  "scenarioId": "scenario-blocked-east-exit",
+                  "scenarioPaths": [
+                    {
+                      "distanceM": 20.418,
+                      "exitObjectId": "obj-fire-exit-north",
+                      "routeObjectIds": [
+                        "obj-route-north-link-a",
+                        "obj-route-north-link-b",
+                        "obj-route-seating-west"
+                      ],
+                      "sourceNodeIds": [
+                        "node-14:10"
+                      ],
+                      "status": "available",
+                      "targetNodeId": "node-11:19",
+                      "zoneObjectId": "obj-seating-west"
+                    },
+                    {
+                      "distanceM": 10.198,
+                      "exitObjectId": "obj-fire-exit-north",
+                      "routeObjectIds": [
+                        "obj-route-north-link-b"
+                      ],
+                      "sourceNodeIds": [
+                        "node-16:10",
+                        "node-21:17"
+                      ],
+                      "status": "available",
+                      "targetNodeId": "node-11:19",
+                      "zoneObjectId": "obj-seating-east"
+                    }
+                  ],
+                  "scenarioType": "blocked-exit",
+                  "schemaVersion": 1,
+                  "status": "fail",
+                  "unavailableCircuitIds": [],
+                  "unavailableObjectIds": [
+                    "obj-fire-exit-east"
+                  ],
+                  "unreachableZoneObjectIds": [],
+                  "unresolvedHardFailures": 1
+                },
+                {
+                  "affectedZoneObjectIds": [
+                    "obj-seating-west"
+                  ],
+                  "alternativeRoutes": [
+                    {
+                      "distanceM": 20.418,
+                      "exitObjectId": "obj-fire-exit-north",
+                      "routeObjectIds": [
+                        "obj-route-north-link-a",
+                        "obj-route-north-link-b",
+                        "obj-route-seating-west"
+                      ],
+                      "zoneObjectId": "obj-seating-west"
+                    }
+                  ],
+                  "assumptions": [
+                    "all-attendees-evacuate",
+                    "east-route-fully-unavailable",
+                    "no-lift-use-during-fire",
+                    "staff-assist-access-needs"
+                  ],
+                  "baselinePaths": [
+                    {
+                      "distanceM": 15.9,
+                      "exitObjectId": "obj-fire-exit-east",
+                      "routeObjectIds": [
+                        "obj-route-exit-east",
+                        "obj-route-seating-west"
+                      ],
+                      "status": "available",
+                      "targetNodeId": "node-29.9:10",
+                      "zoneObjectId": "obj-seating-west"
+                    },
+                    {
+                      "distanceM": 10.198,
+                      "exitObjectId": "obj-fire-exit-north",
+                      "routeObjectIds": [
+                        "obj-route-north-link-b"
+                      ],
+                      "status": "available",
+                      "targetNodeId": "node-11:19",
+                      "zoneObjectId": "obj-seating-east"
+                    }
+                  ],
+                  "capacityImpact": {
+                    "availableExitCapacityPersons": 250,
+                    "baselineExitCapacityPersons": 700,
+                    "deltaPersons": -450,
+                    "operationalLoadPersons": 438,
+                    "shortfallPersons": 188
+                  },
+                  "evidenceFingerprint": "emergency-scenario-a8202ec5",
+                  "geometryFingerprint": "geom-4514a6c8",
+                  "hardFailures": [
+                    {
+                      "actual": 250,
+                      "affectedObjectIds": [
+                        "obj-fire-exit-north"
+                      ],
+                      "code": "EXIT_CAPACITY_SHORTFALL",
+                      "required": 438
+                    }
+                  ],
+                  "kind": "emergency-degraded-scenario-result",
+                  "planId": "plan-summit-forward-2026",
+                  "planVersion": "3.2",
+                  "powerFailures": [],
+                  "reachableExitObjectIds": [
+                    "obj-fire-exit-north"
+                  ],
+                  "scenarioId": "scenario-east-corridor-unavailable",
+                  "scenarioPaths": [
+                    {
+                      "distanceM": 20.418,
+                      "exitObjectId": "obj-fire-exit-north",
+                      "routeObjectIds": [
+                        "obj-route-north-link-a",
+                        "obj-route-north-link-b",
+                        "obj-route-seating-west"
+                      ],
+                      "sourceNodeIds": [
+                        "node-14:10"
+                      ],
+                      "status": "available",
+                      "targetNodeId": "node-11:19",
+                      "zoneObjectId": "obj-seating-west"
+                    },
+                    {
+                      "distanceM": 10.198,
+                      "exitObjectId": "obj-fire-exit-north",
+                      "routeObjectIds": [
+                        "obj-route-north-link-b"
+                      ],
+                      "sourceNodeIds": [
+                        "node-16:10",
+                        "node-21:17"
+                      ],
+                      "status": "available",
+                      "targetNodeId": "node-11:19",
+                      "zoneObjectId": "obj-seating-east"
+                    }
+                  ],
+                  "scenarioType": "unavailable-corridor",
+                  "schemaVersion": 1,
+                  "status": "fail",
+                  "unavailableCircuitIds": [],
+                  "unavailableObjectIds": [
+                    "obj-route-exit-east"
+                  ],
+                  "unreachableZoneObjectIds": [],
+                  "unresolvedHardFailures": 1
+                },
+                {
+                  "affectedZoneObjectIds": [],
+                  "alternativeRoutes": [],
+                  "assumptions": [
+                    "all-attendees-evacuate",
+                    "no-lift-use-during-fire",
+                    "staff-assist-access-needs",
+                    "utility-power-unavailable"
+                  ],
+                  "baselinePaths": [
+                    {
+                      "distanceM": 15.9,
+                      "exitObjectId": "obj-fire-exit-east",
+                      "routeObjectIds": [
+                        "obj-route-exit-east",
+                        "obj-route-seating-west"
+                      ],
+                      "status": "available",
+                      "targetNodeId": "node-29.9:10",
+                      "zoneObjectId": "obj-seating-west"
+                    },
+                    {
+                      "distanceM": 10.198,
+                      "exitObjectId": "obj-fire-exit-north",
+                      "routeObjectIds": [
+                        "obj-route-north-link-b"
+                      ],
+                      "status": "available",
+                      "targetNodeId": "node-11:19",
+                      "zoneObjectId": "obj-seating-east"
+                    }
+                  ],
+                  "capacityImpact": {
+                    "availableExitCapacityPersons": 700,
+                    "baselineExitCapacityPersons": 700,
+                    "deltaPersons": 0,
+                    "operationalLoadPersons": 438,
+                    "shortfallPersons": 0
+                  },
+                  "evidenceFingerprint": "emergency-scenario-0a2082b6",
+                  "geometryFingerprint": "geom-4514a6c8",
+                  "hardFailures": [],
+                  "kind": "emergency-degraded-scenario-result",
+                  "planId": "plan-summit-forward-2026",
+                  "planVersion": "3.2",
+                  "powerFailures": [],
+                  "reachableExitObjectIds": [
+                    "obj-fire-exit-east",
+                    "obj-fire-exit-north"
+                  ],
+                  "scenarioId": "scenario-main-power-loss",
+                  "scenarioPaths": [
+                    {
+                      "distanceM": 15.9,
+                      "exitObjectId": "obj-fire-exit-east",
+                      "routeObjectIds": [
+                        "obj-route-exit-east",
+                        "obj-route-seating-west"
+                      ],
+                      "sourceNodeIds": [
+                        "node-14:10"
+                      ],
+                      "status": "available",
+                      "targetNodeId": "node-29.9:10",
+                      "zoneObjectId": "obj-seating-west"
+                    },
+                    {
+                      "distanceM": 10.198,
+                      "exitObjectId": "obj-fire-exit-north",
+                      "routeObjectIds": [
+                        "obj-route-north-link-b"
+                      ],
+                      "sourceNodeIds": [
+                        "node-16:10",
+                        "node-21:17"
+                      ],
+                      "status": "available",
+                      "targetNodeId": "node-11:19",
+                      "zoneObjectId": "obj-seating-east"
+                    }
+                  ],
+                  "scenarioType": "power-loss",
+                  "schemaVersion": 1,
+                  "status": "pass",
+                  "unavailableCircuitIds": [
+                    "circuit-west-63a"
+                  ],
+                  "unavailableObjectIds": [],
+                  "unreachableZoneObjectIds": [],
+                  "unresolvedHardFailures": 0
+                }
+              ],
+              "emergencyPlan": {
+                "assumptions": [
+                  "all-attendees-evacuate",
+                  "no-lift-use-during-fire",
+                  "staff-assist-access-needs"
+                ],
+                "authorizedReviewerRoles": [
+                  "safety-officer",
+                  "venue-administrator"
+                ],
+                "minimumAssemblyCapacityPersons": 438,
+                "minimumEmergencyAccessWidthM": 1.2,
+                "minimumExitCapacityPersons": 438,
+                "minimumExitCount": 2,
+                "minimumFireEquipmentCoverageRatio": 1,
+                "requiredCommandPosts": 1,
+                "requiredFirstAidPosts": 1,
+                "scenarioDefinitions": [
+                  {
+                    "assumptions": [
+                      "east-exit-fully-unavailable"
+                    ],
+                    "durationMinutes": 120,
+                    "id": "scenario-blocked-east-exit",
+                    "label": "East exit blocked",
+                    "type": "blocked-exit",
+                    "unavailableCircuitIds": [],
+                    "unavailableObjectIds": [
+                      "obj-fire-exit-east"
+                    ]
+                  },
+                  {
+                    "assumptions": [
+                      "east-route-fully-unavailable"
+                    ],
+                    "durationMinutes": 120,
+                    "id": "scenario-east-corridor-unavailable",
+                    "label": "East corridor unavailable",
+                    "type": "unavailable-corridor",
+                    "unavailableCircuitIds": [],
+                    "unavailableObjectIds": [
+                      "obj-route-exit-east"
+                    ]
+                  },
+                  {
+                    "assumptions": [
+                      "utility-power-unavailable"
+                    ],
+                    "durationMinutes": 120,
+                    "id": "scenario-main-power-loss",
+                    "label": "Main power loss",
+                    "type": "power-loss",
+                    "unavailableCircuitIds": [
+                      "circuit-west-63a"
+                    ],
+                    "unavailableObjectIds": []
+                  }
+                ],
+                "schemaVersion": 1
+              },
+              "evidenceFingerprint": "emergency-planning-5242c6c3",
+              "exitObjectIds": [
+                "obj-fire-exit-east",
+                "obj-fire-exit-north"
+              ],
+              "fireCoverage": [
+                {
+                  "coveringEquipmentObjectIds": [
+                    "obj-fire-equipment-east"
+                  ],
+                  "status": "covered",
+                  "zoneObjectId": "obj-seating-west"
+                },
+                {
+                  "coveringEquipmentObjectIds": [
+                    "obj-fire-equipment-east"
+                  ],
+                  "status": "covered",
+                  "zoneObjectId": "obj-seating-east"
+                }
+              ],
+              "fireEquipmentCoverageRatio": 1,
+              "fireEquipmentObjectIds": [
+                "obj-fire-equipment-east"
+              ],
+              "firstAidPostObjectIds": [
+                "obj-first-aid-north"
+              ],
+              "geometryFingerprint": "geom-4514a6c8",
+              "kind": "emergency-planning-result",
+              "operationalLoadPersons": 438,
+              "planId": "plan-summit-forward-2026",
+              "planVersion": "3.2",
+              "schemaVersion": 1,
+              "structuralFailures": [],
+              "summary": {
+                "accessibleEmergencyRoutes": true,
+                "degradedScenarioFailures": 2,
+                "exitCount": 2,
+                "status": "pass",
+                "structuralFailures": 0,
+                "totalAssemblyCapacityPersons": 450,
+                "totalExitCapacityPersons": 700
+              },
+              "totalAssemblyCapacityPersons": 450,
+              "totalExitCapacityPersons": 700
+            },
+            "metric": "emergencyStructuralFailures",
+            "threshold": 0,
+            "unit": "checks"
+          },
+          "id": "check-emergency-readiness",
+          "label": "Emergency readiness",
+          "remediation": "Restore exit, assembly, emergency access, fire equipment, first-aid, and command-post readiness.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "status": "pass",
+          "threshold": 0,
+          "unit": "checks",
+          "waivable": false,
+          "waiver": null
+        },
+        {
+          "actual": 0,
+          "category": "production",
+          "constraintId": "constraint-production-readiness",
+          "evaluator": "production_readiness",
+          "evidence": {
+            "actual": 0,
+            "affectedObjectIds": [],
+            "comparator": "lte",
+            "details": {
+              "backstageZoneObjectIds": [
+                "obj-backstage-west"
+              ],
+              "cableCrossings": [
+                {
+                  "cableObjectId": "obj-cable-loom-main",
+                  "routeObjectId": "obj-route-exit-east",
+                  "status": "pass",
+                  "treatment": "cable-ramp"
+                },
+                {
+                  "cableObjectId": "obj-cable-loom-main",
+                  "routeObjectId": "obj-route-main",
+                  "status": "pass",
+                  "treatment": "cable-ramp"
+                },
+                {
+                  "cableObjectId": "obj-cable-loom-main",
+                  "routeObjectId": "obj-route-north-link-a",
+                  "status": "pass",
+                  "treatment": "cable-ramp"
+                },
+                {
+                  "cableObjectId": "obj-cable-loom-main",
+                  "routeObjectId": "obj-route-seating-east",
+                  "status": "pass",
+                  "treatment": "cable-ramp"
+                },
+                {
+                  "cableObjectId": "obj-cable-loom-main",
+                  "routeObjectId": "obj-route-seating-west",
+                  "status": "pass",
+                  "treatment": "cable-ramp"
+                },
+                {
+                  "cableObjectId": "obj-cable-loom-main",
+                  "routeObjectId": "obj-route-stage",
+                  "status": "pass",
+                  "treatment": "cable-ramp"
+                }
+              ],
+              "cameraChecks": [
+                {
+                  "blockedByObjectIds": [],
+                  "cameraObjectId": "obj-camera-center",
+                  "distanceM": 16.125,
+                  "maximumDistanceM": 25,
+                  "minimumDistanceM": 5,
+                  "status": "pass",
+                  "targetObjectId": "obj-stage-west"
+                }
+              ],
+              "circuits": [
+                {
+                  "capacityWatts": 43600,
+                  "circuitId": "circuit-west-63a",
+                  "connectedObjectIds": [
+                    "obj-av-desk",
+                    "obj-camera-center",
+                    "obj-projector-center",
+                    "obj-speaker-stage-north",
+                    "obj-speaker-stage-south"
+                  ],
+                  "demandWatts": 5180,
+                  "spareWatts": 38420,
+                  "status": "pass",
+                  "utilityObjectId": "obj-power-west"
+                }
+              ],
+              "controlSightlineRatio": 1,
+              "controlSightlines": [
+                {
+                  "blockedByObjectIds": [],
+                  "controlObjectId": "obj-av-desk",
+                  "status": "pass",
+                  "targetObjectId": "obj-stage-west",
+                  "viewingDistanceM": 24.04
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "controlObjectId": "obj-av-desk",
+                  "status": "pass",
+                  "targetObjectId": "obj-screen-stage",
+                  "viewingDistanceM": 21.66
+                }
+              ],
+              "equipmentObjectIds": [
+                "obj-av-desk",
+                "obj-cable-loom-main",
+                "obj-camera-center",
+                "obj-projector-center",
+                "obj-screen-stage",
+                "obj-speaker-stage-north",
+                "obj-speaker-stage-south"
+              ],
+              "evidenceFingerprint": "production-planning-6c099bdd",
+              "geometryFingerprint": "geom-4514a6c8",
+              "inventory": [
+                {
+                  "available": 4,
+                  "id": "inventory-inventory-template-av-control-console-1.0.0",
+                  "requested": 1,
+                  "shortage": 0,
+                  "status": "available",
+                  "templateId": "inventory-template-av-control-console",
+                  "version": "1.0.0"
+                },
+                {
+                  "available": 10,
+                  "id": "inventory-inventory-template-broadcast-camera-1.0.0",
+                  "requested": 1,
+                  "shortage": 0,
+                  "status": "available",
+                  "templateId": "inventory-template-broadcast-camera",
+                  "version": "1.0.0"
+                },
+                {
+                  "available": 20,
+                  "id": "inventory-inventory-template-cable-loom-25m-1.0.0",
+                  "requested": 1,
+                  "shortage": 0,
+                  "status": "available",
+                  "templateId": "inventory-template-cable-loom-25m",
+                  "version": "1.0.0"
+                },
+                {
+                  "available": 8,
+                  "id": "inventory-inventory-template-laser-projector-1.0.0",
+                  "requested": 1,
+                  "shortage": 0,
+                  "status": "available",
+                  "templateId": "inventory-template-laser-projector",
+                  "version": "1.0.0"
+                },
+                {
+                  "available": 24,
+                  "id": "inventory-inventory-template-line-array-1.0.0",
+                  "requested": 2,
+                  "shortage": 0,
+                  "status": "available",
+                  "templateId": "inventory-template-line-array",
+                  "version": "1.0.0"
+                },
+                {
+                  "available": 4,
+                  "id": "inventory-inventory-template-projection-screen-5m-1.0.0",
+                  "requested": 1,
+                  "shortage": 0,
+                  "status": "available",
+                  "templateId": "inventory-template-projection-screen-5m",
+                  "version": "1.0.0"
+                }
+              ],
+              "inventoryShortages": [],
+              "kind": "production-planning-result",
+              "planId": "plan-summit-forward-2026",
+              "planVersion": "3.2",
+              "policy": {
+                "allowedAccessibleCrossingTreatments": [
+                  "cable-ramp",
+                  "overhead"
+                ],
+                "minimumControlSightlineRatio": 1,
+                "minimumScreenVisibilityRatio": 0.7,
+                "minimumSpeakerCoverageRatio": 0.95,
+                "schemaVersion": 1
+              },
+              "productionLayerObjectIds": [
+                "obj-av-desk",
+                "obj-backstage-west",
+                "obj-cable-loom-main",
+                "obj-camera-center",
+                "obj-projector-center",
+                "obj-rigging-center",
+                "obj-screen-stage",
+                "obj-speaker-stage-north",
+                "obj-speaker-stage-south",
+                "obj-stage-west"
+              ],
+              "rigging": [
+                {
+                  "capacityKg": 1000,
+                  "demandKg": 191,
+                  "riggingPointObjectId": "obj-rigging-center",
+                  "spareKg": 809,
+                  "status": "pass",
+                  "suspendedObjectIds": [
+                    "obj-projector-center",
+                    "obj-screen-stage",
+                    "obj-speaker-stage-north",
+                    "obj-speaker-stage-south"
+                  ]
+                }
+              ],
+              "schemaVersion": 1,
+              "screenVisibility": [
+                {
+                  "coverageRatio": 1,
+                  "minimumCoverageRatio": 0.7,
+                  "rays": [
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-west-01-obj-screen-stage",
+                      "sampleId": "seat-west-01",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-west",
+                      "status": "clear",
+                      "viewingDistanceM": 4.72
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-west-02-obj-screen-stage",
+                      "sampleId": "seat-west-02",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-west",
+                      "status": "clear",
+                      "viewingDistanceM": 2.69
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-west-03-obj-screen-stage",
+                      "sampleId": "seat-west-03",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-west",
+                      "status": "clear",
+                      "viewingDistanceM": 3.2
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-west-04-obj-screen-stage",
+                      "sampleId": "seat-west-04",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-west",
+                      "status": "clear",
+                      "viewingDistanceM": 5.59
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-west-05-obj-screen-stage",
+                      "sampleId": "seat-west-05",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-west",
+                      "status": "clear",
+                      "viewingDistanceM": 7.63
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-west-06-obj-screen-stage",
+                      "sampleId": "seat-west-06",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-west",
+                      "status": "clear",
+                      "viewingDistanceM": 6.58
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-west-07-obj-screen-stage",
+                      "sampleId": "seat-west-07",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-west",
+                      "status": "clear",
+                      "viewingDistanceM": 6.8
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-west-08-obj-screen-stage",
+                      "sampleId": "seat-west-08",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-west",
+                      "status": "clear",
+                      "viewingDistanceM": 8.2
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-east-01-obj-screen-stage",
+                      "sampleId": "seat-east-01",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-east",
+                      "status": "clear",
+                      "viewingDistanceM": 12.54
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-east-02-obj-screen-stage",
+                      "sampleId": "seat-east-02",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-east",
+                      "status": "clear",
+                      "viewingDistanceM": 13.83
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-east-03-obj-screen-stage",
+                      "sampleId": "seat-east-03",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-east",
+                      "status": "clear",
+                      "viewingDistanceM": 15.53
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-east-04-obj-screen-stage",
+                      "sampleId": "seat-east-04",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-east",
+                      "status": "clear",
+                      "viewingDistanceM": 17.53
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-east-05-obj-screen-stage",
+                      "sampleId": "seat-east-05",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-east",
+                      "status": "clear",
+                      "viewingDistanceM": 18.41
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-east-06-obj-screen-stage",
+                      "sampleId": "seat-east-06",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-east",
+                      "status": "clear",
+                      "viewingDistanceM": 19.02
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-east-07-obj-screen-stage",
+                      "sampleId": "seat-east-07",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-east",
+                      "status": "clear",
+                      "viewingDistanceM": 19.63
+                    },
+                    {
+                      "blockedByObjectIds": [],
+                      "id": "production-ray-seat-east-08-obj-screen-stage",
+                      "sampleId": "seat-east-08",
+                      "screenObjectId": "obj-screen-stage",
+                      "seatingObjectId": "obj-seating-east",
+                      "status": "clear",
+                      "viewingDistanceM": 20.15
+                    }
+                  ],
+                  "sampledSeats": 16,
+                  "screenObjectId": "obj-screen-stage",
+                  "status": "pass"
+                }
+              ],
+              "speakerCoverage": [
+                {
+                  "coverageRatio": 1,
+                  "minimumCoverageRatio": 0.95,
+                  "samples": [
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-west-01",
+                      "status": "covered"
+                    },
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-west-02",
+                      "status": "covered"
+                    },
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-west-03",
+                      "status": "covered"
+                    },
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-west-04",
+                      "status": "covered"
+                    },
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-west-05",
+                      "status": "covered"
+                    },
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-west-06",
+                      "status": "covered"
+                    },
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-west-07",
+                      "status": "covered"
+                    },
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-west-08",
+                      "status": "covered"
+                    }
+                  ],
+                  "seatingObjectId": "obj-seating-west",
+                  "status": "pass"
+                },
+                {
+                  "coverageRatio": 1,
+                  "minimumCoverageRatio": 0.95,
+                  "samples": [
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-east-01",
+                      "status": "covered"
+                    },
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-east-02",
+                      "status": "covered"
+                    },
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-east-03",
+                      "status": "covered"
+                    },
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-east-04",
+                      "status": "covered"
+                    },
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-east-05",
+                      "status": "covered"
+                    },
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-east-06",
+                      "status": "covered"
+                    },
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-east-07",
+                      "status": "covered"
+                    },
+                    {
+                      "coveringSpeakerObjectIds": [
+                        "obj-speaker-stage-north",
+                        "obj-speaker-stage-south"
+                      ],
+                      "sampleId": "seat-east-08",
+                      "status": "covered"
+                    }
+                  ],
+                  "seatingObjectId": "obj-seating-east",
+                  "status": "pass"
+                }
+              ],
+              "summary": {
+                "equipmentCount": 7,
+                "failedChecks": 0,
+                "inventoryShortages": 0,
+                "overloadedCircuits": 0,
+                "overloadedRiggingPoints": 0,
+                "status": "pass",
+                "untreatedCableCrossings": 0
+              },
+              "throwDistanceChecks": [
+                {
+                  "maximumThrowRatio": 2.1,
+                  "minimumThrowRatio": 1.5,
+                  "projectorObjectId": "obj-projector-center",
+                  "screenObjectId": "obj-screen-stage",
+                  "status": "pass",
+                  "throwDistanceM": 9,
+                  "throwRatio": 1.8,
+                  "viewableWidthM": 5
+                }
+              ],
+              "unpoweredObjectIds": [],
+              "unresolvedRiggingObjectIds": []
+            },
+            "metric": "productionFailedChecks",
+            "threshold": 0,
+            "unit": "checks"
+          },
+          "id": "check-production-readiness",
+          "label": "Production readiness",
+          "remediation": "Resolve throw, visibility, audio, camera, cable, circuit, rigging, or inventory failures.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "status": "pass",
+          "threshold": 0,
+          "unit": "checks",
+          "waivable": false,
+          "waiver": null
+        },
+        {
+          "actual": 0,
+          "category": "protection",
+          "constraintId": "constraint-protected-objects",
+          "evaluator": "protected_objects_unchanged",
+          "evidence": {
+            "actual": 0,
+            "affectedObjectIds": [],
+            "comparator": "lte",
+            "details": {
+              "lockConflicts": []
+            },
+            "metric": "changedProtectedObjects",
+            "threshold": 0,
+            "unit": "objects"
+          },
+          "id": "check-locked-objects",
+          "label": "Locked objects",
+          "remediation": "Remove Changes that target protected venue objects.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "status": "pass",
+          "threshold": 0,
+          "unit": "objects",
+          "waivable": false,
+          "waiver": null
+        },
+        {
+          "actual": 1,
+          "category": "sightlines",
+          "constraintId": "constraint-sightlines",
+          "evaluator": "sightline_raycast",
+          "evidence": {
+            "actual": 1,
+            "affectedObjectIds": [],
+            "comparator": "gte",
+            "details": {
+              "blockedSampleIds": [],
+              "coverageRatio": 1,
+              "evidenceFingerprint": "sightlines-eacd3f8c",
+              "focalObjectId": "obj-stage-west",
+              "focalPointId": "focal-stage-center",
+              "maximumViewingDistanceM": 20.15,
+              "obstructionObjectIds": [],
+              "rays": [
+                {
+                  "blockedByObjectIds": [],
+                  "end": {
+                    "x": 6.5,
+                    "y": 10
+                  },
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": 156.5,
+                  "id": "ray-seat-east-01-focal-stage-center",
+                  "sampleId": "seat-east-01",
+                  "seatingObjectId": "obj-seating-east",
+                  "start": {
+                    "x": 18,
+                    "y": 5
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 1.4,
+                  "viewingDistanceM": 12.54
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": 167.5,
+                  "id": "ray-seat-east-02-focal-stage-center",
+                  "sampleId": "seat-east-02",
+                  "seatingObjectId": "obj-seating-east",
+                  "start": {
+                    "x": 20,
+                    "y": 7
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 1.2,
+                  "viewingDistanceM": 13.83
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": 176.3,
+                  "id": "ray-seat-east-03-focal-stage-center",
+                  "sampleId": "seat-east-03",
+                  "seatingObjectId": "obj-seating-east",
+                  "start": {
+                    "x": 22,
+                    "y": 9
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 1.1,
+                  "viewingDistanceM": 15.53
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": -176.7,
+                  "id": "ray-seat-east-04-focal-stage-center",
+                  "sampleId": "seat-east-04",
+                  "seatingObjectId": "obj-seating-east",
+                  "start": {
+                    "x": 24,
+                    "y": 11
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 1,
+                  "viewingDistanceM": 17.53
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": -161,
+                  "id": "ray-seat-east-05-focal-stage-center",
+                  "sampleId": "seat-east-05",
+                  "seatingObjectId": "obj-seating-east",
+                  "start": {
+                    "x": 23.9,
+                    "y": 16
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 0.9,
+                  "viewingDistanceM": 18.41
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": -161,
+                  "id": "ray-seat-east-06-focal-stage-center",
+                  "sampleId": "seat-east-06",
+                  "seatingObjectId": "obj-seating-east",
+                  "start": {
+                    "x": 24.48,
+                    "y": 16.2
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 0.9,
+                  "viewingDistanceM": 19.02
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": -161,
+                  "id": "ray-seat-east-07-focal-stage-center",
+                  "sampleId": "seat-east-07",
+                  "seatingObjectId": "obj-seating-east",
+                  "start": {
+                    "x": 25.06,
+                    "y": 16.4
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 0.9,
+                  "viewingDistanceM": 19.63
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": -161,
+                  "id": "ray-seat-east-08-focal-stage-center",
+                  "sampleId": "seat-east-08",
+                  "seatingObjectId": "obj-seating-east",
+                  "start": {
+                    "x": 25.553,
+                    "y": 16.57
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 0.9,
+                  "viewingDistanceM": 20.15
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": 122,
+                  "id": "ray-seat-west-01-focal-stage-center",
+                  "sampleId": "seat-west-01",
+                  "seatingObjectId": "obj-seating-west",
+                  "start": {
+                    "x": 9,
+                    "y": 6
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 3.6,
+                  "viewingDistanceM": 4.72
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": 158.2,
+                  "id": "ray-seat-west-02-focal-stage-center",
+                  "sampleId": "seat-west-02",
+                  "seatingObjectId": "obj-seating-west",
+                  "start": {
+                    "x": 9,
+                    "y": 9
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 6.4,
+                  "viewingDistanceM": 2.69
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": -141.3,
+                  "id": "ray-seat-west-03-focal-stage-center",
+                  "sampleId": "seat-west-03",
+                  "seatingObjectId": "obj-seating-west",
+                  "start": {
+                    "x": 9,
+                    "y": 12
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 5.4,
+                  "viewingDistanceM": 3.2
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": -116.6,
+                  "id": "ray-seat-west-04-focal-stage-center",
+                  "sampleId": "seat-west-04",
+                  "seatingObjectId": "obj-seating-west",
+                  "start": {
+                    "x": 9,
+                    "y": 15
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 3.1,
+                  "viewingDistanceM": 5.59
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": 148.4,
+                  "id": "ray-seat-west-05-focal-stage-center",
+                  "sampleId": "seat-west-05",
+                  "seatingObjectId": "obj-seating-west",
+                  "start": {
+                    "x": 13,
+                    "y": 6
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 2.3,
+                  "viewingDistanceM": 7.63
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": 171.3,
+                  "id": "ray-seat-west-06-focal-stage-center",
+                  "sampleId": "seat-west-06",
+                  "seatingObjectId": "obj-seating-west",
+                  "start": {
+                    "x": 13,
+                    "y": 9
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 2.6,
+                  "viewingDistanceM": 6.58
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": -162.9,
+                  "id": "ray-seat-west-07-focal-stage-center",
+                  "sampleId": "seat-west-07",
+                  "seatingObjectId": "obj-seating-west",
+                  "start": {
+                    "x": 13,
+                    "y": 12
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 2.5,
+                  "viewingDistanceM": 6.8
+                },
+                {
+                  "blockedByObjectIds": [],
+                  "end": "[Circular]",
+                  "eyeHeightM": 1.2,
+                  "focalPointId": "focal-stage-center",
+                  "horizontalAngleDegrees": -142.4,
+                  "id": "ray-seat-west-08-focal-stage-center",
+                  "sampleId": "seat-west-08",
+                  "seatingObjectId": "obj-seating-west",
+                  "start": {
+                    "x": 13,
+                    "y": 15
+                  },
+                  "status": "clear",
+                  "verticalAngleDegrees": 2.1,
+                  "viewingDistanceM": 8.2
+                }
+              ],
+              "sampledSeatIds": [
+                "seat-east-01",
+                "seat-east-02",
+                "seat-east-03",
+                "seat-east-04",
+                "seat-east-05",
+                "seat-east-06",
+                "seat-east-07",
+                "seat-east-08",
+                "seat-west-01",
+                "seat-west-02",
+                "seat-west-03",
+                "seat-west-04",
+                "seat-west-05",
+                "seat-west-06",
+                "seat-west-07",
+                "seat-west-08"
+              ],
+              "sectionSummaries": [
+                {
+                  "blockedRatio": 0,
+                  "blockedSampleIds": [],
+                  "coverageRatio": 1,
+                  "objectId": "obj-seating-east",
+                  "sampledSeatIds": [
+                    "seat-east-01",
+                    "seat-east-02",
+                    "seat-east-03",
+                    "seat-east-04",
+                    "seat-east-05",
+                    "seat-east-06",
+                    "seat-east-07",
+                    "seat-east-08"
+                  ]
+                },
+                {
+                  "blockedRatio": 0,
+                  "blockedSampleIds": [],
+                  "coverageRatio": 1,
+                  "objectId": "obj-seating-west",
+                  "sampledSeatIds": [
+                    "seat-west-01",
+                    "seat-west-02",
+                    "seat-west-03",
+                    "seat-west-04",
+                    "seat-west-05",
+                    "seat-west-06",
+                    "seat-west-07",
+                    "seat-west-08"
+                  ]
+                }
+              ],
+              "source": "canonical-geometry"
+            },
+            "metric": "sightlineCoverage",
+            "threshold": 0.85,
+            "unit": "ratio"
+          },
+          "id": "check-sightlines",
+          "label": "Sightline coverage",
+          "remediation": "Move opaque obstructions or revise the seating section.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "status": "pass",
+          "threshold": 0.85,
+          "unit": "ratio",
+          "waivable": false,
+          "waiver": null
+        }
+      ],
+      "emergencyChangedObjectIds": [],
+      "emergencyEvidence": "[Circular]",
+      "emergencyReviewRequired": false,
+      "engineVersion": "2.7.0",
+      "evaluatedPlanVersion": "3.2",
+      "evaluatedProposalId": "proposal-32-b",
+      "evidenceFamilyFingerprints": {
+        "accessibility": "evidence-accessibility-328fc61e",
+        "capacity": "evidence-capacity-e7a1af8f",
+        "catering": "evidence-catering-e001f04d",
+        "emergency": "evidence-emergency-96930ecd",
+        "flow": "evidence-flow-589efa85",
+        "operations": "evidence-operations-41e3f994",
+        "production": "evidence-production-ec54274a",
+        "sightlines": "evidence-sightlines-53664da3"
+      },
+      "inputFingerprint": "input-7e0a2ea5",
+      "inventoryAvailability": [
+        {
+          "available": 4,
+          "id": "inventory-inventory-template-av-control-console-1.0.0",
+          "requested": 1,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-av-control-console",
+          "version": "1.0.0"
+        },
+        {
+          "available": 500,
+          "id": "inventory-inventory-template-banquet-chair-1.0.0",
+          "requested": 400,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-banquet-chair",
+          "version": "1.0.0"
+        },
+        {
+          "available": 10,
+          "id": "inventory-inventory-template-broadcast-camera-1.0.0",
+          "requested": 1,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-broadcast-camera",
+          "version": "1.0.0"
+        },
+        {
+          "available": 20,
+          "id": "inventory-inventory-template-buffet-station-1.0.0",
+          "requested": 2,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-buffet-station",
+          "version": "1.0.0"
+        },
+        {
+          "available": 20,
+          "id": "inventory-inventory-template-cable-loom-25m-1.0.0",
+          "requested": 1,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-cable-loom-25m",
+          "version": "1.0.0"
+        },
+        {
+          "available": 8,
+          "id": "inventory-inventory-template-laser-projector-1.0.0",
+          "requested": 1,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-laser-projector",
+          "version": "1.0.0"
+        },
+        {
+          "available": 24,
+          "id": "inventory-inventory-template-line-array-1.0.0",
+          "requested": 2,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-line-array",
+          "version": "1.0.0"
+        },
+        {
+          "available": 12,
+          "id": "inventory-inventory-template-mobile-bar-1.0.0",
+          "requested": 2,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-mobile-bar",
+          "version": "1.0.0"
+        },
+        {
+          "available": 4,
+          "id": "inventory-inventory-template-projection-screen-5m-1.0.0",
+          "requested": 1,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-projection-screen-5m",
+          "version": "1.0.0"
+        }
+      ],
+      "inventoryWarnings": 0,
+      "planningEvidenceInvalidations": {
+        "affectedConstraintIds": [],
+        "evidenceFamilies": []
+      },
+      "productionEvidence": "[Circular]",
+      "spatialEvidence": {
+        "accessibility": "[Circular]",
+        "capacity": {
+          "attendeeTarget": 400,
+          "changeDeltas": [
+            "[Circular]",
+            "[Circular]",
+            "[Circular]",
+            "[Circular]"
+          ],
+          "densityCapacity": 623,
+          "densityM2PerAttendee": 0.8,
+          "effectiveCapacity": 400,
+          "excludedAreaM2": 101.336,
+          "excludedObjectIds": [
+            "obj-av-desk",
+            "obj-bar-east",
+            "obj-column-southwest",
+            "obj-refreshment-east",
+            "obj-restricted-production",
+            "obj-restroom-accessible",
+            "obj-stage-west"
+          ],
+          "explanations": [],
+          "nonAttendeeLoad": 38,
+          "occupancyMode": "theater",
+          "operationalCounts": "[Circular]",
+          "operationalLoad": 438,
+          "placedCapacity": 400,
+          "roomAreaM2": 600,
+          "sectionCapacities": [
+            "[Circular]",
+            "[Circular]"
+          ],
+          "source": "canonical-geometry",
+          "usableRoomAreaM2": 498.664,
+          "venueMaximum": 450,
+          "zoneCapacities": [
+            "[Circular]"
+          ]
+        },
+        "circulation": "[Circular]",
+        "sightlines": "[Circular]"
+      },
+      "status": "pass",
+      "unresolvedIssues": 0,
+      "unwaivedWarnings": 0,
+      "validationId": "validation-ed3f8c64",
+      "waivedWarnings": 0
+    },
+    "schemaVersion": 1,
+    "summary": "Validation pass · 0 unresolved · validation-ed3f8c64",
+    "toolName": "venue.validate_layout"
+  }
+}

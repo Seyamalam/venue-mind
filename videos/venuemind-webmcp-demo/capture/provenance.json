@@ -1,0 +1,8 @@
+{
+  "source": "http://127.0.0.1:4185",
+  "revision": "d5a83bea3c54755657b12ccf9692fa76b87c5212",
+  "browser": "Chromium 149",
+  "execution": "Native getTools + executeTool with RegisteredTool and JSON input; document.modelContext aliases native navigator.modelContext only in recording context.",
+  "humanApproval": "Recorded UI approval click operated by Codex for this demonstration; no agent approval tool exists.",
+  "remoteMutation": false
+}

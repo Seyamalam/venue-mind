@@ -1,0 +1,35 @@
+{
+  "content": [
+    {
+      "text": "Proposal proposal-32-b · unknown · 4 changes",
+      "type": "text"
+    }
+  ],
+  "structuredContent": {
+    "authorizationScope": "venue:propose",
+    "contractVersion": "1.6.0",
+    "correlationId": "corr-film-native",
+    "data": {
+      "baseVersion": "3.2",
+      "changedItems": 4,
+      "proposalId": "proposal-32-b",
+      "receipt": {
+        "actor": "agent",
+        "commandType": "preview_revision",
+        "correlationId": "corr-film-native",
+        "id": "receipt-0001",
+        "idempotencyKey": "film-native-preview-20260904",
+        "inputFingerprint": "command-8dabbf9d",
+        "occurredAt": "2026-09-04T04:06:54.710Z",
+        "resultIds": {
+          "proposalId": "proposal-32-b"
+        }
+      },
+      "requiresHumanApproval": true,
+      "revision": 2
+    },
+    "schemaVersion": 1,
+    "summary": "Proposal proposal-32-b · unknown · 4 changes",
+    "toolName": "venue.preview_revision"
+  }
+}

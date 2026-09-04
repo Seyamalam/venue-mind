@@ -1,0 +1,51 @@
+{
+  "content": [
+    {
+      "text": "venue.replay_history · pass",
+      "type": "text"
+    }
+  ],
+  "structuredContent": {
+    "authorizationScope": "venue:read",
+    "contractVersion": "1.6.0",
+    "correlationId": "corr-webmcp-3efa3f35-dc10-4866-bcb3-c36b85fcd27b",
+    "data": {
+      "briefTransitions": [
+        {
+          "ledgerEntryId": "ledger-0001"
+        },
+        {
+          "ledgerEntryId": "ledger-0003"
+        }
+      ],
+      "currentBriefFingerprint": "brief-1f947930",
+      "currentFingerprint": "plan-bfad1773",
+      "currentPlanVersion": "3.3",
+      "ledgerHeadHash": "ledger-ca078a4c",
+      "lockedObjectViolations": [],
+      "replayedBriefFingerprint": "brief-1f947930",
+      "replayedFingerprint": "plan-bfad1773",
+      "status": "pass",
+      "transitions": [
+        {
+          "briefFingerprint": "brief-1f947930",
+          "ledgerEntryId": "ledger-0001",
+          "planFingerprint": "plan-f4ce9ca9",
+          "planVersion": "3.2",
+          "type": "plan.opened"
+        },
+        {
+          "briefFingerprint": "brief-1f947930",
+          "ledgerEntryId": "ledger-0003",
+          "planFingerprint": "plan-bfad1773",
+          "planVersion": "3.3",
+          "type": "proposal.approved"
+        }
+      ],
+      "truthFingerprintViolations": []
+    },
+    "schemaVersion": 1,
+    "summary": "venue.replay_history · pass",
+    "toolName": "venue.replay_history"
+  }
+}
