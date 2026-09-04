@@ -90,6 +90,7 @@ import { comparePostEventOutcomes } from "./domain/post-event-review";
 import { createHumanPrincipal, createShortLivedAgentAuthorization } from "./domain/authorization";
 import { venueError } from "./domain/errors";
 import { createProjectStore } from "./persistence/project-store";
+import { isSampleProject } from "./domain/sample-project";
 import type { ProjectStore } from "./persistence/project-store";
 import type { LocalProjectRecord, ProjectConflict, ProjectRecordMetadata } from "./domain/project-types";
 import { createRunbookStore } from "./persistence/runbook-store";
@@ -167,10 +168,7 @@ import {
   telemetryErrorCode,
   type TelemetryRecorder,
 } from "./observability/telemetry";
-import {
-  createProductAnalyticsClient,
-  productAnalyticsEvent,
-} from "./analytics/product-analytics-client";
+import { createProductAnalyticsClient, productAnalyticsEvent } from "./analytics/product-analytics-client";
 import { productAnalyticsErrorCategory } from "./analytics/product-analytics";
 
 const briefIcons: Record<string, PhosphorIcon> = {
@@ -887,32 +885,28 @@ export function App({
     ["venue-administrator", "organization-administrator"].includes(role),
   );
   const observability = useMemo(() => createMemoryTelemetry(), []);
-  const productAnalytics = useMemo(
-    () => createProductAnalyticsClient({ organizationId }),
-    [organizationId],
-  );
+  const productAnalytics = useMemo(() => createProductAnalyticsClient({ organizationId }), [organizationId]);
   const planner = useMemo(() => {
     const generatedPlan = createEmptyVenuePlan({ projectId });
-    const initialPlan: VenuePlanDocument =
-      projectId === "project-summit-forward"
-        ? summitForwardPlan
-        : {
-            ...generatedPlan,
-            spatial: {
-              ...generatedPlan.spatial,
-              schemaVersion: 1,
-              unit: "m",
-              units: { length: "m", area: "m2", angle: "deg", time: "s" },
-              layers: ["architecture", "furniture", "access", "production", "catering", "safety", "annotations"],
-              coordinateSystem: { origin: "southwest", xAxis: "east", yAxis: "north", rotationDirection: "clockwise" },
-            },
-            brief: { ...generatedPlan.brief, occupancyMode: "custom", schedule: null },
-          };
+    const initialPlan: VenuePlanDocument = isSampleProject(projectId, organizationId)
+      ? summitForwardPlan
+      : {
+          ...generatedPlan,
+          spatial: {
+            ...generatedPlan.spatial,
+            schemaVersion: 1,
+            unit: "m",
+            units: { length: "m", area: "m2", angle: "deg", time: "s" },
+            layers: ["architecture", "furniture", "access", "production", "catering", "safety", "annotations"],
+            coordinateSystem: { origin: "southwest", xAxis: "east", yAxis: "north", rotationDirection: "clockwise" },
+          },
+          brief: { ...generatedPlan.brief, occupancyMode: "custom", schedule: null },
+        };
     return createVenuePlanner(
       { ...normalizePlanGeometry(initialPlan), brief: initialPlan.brief, proposal: initialPlan.proposal },
       { authorization: studioAuthorization, projectId, observability },
     );
-  }, [observability, projectId, studioAuthorization]);
+  }, [observability, organizationId, projectId, studioAuthorization]);
   const projectStore = useMemo(
     () => createProjectStore({ organizationId, observability }),
     [observability, organizationId],
@@ -4186,7 +4180,10 @@ export function App({
           >
             Plan v{plannerState.plan.version}
             <span className={`save-indicator is-${persistenceStatus.toLowerCase()}`}>{persistenceStatus}</span>
-            <span className={`save-indicator is-${recoveryIntegrity.toLowerCase().replaceAll(" ", "-")}`} aria-label={`Recovery integrity ${recoveryIntegrity}`}>
+            <span
+              className={`save-indicator is-${recoveryIntegrity.toLowerCase().replaceAll(" ", "-")}`}
+              aria-label={`Recovery integrity ${recoveryIntegrity}`}
+            >
               {recoveryIntegrity}
             </span>
             <CaretDown size={14} />
@@ -4699,49 +4696,52 @@ export function App({
               </div>
             )}
 
-            {canDecideProposal && <div className="decision-actions">
-              <Button
-                className={`primary-action ${proposalState === "approved" ? "is-approved" : ""}`}
-                type="button"
-                onClick={handleApprove}
-                aria-describedby="validation-summary"
-                disabled={
-                  proposalState === "approved" ||
-                  changes.length === 0 ||
-                  validation.status !== "pass" ||
-                  validation.unwaivedWarnings > 0 ||
-                  (validation.emergencyReviewRequired && (!emergencyReviewerId.trim() || !emergencyAssumptionsAccepted))
-                }
-              >
-                <Check size={20} weight="bold" />
-                {changes.length === 0
-                  ? "0 changes"
-                  : proposalState === "approved"
-                    ? "Proposal approved"
-                    : validation.status !== "pass"
-                      ? `${validation.blockingIssues} blocked`
-                      : validation.unwaivedWarnings > 0
-                        ? `${validation.unwaivedWarnings} waiver required`
-                        : validation.emergencyReviewRequired &&
-                            (!emergencyReviewerId.trim() || !emergencyAssumptionsAccepted)
-                          ? "Review required"
-                          : "Approve proposal"}
-              </Button>
-              <Button
-                className="secondary-action"
-                type="button"
-                variant="secondary"
-                onClick={() => setAdjustmentOpen((open) => !open)}
-              >
-                <ChatCircle size={20} /> Request adjustment
-              </Button>
-            </div>}
+            {canDecideProposal && (
+              <div className="decision-actions">
+                <Button
+                  className={`primary-action ${proposalState === "approved" ? "is-approved" : ""}`}
+                  type="button"
+                  onClick={handleApprove}
+                  aria-describedby="validation-summary"
+                  disabled={
+                    proposalState === "approved" ||
+                    changes.length === 0 ||
+                    validation.status !== "pass" ||
+                    validation.unwaivedWarnings > 0 ||
+                    (validation.emergencyReviewRequired &&
+                      (!emergencyReviewerId.trim() || !emergencyAssumptionsAccepted))
+                  }
+                >
+                  <Check size={20} weight="bold" />
+                  {changes.length === 0
+                    ? "0 changes"
+                    : proposalState === "approved"
+                      ? "Proposal approved"
+                      : validation.status !== "pass"
+                        ? `${validation.blockingIssues} blocked`
+                        : validation.unwaivedWarnings > 0
+                          ? `${validation.unwaivedWarnings} waiver required`
+                          : validation.emergencyReviewRequired &&
+                              (!emergencyReviewerId.trim() || !emergencyAssumptionsAccepted)
+                            ? "Review required"
+                            : "Approve proposal"}
+                </Button>
+                <Button
+                  className="secondary-action"
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setAdjustmentOpen((open) => !open)}
+                >
+                  <ChatCircle size={20} /> Request adjustment
+                </Button>
+              </div>
+            )}
           </section>
         </aside>
 
         <section className="canvas-column" aria-label="Venue plan workspace">
           <div className={`plan-canvas mode-${viewMode} state-${proposalState} ${editorActive ? "is-editing" : ""}`}>
-            {projectId === "project-summit-forward" ? (
+            {isSampleProject(projectId, organizationId) ? (
               <Image
                 className="floorplan-image"
                 src="/assets/venue-floorplan.webp"

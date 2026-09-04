@@ -28,6 +28,28 @@ const recordInput = {
   createdAt: "2026-08-27T00:00:00.000Z",
 };
 
+test("a cross-organization ID collision is not fabricated into a recoverable revision conflict", async () => {
+  const storage = createStorage();
+  const store = createProjectStore({
+    storage,
+    organizationId: "org-fresh-guest",
+    fetchImpl: async (_url, init = {}) =>
+      init.method === "PUT"
+        ? Response.json(
+            { code: "PROJECT_ID_CONFLICT", error: "Project ID belongs to another organization" },
+            { status: 409 },
+          )
+        : Response.json({ code: "PROJECT_NOT_FOUND" }, { status: 404 }),
+  });
+  assert.equal((await store.load(recordInput.id)).record, null);
+  await assert.rejects(store.save(recordInput), (error) => {
+    assert.equal(error.code, "PROJECT_ID_CONFLICT");
+    assert.equal(error.conflict, undefined);
+    return true;
+  });
+  assert.ok(storage.getItem(`venuemind.organization.org-fresh-guest.project.${recordInput.id}`));
+});
+
 const createRevisionServer = (initial) => {
   let remote = structuredClone(initial);
   return {
@@ -153,19 +175,34 @@ test("Project deletion purges every local Project key before explicitly acknowle
     fetchImpl: async (url, init = {}) => {
       calls.push({ url, init });
       if (String(url).endsWith("/deletion/cache-ack"))
-        return Response.json({ ...evidence, cacheDirective: { ...evidence.cacheDirective, acknowledgedAt: "2026-08-27T01:00:01.000Z", acknowledgedBy: "user-1" } });
+        return Response.json({
+          ...evidence,
+          cacheDirective: {
+            ...evidence.cacheDirective,
+            acknowledgedAt: "2026-08-27T01:00:01.000Z",
+            acknowledgedBy: "user-1",
+          },
+        });
       if (init.method === "DELETE") return Response.json(evidence, { status: 202 });
       return Response.json(remote);
     },
   });
   await store.load(remote.id);
   storage.setItem(`venuemind.organization.org-local.recovery.${remote.id}.4.1`, "recovery");
-  await assert.rejects(() => store.deleteProject(remote.id, "WRONG"), (error) => error.code === "PROJECT_CONFIRMATION_MISMATCH");
+  await assert.rejects(
+    () => store.deleteProject(remote.id, "WRONG"),
+    (error) => error.code === "PROJECT_CONFIRMATION_MISMATCH",
+  );
   const result = await store.deleteProject(remote.id, remote.name);
   assert.equal(result.cacheDirective.acknowledgedAt, "2026-08-27T01:00:01.000Z");
   assert.equal(calls.find((call) => call.init.method === "DELETE").init.headers["x-venuemind-expected-revision"], "4");
-  assert.deepEqual(JSON.parse(calls.find((call) => call.init.method === "DELETE").init.body), { reasonCode: "USER_REQUEST" });
-  assert.deepEqual(JSON.parse(calls.at(-1).init.body), { deletionRequestId: "project-deletion-1", directiveId: "cache-delete-1" });
+  assert.deepEqual(JSON.parse(calls.find((call) => call.init.method === "DELETE").init.body), {
+    reasonCode: "USER_REQUEST",
+  });
+  assert.deepEqual(JSON.parse(calls.at(-1).init.body), {
+    deletionRequestId: "project-deletion-1",
+    directiveId: "cache-delete-1",
+  });
   assert.equal(storage.length, 0);
 });
 
