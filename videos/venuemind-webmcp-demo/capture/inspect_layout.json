@@ -1,0 +1,3638 @@
+{
+  "content": [
+    {
+      "text": "Plan plan-summit-forward-2026 v3.3 · 0 objects · Proposal approved",
+      "type": "text"
+    }
+  ],
+  "structuredContent": {
+    "authorizationScope": "venue:read",
+    "contractVersion": "1.6.0",
+    "correlationId": "corr-webmcp-b129f036-7e87-4e7b-8112-67bb1acd4490",
+    "data": {
+      "activeBranchId": "branch-balanced",
+      "brief": {
+        "ambiguities": [],
+        "attendeeTarget": 400,
+        "coverage": [
+          {
+            "constraintIds": [
+              "constraint-capacity"
+            ],
+            "requirementId": "req-theater-seating",
+            "status": "satisfied",
+            "validationCheckIds": [
+              "check-capacity"
+            ]
+          },
+          {
+            "constraintIds": [],
+            "requirementId": "req-west-stage",
+            "status": "unmeasured",
+            "validationCheckIds": []
+          },
+          {
+            "constraintIds": [],
+            "requirementId": "req-breakout-access",
+            "status": "unmeasured",
+            "validationCheckIds": []
+          },
+          {
+            "constraintIds": [
+              "constraint-accessible-route"
+            ],
+            "requirementId": "req-accessible-route",
+            "status": "satisfied",
+            "validationCheckIds": [
+              "check-accessible-route"
+            ]
+          },
+          {
+            "constraintIds": [
+              "constraint-production-readiness",
+              "constraint-sightlines"
+            ],
+            "requirementId": "req-av-control",
+            "status": "satisfied",
+            "validationCheckIds": [
+              "check-production-readiness",
+              "check-sightlines"
+            ]
+          },
+          {
+            "constraintIds": [
+              "constraint-catering-readiness"
+            ],
+            "requirementId": "req-catering-rear",
+            "status": "satisfied",
+            "validationCheckIds": [
+              "check-catering-readiness"
+            ]
+          },
+          {
+            "constraintIds": [
+              "constraint-emergency-readiness"
+            ],
+            "requirementId": "req-emergency-readiness",
+            "status": "satisfied",
+            "validationCheckIds": [
+              "check-emergency-readiness"
+            ]
+          }
+        ],
+        "coverageMatrix": {
+          "acceptedPlan": [
+            {
+              "constraintIds": [
+                "constraint-capacity"
+              ],
+              "requirementId": "req-theater-seating",
+              "status": "satisfied",
+              "validationCheckIds": [
+                "check-capacity"
+              ]
+            },
+            {
+              "constraintIds": [],
+              "requirementId": "req-west-stage",
+              "status": "unmeasured",
+              "validationCheckIds": []
+            },
+            {
+              "constraintIds": [],
+              "requirementId": "req-breakout-access",
+              "status": "unmeasured",
+              "validationCheckIds": []
+            },
+            {
+              "constraintIds": [
+                "constraint-accessible-route"
+              ],
+              "requirementId": "req-accessible-route",
+              "status": "satisfied",
+              "validationCheckIds": [
+                "check-accessible-route"
+              ]
+            },
+            {
+              "constraintIds": [
+                "constraint-production-readiness",
+                "constraint-sightlines"
+              ],
+              "requirementId": "req-av-control",
+              "status": "satisfied",
+              "validationCheckIds": [
+                "check-production-readiness",
+                "check-sightlines"
+              ]
+            },
+            {
+              "constraintIds": [
+                "constraint-catering-readiness"
+              ],
+              "requirementId": "req-catering-rear",
+              "status": "satisfied",
+              "validationCheckIds": [
+                "check-catering-readiness"
+              ]
+            },
+            {
+              "constraintIds": [
+                "constraint-emergency-readiness"
+              ],
+              "requirementId": "req-emergency-readiness",
+              "status": "satisfied",
+              "validationCheckIds": [
+                "check-emergency-readiness"
+              ]
+            }
+          ],
+          "activeProposal": [
+            "[Circular]",
+            "[Circular]",
+            "[Circular]",
+            "[Circular]",
+            "[Circular]",
+            "[Circular]",
+            "[Circular]"
+          ]
+        },
+        "date": "2026-09-12",
+        "eventName": "SummitForward 2026",
+        "id": "brief-summit-forward-2026",
+        "occupancyMode": "theater",
+        "requirements": [
+          {
+            "category": "seating",
+            "constraintIds": [
+              "constraint-capacity"
+            ],
+            "evidenceRefs": [],
+            "id": "req-theater-seating",
+            "label": "Theater style for keynotes",
+            "measurable": true,
+            "owner": "planning",
+            "priority": "high",
+            "status": "confirmed"
+          },
+          {
+            "category": "production",
+            "constraintIds": [],
+            "evidenceRefs": [
+              "obj-stage-west"
+            ],
+            "id": "req-west-stage",
+            "label": "Stage on west wall",
+            "measurable": false,
+            "owner": "production",
+            "priority": "high",
+            "status": "confirmed"
+          },
+          {
+            "category": "circulation",
+            "constraintIds": [],
+            "evidenceRefs": [],
+            "id": "req-breakout-access",
+            "label": "Breakout access after keynotes",
+            "measurable": false,
+            "owner": "operations",
+            "priority": "medium",
+            "status": "open"
+          },
+          {
+            "category": "accessibility",
+            "constraintIds": [
+              "constraint-accessible-route"
+            ],
+            "evidenceRefs": [],
+            "id": "req-accessible-route",
+            "label": "Keep accessible route clear",
+            "measurable": true,
+            "owner": "access",
+            "priority": "critical",
+            "status": "confirmed"
+          },
+          {
+            "category": "production",
+            "constraintIds": [
+              "constraint-production-readiness",
+              "constraint-sightlines"
+            ],
+            "evidenceRefs": [
+              "obj-av-desk",
+              "obj-projector-center",
+              "obj-screen-stage"
+            ],
+            "id": "req-av-control",
+            "label": "Maintain AV control position",
+            "measurable": true,
+            "owner": "production",
+            "priority": "high",
+            "status": "confirmed"
+          },
+          {
+            "category": "catering",
+            "constraintIds": [
+              "constraint-catering-readiness"
+            ],
+            "evidenceRefs": [
+              "obj-bar-east",
+              "obj-kitchen-northeast",
+              "obj-refreshment-east"
+            ],
+            "id": "req-catering-rear",
+            "label": "Catering at back of room",
+            "measurable": true,
+            "owner": "catering",
+            "priority": "medium",
+            "status": "confirmed"
+          },
+          {
+            "category": "emergency",
+            "constraintIds": [
+              "constraint-emergency-readiness"
+            ],
+            "evidenceRefs": [
+              "obj-assembly-east",
+              "obj-command-post-north",
+              "obj-fire-exit-east",
+              "obj-fire-exit-north"
+            ],
+            "id": "req-emergency-readiness",
+            "label": "Emergency plan readiness",
+            "measurable": true,
+            "owner": "safety",
+            "priority": "critical",
+            "status": "confirmed"
+          }
+        ],
+        "roomId": "room-harborview-main-hall",
+        "schedule": {
+          "endAt": "2026-09-12T16:00:00-04:00",
+          "startAt": "2026-09-12T08:00:00-04:00",
+          "timezone": "America/New_York"
+        },
+        "summary": {
+          "ambiguous": 0,
+          "measured": 5,
+          "satisfied": 5,
+          "total": 7,
+          "unresolved": 2
+        },
+        "timezone": "America/New_York",
+        "venueId": "venue-harborview-main-hall"
+      },
+      "cateringPolicy": {
+        "allowedReplenishmentCrossingControls": [
+          "timed-crossing",
+          "marshal"
+        ],
+        "maximumAccessibleServiceHeightM": 0.915,
+        "minimumAccessibleServicePoints": 2,
+        "minimumSeparationFromEmergencyM": 1,
+        "minimumSeparationFromProductionM": 0.5,
+        "phases": [
+          {
+            "demandRatio": 0.25,
+            "durationMinutes": 45,
+            "id": "phase-arrival",
+            "label": "Arrival"
+          },
+          {
+            "demandRatio": 0.75,
+            "durationMinutes": 30,
+            "id": "phase-break",
+            "label": "Break"
+          },
+          {
+            "demandRatio": 1,
+            "durationMinutes": 60,
+            "id": "phase-lunch",
+            "label": "Lunch"
+          }
+        ],
+        "queueHorizonMinutes": 10,
+        "schemaVersion": 1
+      },
+      "commandReceiptCount": 2,
+      "comments": [],
+      "constraints": [
+        {
+          "category": "protection",
+          "checkId": "check-locked-objects",
+          "evaluator": "protected_objects_unchanged",
+          "id": "constraint-protected-objects",
+          "label": "Locked objects",
+          "parameters": {
+            "objectIds": [
+              "obj-stage-west",
+              "obj-fire-exit-east",
+              "obj-column-southwest",
+              "obj-accessible-entrance-south",
+              "obj-door-south-access",
+              "obj-restroom-accessible"
+            ]
+          },
+          "remediation": "Remove Changes that target protected venue objects.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "waivable": false
+        },
+        {
+          "category": "accessibility",
+          "checkId": "check-accessible-route",
+          "evaluator": "accessible_route_graph",
+          "id": "constraint-accessible-route",
+          "label": "Accessible route",
+          "parameters": {
+            "minimumWidthM": 1.8,
+            "requireConnected": true
+          },
+          "policy": {
+            "effectiveDate": "2026-01-01",
+            "jurisdiction": "US venue policy",
+            "source": "Harborview Access Standard 2026"
+          },
+          "remediation": "Connect every required destination and increase the minimum clear route width.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "waivable": false
+        },
+        {
+          "category": "accessibility",
+          "checkId": "check-turning-clearance",
+          "evaluator": "turning_clearance",
+          "id": "constraint-turning-clearance",
+          "label": "Turning clearance",
+          "parameters": {
+            "minimumDiameterM": 1.5
+          },
+          "policy": {
+            "effectiveDate": "2026-01-01",
+            "jurisdiction": "US venue policy",
+            "source": "Harborview Access Standard 2026"
+          },
+          "remediation": "Increase the clear turning diameter at route junctions.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "waivable": false
+        },
+        {
+          "category": "accessibility",
+          "checkId": "check-accessible-seating",
+          "evaluator": "accessible_seating",
+          "id": "constraint-accessible-seating",
+          "label": "Accessible seating",
+          "parameters": {
+            "minimumSeats": 8,
+            "minimumSections": 2,
+            "requireCompanionAdjacency": true
+          },
+          "policy": {
+            "effectiveDate": "2026-01-01",
+            "jurisdiction": "US venue policy",
+            "source": "Harborview Access Standard 2026"
+          },
+          "remediation": "Add distributed accessible and companion seating positions.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "waivable": false
+        },
+        {
+          "category": "accessibility",
+          "checkId": "check-accessible-seating-sightlines",
+          "evaluator": "accessible_seating_sightlines",
+          "id": "constraint-accessible-seating-sightlines",
+          "label": "Accessible seating sightlines",
+          "parameters": {
+            "minimumCoverageRatio": 1,
+            "minimumSectionCoverageRatio": 1
+          },
+          "policy": {
+            "effectiveDate": "2026-01-01",
+            "jurisdiction": "US venue policy",
+            "source": "Harborview Access Standard 2026"
+          },
+          "remediation": "Move obstructions or relocate accessible seating samples until every section has a clear focal-point ray.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "waivable": false
+        },
+        {
+          "category": "accessibility",
+          "checkId": "check-door-clearance",
+          "evaluator": "door_clearance",
+          "id": "constraint-door-clearance",
+          "label": "Door clearance",
+          "parameters": {
+            "minimumClearWidthM": 0.915
+          },
+          "policy": {
+            "effectiveDate": "2026-01-01",
+            "jurisdiction": "US venue policy",
+            "source": "Harborview Access Standard 2026"
+          },
+          "remediation": "Clear the maneuvering zone and restore the required accessible door width.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "waivable": false
+        },
+        {
+          "category": "accessibility",
+          "checkId": "check-temporary-ramps",
+          "evaluator": "temporary_ramp",
+          "id": "constraint-temporary-ramps",
+          "label": "Temporary ramps",
+          "parameters": {
+            "minimumClearWidthM": 0.915,
+            "minimumEdgeProtectionHeightM": 0.1,
+            "minimumLandingLengthM": 1.525,
+            "minimumSlopeRatio": 12,
+            "requireHandrails": true
+          },
+          "policy": {
+            "effectiveDate": "2026-01-01",
+            "jurisdiction": "US venue policy",
+            "source": "Harborview Access Standard 2026"
+          },
+          "remediation": "Increase ramp run, clear width, landing, or edge protection and add required handrails.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "waivable": false
+        },
+        {
+          "category": "capacity",
+          "checkId": "check-capacity",
+          "evaluator": "occupancy_capacity",
+          "id": "constraint-capacity",
+          "label": "Capacity",
+          "parameters": {
+            "maximumOperationalLoad": 450,
+            "minimumAttendeeCapacity": 400
+          },
+          "remediation": "Restore sufficient placed capacity or reduce the operational load.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "waivable": false
+        },
+        {
+          "category": "sightlines",
+          "checkId": "check-sightlines",
+          "evaluator": "sightline_raycast",
+          "id": "constraint-sightlines",
+          "label": "Sightline coverage",
+          "parameters": {
+            "maximumBlockedSectionRatio": 0.15,
+            "maximumViewingDistanceM": 30,
+            "minimumCoverageRatio": 0.85
+          },
+          "remediation": "Move opaque obstructions or revise the seating section.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "waivable": false
+        },
+        {
+          "category": "production",
+          "checkId": "check-production-readiness",
+          "evaluator": "production_readiness",
+          "id": "constraint-production-readiness",
+          "label": "Production readiness",
+          "parameters": {
+            "maximumFailedChecks": 0
+          },
+          "remediation": "Resolve throw, visibility, audio, camera, cable, circuit, rigging, or inventory failures.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "waivable": false
+        },
+        {
+          "category": "catering",
+          "checkId": "check-catering-readiness",
+          "evaluator": "catering_readiness",
+          "id": "constraint-catering-readiness",
+          "label": "Catering readiness",
+          "parameters": {
+            "maximumFailedChecks": 0
+          },
+          "remediation": "Resolve service capacity, queue, separation, access, support, or replenishment failures.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "waivable": false
+        },
+        {
+          "category": "emergency",
+          "checkId": "check-emergency-readiness",
+          "evaluator": "emergency_readiness",
+          "id": "constraint-emergency-readiness",
+          "label": "Emergency readiness",
+          "parameters": {
+            "maximumStructuralFailures": 0
+          },
+          "remediation": "Restore exit, assembly, emergency access, fire equipment, first-aid, and command-post readiness.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "waivable": false
+        },
+        {
+          "category": "circulation",
+          "checkId": "check-circulation",
+          "evaluator": "circulation_graph",
+          "id": "constraint-peak-congestion",
+          "label": "Peak congestion",
+          "parameters": {
+            "maximumCongestionIndex": 80
+          },
+          "remediation": "Increase circulation width, reconnect occupied zones, or reduce phase demand.",
+          "scope": {
+            "kind": "plan"
+          },
+          "severity": "error",
+          "waivable": false
+        }
+      ],
+      "emergencyPlan": {
+        "assumptions": [
+          "all-attendees-evacuate",
+          "staff-assist-access-needs",
+          "no-lift-use-during-fire"
+        ],
+        "authorizedReviewerRoles": [
+          "safety-officer",
+          "venue-administrator"
+        ],
+        "minimumAssemblyCapacityPersons": 438,
+        "minimumEmergencyAccessWidthM": 1.2,
+        "minimumExitCapacityPersons": 438,
+        "minimumExitCount": 2,
+        "minimumFireEquipmentCoverageRatio": 1,
+        "requiredCommandPosts": 1,
+        "requiredFirstAidPosts": 1,
+        "scenarioDefinitions": [
+          {
+            "assumptions": [
+              "east-exit-fully-unavailable"
+            ],
+            "durationMinutes": 120,
+            "id": "scenario-blocked-east-exit",
+            "label": "East exit blocked",
+            "type": "blocked-exit",
+            "unavailableCircuitIds": [],
+            "unavailableObjectIds": [
+              "obj-fire-exit-east"
+            ]
+          },
+          {
+            "assumptions": [
+              "east-route-fully-unavailable"
+            ],
+            "durationMinutes": 120,
+            "id": "scenario-east-corridor-unavailable",
+            "label": "East corridor unavailable",
+            "type": "unavailable-corridor",
+            "unavailableCircuitIds": [],
+            "unavailableObjectIds": [
+              "obj-route-exit-east"
+            ]
+          },
+          {
+            "assumptions": [
+              "utility-power-unavailable"
+            ],
+            "durationMinutes": 120,
+            "id": "scenario-main-power-loss",
+            "label": "Main power loss",
+            "type": "power-loss",
+            "unavailableCircuitIds": [
+              "circuit-west-63a"
+            ],
+            "unavailableObjectIds": []
+          }
+        ],
+        "schemaVersion": 1
+      },
+      "emergencyReviews": [],
+      "event": {
+        "attendeeTarget": 400,
+        "date": "2026-09-12",
+        "id": "event-summit-forward-2026",
+        "name": "SummitForward 2026",
+        "program": "Executive Summit"
+      },
+      "inventoryAvailability": [
+        {
+          "available": 4,
+          "id": "inventory-inventory-template-av-control-console-1.0.0",
+          "requested": 1,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-av-control-console",
+          "version": "1.0.0"
+        },
+        {
+          "available": 500,
+          "id": "inventory-inventory-template-banquet-chair-1.0.0",
+          "requested": 400,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-banquet-chair",
+          "version": "1.0.0"
+        },
+        {
+          "available": 10,
+          "id": "inventory-inventory-template-broadcast-camera-1.0.0",
+          "requested": 1,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-broadcast-camera",
+          "version": "1.0.0"
+        },
+        {
+          "available": 20,
+          "id": "inventory-inventory-template-buffet-station-1.0.0",
+          "requested": 2,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-buffet-station",
+          "version": "1.0.0"
+        },
+        {
+          "available": 20,
+          "id": "inventory-inventory-template-cable-loom-25m-1.0.0",
+          "requested": 1,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-cable-loom-25m",
+          "version": "1.0.0"
+        },
+        {
+          "available": 8,
+          "id": "inventory-inventory-template-laser-projector-1.0.0",
+          "requested": 1,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-laser-projector",
+          "version": "1.0.0"
+        },
+        {
+          "available": 24,
+          "id": "inventory-inventory-template-line-array-1.0.0",
+          "requested": 2,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-line-array",
+          "version": "1.0.0"
+        },
+        {
+          "available": 12,
+          "id": "inventory-inventory-template-mobile-bar-1.0.0",
+          "requested": 2,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-mobile-bar",
+          "version": "1.0.0"
+        },
+        {
+          "available": 4,
+          "id": "inventory-inventory-template-projection-screen-5m-1.0.0",
+          "requested": 1,
+          "shortage": 0,
+          "status": "available",
+          "templateId": "inventory-template-projection-screen-5m",
+          "version": "1.0.0"
+        }
+      ],
+      "ledgerIntegrity": {
+        "entries": 3,
+        "headHash": "ledger-ca078a4c",
+        "status": "pass"
+      },
+      "lockedObjects": [
+        {
+          "id": "obj-stage-west",
+          "kind": "stage",
+          "label": "Stage position",
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-stage-west-position",
+              "objectId": "obj-stage-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-stage-west-rotation",
+              "objectId": "obj-stage-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-stage-west-dimension",
+              "objectId": "obj-stage-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-stage-west-deletion",
+              "objectId": "obj-stage-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-stage-west-role",
+              "objectId": "obj-stage-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ]
+        },
+        {
+          "id": "obj-fire-exit-east",
+          "kind": "fire_exit",
+          "label": "Fire exit",
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-east-position",
+              "objectId": "obj-fire-exit-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-east-rotation",
+              "objectId": "obj-fire-exit-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-east-dimension",
+              "objectId": "obj-fire-exit-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-east-deletion",
+              "objectId": "obj-fire-exit-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-east-role",
+              "objectId": "obj-fire-exit-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ]
+        },
+        {
+          "id": "obj-fire-exit-north",
+          "kind": "fire_exit",
+          "label": "North fire exit",
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-north-position",
+              "objectId": "obj-fire-exit-north",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-north-rotation",
+              "objectId": "obj-fire-exit-north",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-north-dimension",
+              "objectId": "obj-fire-exit-north",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-north-deletion",
+              "objectId": "obj-fire-exit-north",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-north-role",
+              "objectId": "obj-fire-exit-north",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ]
+        },
+        {
+          "id": "obj-assembly-east",
+          "kind": "assembly_point",
+          "label": "Assembly A",
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-assembly-east-position",
+              "objectId": "obj-assembly-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-assembly-east-rotation",
+              "objectId": "obj-assembly-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-assembly-east-dimension",
+              "objectId": "obj-assembly-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-assembly-east-deletion",
+              "objectId": "obj-assembly-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-assembly-east-role",
+              "objectId": "obj-assembly-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ]
+        },
+        {
+          "id": "obj-emergency-access-east",
+          "kind": "emergency_access_lane",
+          "label": "Emergency access",
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-emergency-access-east-position",
+              "objectId": "obj-emergency-access-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-emergency-access-east-rotation",
+              "objectId": "obj-emergency-access-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-emergency-access-east-dimension",
+              "objectId": "obj-emergency-access-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-emergency-access-east-deletion",
+              "objectId": "obj-emergency-access-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-emergency-access-east-role",
+              "objectId": "obj-emergency-access-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ]
+        },
+        {
+          "id": "obj-fire-equipment-east",
+          "kind": "fire_equipment",
+          "label": "Fire equipment",
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-equipment-east-position",
+              "objectId": "obj-fire-equipment-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-equipment-east-rotation",
+              "objectId": "obj-fire-equipment-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-equipment-east-dimension",
+              "objectId": "obj-fire-equipment-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-equipment-east-deletion",
+              "objectId": "obj-fire-equipment-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-equipment-east-role",
+              "objectId": "obj-fire-equipment-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ]
+        },
+        {
+          "id": "obj-column-southwest",
+          "kind": "column",
+          "label": "Column",
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-column-southwest-position",
+              "objectId": "obj-column-southwest",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-column-southwest-rotation",
+              "objectId": "obj-column-southwest",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-column-southwest-dimension",
+              "objectId": "obj-column-southwest",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-column-southwest-deletion",
+              "objectId": "obj-column-southwest",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-column-southwest-role",
+              "objectId": "obj-column-southwest",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ]
+        },
+        {
+          "id": "obj-power-west",
+          "kind": "utility_point",
+          "label": "West power",
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-power-west-position",
+              "objectId": "obj-power-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-power-west-rotation",
+              "objectId": "obj-power-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-power-west-dimension",
+              "objectId": "obj-power-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-power-west-deletion",
+              "objectId": "obj-power-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-power-west-role",
+              "objectId": "obj-power-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ]
+        },
+        {
+          "id": "obj-rigging-center",
+          "kind": "rigging_point",
+          "label": "Center rigging",
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-rigging-center-position",
+              "objectId": "obj-rigging-center",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-rigging-center-rotation",
+              "objectId": "obj-rigging-center",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-rigging-center-dimension",
+              "objectId": "obj-rigging-center",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-rigging-center-deletion",
+              "objectId": "obj-rigging-center",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-rigging-center-role",
+              "objectId": "obj-rigging-center",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ]
+        },
+        {
+          "id": "obj-accessible-entrance-south",
+          "kind": "accessible_entrance",
+          "label": "Accessible entrance",
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-accessible-entrance-south-position",
+              "objectId": "obj-accessible-entrance-south",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-accessible-entrance-south-rotation",
+              "objectId": "obj-accessible-entrance-south",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-accessible-entrance-south-dimension",
+              "objectId": "obj-accessible-entrance-south",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-accessible-entrance-south-deletion",
+              "objectId": "obj-accessible-entrance-south",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-accessible-entrance-south-role",
+              "objectId": "obj-accessible-entrance-south",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ]
+        },
+        {
+          "id": "obj-door-south-access",
+          "kind": "door",
+          "label": "South access door",
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-door-south-access-position",
+              "objectId": "obj-door-south-access",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-door-south-access-rotation",
+              "objectId": "obj-door-south-access",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-door-south-access-dimension",
+              "objectId": "obj-door-south-access",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-door-south-access-deletion",
+              "objectId": "obj-door-south-access",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-door-south-access-role",
+              "objectId": "obj-door-south-access",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ]
+        },
+        {
+          "id": "obj-restroom-accessible",
+          "kind": "accessible_restroom",
+          "label": "Accessible restroom",
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-restroom-accessible-position",
+              "objectId": "obj-restroom-accessible",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-restroom-accessible-rotation",
+              "objectId": "obj-restroom-accessible",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-restroom-accessible-dimension",
+              "objectId": "obj-restroom-accessible",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-restroom-accessible-deletion",
+              "objectId": "obj-restroom-accessible",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-restroom-accessible-role",
+              "objectId": "obj-restroom-accessible",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ]
+        }
+      ],
+      "metrics": {
+        "accessibleRouteWidthFt": 6,
+        "attendeeCapacity": 400,
+        "eastRouteClear": true,
+        "peakCongestionIndex": 66.5,
+        "queueBufferSqFt": 120,
+        "serviceLaneWidthFt": 6,
+        "sightlineCoverage": 1
+      },
+      "occupancy": {
+        "performers": 10,
+        "sections": [
+          {
+            "maximumCapacity": 220,
+            "minimumCapacity": 180,
+            "objectId": "obj-seating-west",
+            "zoneId": "zone-keynote-floor"
+          },
+          {
+            "maximumCapacity": 220,
+            "minimumCapacity": 180,
+            "objectId": "obj-seating-east",
+            "zoneId": "zone-keynote-floor"
+          }
+        ],
+        "staff": 20,
+        "vendors": 8,
+        "venueMaximum": 450,
+        "zones": [
+          {
+            "id": "zone-keynote-floor",
+            "label": "Keynote floor",
+            "maximumCapacity": 410,
+            "minimumCapacity": 390,
+            "sectionObjectIds": [
+              "obj-seating-west",
+              "obj-seating-east"
+            ]
+          }
+        ]
+      },
+      "planId": "plan-summit-forward-2026",
+      "planVersion": "3.3",
+      "productionPolicy": {
+        "allowedAccessibleCrossingTreatments": [
+          "overhead",
+          "cable-ramp"
+        ],
+        "minimumControlSightlineRatio": 1,
+        "minimumScreenVisibilityRatio": 0.7,
+        "minimumSpeakerCoverageRatio": 0.95,
+        "schemaVersion": 1
+      },
+      "projectLocks": [],
+      "proposal": {
+        "baseVersion": "3.2",
+        "changedItems": 4,
+        "goal": "Keep 400 seats, widen the center aisle to six feet, improve sightlines, and preserve locked objects.",
+        "id": "proposal-32-b",
+        "revision": 2,
+        "status": "approved",
+        "templateUpdate": null
+      },
+      "proposalBranches": [
+        {
+          "id": "branch-balanced",
+          "name": "Balanced",
+          "proposalId": "proposal-32-b",
+          "strategy": "balanced"
+        }
+      ],
+      "scenarioRuns": [],
+      "scenarios": [],
+      "spatial": {
+        "coordinateSystem": {
+          "origin": "southwest",
+          "rotationDirection": "clockwise",
+          "xAxis": "east",
+          "yAxis": "north"
+        },
+        "fingerprint": "geom-4514a6c8",
+        "layers": [
+          "architecture",
+          "furniture",
+          "access",
+          "production",
+          "catering",
+          "safety",
+          "annotations"
+        ],
+        "precision": {
+          "angle": 1,
+          "distance": 3
+        },
+        "roomBoundary": {
+          "holes": [],
+          "outer": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 30,
+              "y": 0
+            },
+            {
+              "x": 30,
+              "y": 20
+            },
+            {
+              "x": 0,
+              "y": 20
+            }
+          ]
+        },
+        "schemaVersion": 1,
+        "unit": "m",
+        "units": {
+          "angle": "deg",
+          "area": "m2",
+          "length": "m",
+          "time": "s"
+        }
+      },
+      "spatialObjects": [
+        {
+          "elevationM": 0.8,
+          "footprint": {
+            "center": {
+              "x": 4,
+              "y": 10
+            },
+            "depth": 12,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 6
+          },
+          "id": "obj-stage-west",
+          "kind": "stage",
+          "label": "Stage position",
+          "layer": "production",
+          "locked": true,
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-stage-west-position",
+              "objectId": "obj-stage-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-stage-west-rotation",
+              "objectId": "obj-stage-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-stage-west-dimension",
+              "objectId": "obj-stage-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-stage-west-deletion",
+              "objectId": "obj-stage-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-stage-west-role",
+              "objectId": "obj-stage-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ],
+          "occupancy": {
+            "excludesUsableArea": true
+          },
+          "operational": {}
+        },
+        {
+          "elevationM": 1.2,
+          "footprint": {
+            "end": {
+              "x": 6.5,
+              "y": 12.5
+            },
+            "kind": "line",
+            "start": {
+              "x": 6.5,
+              "y": 7.5
+            },
+            "width": 0.15
+          },
+          "id": "obj-screen-stage",
+          "inventoryCount": 1,
+          "kind": "screen",
+          "label": "Stage screen",
+          "layer": "production",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "production": {
+            "equipmentType": "screen",
+            "requiresRigging": true,
+            "riggingPointId": "obj-rigging-center",
+            "viewableHeightM": 3,
+            "viewableWidthM": 5,
+            "weightKg": 82
+          },
+          "templateOverrides": [],
+          "templateRef": {
+            "kind": "inventory-item-template",
+            "templateId": "inventory-template-projection-screen-5m",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "elevationM": 6,
+          "footprint": {
+            "center": {
+              "x": 15.5,
+              "y": 10
+            },
+            "kind": "circle",
+            "radius": 0.25
+          },
+          "id": "obj-projector-center",
+          "inventoryCount": 1,
+          "kind": "projector",
+          "label": "Center projector",
+          "layer": "production",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "production": {
+            "circuitId": "circuit-west-63a",
+            "equipmentType": "projector",
+            "powerWatts": 1200,
+            "requiresRigging": true,
+            "riggingPointId": "obj-rigging-center",
+            "targetObjectId": "obj-screen-stage",
+            "throwRatioMax": 2.1,
+            "throwRatioMin": 1.5,
+            "weightKg": 25
+          },
+          "templateOverrides": [],
+          "templateRef": {
+            "kind": "inventory-item-template",
+            "templateId": "inventory-template-laser-projector",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "elevationM": 5.5,
+          "footprint": {
+            "center": {
+              "x": 7,
+              "y": 7
+            },
+            "kind": "circle",
+            "radius": 0.3
+          },
+          "id": "obj-speaker-stage-south",
+          "inventoryCount": 1,
+          "kind": "speaker",
+          "label": "Stage speaker S",
+          "layer": "production",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "production": {
+            "aimPoint": {
+              "x": 20,
+              "y": 10
+            },
+            "circuitId": "circuit-west-63a",
+            "coverageAngleDegrees": 150,
+            "coverageRangeM": 30,
+            "equipmentType": "speaker",
+            "powerWatts": 1600,
+            "requiresRigging": true,
+            "riggingPointId": "obj-rigging-center",
+            "targetZoneObjectIds": [
+              "obj-seating-west",
+              "obj-seating-east"
+            ],
+            "weightKg": 42
+          },
+          "templateOverrides": [],
+          "templateRef": {
+            "kind": "inventory-item-template",
+            "templateId": "inventory-template-line-array",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "elevationM": 5.5,
+          "footprint": {
+            "center": {
+              "x": 7,
+              "y": 13
+            },
+            "kind": "circle",
+            "radius": 0.3
+          },
+          "id": "obj-speaker-stage-north",
+          "inventoryCount": 1,
+          "kind": "speaker",
+          "label": "Stage speaker N",
+          "layer": "production",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "production": {
+            "aimPoint": {
+              "x": 20,
+              "y": 10
+            },
+            "circuitId": "circuit-west-63a",
+            "coverageAngleDegrees": 150,
+            "coverageRangeM": 30,
+            "equipmentType": "speaker",
+            "powerWatts": 1600,
+            "requiresRigging": true,
+            "riggingPointId": "obj-rigging-center",
+            "targetZoneObjectIds": [
+              "obj-seating-west",
+              "obj-seating-east"
+            ],
+            "weightKg": 42
+          },
+          "templateOverrides": [],
+          "templateRef": {
+            "kind": "inventory-item-template",
+            "templateId": "inventory-template-line-array",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "elevationM": 1.7,
+          "footprint": {
+            "center": {
+              "x": 18,
+              "y": 18
+            },
+            "kind": "circle",
+            "radius": 0.25
+          },
+          "id": "obj-camera-center",
+          "inventoryCount": 1,
+          "kind": "camera",
+          "label": "Center camera",
+          "layer": "production",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "production": {
+            "circuitId": "circuit-west-63a",
+            "equipmentType": "camera",
+            "maximumDistanceM": 25,
+            "minimumDistanceM": 5,
+            "powerWatts": 180,
+            "targetObjectId": "obj-stage-west",
+            "weightKg": 18
+          },
+          "templateOverrides": [],
+          "templateRef": {
+            "kind": "inventory-item-template",
+            "templateId": "inventory-template-broadcast-camera",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "end": {
+              "x": 29.9,
+              "y": 11.5
+            },
+            "kind": "line",
+            "start": {
+              "x": 29.9,
+              "y": 8.5
+            },
+            "width": 0.2
+          },
+          "id": "obj-fire-exit-east",
+          "kind": "fire_exit",
+          "label": "Fire exit",
+          "layer": "safety",
+          "locked": true,
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-east-position",
+              "objectId": "obj-fire-exit-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-east-rotation",
+              "objectId": "obj-fire-exit-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-east-dimension",
+              "objectId": "obj-fire-exit-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-east-deletion",
+              "objectId": "obj-fire-exit-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-east-role",
+              "objectId": "obj-fire-exit-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ],
+          "operational": {
+            "exit": {
+              "capacityPersons": 450,
+              "clearWidthM": 3,
+              "emergency": true
+            }
+          },
+          "templateOverrides": [
+            "label",
+            "accessibility"
+          ],
+          "templateRef": {
+            "kind": "room-template",
+            "templateId": "room-template-harborview-main-hall",
+            "templateObjectId": "roomobj-fire-exit-east",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "end": {
+              "x": 12,
+              "y": 19
+            },
+            "kind": "line",
+            "start": {
+              "x": 10,
+              "y": 19
+            },
+            "width": 0.2
+          },
+          "id": "obj-fire-exit-north",
+          "kind": "fire_exit",
+          "label": "North fire exit",
+          "layer": "safety",
+          "locked": true,
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-north-position",
+              "objectId": "obj-fire-exit-north",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-north-rotation",
+              "objectId": "obj-fire-exit-north",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-north-dimension",
+              "objectId": "obj-fire-exit-north",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-north-deletion",
+              "objectId": "obj-fire-exit-north",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-exit-north-role",
+              "objectId": "obj-fire-exit-north",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ],
+          "operational": {
+            "exit": {
+              "capacityPersons": 250,
+              "clearWidthM": 2,
+              "emergency": true
+            }
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "end": {
+              "x": 21,
+              "y": 17
+            },
+            "kind": "line",
+            "start": {
+              "x": 15,
+              "y": 10
+            },
+            "width": 1.829
+          },
+          "id": "obj-route-north-link-a",
+          "kind": "corridor",
+          "label": "North route A",
+          "layer": "access",
+          "locked": false,
+          "locks": [],
+          "operational": {
+            "route": {
+              "accessible": true,
+              "direction": "bidirectional",
+              "purpose": "emergency-egress"
+            }
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "end": {
+              "x": 11,
+              "y": 19
+            },
+            "kind": "line",
+            "start": {
+              "x": 21,
+              "y": 17
+            },
+            "width": 1.829
+          },
+          "id": "obj-route-north-link-b",
+          "kind": "corridor",
+          "label": "North route B",
+          "layer": "access",
+          "locked": false,
+          "locks": [],
+          "operational": {
+            "route": {
+              "accessible": true,
+              "direction": "bidirectional",
+              "purpose": "emergency-egress"
+            }
+          }
+        },
+        {
+          "elevationM": 0,
+          "emergency": {
+            "capacityPersons": 450,
+            "designatedExitObjectIds": [
+              "obj-fire-exit-east",
+              "obj-fire-exit-north"
+            ],
+            "type": "assembly-point"
+          },
+          "footprint": {
+            "center": {
+              "x": 32.5,
+              "y": 10
+            },
+            "kind": "circle",
+            "radius": 1.5
+          },
+          "id": "obj-assembly-east",
+          "kind": "assembly_point",
+          "label": "Assembly A",
+          "layer": "safety",
+          "locked": true,
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-assembly-east-position",
+              "objectId": "obj-assembly-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-assembly-east-rotation",
+              "objectId": "obj-assembly-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-assembly-east-dimension",
+              "objectId": "obj-assembly-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-assembly-east-deletion",
+              "objectId": "obj-assembly-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-assembly-east-role",
+              "objectId": "obj-assembly-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ],
+          "operational": {}
+        },
+        {
+          "elevationM": 0,
+          "emergency": {
+            "responderOnly": true,
+            "type": "emergency-access-lane"
+          },
+          "footprint": {
+            "end": {
+              "x": 28,
+              "y": 0.8
+            },
+            "kind": "line",
+            "start": {
+              "x": 17,
+              "y": 0.8
+            },
+            "width": 1.2
+          },
+          "id": "obj-emergency-access-east",
+          "kind": "emergency_access_lane",
+          "label": "Emergency access",
+          "layer": "safety",
+          "locked": true,
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-emergency-access-east-position",
+              "objectId": "obj-emergency-access-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-emergency-access-east-rotation",
+              "objectId": "obj-emergency-access-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-emergency-access-east-dimension",
+              "objectId": "obj-emergency-access-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-emergency-access-east-deletion",
+              "objectId": "obj-emergency-access-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-emergency-access-east-role",
+              "objectId": "obj-emergency-access-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ],
+          "operational": {}
+        },
+        {
+          "elevationM": 1.2,
+          "emergency": {
+            "clearanceM": 1,
+            "coverageRadiusM": 25,
+            "equipmentClass": "ABC",
+            "type": "fire-equipment"
+          },
+          "footprint": {
+            "center": {
+              "x": 28,
+              "y": 13
+            },
+            "kind": "circle",
+            "radius": 0.2
+          },
+          "id": "obj-fire-equipment-east",
+          "kind": "fire_equipment",
+          "label": "Fire equipment",
+          "layer": "safety",
+          "locked": true,
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-equipment-east-position",
+              "objectId": "obj-fire-equipment-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-equipment-east-rotation",
+              "objectId": "obj-fire-equipment-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-equipment-east-dimension",
+              "objectId": "obj-fire-equipment-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-equipment-east-deletion",
+              "objectId": "obj-fire-equipment-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-fire-equipment-east-role",
+              "objectId": "obj-fire-equipment-east",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ],
+          "operational": {}
+        },
+        {
+          "elevationM": 0,
+          "emergency": {
+            "accessible": true,
+            "backupPowerMinutes": 180,
+            "type": "first-aid"
+          },
+          "footprint": {
+            "center": {
+              "x": 18,
+              "y": 19
+            },
+            "kind": "circle",
+            "radius": 0.3
+          },
+          "id": "obj-first-aid-north",
+          "kind": "first_aid",
+          "label": "First aid",
+          "layer": "safety",
+          "locked": false,
+          "locks": [],
+          "operational": {}
+        },
+        {
+          "elevationM": 0,
+          "emergency": {
+            "accessible": true,
+            "backupPowerMinutes": 180,
+            "powerSourceCircuitId": "circuit-west-63a",
+            "type": "command-post"
+          },
+          "footprint": {
+            "center": {
+              "x": 20,
+              "y": 18.7
+            },
+            "depth": 1,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 2
+          },
+          "id": "obj-command-post-north",
+          "kind": "command_post",
+          "label": "Command post",
+          "layer": "safety",
+          "locked": false,
+          "locks": [],
+          "operational": {}
+        },
+        {
+          "elevationM": 4.5,
+          "footprint": {
+            "center": {
+              "x": 8,
+              "y": 4
+            },
+            "kind": "circle",
+            "radius": 0.45
+          },
+          "id": "obj-column-southwest",
+          "kind": "column",
+          "label": "Column",
+          "layer": "architecture",
+          "locked": true,
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-column-southwest-position",
+              "objectId": "obj-column-southwest",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-column-southwest-rotation",
+              "objectId": "obj-column-southwest",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-column-southwest-dimension",
+              "objectId": "obj-column-southwest",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-column-southwest-deletion",
+              "objectId": "obj-column-southwest",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-column-southwest-role",
+              "objectId": "obj-column-southwest",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ],
+          "occupancy": {
+            "excludesUsableArea": true
+          },
+          "operational": {},
+          "templateOverrides": [
+            "label",
+            "occupancy",
+            "sightline"
+          ],
+          "templateRef": {
+            "kind": "room-template",
+            "templateId": "room-template-harborview-main-hall",
+            "templateObjectId": "roomobj-column-southwest",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "elevationM": 0.75,
+          "footprint": {
+            "center": {
+              "x": 27,
+              "y": 3
+            },
+            "depth": 1.5,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 3
+          },
+          "id": "obj-av-desk",
+          "inventoryCount": 1,
+          "kind": "av_desk",
+          "label": "AV control",
+          "layer": "production",
+          "locked": false,
+          "locks": [],
+          "occupancy": {
+            "excludesUsableArea": true
+          },
+          "operational": {},
+          "production": {
+            "circuitId": "circuit-west-63a",
+            "equipmentType": "control-desk",
+            "powerWatts": 600,
+            "targetObjectIds": [
+              "obj-stage-west",
+              "obj-screen-stage"
+            ],
+            "weightKg": 95
+          },
+          "templateOverrides": [],
+          "templateRef": {
+            "kind": "inventory-item-template",
+            "templateId": "inventory-template-av-control-console",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 2,
+              "y": 3
+            },
+            "depth": 0.3,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 0.3
+          },
+          "id": "obj-power-west",
+          "kind": "utility_point",
+          "label": "West power",
+          "layer": "architecture",
+          "locked": true,
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-power-west-position",
+              "objectId": "obj-power-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-power-west-rotation",
+              "objectId": "obj-power-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-power-west-dimension",
+              "objectId": "obj-power-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-power-west-deletion",
+              "objectId": "obj-power-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-power-west-role",
+              "objectId": "obj-power-west",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ],
+          "operational": {
+            "utility": {
+              "circuitId": "circuit-west-63a",
+              "maxWatts": 43600,
+              "powerKw": 43.6,
+              "rating": "63A",
+              "type": "power",
+              "voltage": 230
+            }
+          },
+          "templateOverrides": [],
+          "templateRef": {
+            "kind": "room-template",
+            "templateId": "room-template-harborview-main-hall",
+            "templateObjectId": "roomobj-power-west",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "elevationM": 8,
+          "footprint": {
+            "center": {
+              "x": 15,
+              "y": 10
+            },
+            "kind": "circle",
+            "radius": 0.15
+          },
+          "id": "obj-rigging-center",
+          "kind": "rigging_point",
+          "label": "Center rigging",
+          "layer": "production",
+          "locked": true,
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-rigging-center-position",
+              "objectId": "obj-rigging-center",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-rigging-center-rotation",
+              "objectId": "obj-rigging-center",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-rigging-center-dimension",
+              "objectId": "obj-rigging-center",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-rigging-center-deletion",
+              "objectId": "obj-rigging-center",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-rigging-center-role",
+              "objectId": "obj-rigging-center",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ],
+          "operational": {
+            "rigging": {
+              "safeWorkingLoadKg": 1000
+            }
+          },
+          "templateOverrides": [],
+          "templateRef": {
+            "kind": "room-template",
+            "templateId": "room-template-harborview-main-hall",
+            "templateObjectId": "roomobj-rigging-center",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "elevationM": 0.03,
+          "footprint": {
+            "end": {
+              "x": 15.5,
+              "y": 10
+            },
+            "kind": "line",
+            "start": {
+              "x": 2,
+              "y": 3
+            },
+            "width": 0.1
+          },
+          "id": "obj-cable-loom-main",
+          "inventoryCount": 1,
+          "kind": "cable_route",
+          "label": "Main cable loom",
+          "layer": "production",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "production": {
+            "cableType": "power-data",
+            "crossingTreatment": "cable-ramp",
+            "equipmentType": "cable-route",
+            "sourceObjectId": "obj-power-west",
+            "targetObjectIds": [
+              "obj-projector-center",
+              "obj-av-desk"
+            ],
+            "weightKg": 14
+          },
+          "templateOverrides": [],
+          "templateRef": {
+            "kind": "inventory-item-template",
+            "templateId": "inventory-template-cable-loom-25m",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 2.2,
+              "y": 10
+            },
+            "depth": 6,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 2
+          },
+          "id": "obj-backstage-west",
+          "kind": "backstage_zone",
+          "label": "Backstage",
+          "layer": "production",
+          "locked": false,
+          "locks": [],
+          "operational": {
+            "productionZone": {
+              "access": "crew-only"
+            }
+          }
+        },
+        {
+          "catering": {
+            "accessibleServicePoint": true,
+            "allergenLabels": [
+              "contains-dairy",
+              "contains-nuts"
+            ],
+            "demandShare": 0.6,
+            "dietaryOptions": [
+              "vegan",
+              "vegetarian",
+              "gluten-aware"
+            ],
+            "queueBufferPersons": 24,
+            "queueZoneObjectId": "obj-queue-buffet-east",
+            "replenishmentSourceObjectId": "obj-kitchen-northeast",
+            "servers": 4,
+            "serviceHeightM": 0.86,
+            "serviceRatePerServerMinute": 3,
+            "type": "buffet",
+            "waterSourceObjectId": "obj-water-northeast"
+          },
+          "elevationM": 0.9,
+          "footprint": {
+            "center": {
+              "x": 22,
+              "y": 3.5
+            },
+            "depth": 2,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 3
+          },
+          "id": "obj-refreshment-east",
+          "inventoryCount": 2,
+          "kind": "buffet",
+          "label": "Buffet",
+          "layer": "catering",
+          "locked": false,
+          "locks": [],
+          "occupancy": {
+            "excludesUsableArea": true
+          },
+          "operational": {},
+          "templateOverrides": [],
+          "templateRef": {
+            "kind": "inventory-item-template",
+            "templateId": "inventory-template-buffet-station",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "catering": {
+            "accessibleServicePoint": true,
+            "allergenLabels": [
+              "contains-citrus"
+            ],
+            "demandShare": 0.4,
+            "dietaryOptions": [
+              "alcohol-free",
+              "low-sugar"
+            ],
+            "queueBufferPersons": 18,
+            "queueZoneObjectId": "obj-queue-bar-east",
+            "replenishmentSourceObjectId": "obj-kitchen-northeast",
+            "servers": 3,
+            "serviceHeightM": 0.9,
+            "serviceRatePerServerMinute": 2.5,
+            "type": "bar",
+            "waterSourceObjectId": "obj-water-northeast"
+          },
+          "elevationM": 0.9,
+          "footprint": {
+            "center": {
+              "x": 24,
+              "y": 7
+            },
+            "depth": 1,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 3
+          },
+          "id": "obj-bar-east",
+          "inventoryCount": 2,
+          "kind": "bar",
+          "label": "Beverage bar",
+          "layer": "catering",
+          "locked": false,
+          "locks": [],
+          "occupancy": {
+            "excludesUsableArea": true
+          },
+          "operational": {},
+          "templateOverrides": [],
+          "templateRef": {
+            "kind": "inventory-item-template",
+            "templateId": "inventory-template-mobile-bar",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "circulation": {
+            "capacityPersons": 24,
+            "demandPersons": 0,
+            "role": "queue"
+          },
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 20,
+              "y": 5.5
+            },
+            "depth": 1,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 3
+          },
+          "id": "obj-queue-buffet-east",
+          "kind": "queue",
+          "label": "Buffet queue",
+          "layer": "catering",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "queue": {
+            "category": "food",
+            "priorityLaneCount": 1,
+            "servers": 4,
+            "serviceRatePerServerMinute": 3
+          }
+        },
+        {
+          "circulation": {
+            "capacityPersons": 18,
+            "demandPersons": 0,
+            "role": "queue"
+          },
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 26,
+              "y": 7.5
+            },
+            "depth": 1,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 2
+          },
+          "id": "obj-queue-bar-east",
+          "kind": "queue",
+          "label": "Bar queue",
+          "layer": "catering",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "queue": {
+            "category": "beverage",
+            "priorityLaneCount": 1,
+            "servers": 3,
+            "serviceRatePerServerMinute": 2.5
+          }
+        },
+        {
+          "catering": {
+            "type": "kitchen"
+          },
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 27,
+              "y": 18
+            },
+            "depth": 2,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 4
+          },
+          "id": "obj-kitchen-northeast",
+          "kind": "kitchen",
+          "label": "Kitchen",
+          "layer": "catering",
+          "locked": false,
+          "locks": [],
+          "operational": {}
+        },
+        {
+          "catering": {
+            "type": "prep"
+          },
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 23.5,
+              "y": 18
+            },
+            "depth": 2,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 2
+          },
+          "id": "obj-prep-northeast",
+          "kind": "prep_zone",
+          "label": "Prep",
+          "layer": "catering",
+          "locked": false,
+          "locks": [],
+          "operational": {}
+        },
+        {
+          "catering": {
+            "type": "waste"
+          },
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 29,
+              "y": 16.5
+            },
+            "kind": "circle",
+            "radius": 0.4
+          },
+          "id": "obj-waste-northeast",
+          "kind": "waste_point",
+          "label": "Waste",
+          "layer": "catering",
+          "locked": false,
+          "locks": [],
+          "operational": {}
+        },
+        {
+          "catering": {
+            "type": "water"
+          },
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 26,
+              "y": 16.5
+            },
+            "kind": "circle",
+            "radius": 0.2
+          },
+          "id": "obj-water-northeast",
+          "kind": "water_point",
+          "label": "Water",
+          "layer": "catering",
+          "locked": false,
+          "locks": [],
+          "operational": {}
+        },
+        {
+          "catering": {
+            "crossingControl": "timed-crossing",
+            "sourceObjectId": "obj-kitchen-northeast",
+            "targetObjectIds": [
+              "obj-refreshment-east",
+              "obj-bar-east"
+            ],
+            "type": "replenishment-route"
+          },
+          "elevationM": 0,
+          "footprint": {
+            "end": {
+              "x": 24,
+              "y": 7.5
+            },
+            "kind": "line",
+            "start": {
+              "x": 27,
+              "y": 17
+            },
+            "width": 0.9
+          },
+          "id": "obj-route-replenishment-east",
+          "kind": "service_lane",
+          "label": "Replenishment",
+          "layer": "catering",
+          "locked": false,
+          "locks": [],
+          "operational": {
+            "route": {
+              "accessible": false,
+              "direction": "one-way",
+              "purpose": "replenishment",
+              "staffOnly": true
+            }
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 15,
+              "y": 0.5
+            },
+            "depth": 1,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 1.8
+          },
+          "id": "obj-accessible-entrance-south",
+          "kind": "accessible_entrance",
+          "label": "Accessible entrance",
+          "layer": "access",
+          "locked": true,
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-accessible-entrance-south-position",
+              "objectId": "obj-accessible-entrance-south",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-accessible-entrance-south-rotation",
+              "objectId": "obj-accessible-entrance-south",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-accessible-entrance-south-dimension",
+              "objectId": "obj-accessible-entrance-south",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-accessible-entrance-south-deletion",
+              "objectId": "obj-accessible-entrance-south",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-accessible-entrance-south-role",
+              "objectId": "obj-accessible-entrance-south",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ],
+          "operational": {}
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "end": {
+              "x": 15.9,
+              "y": 0.1
+            },
+            "kind": "line",
+            "start": {
+              "x": 14.1,
+              "y": 0.1
+            },
+            "width": 0.2
+          },
+          "id": "obj-door-south-access",
+          "kind": "door",
+          "label": "South access door",
+          "layer": "architecture",
+          "locked": true,
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-door-south-access-position",
+              "objectId": "obj-door-south-access",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-door-south-access-rotation",
+              "objectId": "obj-door-south-access",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-door-south-access-dimension",
+              "objectId": "obj-door-south-access",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-door-south-access-deletion",
+              "objectId": "obj-door-south-access",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-door-south-access-role",
+              "objectId": "obj-door-south-access",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ],
+          "operational": {
+            "door": {
+              "accessible": true,
+              "clearWidthM": 1.8,
+              "clearance": {
+                "depthM": 1.5,
+                "latchSideM": 0.45,
+                "side": "left"
+              },
+              "swing": "inward"
+            }
+          }
+        },
+        {
+          "capacity": 200,
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 11,
+              "y": 10
+            },
+            "depth": 14,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 6
+          },
+          "id": "obj-seating-west",
+          "inventoryCount": 200,
+          "kind": "seating_section",
+          "label": "West seating",
+          "layer": "furniture",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "templateOverrides": [],
+          "templateRef": {
+            "kind": "inventory-item-template",
+            "templateId": "inventory-template-banquet-chair",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "capacity": 200,
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 22,
+              "y": 10.5
+            },
+            "depth": 15,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 12
+          },
+          "id": "obj-seating-east",
+          "inventoryCount": 200,
+          "kind": "seating_section",
+          "label": "East seating",
+          "layer": "furniture",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "templateOverrides": [],
+          "templateRef": {
+            "kind": "inventory-item-template",
+            "templateId": "inventory-template-banquet-chair",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 15.8,
+              "y": 5
+            },
+            "depth": 2,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 1.6
+          },
+          "id": "obj-restroom-accessible",
+          "kind": "accessible_restroom",
+          "label": "Accessible restroom",
+          "layer": "architecture",
+          "locked": true,
+          "locks": [
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-restroom-accessible-position",
+              "objectId": "obj-restroom-accessible",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "position"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-restroom-accessible-rotation",
+              "objectId": "obj-restroom-accessible",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "rotation"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-restroom-accessible-dimension",
+              "objectId": "obj-restroom-accessible",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "dimension"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-restroom-accessible-deletion",
+              "objectId": "obj-restroom-accessible",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "deletion"
+            },
+            {
+              "active": true,
+              "authorId": "venue-template",
+              "id": "lock-obj-restroom-accessible-role",
+              "objectId": "obj-restroom-accessible",
+              "reasonCode": "venue-infrastructure",
+              "source": "venue-template",
+              "type": "role"
+            }
+          ],
+          "occupancy": {
+            "excludesUsableArea": true
+          },
+          "operational": {}
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "end": {
+              "x": 15,
+              "y": 10
+            },
+            "kind": "line",
+            "start": {
+              "x": 15,
+              "y": 0.5
+            },
+            "width": 1.829
+          },
+          "id": "obj-route-main",
+          "kind": "corridor",
+          "label": "Main access spine",
+          "layer": "access",
+          "locked": false,
+          "locks": [],
+          "operational": {
+            "route": {
+              "accessible": true,
+              "direction": "bidirectional",
+              "purpose": "primary-access"
+            }
+          },
+          "templateOverrides": [
+            "label"
+          ],
+          "templateRef": {
+            "kind": "room-template",
+            "templateId": "room-template-harborview-main-hall",
+            "templateObjectId": "roomobj-main-route",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "end": {
+              "x": 7,
+              "y": 10
+            },
+            "kind": "line",
+            "start": {
+              "x": 15,
+              "y": 10
+            },
+            "width": 1.829
+          },
+          "id": "obj-route-stage",
+          "kind": "service_lane",
+          "label": "Stage route",
+          "layer": "access",
+          "locked": false,
+          "locks": [],
+          "operational": {
+            "route": {
+              "accessible": true,
+              "direction": "bidirectional",
+              "purpose": "stage-access"
+            }
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "end": {
+              "x": 14,
+              "y": 10
+            },
+            "kind": "line",
+            "start": {
+              "x": 15,
+              "y": 10
+            },
+            "width": 1.829
+          },
+          "id": "obj-route-seating-west",
+          "kind": "aisle",
+          "label": "West seating route",
+          "layer": "access",
+          "locked": false,
+          "locks": [],
+          "operational": {
+            "route": {
+              "accessible": true,
+              "direction": "bidirectional",
+              "purpose": "seating-access"
+            }
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "end": {
+              "x": 16,
+              "y": 10
+            },
+            "kind": "line",
+            "start": {
+              "x": 15,
+              "y": 10
+            },
+            "width": 1.829
+          },
+          "id": "obj-route-seating-east",
+          "kind": "aisle",
+          "label": "East seating route",
+          "layer": "access",
+          "locked": false,
+          "locks": [],
+          "operational": {
+            "route": {
+              "accessible": true,
+              "direction": "bidirectional",
+              "purpose": "seating-access"
+            }
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "end": {
+              "x": 29.9,
+              "y": 10
+            },
+            "kind": "line",
+            "start": {
+              "x": 15,
+              "y": 10
+            },
+            "width": 1.829
+          },
+          "id": "obj-route-exit-east",
+          "kind": "accessible_route",
+          "label": "East exit route",
+          "layer": "access",
+          "locked": false,
+          "locks": [],
+          "operational": {
+            "route": {
+              "accessible": true,
+              "direction": "bidirectional",
+              "purpose": "exit-access"
+            }
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 4,
+              "y": 18
+            },
+            "depth": 2,
+            "kind": "rectangle",
+            "rotationDegrees": 0,
+            "width": 6
+          },
+          "id": "obj-restricted-production",
+          "kind": "restricted_zone",
+          "label": "Production clearance",
+          "layer": "safety",
+          "locked": false,
+          "locks": [],
+          "occupancy": {
+            "excludesUsableArea": true
+          },
+          "operational": {
+            "restriction": {
+              "access": "staff-only",
+              "blocksPlacement": true,
+              "reasonCode": "production-clearance"
+            }
+          },
+          "templateOverrides": [
+            "occupancy"
+          ],
+          "templateRef": {
+            "kind": "room-template",
+            "templateId": "room-template-harborview-main-hall",
+            "templateObjectId": "roomobj-production-zone",
+            "version": "1.0.0"
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "end": {
+              "x": 28,
+              "y": 1.5
+            },
+            "kind": "line",
+            "start": {
+              "x": 25,
+              "y": 5.5
+            },
+            "width": 1
+          },
+          "id": "obj-route-staff-service",
+          "kind": "service_lane",
+          "label": "Staff service route",
+          "layer": "access",
+          "locked": false,
+          "locks": [],
+          "operational": {
+            "route": {
+              "accessible": false,
+              "direction": "bidirectional",
+              "purpose": "staff-only",
+              "staffOnly": true
+            }
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 12.5,
+              "y": 2.5
+            },
+            "kind": "circle",
+            "radius": 0.2
+          },
+          "id": "obj-post-entrance",
+          "kind": "staff_post",
+          "label": "Entrance post",
+          "layer": "annotations",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "staffPost": {
+            "assignments": [
+              {
+                "count": 2,
+                "roleId": "role-security",
+                "shiftId": "shift-a"
+              },
+              {
+                "count": 2,
+                "roleId": "role-security",
+                "shiftId": "shift-b"
+              }
+            ],
+            "coverageZoneObjectIds": [
+              "obj-accessible-entrance-south"
+            ]
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 27.5,
+              "y": 12.5
+            },
+            "kind": "circle",
+            "radius": 0.2
+          },
+          "id": "obj-post-exit",
+          "kind": "staff_post",
+          "label": "Exit post",
+          "layer": "annotations",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "staffPost": {
+            "assignments": [
+              {
+                "count": 1,
+                "roleId": "role-security",
+                "shiftId": "shift-a"
+              },
+              {
+                "count": 1,
+                "roleId": "role-security",
+                "shiftId": "shift-b"
+              }
+            ],
+            "coverageZoneObjectIds": [
+              "obj-fire-exit-east"
+            ]
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 16.5,
+              "y": 3
+            },
+            "kind": "circle",
+            "radius": 0.2
+          },
+          "id": "obj-post-access",
+          "kind": "staff_post",
+          "label": "Access post",
+          "layer": "annotations",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "staffPost": {
+            "assignments": [
+              {
+                "count": 1,
+                "roleId": "role-access-steward",
+                "shiftId": "shift-a"
+              },
+              {
+                "count": 1,
+                "roleId": "role-access-steward",
+                "shiftId": "shift-b"
+              }
+            ],
+            "coverageZoneObjectIds": [
+              "obj-route-main"
+            ]
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 7.5,
+              "y": 16.5
+            },
+            "kind": "circle",
+            "radius": 0.2
+          },
+          "id": "obj-post-stage",
+          "kind": "staff_post",
+          "label": "Stage post",
+          "layer": "annotations",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "staffPost": {
+            "assignments": [
+              {
+                "count": 1,
+                "roleId": "role-stage-manager",
+                "shiftId": "shift-a"
+              },
+              {
+                "count": 1,
+                "roleId": "role-stage-manager",
+                "shiftId": "shift-b"
+              }
+            ],
+            "coverageZoneObjectIds": [
+              "obj-stage-west"
+            ]
+          }
+        },
+        {
+          "elevationM": 0,
+          "footprint": {
+            "center": {
+              "x": 25,
+              "y": 6
+            },
+            "kind": "circle",
+            "radius": 0.2
+          },
+          "id": "obj-post-catering",
+          "kind": "staff_post",
+          "label": "Service post",
+          "layer": "annotations",
+          "locked": false,
+          "locks": [],
+          "operational": {},
+          "staffPost": {
+            "assignments": [
+              {
+                "count": 1,
+                "roleId": "role-service-lead",
+                "shiftId": "shift-a"
+              },
+              {
+                "count": 1,
+                "roleId": "role-service-lead",
+                "shiftId": "shift-b"
+              }
+            ],
+            "coverageZoneObjectIds": [
+              "obj-refreshment-east"
+            ]
+          }
+        }
+      ],
+      "staffing": {
+        "coverageRequirements": [
+          {
+            "id": "coverage-main-entrance",
+            "minimumCount": 2,
+            "roleId": "role-security",
+            "shiftIds": [
+              "shift-a",
+              "shift-b"
+            ],
+            "zoneObjectId": "obj-accessible-entrance-south"
+          },
+          {
+            "id": "coverage-fire-exit",
+            "minimumCount": 1,
+            "roleId": "role-security",
+            "shiftIds": [
+              "shift-a",
+              "shift-b"
+            ],
+            "zoneObjectId": "obj-fire-exit-east"
+          },
+          {
+            "id": "coverage-access-route",
+            "minimumCount": 1,
+            "roleId": "role-access-steward",
+            "shiftIds": [
+              "shift-a",
+              "shift-b"
+            ],
+            "zoneObjectId": "obj-route-main"
+          },
+          {
+            "id": "coverage-stage",
+            "minimumCount": 1,
+            "roleId": "role-stage-manager",
+            "shiftIds": [
+              "shift-a",
+              "shift-b"
+            ],
+            "zoneObjectId": "obj-stage-west"
+          },
+          {
+            "id": "coverage-catering",
+            "minimumCount": 1,
+            "roleId": "role-service-lead",
+            "shiftIds": [
+              "shift-a",
+              "shift-b"
+            ],
+            "zoneObjectId": "obj-refreshment-east"
+          }
+        ],
+        "maximumWalkingDistanceM": 12,
+        "minimumHandoffOverlapMinutes": 15,
+        "roles": [
+          {
+            "headcount": 6,
+            "id": "role-security",
+            "label": "Security",
+            "skills": [
+              "incident-response"
+            ]
+          },
+          {
+            "headcount": 4,
+            "id": "role-access-steward",
+            "label": "Access steward",
+            "skills": [
+              "access-assistance"
+            ]
+          },
+          {
+            "headcount": 2,
+            "id": "role-stage-manager",
+            "label": "Stage manager",
+            "skills": [
+              "production"
+            ]
+          },
+          {
+            "headcount": 4,
+            "id": "role-service-lead",
+            "label": "Service lead",
+            "skills": [
+              "food-service"
+            ]
+          }
+        ],
+        "schemaVersion": 1,
+        "shifts": [
+          {
+            "endMinute": 255,
+            "id": "shift-a",
+            "label": "A",
+            "startMinute": 0
+          },
+          {
+            "endMinute": 480,
+            "id": "shift-b",
+            "label": "B",
+            "startMinute": 240
+          }
+        ]
+      },
+      "templateBindings": {
+        "room": {
+          "roomInstanceId": "room-harborview-main-hall",
+          "templateId": "room-template-harborview-main-hall",
+          "version": "1.0.0"
+        },
+        "venue": {
+          "templateId": "venue-template-harborview",
+          "version": "1.0.0"
+        }
+      },
+      "venue": {
+        "id": "venue-harborview-main-hall",
+        "name": "Harborview Convention Center",
+        "room": "Main Hall"
+      }
+    },
+    "schemaVersion": 1,
+    "summary": "Plan plan-summit-forward-2026 v3.3 · 0 objects · Proposal approved",
+    "toolName": "venue.inspect_layout"
+  }
+}

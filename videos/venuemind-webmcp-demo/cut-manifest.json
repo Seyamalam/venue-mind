@@ -1,0 +1,68 @@
+{
+  "duration": 74.715,
+  "scenes": [
+    {
+      "id": "01-inspect",
+      "voice": "02",
+      "duration": 9.557,
+      "from": 2.5,
+      "to": 6.8,
+      "label": "INSPECT",
+      "caption": "400 seats. Six-foot aisle. Locked objects stay."
+    },
+    {
+      "id": "02-proposal",
+      "voice": "03",
+      "duration": 10.347,
+      "from": 6.8,
+      "to": 12.3,
+      "label": "PROPOSE",
+      "caption": "Four ghost changes. Accepted plan unchanged."
+    },
+    {
+      "id": "03-validate",
+      "voice": "04",
+      "duration": 15.253,
+      "from": 12.3,
+      "to": 21.6,
+      "label": "VALIDATE",
+      "caption": "Access · capacity · circulation · locks · sightlines"
+    },
+    {
+      "id": "04-approve",
+      "voice": "05",
+      "duration": 6.763,
+      "from": 21.6,
+      "to": 25.6,
+      "label": "UI APPROVAL",
+      "caption": "Approval is not exposed as an agent tool."
+    },
+    {
+      "id": "05-ledger",
+      "voice": "06",
+      "duration": 11.776,
+      "from": 25.6,
+      "to": 37,
+      "label": "COMMIT + REPLAY",
+      "caption": "Plan v3.3. Recorded changes. Replay verified."
+    },
+    {
+      "id": "06-export",
+      "voice": "07",
+      "duration": 12.23,
+      "from": 37,
+      "to": 44.5,
+      "label": "EXPORT",
+      "caption": "Validated plan · summitforward-2026-v3-3.json"
+    },
+    {
+      "id": "07-outcome",
+      "voice": "08",
+      "duration": 8.789,
+      "from": 24.8,
+      "to": 28.5,
+      "label": "VENUEMIND",
+      "caption": "venue-mind-jet.vercel.app"
+    }
+  ]
+}
