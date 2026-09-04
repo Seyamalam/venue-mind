@@ -181,7 +181,8 @@ const decodeDeletionReceipt = (value: unknown): ProjectDeletionReceipt => {
       typeof value["cacheDirective"]["acknowledgedAt"] !== "string") ||
     (value["cacheDirective"]["acknowledgedBy"] !== null &&
       typeof value["cacheDirective"]["acknowledgedBy"] !== "string")
-  ) throw new Error("Project deletion endpoint returned invalid evidence");
+  )
+    throw new Error("Project deletion endpoint returned invalid evidence");
   return {
     schemaVersion: 1,
     id: value["id"],
@@ -374,6 +375,9 @@ export function createProjectStore({
     if (![409, 412].includes(response.status)) throw new Error(`Project save failed: ${response.status}`);
     const payload = await responseJson(response);
     const candidate = isObject(payload) && isObject(payload["details"]) ? payload["details"]["current"] : null;
+    if (isObject(payload) && payload["code"] === "PROJECT_ID_CONFLICT" && !isProjectRecord(candidate)) {
+      throw new ProjectStoreError("PROJECT_ID_CONFLICT", "Project ID is unavailable in this Organization");
+    }
     const remote: ProjectRecord = isProjectRecord(candidate) ? candidate : { ...local, revision: local.revision ?? 1 };
     if (!isProjectRecord(candidate)) {
       throw conflictError(
@@ -452,13 +456,13 @@ export function createProjectStore({
       }
     },
 
-    async load(
-      projectId: string,
-    ): Promise<Readonly<{
-      source: "local" | "remote";
-      record: LocalProjectRecord | null;
-      integrity: ProjectRecoveryIntegrity;
-    }>> {
+    async load(projectId: string): Promise<
+      Readonly<{
+        source: "local" | "remote";
+        record: LocalProjectRecord | null;
+        integrity: ProjectRecoveryIntegrity;
+      }>
+    > {
       try {
         const response = await fetchImpl(`/api/projects/${encodeURIComponent(projectId)}`, {
           credentials: "same-origin",
@@ -545,6 +549,10 @@ export function createProjectStore({
         persistenceSpan.end("ok");
         return result;
       } catch (error) {
+        if (error instanceof ProjectStoreError && error.code === "PROJECT_ID_CONFLICT") {
+          persistenceSpan.end("conflict", error.code);
+          throw error;
+        }
         if (error instanceof ProjectStoreError && error.code === "PROJECT_REVISION_CONFLICT") {
           persistenceSpan.end("conflict", error.code);
           startTelemetrySpan(
@@ -645,7 +653,8 @@ export function createProjectStore({
       });
       if (!response.ok) {
         const payload = await responseJson(response);
-        const code = isObject(payload) && typeof payload["code"] === "string" ? payload["code"] : "PROJECT_DELETE_FAILED";
+        const code =
+          isObject(payload) && typeof payload["code"] === "string" ? payload["code"] : "PROJECT_DELETE_FAILED";
         throw new ProjectStoreError(code, "Project deletion failed");
       }
       const receipt = decodeDeletionReceipt(await responseJson(response));
